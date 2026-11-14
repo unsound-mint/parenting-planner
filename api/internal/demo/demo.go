@@ -205,6 +205,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedMissions(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
 	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
 		return uuid.Nil, err
 	}

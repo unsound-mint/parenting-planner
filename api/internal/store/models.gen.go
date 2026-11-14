@@ -266,6 +266,16 @@ type Member struct {
 	RevokedAt   pgtype.Timestamptz
 }
 
+type MissionPick struct {
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	MissionKey string
+	Status     string
+	TaskID     uuid.NullUUID
+	Note       *string
+	CreatedAt  time.Time
+}
+
 type MoodCheckin struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -417,6 +427,15 @@ type Shift struct {
 	StartsOn  *time.Time
 	RoundID   uuid.NullUUID
 	CreatedAt time.Time
+}
+
+type Sticker struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	Key      string
+	EarnedAt time.Time
+	SeenAt   pgtype.Timestamptz
 }
 
 type StripeEvent struct {
