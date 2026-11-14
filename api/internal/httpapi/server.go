@@ -106,6 +106,12 @@ func (s *Server) session(next http.Handler) http.Handler {
 var (
 	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
+
+	errNoBooking         = Error{Code: "not_found", Message: "no such session for this parent"}
+	errSlotTaken         = Error{Code: "slot_taken", Message: "this time is no longer open"}
+	errSessionNotStarted = Error{Code: "session_not_started", Message: "you can write a note once the session has started"}
+	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
+	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
 )
 
 // errKind tells a handler which typed error response to return.

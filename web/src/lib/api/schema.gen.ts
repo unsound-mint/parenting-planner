@@ -37,6 +37,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/demo/custom-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start with a new family built from the visitor's own details
+         * @description "Try it with your own details": creates a new family for this visitor
+         *     from what they typed, through the same seed and rules path as the demo
+         *     families, and sets the same session cookie as createDemoSession. The
+         *     family's template is `custom`. No auth; nothing is stored beyond the
+         *     typed fields, and each call makes a separate family.
+         *
+         *     Dates are checked against the stage (400 `bad_details` otherwise):
+         *     - pregnancy: dueDate is required, from 14 days ago to 280 days ahead.
+         *     - postpartum, infant, toddler, preschool, school_age: childBirthDate is
+         *       required, not in the future, and the child's age must fit the stage:
+         *       postpartum under 3 months, infant 3 to 11 months, toddler 12 to 35
+         *       months, preschool 36 to 59 months, school_age 60 months to 9 years.
+         *     - planning, trying: no dates.
+         *     A date that does not belong to the stage is ignored and not stored, and
+         *     childName is ignored before birth.
+         */
+        post: operations["createCustomSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family": {
         parameters: {
             query?: never;
@@ -118,6 +152,32 @@ export interface paths {
          *     plan.
          */
         get: operations["getMemberWeeklyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/journey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The family's path from planning to age 9, where they are now and what comes next
+         * @description Every stage from planning to age 9 in order, each marked past, current
+         *     or future, with its dates when the family's due date or child's birth
+         *     date fixes them. `current` is the "you are here" marker, computed from
+         *     the family's stage, due date and youngest child's birth date. The
+         *     upcoming items are the first few items of this parent's plan from the
+         *     rules engine (the same items and order as getMemberPlan), so the two
+         *     parents can see different items.
+         */
+        get: operations["getMemberJourney"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1399,12 +1459,29 @@ export interface components {
             message: string;
         };
         /**
-         * @description Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists.
+         * @description Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists. `custom` marks a family built from the visitor's own details (createCustomSession); createDemoSession rejects it with 400.
          * @enum {string}
          */
-        DemoTemplate: "planning" | "pregnancy" | "newborn" | "preschool";
+        DemoTemplate: "planning" | "pregnancy" | "newborn" | "preschool" | "custom";
         CreateDemoSessionRequest: {
             template: components["schemas"]["DemoTemplate"];
+        };
+        CustomFamilyInput: {
+            stage: components["schemas"]["Stage"];
+            /**
+             * Format: date
+             * @description Required for pregnancy.
+             */
+            dueDate?: string;
+            /**
+             * Format: date
+             * @description Required once the child is born (postpartum and later).
+             */
+            childBirthDate?: string;
+            /** @description Optional; "Baby" when left out. */
+            childName?: string;
+            motherName: string;
+            partnerName: string;
         };
         /**
          * @description Where the family is on the journey from planning to age 9.
@@ -1494,6 +1571,55 @@ export interface components {
             generatedAt: string;
             /** @description Sorted by status (overdue, due, upcoming), then due date. */
             items: components["schemas"]["PlanItem"][];
+        };
+        /**
+         * @description A step on the timeline shown to parents, from planning to age 9. Finer
+         *     than the family's stored Stage: birth, newborn and first year are
+         *     separate steps.
+         * @enum {string}
+         */
+        JourneyStage: "planning" | "pregnancy" | "birth" | "newborn" | "first_year" | "toddler" | "preschool" | "school_age";
+        /** @enum {string} */
+        JourneySpanStatus: "past" | "current" | "future";
+        JourneySpan: {
+            stage: components["schemas"]["JourneyStage"];
+            status: components["schemas"]["JourneySpanStatus"];
+            /**
+             * Format: date
+             * @description First day of this stage for this family. Absent when no due date or birth date fixes it (planning families).
+             */
+            startsOn?: string;
+            /**
+             * Format: date
+             * @description Last day of this stage for this family. Absent when unknown. Birth is a single day, so startsOn equals endsOn.
+             */
+            endsOn?: string;
+        };
+        /** @description The "you are here" marker. Numbers only; the web formats them. */
+        JourneyPosition: {
+            stage: components["schemas"]["JourneyStage"];
+            /** @description Set in pregnancy; the same value as Family.gestationalWeek. */
+            gestationalWeek?: number;
+            /**
+             * Format: uuid
+             * @description Set after birth; the youngest child, whose age places the family.
+             */
+            childId?: string;
+            /** @description Set after birth; completed weeks since the youngest child's birth. */
+            childAgeWeeks?: number;
+            /** @description Set after birth; the same value as Child.ageMonths. */
+            childAgeMonths?: number;
+        };
+        Journey: {
+            /** Format: uuid */
+            memberId: string;
+            /** Format: date-time */
+            generatedAt: string;
+            current: components["schemas"]["JourneyPosition"];
+            /** @description All eight stages in order, from planning to school age (to age 9). */
+            stages: components["schemas"]["JourneySpan"][];
+            /** @description The next things for this parent, from the rules engine, most urgent first. Up to 5; fewer when the rules have less to say at this stage. */
+            upcoming: components["schemas"]["PlanItem"][];
         };
         /** @enum {string} */
         PlanItemStatus: "overdue" | "due" | "upcoming";
@@ -2035,9 +2161,9 @@ export interface components {
         PregnancyWeek: {
             week: number;
             isCurrentWeek: boolean;
-            size: components["schemas"]["BabySize"];
-            /** @description What is developing this week, in plain words. */
-            development: string;
+            size?: components["schemas"]["BabySize"];
+            /** @description What is developing this week, in plain words. Present only when sourced. */
+            development?: string;
             /** @description Why this week matters for the parents, never a diagnosis. */
             whyItMatters: string;
             /** @description For the acting person's role. */
@@ -2671,6 +2797,49 @@ export interface operations {
             };
         };
     };
+    createCustomSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomFamilyInput"];
+            };
+        };
+        responses: {
+            /** @description Family created; the session cookie is set. */
+            201: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getFamily: {
         parameters: {
             query?: never;
@@ -2827,6 +2996,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WeeklyPlan"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getMemberJourney: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Journey"];
                 };
             };
             /** @description Error */

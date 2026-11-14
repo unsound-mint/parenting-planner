@@ -88,11 +88,45 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type Psychologist struct {
+	ID          uuid.UUID
+	Name        string
+	Credentials string
+	Focus       string
+}
+
+type PsychologistBooking struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	SlotID        uuid.UUID
+	CreatedAt     time.Time
+}
+
+type PsychologistSlot struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	PsychologistID  uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
+}
+
 type Session struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID
 	CreatedAt time.Time
 	ExpiresAt time.Time
+}
+
+type SessionNote struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	BookingID     uuid.UUID
+	WrittenAt     time.Time
+	Text          string
 }
 
 type StripeEvent struct {
