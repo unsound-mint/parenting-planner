@@ -1,17 +1,10 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import { Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
+import { PassportBody } from "@/components/passport/passport-body";
 import { passportIcon } from "@/lib/visuals";
-import { GrowthCard } from "@/components/passport/growth-card";
-import { LabsCard } from "@/components/passport/labs-card";
-import { NextStep } from "@/components/passport/next-step";
-import { PersonTabs } from "@/components/passport/person-tabs";
-import { ProfileCard } from "@/components/passport/profile-card";
-import { attentionCount, followUps, tally } from "@/components/passport/summary";
-import { SummaryCard } from "@/components/passport/summary-card";
-import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
+import { PageFrame } from "@/components/shell/page";
 
 // Health passport: labs, vaccines, allergies, growth and care team for each
 // person. The API decides what the acting parent may see; this page draws it.
@@ -41,52 +34,14 @@ async function Passport({
 
   const wanted = Array.isArray(personParam) ? personParam[0] : personParam;
   const person = data.people.find((p) => p.id === wanted) ?? data.people[0];
-  const items = followUps(person);
-  const attention = items.length;
-  const attentionById = Object.fromEntries(data.people.map((p) => [p.id, attentionCount(p)]));
-  const owner = person.isActingParent ? "your" : `${person.name}'s`;
-  const headline =
-    attention === 0
-      ? `${person.isActingParent ? "Your" : `${person.name}'s`} passport is up to date.`
-      : `${attention === 1 ? "One thing" : `${attention} things`} to follow up in ${owner} passport.`;
-  const showVisibility = person.isActingParent;
-
-  return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
-      <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
-      <div className="mt-4">
-        <PersonTabs people={data.people} selectedId={person.id} base={`/family/${memberId}/passport`} attention={attentionById} />
-      </div>
-      {person.kind === "parent" && !person.isActingParent && (
-        <p className="mt-3 flex items-center gap-2 text-label text-muted-foreground">
-          <Lock className="size-3.5 shrink-0" aria-hidden />
-          Only what {person.name} has shared with you is shown here.
-        </p>
-      )}
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-6">
-        <SummaryCard tally={tally(person)} />
-        <NextStep person={person} items={items} />
-      </div>
-      <div className="mt-4 lg:mt-6">
-        <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
-      </div>
-      <div className="mt-4 grid items-start gap-4 lg:mt-6 lg:grid-cols-2 lg:gap-6">
-        <LabsCard labs={person.labs} showVisibility={showVisibility} />
-        <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
-          <VaccineTimeline vaccines={person.vaccines} />
-          {person.kind === "child" && <GrowthCard growth={person.growth} />}
-        </div>
-      </div>
-    </main>
-  );
+  return <PassportBody memberId={memberId} people={data.people} personId={person.id} />;
 }
 
 // Shown while the passport is not available (any non-OK answer except 401 and 404): calm, no error text.
 function PassportEmpty() {
   const sections = [passportIcon.labs, passportIcon.vaccines, passportIcon.allergies, passportIcon.growth, passportIcon.careTeam];
   return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="block">
       <h1 className="max-w-2xl text-headline text-balance">Your family&apos;s health passport is empty for now.</h1>
       <div className="mt-8 flex max-w-2xl flex-col items-center gap-5 rounded-2xl border border-dashed border-border px-6 py-12 text-center">
         <div className="flex gap-3" aria-hidden>
@@ -98,7 +53,7 @@ function PassportEmpty() {
         </div>
         <p className="max-w-sm text-body text-muted-foreground">Labs, vaccines, allergies, growth and your care team appear here once they are recorded. Check back soon.</p>
       </div>
-    </main>
+    </PageFrame>
   );
 }
 

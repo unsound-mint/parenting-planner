@@ -1,13 +1,16 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { familyPeople } from "@/lib/roles";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { familyContext } from "@/lib/format";
 import { formatShortDate } from "@/lib/format";
 import { categoryIcon, statusTint } from "@/lib/visuals";
+import { familyNow } from "@/lib/clock";
 import { cn } from "@/lib/utils";
 import { NextWeeks } from "@/components/journey/next-weeks";
-import { journeyHeadline, laneWindow } from "@/components/journey/stages";
+import { dueLabel, journeyHeadline, laneWindow } from "@/components/journey/stages";
+import { PageFrame } from "@/components/shell/page";
 
 // "Journey": the coming weeks with this parent's next steps on them, from the
 // rules engine, and the whole path from planning to age 9 as small context.
@@ -27,17 +30,19 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/family"),
     api.GET("/members/{memberId}/plan", { params: { path: { memberId } } }),
   ]);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !familyPeople(family).some((p) => p.id === memberId)) redirect("/family");
   if (!family || !plan || !family.parents.some((p) => p.id === memberId)) notFound();
   const lane = laneWindow(family, plan.items);
   const headline = journeyHeadline(lane);
 
   return (
-    <main className="flex min-w-0 max-w-4xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="gap-8">
       <header className="flex flex-col gap-4">
         <div>
           <h1 className="text-headline text-balance">{headline}</h1>
           {/* The top bar shows this line from sm up; repeat it here only on phones. */}
-          <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+          <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         </div>
       </header>
 
@@ -58,7 +63,7 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
                   </span>
                   <span>
                     <span className="block text-body font-semibold">{i.title}</span>
-                    <span className="block font-mono text-caption text-muted-foreground">{i.dueBy ? `by ${formatShortDate(i.dueBy)}` : "no set date"}</span>
+                    <span className="block font-mono text-caption text-muted-foreground">{dueLabel(i, familyNow(family), formatShortDate)}</span>
                   </span>
                 </li>
               );
@@ -66,7 +71,7 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
           </ul>
         </section>
       )}
-    </main>
+    </PageFrame>
   );
 }
 

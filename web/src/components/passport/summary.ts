@@ -65,3 +65,27 @@ export function tally(person: PassportPerson): Tally {
 export function attentionCount(person: PassportPerson): number {
   return followUps(person).length;
 }
+
+/** Records the parent just logged, per person, that the passport has not returned yet. */
+export type Logged = { vaccines: VaccineDose[]; labs: LabResult[] };
+
+/**
+ * The passport with just-logged records applied, for previews whose answers
+ * are not stored. A logged dose replaces the earliest open dose of the same
+ * vaccine, as the backend does when no dose is named; a lab joins the list.
+ * Safe to apply twice: a record the passport already has (same id) is skipped.
+ */
+export function withLogged(person: PassportPerson, logged?: Logged): PassportPerson {
+  if (!logged) return person;
+  let vaccines = person.vaccines;
+  for (const dose of logged.vaccines) {
+    if (vaccines.some((v) => v.id === dose.id)) continue;
+    const open = vaccines
+      .filter((v) => v.status !== "done" && v.name === dose.name)
+      .sort((a, b) => (a.dueOn ?? "").localeCompare(b.dueOn ?? ""))[0];
+    vaccines = open ? vaccines.map((v) => (v === open ? { ...dose, dose: dose.dose === "Dose given" ? open.dose : dose.dose } : v)) : [...vaccines, dose];
+  }
+  const known = new Set(person.labs.map((l) => l.id));
+  const labs = [...logged.labs.filter((l) => !known.has(l.id)), ...person.labs].sort((a, b) => b.takenOn.localeCompare(a.takenOn));
+  return { ...person, vaccines, labs };
+}

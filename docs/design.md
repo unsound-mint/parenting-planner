@@ -63,7 +63,17 @@ Rules:
 5. Every number that matters is drawn: progress as a ring or bar, a series as a chart, a count as a figure in a tile. Text repeats it for screen readers, not instead of it.
 6. Every category, stage, status and action has a lucide icon, used the same way everywhere (the maps live in `web/src/lib/visuals.ts`). An icon that marks an item sits in a soft tinted circle; icons in buttons stand alone.
 7. Choices are pictures when they can be: faces for mood, batteries for energy, a lock or people for who can see.
-8. Before calling a screen done, look at screenshots at 1440 and 390 px and run two tests. Squint test: blurred, the three reads still stand out in order. No-words test: with the text covered, the status, the next step and the trend are still clear.
+8. Before calling a screen done, look at screenshots at 390, 1440 and 1920 px and run two tests. Squint test: blurred, the three reads still stand out in order. No-words test: with the text covered, the status, the next step and the trend are still clear.
+
+## Layout
+
+Family screens use the width of the screen they are on. The parts live in `web/src/components/shell/page.tsx`.
+
+1. The family layout caps the header and the page together at `max-w-page` (1600 px of content plus padding, set in `globals.css`), left-aligned beside the nav. The header and the page share the same side padding, so their edges line up. A page never sets its own `max-w` on its wrapper.
+2. Every page renders `PageFrame` as its `<main>`. Independent cards go in a `PageGrid`: one column on phones, two once the family column is 896 px wide (`@4xl`, about a 1120 px screen), three from 1280 px (`@7xl`, about 1500 px) with `cols={3}` when the page has three or more independent cards. These are container queries on the family column in `layout.tsx`, not viewport breakpoints, because the nav takes 224 px. A main column with a rail (This week, Baby, Practice) splits at `@5xl`. Use the extra width to put related things side by side (People: invite, who has access, who looked; This week: plan beside the rail, and the rail splits in two at `@7xl`), not to stretch one card.
+3. DOM order is the phone order. Columns come from grouping, spans and grid placement (`@4xl:row-span-2`, `@7xl:contents`), never from reordering.
+4. Keep a reading measure inside cards: running text at most `max-w-prose` (about 65ch), headlines `max-w-2xl`. Lists of rows sit in a column, not across the full width.
+5. A single-task flow (a quiz question, a questionnaire in progress, a one-off form page outside the family area) keeps a reading measure instead of the grid. So does a timeline that has to read top to bottom (paperwork).
 
 ## Tokens
 
