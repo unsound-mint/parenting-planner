@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
 )
@@ -203,4 +204,29 @@ func TestDiaryIsAuditedAndScoped(t *testing.T) {
 		t.Error("another family's entry leaked")
 	}
 	_ = time.Now
+}
+
+// Without DIARY_ENCRYPTION_KEY every restart makes a new key, so entries written before it
+// cannot be opened. They are left out; the rest of the diary still loads.
+func TestDiaryLeavesOutEntriesSealedWithAnotherKey(t *testing.T) {
+	c := testutil.New(t)
+	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
+	var old httpapi.DiaryEntry
+	c.Post(diaryPath(mom), entry("Written before the restart.", "private"), http.StatusCreated, &old)
+	c.Post(diaryPath(mom), entry("Written after the restart.", "private"), http.StatusCreated, nil)
+	other, err := crypt.NewKey([]byte(strings.Repeat("k", 32)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sealed, err := other.Seal("Written before the restart.")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Pool.Exec(context.Background(), "UPDATE diary_entries SET body_sealed = $1 WHERE id = $2", sealed, old.Id); err != nil {
+		t.Fatal(err)
+	}
+	got := diaryBodies(c, mom)
+	if len(got) != 1 || got["Written after the restart."].Id == uuid.Nil {
+		t.Errorf("Mom's diary after a key change: %v", keys(got))
+	}
 }

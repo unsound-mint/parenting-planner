@@ -86,6 +86,11 @@ func List(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, view
 		}
 		for _, r := range rows {
 			e, err := open(key, r)
+			if errors.Is(err, crypt.ErrCannotDecrypt) {
+				// Sealed with an earlier key: without DIARY_ENCRYPTION_KEY each restart makes a
+				// new one. Leave the entry out instead of failing the whole diary.
+				continue
+			}
 			if err != nil {
 				return err
 			}
@@ -114,7 +119,7 @@ func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 			next = topic(agendaTopic)
 		}
 		row, err := q.UpdateOwnDiaryEntryVisibleToParent(ctx, store.UpdateOwnDiaryEntryVisibleToParentParams{
-			ID: id, ViewerID: actor, Visibility: string(v), AgendaTopic: next,
+			ID: id, FamilyID: familyID, ViewerID: actor, Visibility: string(v), AgendaTopic: next,
 		})
 		if err != nil {
 			return err

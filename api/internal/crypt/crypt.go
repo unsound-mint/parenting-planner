@@ -78,6 +78,9 @@ func (k Key) Seal(text string) ([]byte, error) {
 	return a.Seal(nonce, nonce, []byte(text), nil), nil
 }
 
+// ErrCannotDecrypt means the data was sealed with another key or was altered.
+var ErrCannotDecrypt = errors.New("cannot decrypt")
+
 // Open decrypts what Seal made. It fails on a wrong key or altered data.
 func (k Key) Open(sealed []byte) (string, error) {
 	a, err := k.aead()
@@ -89,7 +92,7 @@ func (k Key) Open(sealed []byte) (string, error) {
 	}
 	plain, err := a.Open(nil, sealed[:a.NonceSize()], sealed[a.NonceSize():], nil)
 	if err != nil {
-		return "", errors.New("cannot decrypt")
+		return "", ErrCannotDecrypt
 	}
 	return string(plain), nil
 }

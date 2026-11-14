@@ -17,7 +17,7 @@ SELECT * FROM diary_entries WHERE id = @id AND family_id = @family_id AND owner_
 -- Mirrors access.CanParentRead for a change: only the author.
 -- name: UpdateOwnDiaryEntryVisibleToParent :one
 UPDATE diary_entries SET visibility = @visibility, agenda_topic = @agenda_topic
-WHERE id = @id AND owner_member_id = @viewer_id RETURNING *;
+WHERE id = @id AND family_id = @family_id AND owner_member_id = @viewer_id RETURNING *;
 
 -- Mirrors access.CanParentRead: the agenda topics belong to their author alone, so
 -- only the viewer's own entries are read, whatever their visibility.

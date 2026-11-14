@@ -162,13 +162,14 @@ func (q *Queries) ListDiaryEntriesVisibleToParent(ctx context.Context, arg ListD
 
 const updateOwnDiaryEntryVisibleToParent = `-- name: UpdateOwnDiaryEntryVisibleToParent :one
 UPDATE diary_entries SET visibility = $1, agenda_topic = $2
-WHERE id = $3 AND owner_member_id = $4 RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at
+WHERE id = $3 AND family_id = $4 AND owner_member_id = $5 RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at
 `
 
 type UpdateOwnDiaryEntryVisibleToParentParams struct {
 	Visibility  string
 	AgendaTopic *string
 	ID          uuid.UUID
+	FamilyID    uuid.UUID
 	ViewerID    uuid.UUID
 }
 
@@ -178,6 +179,7 @@ func (q *Queries) UpdateOwnDiaryEntryVisibleToParent(ctx context.Context, arg Up
 		arg.Visibility,
 		arg.AgendaTopic,
 		arg.ID,
+		arg.FamilyID,
 		arg.ViewerID,
 	)
 	var i DiaryEntry
