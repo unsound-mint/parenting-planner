@@ -20,9 +20,19 @@ func (s *Server) CreateDemoSession(ctx context.Context, req CreateDemoSessionReq
 	if err != nil {
 		return nil, err
 	}
-	cookie := (&http.Cookie{
+	cookie := s.sessionCookieHeader(token)
+	return CreateDemoSession201JSONResponse{Body: fam, Headers: CreateDemoSession201ResponseHeaders{SetCookie: &cookie}}, nil
+}
+
+// sessionCookieHeader is the Set-Cookie value for a new session token.
+func (s *Server) sessionCookieHeader(token string) string {
+	return (&http.Cookie{
 		Name: sessionCookie, Value: token, Path: "/", HttpOnly: true,
 		Secure: s.cfg.SecureCookies, SameSite: http.SameSiteLaxMode, MaxAge: int(demo.SessionTTL.Seconds()),
 	}).String()
-	return CreateDemoSession201JSONResponse{Body: fam, Headers: CreateDemoSession201ResponseHeaders{SetCookie: &cookie}}, nil
+}
+
+// CreateDemoTimeSkip is a stub until the demo clock is stored (#325).
+func (s *Server) CreateDemoTimeSkip(_ context.Context, _ CreateDemoTimeSkipRequestObject) (CreateDemoTimeSkipResponseObject, error) {
+	return CreateDemoTimeSkip501JSONResponse(Error{Code: "not_implemented", Message: "skipping ahead is not available yet"}), nil
 }
