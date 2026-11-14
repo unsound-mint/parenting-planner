@@ -167,3 +167,31 @@ func TestLowMoodGoesToTheRightParent(t *testing.T) {
 		t.Fatalf("mother's low mood must produce low-mood-mother only, got %+v", items)
 	}
 }
+
+func TestNextPsychologistSession(t *testing.T) {
+	daysAgo := func(n int) *time.Time { d := today.AddDate(0, 0, -n); return &d }
+	cases := []struct {
+		name   string
+		viewer Role
+		noteAt *time.Time
+		booked bool
+		want   bool
+	}{
+		{"no note yet", Mother, nil, false, false},
+		{"note written, nothing booked", Mother, daysAgo(2), false, true},
+		{"note written, next session booked", Mother, daysAgo(2), true, false},
+		{"note older than the window", Mother, daysAgo(20), false, false},
+		{"the partner's own note", Partner, daysAgo(1), false, true},
+	}
+	for _, c := range cases {
+		f := pregnantAt(25, c.viewer)
+		f.LastSessionNoteAt, f.NextSessionBooked = c.noteAt, c.booked
+		it := find(Plan(All(), f), "psychologist-next-session")
+		if (it != nil) != c.want {
+			t.Errorf("%s: got %+v, want applied=%v", c.name, it, c.want)
+		}
+		if it != nil && (it.Status != Due || it.Category != MentalHealth) {
+			t.Errorf("%s: got %+v, want a due mental health item", c.name, it)
+		}
+	}
+}

@@ -18,6 +18,11 @@ type Facts struct {
 	CareTeam map[string]bool
 	// The viewing parent's own mood check-ins from the last 14 days, newest first.
 	RecentMoods []MoodSample
+	// When the viewing parent last wrote a note after a psychologist session
+	// (last 14 days only), and whether they have a next session booked. Never
+	// the note text.
+	LastSessionNoteAt *time.Time
+	NextSessionBooked bool
 }
 
 const pregnancyDays = 280
