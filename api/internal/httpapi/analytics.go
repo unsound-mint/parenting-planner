@@ -35,7 +35,7 @@ func (s *Server) GetAnalytics(ctx context.Context, req GetAnalyticsRequestObject
 	if req.Params.Days != nil {
 		days = *req.Params.Days
 	}
-	r, err := analytics.Load(ctx, s.q, s.today(), days)
+	r, err := analytics.Load(ctx, s.q, s.realToday(), days)
 	if err != nil {
 		return nil, err
 	}
