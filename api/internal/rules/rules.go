@@ -112,7 +112,9 @@ func Plan(rs []Rule, f Facts) []Item {
 
 // All is every rule the engine knows, across stages.
 func All() []Rule {
-	rs := append([]Rule{}, pregnancyRules...)
+	rs := append([]Rule{}, planningRules...)
+	rs = append(rs, pregnancyRules...)
+	rs = append(rs, childRules...)
 	return append(rs, wellbeingRules...)
 }
 

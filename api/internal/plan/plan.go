@@ -4,6 +4,7 @@ package plan
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -58,10 +59,32 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 	if err != nil {
 		return rules.Facts{}, err
 	}
+	children, err := q.ListChildren(ctx, familyID)
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	childIdx := map[uuid.UUID]int{}
+	for i, c := range children {
+		childIdx[c.ID] = i
+		f.Children = append(f.Children, rules.ChildFacts{Name: c.Name, BirthDate: c.BirthDate, Doses: map[string]int{}, Labs: map[string]time.Time{}})
+	}
+
+	// Labs come newest first, so the first rubella result seen is the latest.
 	for _, l := range labs {
 		if l.SubjectMemberID.Valid && l.SubjectMemberID.UUID == motherID {
 			if prev, ok := f.PregnancyLabs[l.Kind]; !ok || l.TakenOn.After(prev) {
 				f.PregnancyLabs[l.Kind] = l.TakenOn
+			}
+			var res struct {
+				Rubella string `json:"rubella"`
+			}
+			if f.MotherRubella == "" && json.Unmarshal(l.Result, &res) == nil {
+				f.MotherRubella = res.Rubella
+			}
+		}
+		if i, ok := childIdx[l.SubjectChildID.UUID]; ok && l.SubjectChildID.Valid {
+			if prev, ok := f.Children[i].Labs[l.Kind]; !ok || l.TakenOn.After(prev) {
+				f.Children[i].Labs[l.Kind] = l.TakenOn
 			}
 		}
 	}
@@ -71,6 +94,10 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 		return rules.Facts{}, err
 	}
 	for _, im := range imms {
+		if i, ok := childIdx[im.SubjectChildID.UUID]; ok && im.SubjectChildID.Valid {
+			f.Children[i].Doses[im.Vaccine]++
+			continue
+		}
 		if !im.SubjectMemberID.Valid {
 			continue
 		}
@@ -98,6 +125,33 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 	for _, m := range moods {
 		if m.OwnerMemberID == memberID {
 			f.RecentMoods = append(f.RecentMoods, rules.MoodSample{At: m.RecordedAt, Mood: int(m.Mood)})
+		}
+	}
+
+	// Only the viewer's own session notes and bookings; the plan sees when a
+	// note was written, never its text.
+	notes, err := q.ListSessionNotesVisibleToParent(ctx, store.ListSessionNotesVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID, Since: now.Add(-14 * 24 * time.Hour),
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, n := range notes {
+		if n.OwnerMemberID == memberID {
+			at := n.WrittenAt
+			f.LastSessionNoteAt = &at
+			break
+		}
+	}
+	bookings, err := q.ListPsychologistBookingsVisibleToParent(ctx, store.ListPsychologistBookingsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID,
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, b := range bookings {
+		if b.OwnerMemberID == memberID && b.StartsAt.After(now) {
+			f.NextSessionBooked = true
 		}
 	}
 	return f, nil
