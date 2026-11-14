@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Brain, CalendarCheck, IdCard, Route, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck, HeartHandshake, IdCard, Route, Search, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 // long view last. Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck },
-  { href: "/care", screen: "care", label: "Care", icon: Brain },
+  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake },
   { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
-  { href: "/directory", screen: "directory", label: "Find help", icon: Users },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Search },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
 ];
 
@@ -31,7 +31,7 @@ export function FamilyNav({ memberId, role }: { memberId: string; role: Role }) 
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-caption transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
+              "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-0.5 py-1.5 text-center text-caption whitespace-nowrap transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
               active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
