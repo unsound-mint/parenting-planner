@@ -2,15 +2,14 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
-import { countThings } from "@/lib/format";
 import { passportIcon } from "@/lib/visuals";
-import { AllergiesCard } from "@/components/passport/allergies-card";
-import { CareTeamCard } from "@/components/passport/care-team-card";
 import { GrowthCard } from "@/components/passport/growth-card";
 import { LabsCard } from "@/components/passport/labs-card";
 import { NextStep } from "@/components/passport/next-step";
 import { PersonTabs } from "@/components/passport/person-tabs";
-import { summarize } from "@/components/passport/summary";
+import { ProfileCard } from "@/components/passport/profile-card";
+import { attentionCount, summarize, tally } from "@/components/passport/summary";
+import { SummaryCard } from "@/components/passport/summary-card";
 import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
 
 // Health passport: labs, vaccines, allergies, growth and care team for each
@@ -41,19 +40,20 @@ async function Passport({
   const wanted = Array.isArray(personParam) ? personParam[0] : personParam;
   const person = data.people.find((p) => p.id === wanted) ?? data.people[0];
   const summary = summarize(person);
-  const attention = summary.vaccinesNeeded + summary.labsOutside + summary.suspectedAllergies;
+  const attention = attentionCount(person);
+  const attentionById = Object.fromEntries(data.people.map((p) => [p.id, attentionCount(p)]));
   const owner = person.isActingParent ? "your" : `${person.name}'s`;
   const headline =
     attention === 0
-      ? `${person.isActingParent ? "Your" : `${person.name}'s`} passport is up to date. Nothing to ask about.`
-      : `${countThings(attention)} in ${owner} passport ${attention === 1 ? "is" : "are"} worth a look.`;
+      ? `${person.isActingParent ? "Your" : `${person.name}'s`} passport is up to date.`
+      : `${attention === 1 ? "One thing" : `${attention} things`} to follow up in ${owner} passport.`;
   const showVisibility = person.isActingParent;
 
   return (
     <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
       <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
       <div className="mt-4">
-        <PersonTabs people={data.people} selectedId={person.id} base={`/family/${memberId}/passport`} />
+        <PersonTabs people={data.people} selectedId={person.id} base={`/family/${memberId}/passport`} attention={attentionById} />
       </div>
       {person.kind === "parent" && !person.isActingParent && (
         <p className="mt-3 flex items-center gap-2 text-label text-muted-foreground">
@@ -62,17 +62,19 @@ async function Passport({
         </p>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <NextStep person={person} focus={summary.focus} />
-          <LabsCard labs={person.labs} showVisibility={showVisibility} />
+      <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-6">
+        <SummaryCard tally={tally(person)} />
+        <NextStep person={person} focus={summary.focus} />
+      </div>
+      <div className="mt-4 lg:mt-6">
+        <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
+      </div>
+      <div className="mt-4 grid items-start gap-4 lg:mt-6 lg:grid-cols-2 lg:gap-6">
+        <LabsCard labs={person.labs} showVisibility={showVisibility} />
+        <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
           <VaccineTimeline vaccines={person.vaccines} />
-        </div>
-        <aside className="flex flex-col gap-6">
-          <AllergiesCard allergies={person.allergies} />
           {person.kind === "child" && <GrowthCard growth={person.growth} />}
-          <CareTeamCard members={person.careTeam} />
-        </aside>
+        </div>
       </div>
     </main>
   );
