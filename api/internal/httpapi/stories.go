@@ -29,7 +29,7 @@ func storybookOut(s storybook.Story) StorybookStory {
 	out := StorybookStory{
 		Id: s.ID, AuthorId: s.OwnerMemberID, Title: s.Title, Theme: StoryTheme(s.Theme), ChildName: s.ChildName,
 		SignedAs: s.SignedAs, Memories: s.MemoryLines, Pages: make([]StoryPage, 0, len(s.PageList)),
-		Visibility: Visibility(s.Visibility), GeneratedBy: StoryGeneratedBy(s.GeneratedBy), CreatedAt: s.CreatedAt.UTC(),
+		Visibility: Visibility(s.Visibility), GeneratedBy: StorybookStoryGeneratedBy(s.GeneratedBy), CreatedAt: s.CreatedAt.UTC(),
 	}
 	if out.Memories == nil {
 		out.Memories = []string{}
