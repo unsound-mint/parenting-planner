@@ -16,6 +16,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
+	"github.com/unsound-mint/parenting-planner/api/internal/friends"
 	"github.com/unsound-mint/parenting-planner/api/internal/notify"
 	"github.com/unsound-mint/parenting-planner/api/internal/offers"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
@@ -44,17 +46,17 @@ var seeds = map[Template]seedFunc{
 
 // Start seeds a family from the template and opens a session for it.
 // It returns the family id and the raw session token for the cookie.
-func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time) (uuid.UUID, string, error) {
+func Start(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, t Template, today time.Time) (uuid.UUID, string, error) {
 	seed, ok := seeds[t]
 	if !ok {
 		return uuid.Nil, "", ErrUnknownTemplate
 	}
-	return start(ctx, pool, seed, today)
+	return start(ctx, pool, key, t, seed, today)
 }
 
 // start runs a seed and opens a session for its family in one transaction.
 // Demo templates and families from a visitor's own details both go through it.
-func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Time) (uuid.UUID, string, error) {
+func start(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, t Template, seed seedFunc, today time.Time) (uuid.UUID, string, error) {
 	token, hash, err := NewToken()
 	if err != nil {
 		return uuid.Nil, "", err
@@ -67,9 +69,17 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 			return err
 		}
 		familyID = id
+		// Lab answers and sealed letters need the parents' ids and the server key.
+		if err := seedCouple(ctx, q, key, t, id, today); err != nil {
+			return err
+		}
 		// Every family, from a template or a visitor's own details, gets its
 		// own copy of the partner offers for the admin panel to edit.
 		if err := offers.Seed(ctx, q, id, today); err != nil {
+			return err
+		}
+		// And two synthetic friend families, so People > Friends is not empty.
+		if err := friends.Seed(ctx, q, id, today); err != nil {
 			return err
 		}
 		return q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: id, ExpiresAt: time.Now().Add(SessionTTL)})
@@ -220,7 +230,17 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedMoney(ctx, q, fam.ID, "pregnancy", today); err != nil {
+		return uuid.Nil, err
+	}
+	// The bump once a month so far; week 28 is the next one to take.
+	if err := bumpWeeks(ctx, q, fam.ID, due, 8, 12, 16, 20, 24); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedMissions(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {

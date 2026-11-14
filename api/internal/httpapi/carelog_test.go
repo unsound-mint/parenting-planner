@@ -283,3 +283,74 @@ func TestHandoffVoiceNote(t *testing.T) {
 		t.Errorf("read audit rows = %d, want 3", got)
 	}
 }
+
+// A feed logged on the wrong side or a sleep that ran longer is corrected in
+// place; an entry logged by mistake goes away. The kind never changes.
+func TestCareLogEditAndDelete(t *testing.T) {
+	c := testutil.New(t)
+	p := newbornFamily(c, t)
+	base := careLog(p.mom.Id)
+	var feed httpapi.CareLogEntry
+	c.Post(base, map[string]any{"kind": "feed", "startedAt": ago(time.Hour), "feedMethod": "breast_left"}, http.StatusCreated, &feed)
+	entry := base + "/" + feed.Id.String()
+
+	var got httpapi.CareLogEntry
+	c.Patch(entry, map[string]any{"kind": "feed", "startedAt": ago(time.Hour), "endedAt": ago(40 * time.Minute), "feedMethod": "breast_both"}, http.StatusOK, &got)
+	if got.Id != feed.Id || got.FeedMethod == nil || *got.FeedMethod != httpapi.BreastBoth || got.EndedAt == nil {
+		t.Fatalf("updated = %+v", got)
+	}
+	c.Patch(entry, map[string]any{"kind": "sleep", "startedAt": ago(time.Hour)}, http.StatusBadRequest, nil)                                               // kind stays
+	c.Patch(entry, map[string]any{"kind": "feed", "startedAt": ago(time.Hour)}, http.StatusBadRequest, nil)                                                // still needs a method
+	c.Patch(base+"/"+uuid.NewString(), map[string]any{"kind": "feed", "startedAt": ago(time.Hour), "feedMethod": "breast_left"}, http.StatusNotFound, nil) // not in the family
+
+	// A caregiver may correct too, and it is audited.
+	c.Patch(careLog(p.nanny.Id)+"/"+feed.Id.String(), map[string]any{"kind": "feed", "startedAt": ago(time.Hour), "feedMethod": "bottle_formula", "amountMl": 90}, http.StatusOK, &got)
+	if got.AmountMl == nil || *got.AmountMl != 90 {
+		t.Errorf("bottle amount = %+v", got)
+	}
+	if n := c.AuditCount(p.fam.Id, "update", "care_log_entry"); n != 1 {
+		t.Errorf("a caregiver's change must be audited, got %d", n)
+	}
+
+	// Another family cannot touch it (the session is the other family's from here on).
+	other := c.StartDemo("newborn")
+	c.Delete(careLog(testutil.Parent(t, other, httpapi.ParentRoleMother).Id)+"/"+feed.Id.String(), http.StatusNotFound, nil)
+	var n int
+	if err := c.Pool.QueryRow(t.Context(), `SELECT count(*) FROM care_log_entries WHERE id = $1`, feed.Id).Scan(&n); err != nil || n != 1 {
+		t.Fatalf("another family deleted the entry: %d %v", n, err)
+	}
+}
+
+func TestCareLogDelete(t *testing.T) {
+	c := testutil.New(t)
+	p := newbornFamily(c, t)
+	base := careLog(p.mom.Id)
+	var e httpapi.CareLogEntry
+	c.Post(base, map[string]any{"kind": "diaper", "startedAt": ago(time.Hour), "diaper": "wet"}, http.StatusCreated, &e)
+	c.Delete(base+"/"+e.Id.String(), http.StatusNoContent, nil)
+	c.Delete(base+"/"+e.Id.String(), http.StatusNotFound, nil)
+	var l httpapi.CareLogList
+	c.Get(base, http.StatusOK, &l)
+	if len(l.Items) != 0 || l.Latest.LastDiaper != nil {
+		t.Errorf("deleted entry still listed: %+v", l)
+	}
+}
+
+// The week view asks for up to seven days; the default stays 48 hours.
+func TestCareLogDays(t *testing.T) {
+	c := testutil.New(t)
+	p := newbornFamily(c, t)
+	base := careLog(p.mom.Id)
+	c.Post(base, map[string]any{"kind": "diaper", "startedAt": ago(5 * 24 * time.Hour), "diaper": "wet"}, http.StatusCreated, nil)
+	c.Post(base, map[string]any{"kind": "diaper", "startedAt": ago(time.Hour), "diaper": "wet"}, http.StatusCreated, nil)
+	var l httpapi.CareLogList
+	c.Get(base, http.StatusOK, &l)
+	if len(l.Items) != 1 {
+		t.Errorf("default window = %d items", len(l.Items))
+	}
+	c.Get(base+"?days=7", http.StatusOK, &l)
+	if len(l.Items) != 2 {
+		t.Errorf("seven days = %d items", len(l.Items))
+	}
+	c.Get(base+"?days=8", http.StatusBadRequest, nil)
+}

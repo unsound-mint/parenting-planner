@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { UsersRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
@@ -11,6 +13,7 @@ import { LoadMapCard } from "@/components/load-map/load-map-card";
 import { ThanksSection } from "@/components/thanks/thanks-section";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame, PageGrid } from "@/components/shell/page";
+import { MissionsLink } from "@/components/missions/missions-link";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
 // revoke, and read what they did. Parents only; the API refuses caregivers too.
@@ -27,13 +30,14 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, invitations, log, loadMap, thanks, suggestions] = await Promise.all([
+  const [{ data: family }, invitations, log, loadMap, thanks, suggestions, missions] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/invitations", path),
     api.GET("/members/{memberId}/access-log", path),
     api.GET("/members/{memberId}/load-map", path),
     api.GET("/members/{memberId}/thanks", path),
     api.GET("/members/{memberId}/thanks/suggestions", path),
+    api.GET("/members/{memberId}/missions", path),
   ]);
   const people = familyPeople(family ?? { parents: [] });
   if (invitations.response.status === 401) redirect("/");
@@ -56,6 +60,18 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
       </header>
+      <Link
+        href={`/family/${memberId}/people/friends`}
+        className="press lift flex w-full max-w-2xl items-center gap-4 rounded-3xl bg-them-soft p-5 text-left"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-card text-them">
+          <UsersRound className="size-5" aria-hidden />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-title">Friend families</span>
+          <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
+        </span>
+      </Link>
       {/* The couple's own section comes first: who carries what, and a way to say thanks.
           Either part is left out when its endpoint is not available. */}
       {(loadMap.data || (thanks.data && suggestions.data)) && (
@@ -72,6 +88,7 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           )}
         </PageGrid>
       )}
+      {missions.data && <MissionsLink memberId={memberId} missions={missions.data.items} />}
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
       <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">

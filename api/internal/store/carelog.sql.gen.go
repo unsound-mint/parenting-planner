@@ -171,6 +171,52 @@ func (q *Queries) CreateHandoff(ctx context.Context, arg CreateHandoffParams) (H
 	return i, err
 }
 
+const deleteCareLogEntry = `-- name: DeleteCareLogEntry :execrows
+DELETE FROM care_log_entries WHERE id = $1 AND family_id = $2
+`
+
+type DeleteCareLogEntryParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) DeleteCareLogEntry(ctx context.Context, arg DeleteCareLogEntryParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteCareLogEntry, arg.ID, arg.FamilyID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const getCareLogEntry = `-- name: GetCareLogEntry :one
+SELECT id, family_id, child_id, author_member_id, kind, started_at, ended_at, feed_method, amount_ml, diaper, note, created_at FROM care_log_entries WHERE id = $1 AND family_id = $2
+`
+
+type GetCareLogEntryParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) GetCareLogEntry(ctx context.Context, arg GetCareLogEntryParams) (CareLogEntry, error) {
+	row := q.db.QueryRow(ctx, getCareLogEntry, arg.ID, arg.FamilyID)
+	var i CareLogEntry
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.ChildID,
+		&i.AuthorMemberID,
+		&i.Kind,
+		&i.StartedAt,
+		&i.EndedAt,
+		&i.FeedMethod,
+		&i.AmountMl,
+		&i.Diaper,
+		&i.Note,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getHandoffForUpdate = `-- name: GetHandoffForUpdate :one
 SELECT id, family_id, from_member_id, to_member_id, note, shift_id, status, created_at, accepted_at FROM handoffs WHERE id = $1 AND family_id = $2 FOR UPDATE
 `
@@ -382,4 +428,51 @@ func (q *Queries) ListHandoffs(ctx context.Context, arg ListHandoffsParams) ([]H
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateCareLogEntry = `-- name: UpdateCareLogEntry :one
+UPDATE care_log_entries
+SET started_at = $1, ended_at = $2, feed_method = $3, amount_ml = $4, diaper = $5, note = $6
+WHERE id = $7 AND family_id = $8 RETURNING id, family_id, child_id, author_member_id, kind, started_at, ended_at, feed_method, amount_ml, diaper, note, created_at
+`
+
+type UpdateCareLogEntryParams struct {
+	StartedAt  time.Time
+	EndedAt    pgtype.Timestamptz
+	FeedMethod *string
+	AmountMl   pgtype.Int2
+	Diaper     *string
+	Note       *string
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+}
+
+// Replaces what was logged; the kind and the child stay.
+func (q *Queries) UpdateCareLogEntry(ctx context.Context, arg UpdateCareLogEntryParams) (CareLogEntry, error) {
+	row := q.db.QueryRow(ctx, updateCareLogEntry,
+		arg.StartedAt,
+		arg.EndedAt,
+		arg.FeedMethod,
+		arg.AmountMl,
+		arg.Diaper,
+		arg.Note,
+		arg.ID,
+		arg.FamilyID,
+	)
+	var i CareLogEntry
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.ChildID,
+		&i.AuthorMemberID,
+		&i.Kind,
+		&i.StartedAt,
+		&i.EndedAt,
+		&i.FeedMethod,
+		&i.AmountMl,
+		&i.Diaper,
+		&i.Note,
+		&i.CreatedAt,
+	)
+	return i, err
 }

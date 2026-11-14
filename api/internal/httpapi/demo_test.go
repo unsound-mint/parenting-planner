@@ -38,12 +38,15 @@ func TestDemoFamiliesHaveDifferentData(t *testing.T) {
 		mother   string
 		week     *int
 		children map[string]int // name -> age in months
+		// due: the family keeps a due date. Baby is home keeps it after the
+		// birth, and the newborn demo looks like a family that lived through it.
+		due bool
 	}
 	week := 25
 	cases := map[httpapi.DemoTemplate]want{
 		httpapi.DemoTemplatePlanning:  {stage: httpapi.StagePlanning, mother: "Maya", children: map[string]int{}},
-		httpapi.DemoTemplatePregnancy: {stage: httpapi.StagePregnancy, mother: "Emily", week: &week, children: map[string]int{}},
-		httpapi.DemoTemplateNewborn:   {stage: httpapi.StagePostpartum, mother: "Aisha", children: map[string]int{"Leo": 1}},
+		httpapi.DemoTemplatePregnancy: {stage: httpapi.StagePregnancy, mother: "Emily", week: &week, children: map[string]int{}, due: true},
+		httpapi.DemoTemplateNewborn:   {stage: httpapi.StagePostpartum, mother: "Aisha", children: map[string]int{"Leo": 1}, due: true},
 		httpapi.DemoTemplatePreschool: {stage: httpapi.StagePreschool, mother: "Rachel", children: map[string]int{"Ava": 49}},
 	}
 	seen := map[string]bool{}
@@ -61,7 +64,7 @@ func TestDemoFamiliesHaveDifferentData(t *testing.T) {
 		}
 		seen[mom.DisplayName] = true
 		switch {
-		case w.week == nil && (fam.GestationalWeek != nil || fam.DueDate != nil):
+		case w.week == nil && fam.GestationalWeek != nil, w.due != (fam.DueDate != nil):
 			t.Errorf("%s: unexpected pregnancy data %+v", tpl, fam.GestationalWeek)
 		case w.week != nil && (fam.GestationalWeek == nil || *fam.GestationalWeek != *w.week):
 			t.Errorf("%s: gestational week = %v, want %d", tpl, fam.GestationalWeek, *w.week)

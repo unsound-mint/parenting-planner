@@ -28,6 +28,9 @@ func (s *Server) CreateCustomSession(ctx context.Context, req CreateCustomSessio
 	if err != nil {
 		return nil, err
 	}
+	if err := s.leavePreviousDemo(ctx); err != nil {
+		return nil, err
+	}
 	fam, err := s.loadFamily(ctx, familyID)
 	if err != nil {
 		return nil, err

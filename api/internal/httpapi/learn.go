@@ -90,6 +90,9 @@ func (s *Server) UpdateLessonRead(ctx context.Context, req UpdateLessonReadReque
 	case err != nil:
 		return nil, err
 	}
+	if req.Body.Finished {
+		s.syncStickers(ctx, familyID) // finishing a lesson or path may earn a sticker
+	}
 	return UpdateLessonRead200JSONResponse(lessonReadOut(r)), nil
 }
 

@@ -72,10 +72,7 @@ func passportPersonOut(p passport.Person, today time.Time) PassportPerson {
 		out.Allergies = append(out.Allergies, allergyOut(a))
 	}
 	for _, g := range p.Growth {
-		out.Growth = append(out.Growth, GrowthPoint{
-			MeasuredOn: openapi_types.Date{Time: g.MeasuredOn}, AgeMonths: monthsBetween(*p.BirthDate, g.MeasuredOn),
-			WeightKg: float32(g.WeightKg), HeightCm: float32(g.HeightCm),
-		})
+		out.Growth = append(out.Growth, growthOut(g, store.Child{BirthDate: *p.BirthDate}))
 	}
 	for _, c := range p.CareTeam {
 		if m, ok := careTeamOut(c); ok {

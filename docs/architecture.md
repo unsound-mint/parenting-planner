@@ -50,7 +50,7 @@ Convention tests (`*/conventions_test.go`) check the rules a reviewer would othe
 
 ## Analytics
 
-`GET /api/admin/analytics` (`internal/analytics`) is the only read across families. Its privacy rules:
+`GET /api/admin/analytics` (`internal/analytics`) is one of two reads across families; friend families (below) is the other. Its privacy rules:
 
 - Counts only. The response has dates, metric names, template names and integers; no ids, names, birth dates or free text. `TestAnalyticsReturnsNoIdsOrNames` checks this.
 - Sources are an allow-list of non-health tables (today only `families`). Mood check-ins, diary, labs, vaccines, allergies, growth, screenings and any mental-health data, psychologist bookings, session notes, insurance calls and care log contents are never counted. `TestAnalyticsReadsOnlyAllowListedTables` fails if `queries/analytics.sql` names another table; widen the list only with a non-health table.
@@ -58,6 +58,10 @@ Convention tests (`*/conventions_test.go`) check the rules a reviewer would othe
 - It needs a demo session (any one) but is not linked from the family screens. Every family is synthetic.
 - A metric whose source table has not landed yet returns zeros, so the dashboard shape stays fixed.
 
+
+## Friend families
+
+`internal/friends` lets two families connect by an invite code, with the asked family accepting. It is the second read across families, and every read in `queries/friends.sql` starts from the viewer's family and reaches another only through an accepted `friend_connections` row. It returns the other family's parents' first names, the `friend_updates` they shared (a copy of what a parent wrote, never a link to a diary, mood, milestone or health record) and preset reactions. On a friend's update a family sees only its own reactions. `TestFriendQueriesNameOnlyFriendTables` fails if that file names another table. Caregivers get 404. Each demo copy seeds two synthetic friend families as real `families` rows with `friend_of` set; analytics leaves them out.
 ## Error monitoring
 
 The API reports unexpected 500s and recovered panics to Sentry, only when the `SENTRY_DSN` environment variable is set. Without it (tests, CI, local dev) nothing is sent; the server still logs the error locally.
