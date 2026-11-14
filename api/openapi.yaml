@@ -3978,17 +3978,18 @@ components:
 
     PregnancyWeek:
       type: object
-      required: [week, isCurrentWeek, size, development, whyItMatters, tasks, questions, birthPrep, source]
+      required: [week, isCurrentWeek, whyItMatters, tasks, questions, birthPrep, source]
       properties:
         week:
           type: integer
         isCurrentWeek:
           type: boolean
         size:
+          # Optional: present only when the catalog has a sourced size for this week.
           $ref: "#/components/schemas/BabySize"
         development:
           type: string
-          description: What is developing this week, in plain words.
+          description: What is developing this week, in plain words. Present only when sourced.
         whyItMatters:
           type: string
           description: Why this week matters for the parents, never a diagnosis.
