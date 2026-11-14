@@ -1228,6 +1228,115 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/birth-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Where to go and what to bring when labour starts
+         * @description The family's birth hospital with its address, phone, route link and
+         *     usual drive time, the people to call and the documents to bring.
+         *     Documents come from the paperwork tasks, so a document is ready when
+         *     its task is done. The bag status is not repeated here: read the
+         *     hospital_bag tasks (listTasks). Mother and partner only; a
+         *     grandparent or nanny gets 404. Hidden while pregnancyLoss is set (404).
+         */
+        get: operations["getBirthPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/labour-alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tell the other parent that labour has started
+         * @description Mother or partner. Sends the other parent a labour_started
+         *     notification (title: "Emily says labour has started") and a live
+         *     update, once per ten minutes per family; a second tap inside that
+         *     window is accepted and sends nothing. Carries no health text. A
+         *     grandparent or nanny gets 404.
+         */
+        post: operations["createLabourAlert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/appointments/{appointmentId}/prep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * What to bring, when to leave and what to ask for one appointment
+         * @description The prep view of an upcoming appointment the acting parent can see
+         *     (CalendarEvent of kind appointment). Questions are the ones
+         *     listAppointmentQuestions would return for it, with the same
+         *     visibility rules. Documents and the travel estimate are computed
+         *     from the appointment's kind and location. Mother and partner only;
+         *     a grandparent or nanny, and any appointment that is not visible to
+         *     the acting parent, get 404.
+         */
+        get: operations["getAppointmentPrep"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/appointment-questions/{questionId}": {
         parameters: {
             query?: never;
@@ -3518,6 +3627,65 @@ export interface components {
             /** @description Unanswered first, then by appointment, then oldest first. */
             items: components["schemas"]["AppointmentQuestion"][];
         };
+        Place: {
+            /** @example St. Anne's Birth Center */
+            name: string;
+            address: string;
+            phone?: string;
+            /**
+             * Format: uri
+             * @description Opens the route in the maps app.
+             */
+            mapsUrl?: string;
+            /** @description Usual drive time from the family's home, without traffic. The UI shows it as an estimate. */
+            travelMinutes?: number;
+        };
+        BringItem: {
+            /** @example Insurance card and photo ID */
+            title: string;
+            detail?: string;
+            /** @description True when the paperwork task behind it is done. Items with no task are false until the visit. */
+            ready: boolean;
+            /**
+             * Format: uuid
+             * @description The paperwork or plan task this item comes from.
+             */
+            taskId?: string;
+        };
+        BirthContact: {
+            /** @description Why to call, such as "Labour and delivery desk" or "Your OB". */
+            label: string;
+            name: string;
+            phone: string;
+            /**
+             * Format: uuid
+             * @description Set when the contact is a family member (the partner, a grandparent).
+             */
+            memberId?: string;
+        };
+        BirthPlan: {
+            hospital: components["schemas"]["Place"];
+            /** @description In the order to call them. */
+            contacts: components["schemas"]["BirthContact"][];
+            documents: components["schemas"]["BringItem"][];
+            /** @description The family's birth preferences to talk through with the care team. A note, not a plan the AI writes. */
+            preferencesNote?: string;
+        };
+        AppointmentTravel: {
+            /** @description Drive time plus a fixed ten minute buffer. */
+            minutes: number;
+            /** Format: date-time */
+            leaveBy: string;
+            /** Format: uri */
+            mapsUrl?: string;
+        };
+        AppointmentPrep: {
+            appointment: components["schemas"]["CalendarEvent"];
+            travel?: components["schemas"]["AppointmentTravel"];
+            documents: components["schemas"]["BringItem"][];
+            /** @description Unanswered first, then oldest first. */
+            questions: components["schemas"]["AppointmentQuestion"][];
+        };
         /** @enum {string} */
         SimulatorSkill: "feeding" | "soothing" | "safe_sleep" | "diapering" | "warning_signs" | "teamwork";
         /** @enum {string} */
@@ -3864,10 +4032,11 @@ export interface components {
          *     appointment is tomorrow (calendar event); invitation_accepted = a
          *     caregiver the recipient invited joined (invitation);
          *     subscription_started = the family's paid plan started (both
-         *     parents).
+         *     parents); labour_started = the other parent tapped "Going to the
+         *     hospital" (entityId: the sender, createLabourAlert).
          * @enum {string}
          */
-        NotificationKind: "task_offered" | "task_offer_answered" | "handoff_received" | "handoff_accepted" | "plan_item_due" | "value_flagged" | "appointment_reminder" | "invitation_accepted" | "subscription_started";
+        NotificationKind: "task_offered" | "task_offer_answered" | "handoff_received" | "handoff_accepted" | "plan_item_due" | "value_flagged" | "appointment_reminder" | "invitation_accepted" | "subscription_started" | "labour_started";
         Notification: {
             /** Format: uuid */
             id: string;
@@ -7289,6 +7458,179 @@ export interface operations {
             };
             /** @description Error */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getBirthPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthPlan"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createLabourAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sent, or already sent a moment ago. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getAppointmentPrep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentPrep"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
