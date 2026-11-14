@@ -1,3 +1,4 @@
+import { mockNow } from "@/lib/clock";
 import type { Family, Task } from "@/lib/api/types";
 import { mock } from "../registry";
 import { dayOf, events, taskId as familyTaskId, taskPlan } from "../timeline";
@@ -19,7 +20,7 @@ export const paperworkN = { leaveNotice: 8 };
 
 const day = 86_400_000;
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * day).toISOString().slice(0, 10);
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => mockNow().toISOString().slice(0, 10);
 
 const SSA = { title: "Social Security Administration: Social Security number for your baby", url: "https://www.ssa.gov/ssnumber/", checkedAt: "2026-11-10" };
 const HEALTHCARE = { title: "HealthCare.gov: when you can enroll in or change coverage", url: "https://www.healthcare.gov/coverage-outside-open-enrollment/", checkedAt: "2026-11-10" };

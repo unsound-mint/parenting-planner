@@ -1,5 +1,6 @@
 import { mock } from "../registry";
 import { dayKey } from "@/lib/format";
+import { mockNow } from "@/lib/clock";
 import { addDays, todayKey } from "@/lib/schedule";
 import type { CalendarEvent, Shift } from "@/lib/api/types";
 import { calendarEvent, couple, dayOf, events, taskId, taskPlan, type Couple } from "../timeline";
@@ -34,7 +35,7 @@ export const scheduleMocks = {
     const family = await ctx.family();
     const c = couple(family);
     const me = ctx.path.memberId;
-    const from = ctx.query.from ?? todayKey();
+    const from = ctx.query.from ?? todayKey(mockNow());
     const to = ctx.query.to ?? addDays(from, 6);
     const scope = ctx.query.scope ?? "family";
     const items = week(c, family.id).filter((e) => {

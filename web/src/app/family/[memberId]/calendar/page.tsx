@@ -13,6 +13,7 @@ import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { WeekView, type Owner } from "@/components/schedule/week-view";
 import { cn } from "@/lib/utils";
+import { familyNow } from "@/lib/clock";
 
 // The next seven days for one person, their partner or the whole family.
 // Events come from one feed (shifts, appointments, task due dates); nothing here is stored in the UI.
@@ -39,14 +40,16 @@ async function Calendar({
   const rawScope = typeof query.scope === "string" ? query.scope : "";
 
   const api = await serverApi();
-  // After serverApi(): "today" is request time, so it must come after the request is dynamic.
-  const today = todayKey();
-  const from = typeof query.from === "string" && isoDate.test(query.from) ? query.from : today;
   const path = { params: { path: { memberId } } };
   const { data: family } = await api.GET("/family");
   const people = family ? familyPeople(family) : [];
   const me = people.find((p) => p.id === memberId);
   if (!family || !me) notFound();
+  // After serverApi(): "today" is request time, so it must come after the request is dynamic.
+  // It is the family's demo day, not the real one ("Skip a week").
+  const now = familyNow(family);
+  const today = todayKey(now);
+  const from = typeof query.from === "string" && isoDate.test(query.from) ? query.from : today;
 
   const caregiver = isCaregiver(me.role);
   const scope: CalendarScope = caregiver ? "mine" : scopes.find((s) => s === rawScope) ?? "family";
@@ -73,7 +76,7 @@ async function Calendar({
   return (
     <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
       <header>
-        <h1 className="max-w-2xl text-headline text-balance">{headline(items, from === today, caregiver)}</h1>
+        <h1 className="max-w-2xl text-headline text-balance">{headline(items, from === today, caregiver, now)}</h1>
         {caregiver ? (
           <p className="mt-2 text-label font-normal text-muted-foreground">Your shifts only</p>
         ) : (
@@ -132,13 +135,13 @@ async function Calendar({
 }
 
 /** One status sentence: the next thing, or how full the week is. */
-function headline(events: CalendarEvent[], thisWeek: boolean, caregiver: boolean): string {
+function headline(events: CalendarEvent[], thisWeek: boolean, caregiver: boolean, nowDate: Date): string {
   if (events.length === 0) return caregiver ? "No shifts this week." : "Nothing is scheduled this week.";
   if (!thisWeek) return `${countThings(events.length)} on this week.`;
-  const now = Date.now();
+  const now = nowDate.getTime();
   const next = events.find((e) => Date.parse(e.endsAt ?? e.startsAt) >= now || e.allDay);
   if (!next) return `${countThings(events.length)} this week, all done so far.`;
-  const when = whenWords(daysUntilInstant(next.startsAt));
+  const when = whenWords(daysUntilInstant(next.startsAt, nowDate));
   const at = next.allDay ? "" : ` at ${formatClock(next.startsAt)}`;
   return `Next: ${next.title}, ${when}${at}.`;
 }

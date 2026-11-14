@@ -14,7 +14,7 @@ export const weekdays: { id: Weekday; short: string; long: string }[] = [
   { id: "sun", short: "Sun", long: "Sunday" },
 ];
 
-export function todayKey(now = new Date()): string {
+export function todayKey(now: Date): string {
   return dayKey(now.toISOString());
 }
 

@@ -10,6 +10,7 @@ import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
 import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { familyNow } from "@/lib/clock";
 
 // "Care": the psychologist agenda, booking and the note after a session.
 // Links to the private journal and the mood questionnaires sit under the agenda. Everything here belongs to the acting parent only.
@@ -44,6 +45,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       slots={slots}
       entries={diary?.items.filter((e) => e.authorId === memberId)}
       questionnaires={questionnaires?.items}
+      now={familyNow(family)}
     />
   );
 }
@@ -55,16 +57,17 @@ type ViewProps = {
   slots?: PsychologistSlots;
   entries?: DiaryEntry[];
   questionnaires?: ScreeningQuestionnaire[];
+  now: Date;
 };
 
-function CareView({ memberId, name, agenda, slots, entries, questionnaires }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires, now }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
 
   let headline = `Pick a time with your psychologist, ${name}.`;
   if (noteDue) headline = `How did it go, ${name}?`;
-  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt))}.`;
+  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt, now))}.`;
   else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 
   return (

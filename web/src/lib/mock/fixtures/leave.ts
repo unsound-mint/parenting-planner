@@ -1,3 +1,4 @@
+import { mockNow } from "@/lib/clock";
 import type { Family, LeaveDeadline, LeavePlan, LeavePlanInput, LeaveProgram, LeaveSegment, ParentLeave } from "@/lib/api/types";
 import { mock } from "../registry";
 import { couple, taskId } from "../timeline";
@@ -11,7 +12,7 @@ import { paperworkN } from "./tasks";
 const DAY = 86_400_000;
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * DAY).toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / DAY);
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => mockNow().toISOString().slice(0, 10);
 
 const src = (title: string, url: string) => ({ title, url, checkedAt: CHECKED });
 const DOL = src("U.S. Department of Labor: Family and Medical Leave Act", "https://www.dol.gov/agencies/whd/fmla");

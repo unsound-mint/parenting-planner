@@ -7,6 +7,7 @@ import { formatShortDate } from "@/lib/format";
 import { daysLeftWords, dueTone, openFirst, taskDays, toneDot } from "@/lib/tasks";
 import { cn } from "@/lib/utils";
 import { DoneToggle, DueChip, OfferLine, TaskActions, TaskDetail, TaskTitle, hasDetail, type TaskCtx } from "./task-row";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // US paperwork as a deadline timeline, closest first. The deadlines come from
 // the API (anchored to the due date or birth), so moving either moves them here.
@@ -25,8 +26,9 @@ export function PaperworkTimeline({ tasks, ctx, highlightId }: { tasks: Task[]; 
 
 function TimelineItem({ task, ctx, focus, highlight, last }: { task: Task; ctx: TaskCtx; focus: boolean; highlight: boolean; last: boolean }) {
   const [open, setOpen] = useState((focus || highlight) && hasDetail(task));
-  const days = taskDays(task);
-  const tone = dueTone(task);
+  const now = useFamilyNow();
+  const days = taskDays(task, now);
+  const tone = dueTone(task, now);
   const detailId = `detail-${task.id}`;
   return (
     <li id={`task-${task.id}`} className="scroll-mt-24 grid grid-cols-[1rem_minmax(0,1fr)] gap-x-3 md:grid-cols-[5rem_1rem_minmax(0,1fr)] md:gap-x-4">
