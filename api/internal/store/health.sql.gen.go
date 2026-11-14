@@ -355,6 +355,51 @@ func (q *Queries) ListAllergiesVisibleToParent(ctx context.Context, arg ListAlle
 	return items, nil
 }
 
+const listChildAllergiesVisibleToParent = `-- name: ListChildAllergiesVisibleToParent :many
+SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, substance, certainty, reaction, noted_on, created_at FROM allergies WHERE family_id = $1 AND subject_child_id = $2
+ORDER BY created_at DESC
+`
+
+type ListChildAllergiesVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ChildID  uuid.NullUUID
+}
+
+// Mirrors access.CanParentReadHealthRecord: records about the child are readable by
+// everyone allowed the baby passport (both parents, and caregivers with baby_passport),
+// whatever their owner chose; only the parent's own records use visibility.
+func (q *Queries) ListChildAllergiesVisibleToParent(ctx context.Context, arg ListChildAllergiesVisibleToParentParams) ([]Allergy, error) {
+	rows, err := q.db.Query(ctx, listChildAllergiesVisibleToParent, arg.FamilyID, arg.ChildID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Allergy{}
+	for rows.Next() {
+		var i Allergy
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.SubjectMemberID,
+			&i.SubjectChildID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.Substance,
+			&i.Certainty,
+			&i.Reaction,
+			&i.NotedOn,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listGrowthMeasurements = `-- name: ListGrowthMeasurements :many
 SELECT id, family_id, child_id, measured_on, weight_kg, height_cm FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on
 `

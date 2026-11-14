@@ -88,6 +88,15 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type EmergencyContact struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	Name      string
+	Relation  string
+	Phone     string
+	CreatedAt time.Time
+}
+
 type Family struct {
 	ID             uuid.UUID
 	Template       string

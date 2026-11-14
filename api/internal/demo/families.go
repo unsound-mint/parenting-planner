@@ -90,6 +90,17 @@ func (s *seeder) vaccine(sub subject, vaccine string, givenOn time.Time) {
 	_, s.err = s.q.CreateImmunization(s.ctx, store.CreateImmunizationParams{FamilyID: s.fam, SubjectMemberID: m, SubjectChildID: c, Vaccine: vaccine, GivenOn: givenOn})
 }
 
+// childAllergy records an allergy of the child, owned by a parent.
+func (s *seeder) childAllergy(child uuid.UUID, owner uuid.UUID, visibility, substance, certainty, reaction string, notedOn time.Time) {
+	if s.err != nil {
+		return
+	}
+	_, s.err = s.q.CreateAllergy(s.ctx, store.CreateAllergyParams{
+		FamilyID: s.fam, SubjectChildID: uuid.NullUUID{UUID: child, Valid: true}, OwnerMemberID: owner,
+		Visibility: visibility, Substance: substance, Certainty: certainty, Reaction: &reaction, NotedOn: &notedOn,
+	})
+}
+
 // mood records a check-in daysAgo days before today, in the evening. daysAgo
 // is at least 1 so a morning visitor never sees a check-in from the future.
 func (s *seeder) mood(owner uuid.UUID, visibility string, daysAgo, mood, energy int, sleep float64, note string) {
@@ -156,6 +167,7 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.careTeam("lactation", "Grace Whitfield, IBCLC", ptr("(617) 555-0190"), nil)
 	s.careTeam("birth_clinic", "Bayside Birth Center", nil, ptr("Boston, MA"))
 	s.lab(parent(aisha), aisha, "family", "gbs", born.AddDate(0, 0, -25), `{"result": "negative"}`)
+	s.childAllergy(leo, aisha, "family", "Cow's milk protein", "suspected", "Spit-up and rash after formula", today.AddDate(0, 0, -10))
 	s.lab(childOf(leo), aisha, "family", "newborn_screen", born.AddDate(0, 0, 1), `{"result": "normal", "hearing": "pass"}`)
 	s.lab(childOf(leo), aisha, "family", "growth", born.AddDate(0, 0, 30),
 		`{"weight_kg": 4.6, "length_cm": 55.0, "head_cm": 37.5}`)
@@ -193,6 +205,8 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	} {
 		s.vaccine(childOf(ava), v.name, born.AddDate(0, v.months, 0))
 	}
+	s.childAllergy(ava, rachel, "family", "Peanut", "confirmed", "Hives within minutes", born.AddDate(2, 0, 0))
+	s.childAllergy(ava, tom, "partner", "Egg", "suspected", "Rash after scrambled eggs", today.AddDate(0, -3, 0))
 	s.vaccine(childOf(ava), "flu", today.AddDate(0, 0, -400))
 	s.vaccine(parent(rachel), "flu", today.AddDate(0, 0, -15))
 	s.vaccine(parent(tom), "tdap", today.AddDate(-5, 0, 0))

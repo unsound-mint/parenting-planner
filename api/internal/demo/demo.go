@@ -76,6 +76,15 @@ func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) e
 			return err
 		}
 	}
+	// People to call about the baby, shown on the baby passport card. Invented.
+	for _, c := range []store.CreateEmergencyContactParams{
+		{FamilyID: familyID, Name: "Linda", Relation: "Grandmother", Phone: "(512) 555-0171"},
+		{FamilyID: familyID, Name: "Robert", Relation: "Uncle", Phone: "(512) 555-0188"},
+	} {
+		if _, err := q.CreateEmergencyContact(ctx, c); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
