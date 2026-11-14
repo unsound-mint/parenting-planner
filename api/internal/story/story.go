@@ -166,6 +166,11 @@ type Input struct {
 	Care     []CareAuthor
 	Handoffs []HandoffRow
 	Vaccines []VaccineDay
+	// Learning together, parents only.
+	Reads   []store.LessonRead
+	Answers []store.QuizAnswer
+	Talks   []store.CoupleTalk
+	Names   []store.ListBabyNamesRow
 }
 
 const pregnancyDays = 280
@@ -241,6 +246,20 @@ func Load(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID uuid.
 					in.Vaccines = append(in.Vaccines, VaccineDay{On: d.GivenOn, Vaccines: d.Vaccines})
 				}
 			}
+		}
+		// Reading, quizzes, talks and names are shared between the parents by
+		// design (no visibility, see internal/learn); a caregiver gets 404 there.
+		if in.Reads, err = q.ListLessonReads(ctx, familyID); err != nil {
+			return err
+		}
+		if in.Answers, err = q.ListQuizAnswers(ctx, familyID); err != nil {
+			return err
+		}
+		if in.Talks, err = q.ListCoupleTalks(ctx, familyID); err != nil {
+			return err
+		}
+		if in.Names, err = q.ListBabyNames(ctx, familyID); err != nil {
+			return err
 		}
 		rows, err := q.ListStoryDiaryEntriesVisibleToParent(ctx, store.ListStoryDiaryEntriesVisibleToParentParams{FamilyID: familyID, Now: now})
 		if err != nil {
@@ -396,13 +415,7 @@ func (b *builder) childhood() {
 	if b.birth.IsZero() {
 		return
 	}
-	people := []uuid.UUID{}
-	for _, p := range b.in.People {
-		if p.Role == "mother" || p.Role == "partner" {
-			people = append(people, p.ID)
-		}
-	}
-	b.add(Moment{ID: "baby-home", Kind: BabyHome, On: b.birth, Title: fmt.Sprintf("%s arrived", b.childName), Detail: "The first day of a new chapter.", People: people})
+	b.add(Moment{ID: "baby-home", Kind: BabyHome, On: b.birth, Title: fmt.Sprintf("%s arrived", b.childName), Detail: "The first day of a new chapter.", People: b.parents()})
 	seen := map[string]bool{}
 	line := func(id string, at time.Time) {
 		if at.After(b.today) {
@@ -493,6 +506,9 @@ func (b *builder) rows() {
 			}
 			b.add(Moment{ID: "vaccines-" + d.On.Format(time.DateOnly), Kind: Vaccines, On: day(d.On), Title: title, Count: len(d.Vaccines)})
 		}
+	}
+	if parent {
+		b.learning()
 	}
 	if len(b.in.Care) > 0 {
 		total, first := 0, b.in.Care[0].FirstAt
@@ -683,11 +699,20 @@ func (b *builder) invitations() []Invitation {
 				break
 			}
 		}
-		if !b.has(CareLog) && b.in.Viewer.has("care_log") {
+		if !b.has(CareLog) && b.in.Viewer.has("care_log") && b.today.Before(b.birth.AddDate(1, 0, 0)) {
 			out = append(out, Invitation{Kind: CareLog, Title: fmt.Sprintf("you log %s's first feed or nap", b.childName)})
 		}
 	}
 	if b.in.Viewer.parent() {
+		if !b.has(NamesLiked) && b.birth.IsZero() {
+			out = append(out, Invitation{Kind: NamesLiked, Title: "you both like the same name"})
+		}
+		if !b.has(QuizCompared) {
+			out = append(out, Invitation{Kind: QuizCompared, Title: "you both answer a lesson's quiz and compare"})
+		}
+		if !b.has(CoupleTalk) {
+			out = append(out, Invitation{Kind: CoupleTalk, Title: "you talk about tonight's question together"})
+		}
 		if !b.has(Journal) {
 			out = append(out, Invitation{Kind: Journal, Title: "one of you shares a journal line with the other"})
 		}
@@ -698,7 +723,8 @@ func (b *builder) invitations() []Invitation {
 	if len(out) == 0 {
 		out = append(out, Invitation{Kind: Journal, Title: "something new happens to your family"})
 	}
-	return out
+	// A short list reads as an invitation; a long one reads as a to-do list.
+	return out[:min(len(out), 4)]
 }
 
 func ageWords(months int) string {
@@ -714,4 +740,119 @@ func ageWords(months int) string {
 		return fmt.Sprintf("%d and a half", months/12)
 	}
 	return fmt.Sprintf("%d months", months)
+}
+
+func (b *builder) parents() []uuid.UUID {
+	out := []uuid.UUID{}
+	for _, p := range b.in.People {
+		if p.Role == "mother" || p.Role == "partner" {
+			out = append(out, p.ID)
+		}
+	}
+	return out
+}
+
+// learning adds lessons finished, quizzes both parents answered, talks had
+// and the names both like.
+func (b *builder) learning() {
+	type read struct {
+		people []uuid.UUID
+		first  time.Time
+	}
+	reads := map[string]*read{}
+	var order []string
+	for _, r := range b.in.Reads {
+		if !r.FinishedAt.Valid {
+			continue
+		}
+		if _, ok := content.LessonByID(r.LessonID); !ok {
+			continue
+		}
+		x, ok := reads[r.LessonID]
+		if !ok {
+			x = &read{first: r.FinishedAt.Time}
+			reads[r.LessonID] = x
+			order = append(order, r.LessonID)
+		}
+		x.people = append(x.people, r.MemberID)
+		if r.FinishedAt.Time.Before(x.first) {
+			x.first = r.FinishedAt.Time
+		}
+	}
+	slices.Sort(order)
+	for _, id := range order {
+		l, _ := content.LessonByID(id)
+		x := reads[id]
+		slices.SortFunc(x.people, func(a, c uuid.UUID) int { return strings.Compare(b.name(a), b.name(c)) })
+		title := fmt.Sprintf("%s read \u201c%s\u201d", b.name(x.people[0]), l.Title)
+		if len(x.people) > 1 {
+			title = fmt.Sprintf("You both read \u201c%s\u201d", l.Title)
+		}
+		b.add(Moment{ID: "lesson-" + id, Kind: LessonRead, On: day(x.first), Title: title, People: x.people})
+	}
+
+	// A quiz is compared once both parents answered every question of it.
+	answered := map[uuid.UUID]map[string]time.Time{}
+	for _, a := range b.in.Answers {
+		if answered[a.MemberID] == nil {
+			answered[a.MemberID] = map[string]time.Time{}
+		}
+		answered[a.MemberID][a.QuestionID] = a.AnsweredAt
+	}
+	parents := b.parents()
+	if len(parents) == 2 {
+		for _, id := range order {
+			l, _ := content.LessonByID(id)
+			if len(l.Quiz) == 0 {
+				continue
+			}
+			var last time.Time
+			both := true
+			for _, q := range l.Quiz {
+				for _, p := range parents {
+					at, ok := answered[p][q.ID]
+					if !ok {
+						both = false
+						break
+					}
+					if at.After(last) {
+						last = at
+					}
+				}
+			}
+			if both {
+				b.add(Moment{ID: "quiz-" + id, Kind: QuizCompared, On: day(last), Title: fmt.Sprintf("You compared answers on \u201c%s\u201d", l.Title), People: parents, Count: len(l.Quiz)})
+			}
+		}
+	}
+
+	for _, t := range b.in.Talks {
+		text := ""
+		if lid, ok := strings.CutPrefix(t.PromptID, content.LessonPromptPrefix); ok {
+			if l, ok := content.LessonByID(lid); ok {
+				text = l.TalkPrompt
+			}
+		} else {
+			text, _, _ = content.TalkPromptText(content.State{}, t.PromptID)
+		}
+		if text == "" {
+			continue
+		}
+		b.add(Moment{ID: "talk-" + t.PromptID, Kind: CoupleTalk, On: day(t.TalkedAt), Title: "You talked about it", Quote: quote(text), People: parents})
+	}
+
+	var both []string
+	var last time.Time
+	for _, n := range slices.Backward(b.in.Names) { // the query is newest first
+		if len(parents) == 2 && slices.Contains(n.LikedBy, parents[0]) && slices.Contains(n.LikedBy, parents[1]) {
+			both = append(both, n.Name)
+			if n.CreatedAt.After(last) {
+				last = n.CreatedAt
+			}
+		}
+	}
+	if len(both) > 0 {
+		title := fmt.Sprintf("You both like %s", listNames(both))
+		b.add(Moment{ID: "names", Kind: NamesLiked, On: day(last), Title: title, Detail: "Names on your shared list that both of you liked.", People: parents, Count: len(both)})
+	}
 }

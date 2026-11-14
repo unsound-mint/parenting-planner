@@ -88,6 +88,13 @@ func TestStoryOfAPregnancyAtWeek25(t *testing.T) {
 	if v := moments(s, httpapi.StoryMomentKindAppointment); len(v) != 1 || v[0].PeopleIds[0] != mom.Id {
 		t.Errorf("visits = %+v, want the past OB visit by Emily", v)
 	}
+	// Learning together: the names both like, lessons read, the talk they had.
+	if n := moments(s, httpapi.StoryMomentKindNamesLiked); len(n) != 1 || n[0].Title != "You both like Ada, June and Theo" || len(n[0].PeopleIds) != 2 {
+		t.Errorf("names = %+v", n)
+	}
+	if len(moments(s, httpapi.StoryMomentKindLessonRead)) == 0 || len(moments(s, httpapi.StoryMomentKindCoupleTalk)) != 1 {
+		t.Errorf("want lessons read and one talk: %+v", s.Chapters[1].Moments)
+	}
 	if len(s.Next) == 0 || s.Next[0].Kind != httpapi.StoryMomentKindPregnancyWeek || s.Next[0].On == nil || s.Next[0].Title != "week 28 begins, about the size of an eggplant" {
 		t.Errorf("next = %+v, want week 28 first", s.Next)
 	}
@@ -143,8 +150,13 @@ func TestStoryJournalHoldsOnlySharedLines(t *testing.T) {
 	grandma, nanny := caregiver(t, fam, httpapi.CaregiverRoleGrandparent), caregiver(t, fam, httpapi.CaregiverRoleNanny)
 	for _, cg := range []httpapi.Caregiver{grandma, nanny} {
 		s := getStory(c, cg.Id)
-		if n := len(moments(s, httpapi.StoryMomentKindJournal)) + len(moments(s, httpapi.StoryMomentKindAppointment)); n != 0 {
-			t.Errorf("%s sees %d journal lines or visits", cg.DisplayName, n)
+		n := 0
+		for _, k := range []httpapi.StoryMomentKind{httpapi.StoryMomentKindJournal, httpapi.StoryMomentKindAppointment, httpapi.StoryMomentKindLessonRead,
+			httpapi.StoryMomentKindQuizCompared, httpapi.StoryMomentKindNamesLiked, httpapi.StoryMomentKindCoupleTalk} {
+			n += len(moments(s, k))
+		}
+		if n != 0 {
+			t.Errorf("%s sees %d parents' pages (journal, visits, lessons, names, talks)", cg.DisplayName, n)
 		}
 		if len(s.Next) == 0 || len(s.Chapters) == 0 {
 			t.Errorf("%s gets an empty book: %+v", cg.DisplayName, s)
@@ -230,6 +242,9 @@ func TestStoryOfAPlanningFamilyInvites(t *testing.T) {
 	s := getStory(c, testutil.Parent(t, c.StartDemo("planning"), httpapi.ParentRoleMother).Id)
 	if got := chapterKinds(s); !slices.Equal(got, []httpapi.StoryChapterKind{httpapi.StoryChapterKindGettingReady}) || !s.Chapters[0].Current {
 		t.Fatalf("chapters = %v", got)
+	}
+	if len(s.Chapters[0].Moments) == 0 || len(moments(s, httpapi.StoryMomentKindNamesLiked)) != 1 {
+		t.Errorf("the planning book opens with what they already did: %+v", s.Chapters[0].Moments)
 	}
 	if len(s.Next) < 2 {
 		t.Errorf("an early family gets invitations for the next pages: %+v", s.Next)
