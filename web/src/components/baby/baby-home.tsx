@@ -15,6 +15,7 @@ import { VoicePlayer } from "@/components/baby/voice-player";
 import { previewMocksEnabled } from "@/lib/mock/registry";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { PageFrame } from "@/components/shell/page";
+import { PortraitFlipbook } from "@/components/portrait";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
 const diaperActions: QuickAction[] = [
@@ -165,6 +166,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
           )
         )}
         {passport?.data && <BabyCard passport={passport.data} />}
+        <PortraitFlipbook memberId={memberId} childId={child.id} />
       </aside>
     </PageFrame>
   );
