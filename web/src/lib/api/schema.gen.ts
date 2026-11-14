@@ -1537,10 +1537,10 @@ export interface components {
             template: components["schemas"]["DemoTemplate"];
             /**
              * @description Days this family's demo clock has been skipped ahead of the real
-             *     date (createDemoTimeSkip). 0 means real time; anything else must be
+             *     date (createDemoTimeSkip). Absent or 0 means real time; anything else must be
              *     shown as demo time.
              */
-            demoDaysAhead: number;
+            demoDaysAhead?: number;
             stage: components["schemas"]["Stage"];
             /**
              * Format: date

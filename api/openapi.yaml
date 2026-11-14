@@ -3091,7 +3091,7 @@ components:
 
     Family:
       type: object
-      required: [id, template, stage, demoDaysAhead, parents, caregivers, children]
+      required: [id, template, stage, parents, caregivers, children]
       properties:
         id:
           type: string
@@ -3103,7 +3103,7 @@ components:
           minimum: 0
           description: |
             Days this family's demo clock has been skipped ahead of the real
-            date (createDemoTimeSkip). 0 means real time; anything else must be
+            date (createDemoTimeSkip). Absent or 0 means real time; anything else must be
             shown as demo time.
         stage:
           $ref: "#/components/schemas/Stage"
