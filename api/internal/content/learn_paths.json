@@ -958,7 +958,12 @@
        "why": "Small rituals are easier to keep than big plans."
       }
      ],
-     "talkTonight": "What would we miss most about us right now? Let's name it so we protect it."
+     "talkTonight": "What would we miss most about us right now? Let's name it so we protect it.",
+     "stages": [
+      "pregnancy",
+      "postpartum",
+      "infant"
+     ]
     }
    ],
    "stages": [

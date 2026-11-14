@@ -125,11 +125,11 @@ var learnStories = map[Template]learnStory{
 		},
 		talks: []learnTalk{{"lesson:safe-sleep", mother, -7}},
 	},
-	// Rachel and Tom, Ava at 4: keeping the couple going.
+	// Rachel and Tom, Ava at 4: a weekly check-in and calmer dinners.
 	Preschool: {
 		reads: []learnRead{
 			{mother, "check-in-habit", -6, -6},
-			{partner, "us-time", -3, -3},
+			{partner, "added-sugar-detectives", -3, -3},
 			{mother, "picky-is-normal", -10, -10},
 		},
 	},

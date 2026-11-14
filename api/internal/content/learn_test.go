@@ -117,7 +117,7 @@ func TestLessonsFitTheirStage(t *testing.T) {
 	for _, p := range core {
 		isCore[p.ID] = true
 	}
-	for stage, want := range map[string]int{"pregnancy": 32, "planning": 9, "postpartum": 19, "preschool": 3} {
+	for stage, want := range map[string]int{"pregnancy": 32, "planning": 8, "postpartum": 19, "preschool": 2} {
 		n := 0
 		for _, p := range LearnPathsFor(State{Stage: stage}) {
 			if isCore[p.ID] {

@@ -163,6 +163,10 @@ func lessonOut(l learn.LessonView) Lesson {
 		p := l.TalkPrompt
 		out.TalkPrompt = &p
 	}
+	if l.TalkedAt != nil {
+		at := l.TalkedAt.UTC()
+		out.TalkedAt = &at
+	}
 	for _, r := range l.Reads {
 		out.Reads = append(out.Reads, lessonReadOut(r))
 	}
