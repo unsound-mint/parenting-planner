@@ -5,10 +5,12 @@ import {
   Blocks,
   BookOpen,
   Brain,
+  ConciergeBell,
   ClipboardCheck,
   Footprints,
   HeartHandshake,
   HeartPulse,
+  Leaf,
   Lock,
   MessageCircleHeart,
   Milk,
@@ -20,7 +22,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import type { PlanCategory, PlanItemStatus, Visibility } from "@/lib/api/types";
+import type { PlanCategory, PlanItemStatus, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -64,6 +66,12 @@ export const visibilityIcon: Record<Visibility, LucideIcon> = {
   family: Users,
 };
 
+export const tierIcon: Record<Tier, LucideIcon> = {
+  free: Leaf,
+  plus: Sparkles,
+  concierge: ConciergeBell,
+};
+
 /** Soft tinted circle behind an item icon, by plan status. */
 export const statusTint: Record<PlanItemStatus, string> = {
   overdue: "bg-status-late-soft text-status-late",
@@ -76,3 +84,9 @@ export const patternIcon = Activity;
 
 /** "Talk to someone": the link from a pattern to the provider directory. */
 export const talkIcon = MessageCircleHeart;
+/** Solid bar colour by plan status: Journey lanes and the focus card's countdown. */
+export const statusBar: Record<PlanItemStatus, string> = {
+  overdue: "bg-status-late",
+  due: "bg-status-due",
+  upcoming: "bg-status-up",
+};

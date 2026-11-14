@@ -57,3 +57,9 @@ export function daysUntil(isoDate: string, now = new Date()): number {
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   return Math.round((new Date(isoDate).getTime() - today) / 86_400_000);
 }
+
+/** The first sentence of a longer guideline text: the one-line action for a card. */
+export function firstSentence(text: string): string {
+  const m = text.match(/^[\s\S]*?[.!?](?=\s|$)/);
+  return (m ? m[0] : text).trim();
+}
