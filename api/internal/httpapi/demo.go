@@ -20,6 +20,10 @@ func (s *Server) CreateDemoSession(ctx context.Context, req CreateDemoSessionReq
 	if err := s.leavePreviousDemo(ctx); err != nil {
 		return nil, err
 	}
+	// The seed works in whole days; the hours of today up to now need the clock.
+	if err := demo.SeedRecentCare(ctx, s.pool, demo.Template(req.Body.Template), familyID, s.cfg.Now()); err != nil {
+		return nil, err
+	}
 	fam, err := s.loadFamily(ctx, familyID)
 	if err != nil {
 		return nil, err

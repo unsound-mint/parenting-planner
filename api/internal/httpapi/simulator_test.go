@@ -1,6 +1,7 @@
 package httpapi_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
@@ -21,4 +22,17 @@ func TestSimulatorIsNotImplementedYet(t *testing.T) {
 	} {
 		call.expectNotImplemented(t, c)
 	}
+}
+
+// The rounds rehearse the first nights home, so once the baby is born (or in
+// any stage but pregnancy) the simulator is not there at all.
+func TestSimulatorIsOnlyForPregnancy(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("newborn")
+	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
+	var e httpapi.Error
+	c.Get(m+"/simulator", http.StatusNotFound, &e)
+	c.Post(m+"/simulator-rounds", map[string]any{"mode": "practice"}, http.StatusNotFound, &e)
+	c.Get(m+"/simulator-rounds/00000000-0000-4000-8000-000000000001", http.StatusNotFound, &e)
+	c.Post(m+"/simulator-rounds/00000000-0000-4000-8000-000000000001/answers", map[string]any{"questionId": "q1", "choiceId": "a"}, http.StatusNotFound, &e)
 }
