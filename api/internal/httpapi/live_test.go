@@ -33,6 +33,10 @@ func openLive(t *testing.T, c *testutil.Client, id uuid.UUID) <-chan update {
 	if ct := resp.Header.Get("Content-Type"); !strings.HasPrefix(ct, "text/event-stream") {
 		t.Fatalf("content type = %q", ct)
 	}
+	// no-transform stops proxies from compressing or buffering the stream.
+	if cc := resp.Header.Get("Cache-Control"); cc != "no-cache, no-transform" {
+		t.Fatalf("Cache-Control = %q", cc)
+	}
 	out := make(chan update, 16)
 	ready := make(chan struct{})
 	go func() {

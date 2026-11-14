@@ -22,8 +22,8 @@ func event(title, vis string, startsIn time.Duration, attendees ...uuid.UUID) ma
 	}
 }
 
-// titles lists the stored events only: seeded tasks also appear in the feed and have their own test.
-func titles(l httpapi.CalendarEventList) []string {
+// calTitles lists the stored events only: seeded tasks also appear in the feed and have their own test.
+func calTitles(l httpapi.CalendarEventList) []string {
 	out := []string{}
 	for _, e := range l.Items {
 		if e.Kind == httpapi.CalendarEventKindTask {
@@ -40,6 +40,7 @@ func TestAppointmentQuestionsAreNotImplementedYet(t *testing.T) {
 	fam := c.StartDemo("pregnancy")
 	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
 	for _, call := range []stubCall{
+		{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}},
 		{"POST", m + "/appointment-questions", map[string]any{"text": "Is my iron level fine?", "visibility": "private"}},
 		{"GET", m + "/appointment-questions", nil},
 		{"PATCH", m + "/appointment-questions/00000000-0000-4000-8000-000000000001", map[string]any{"answered": true}},
@@ -75,7 +76,7 @@ func TestCalendarScopesAndPrivacy(t *testing.T) {
 	c.Post(calBase(jake), event("Private errand", "private", 96*time.Hour), http.StatusCreated, nil)
 
 	var l httpapi.CalendarEventList
-	get := func(p httpapi.Parent, q string) []string { c.Get(calBase(p)+q, http.StatusOK, &l); return titles(l) }
+	get := func(p httpapi.Parent, q string) []string { c.Get(calBase(p)+q, http.StatusOK, &l); return calTitles(l) }
 	eq := func(name string, got, want []string) {
 		t.Helper()
 		if len(got) != len(want) {
@@ -121,7 +122,7 @@ func TestCalendarShowsOwnPsychologistSessionOnly(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Fatalf("mom does not see her booked session: %v", titles(l))
+		t.Fatalf("mom does not see her booked session: %v", calTitles(l))
 	}
 	for _, scope := range []string{"family", "partner", "mine"} {
 		c.Get(calBase(jake)+"?scope="+scope+"&to=2026-11-28", http.StatusOK, &l)
@@ -159,7 +160,7 @@ func TestCaregiverCalendarIsLimited(t *testing.T) {
 	nannyCal := "/api/members/" + nanny.Id.String() + "/calendar-events"
 	var l httpapi.CalendarEventList
 	c.Get(nannyCal, http.StatusOK, &l)
-	if got := titles(l); len(got) != 1 || got[0] != "Baby class" {
+	if got := calTitles(l); len(got) != 1 || got[0] != "Baby class" {
 		t.Errorf("nanny sees %v, want only the class she attends", got)
 	}
 	c.Get(nannyCal+"?scope=mine", http.StatusOK, nil)
@@ -183,8 +184,8 @@ func TestCalendarIsScopedToTheFamily(t *testing.T) {
 	c.Get(calBase(momA), http.StatusNotFound, nil)
 	var l httpapi.CalendarEventList
 	c.Get(calBase(testutil.Parent(t, second, httpapi.ParentRoleMother)), http.StatusOK, &l)
-	if len(titles(l)) != 0 {
-		t.Errorf("another family's events leaked: %v", titles(l))
+	if len(calTitles(l)) != 0 {
+		t.Errorf("another family's events leaked: %v", calTitles(l))
 	}
 	if n := c.AuditCount(first.Id, "create", "calendar_event"); n != 1 {
 		t.Errorf("create audit rows = %d, want 1", n)

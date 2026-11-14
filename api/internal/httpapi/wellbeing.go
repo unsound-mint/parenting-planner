@@ -60,3 +60,6 @@ func moodCheckinOut(c store.MoodCheckin) MoodCheckin {
 		Note: c.Note, Visibility: Visibility(c.Visibility),
 	}
 }
+
+// STUB for #270: Sofia's diary handlers from #202 replace these three when
+// it merges (same operation ids, same file).

@@ -196,9 +196,40 @@ func ListEntries(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p 
 	return items, sum, err
 }
 
-// CreateHandoff hands the baby to another person who has care_log.
-func CreateHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, from Person, to uuid.UUID, note *string, shiftID *uuid.UUID, now time.Time) (store.Handoff, error) {
-	var out store.Handoff
+// Handoff is a handoff with the metadata of its voice note, if it has one.
+type Handoff struct {
+	store.Handoff
+	VoiceNote *store.ListHandoffVoiceNotesRow
+}
+
+// withNotes pairs each handoff with its voice note in one query (never the audio).
+func withNotes(ctx context.Context, q *store.Queries, familyID uuid.UUID, hs []store.Handoff) ([]Handoff, error) {
+	out := make([]Handoff, len(hs))
+	ids := make([]uuid.UUID, len(hs))
+	for i, h := range hs {
+		out[i] = Handoff{Handoff: h}
+		ids[i] = h.ID
+	}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	notes, err := q.ListHandoffVoiceNotes(ctx, store.ListHandoffVoiceNotesParams{FamilyID: familyID, HandoffIds: ids})
+	if err != nil {
+		return nil, err
+	}
+	for i := range notes {
+		if j := slices.IndexFunc(out, func(h Handoff) bool { return h.ID == notes[i].HandoffID.UUID }); j >= 0 {
+			out[j].VoiceNote = &notes[i]
+		}
+	}
+	return out, nil
+}
+
+// CreateHandoff hands the baby to another person who has care_log. now is the
+// family's clock; it becomes created_at so the 48-hour window and the pending
+// check agree. A voice note, when given, must be the sender's own unattached one.
+func CreateHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, from Person, to uuid.UUID, note *string, shiftID, voiceNoteID *uuid.UUID, now time.Time) (Handoff, error) {
+	var out Handoff
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		if to == from.ID {
@@ -225,21 +256,37 @@ func CreateHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 		if shiftID != nil {
 			sid = uuid.NullUUID{UUID: *shiftID, Valid: true}
 		}
-		out, err = q.CreateHandoff(ctx, store.CreateHandoffParams{FamilyID: familyID, FromMemberID: from.ID, ToMemberID: to, Note: note, ShiftID: sid})
+		h, err := q.CreateHandoff(ctx, store.CreateHandoffParams{FamilyID: familyID, FromMemberID: from.ID, ToMemberID: to, Note: note, ShiftID: sid, CreatedAt: now})
 		if err != nil {
 			return err
 		}
-		if err := audit(ctx, q, familyID, from, access.ActionCreate, entityHandoff, out.ID.String()); err != nil {
+		if voiceNoteID != nil {
+			n, err := q.AttachVoiceNoteToHandoff(ctx, store.AttachVoiceNoteToHandoffParams{
+				HandoffID: uuid.NullUUID{UUID: h.ID, Valid: true}, VoiceNoteID: *voiceNoteID, FamilyID: familyID, UploaderID: from.ID,
+			})
+			if err != nil {
+				return err
+			}
+			if n == 0 {
+				return ErrHandoffInvalid // someone else's, already attached, or deleted
+			}
+		}
+		hs, err := withNotes(ctx, q, familyID, []store.Handoff{h})
+		if err != nil {
 			return err
 		}
-		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Handoff, EntityID: out.ID.String(), Actor: from.ID, NeedsPermission: "care_log"}, now)
+		out = hs[0]
+		if err := audit(ctx, q, familyID, from, access.ActionCreate, entityHandoff, h.ID.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Handoff, EntityID: h.ID.String(), Actor: from.ID, NeedsPermission: "care_log"}, now)
 	})
 	return out, err
 }
 
 // ListHandoffs: parents see every handoff of the family, a caregiver those to or from them.
-func ListHandoffs(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, now time.Time) ([]store.Handoff, Summary, error) {
-	var items []store.Handoff
+func ListHandoffs(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, now time.Time) ([]Handoff, Summary, error) {
+	var items []Handoff
 	var sum Summary
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -247,9 +294,11 @@ func ListHandoffs(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p
 		if !p.isParent() {
 			involving = uuid.NullUUID{UUID: p.ID, Valid: true}
 		}
-		var err error
-		items, err = q.ListHandoffs(ctx, store.ListHandoffsParams{FamilyID: familyID, Since: now.Add(-Window), Involving: involving})
+		rows, err := q.ListHandoffs(ctx, store.ListHandoffsParams{FamilyID: familyID, Since: now.Add(-Window), Involving: involving})
 		if err != nil {
+			return err
+		}
+		if items, err = withNotes(ctx, q, familyID, rows); err != nil {
 			return err
 		}
 		if sum, err = summary(ctx, q, familyID, now); err != nil {
@@ -261,8 +310,8 @@ func ListHandoffs(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p
 }
 
 // AcceptHandoff makes the receiver the person on duty.
-func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time) (store.Handoff, Summary, error) {
-	var out store.Handoff
+func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time) (Handoff, Summary, error) {
+	var out Handoff
 	var sum Summary
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -279,10 +328,15 @@ func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 		if h.Status != "pending" {
 			return ErrHandoffNotPending
 		}
-		out, err = q.AcceptHandoff(ctx, store.AcceptHandoffParams{ID: id, AcceptedAt: pgtype.Timestamptz{Time: now, Valid: true}})
+		accepted, err := q.AcceptHandoff(ctx, store.AcceptHandoffParams{ID: id, AcceptedAt: pgtype.Timestamptz{Time: now, Valid: true}})
 		if err != nil {
 			return err
 		}
+		hs, err := withNotes(ctx, q, familyID, []store.Handoff{accepted})
+		if err != nil {
+			return err
+		}
+		out = hs[0]
 		if sum, err = summary(ctx, q, familyID, now); err != nil {
 			return err
 		}
@@ -301,18 +355,19 @@ func LatestSummary(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 
 // PendingFor lists handoffs to a person that they have not accepted yet. It is
 // the person's own inbox, so it is not written to the access log.
-func PendingFor(ctx context.Context, pool *pgxpool.Pool, familyID, person uuid.UUID, now time.Time) ([]store.Handoff, error) {
-	all, err := store.New(pool).ListHandoffs(ctx, store.ListHandoffsParams{
+func PendingFor(ctx context.Context, pool *pgxpool.Pool, familyID, person uuid.UUID, now time.Time) ([]Handoff, error) {
+	q := store.New(pool)
+	all, err := q.ListHandoffs(ctx, store.ListHandoffsParams{
 		FamilyID: familyID, Since: now.Add(-Window), Involving: uuid.NullUUID{UUID: person, Valid: true},
 	})
 	if err != nil {
 		return nil, err
 	}
-	var out []store.Handoff
+	var pending []store.Handoff
 	for _, h := range all {
 		if h.ToMemberID == person && h.Status == "pending" {
-			out = append(out, h)
+			pending = append(pending, h)
 		}
 	}
-	return out, nil
+	return withNotes(ctx, q, familyID, pending)
 }

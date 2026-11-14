@@ -15,6 +15,10 @@ const KINDS: Record<LiveUpdateKind, true> = {
   handoff: true,
   appointment_question: true,
   invitation: true,
+  notification: true,
+  leave_plan: true,
+  diary_entry: true,
+  insurance_call: true,
 };
 
 const DEBOUNCE_MS = 300;

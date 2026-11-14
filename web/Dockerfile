@@ -10,7 +10,9 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS build
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* values are baked in at build time, so they are build args.
+ARG NEXT_PUBLIC_PREVIEW_MOCKS
+ENV NEXT_TELEMETRY_DISABLED=1 NEXT_PUBLIC_PREVIEW_MOCKS=$NEXT_PUBLIC_PREVIEW_MOCKS
 RUN pnpm build
 
 FROM node:24-slim AS run

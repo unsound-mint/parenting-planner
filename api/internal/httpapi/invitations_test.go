@@ -83,6 +83,9 @@ func TestInviteAcceptFlow(t *testing.T) {
 	if got.Family.Id != fam.Id || len(got.Family.Caregivers) != 3 {
 		t.Fatalf("acceptance = %+v", got.Family)
 	}
+	if got.Family.SessionMemberId == nil || *got.Family.SessionMemberId != got.MemberId {
+		t.Errorf("the acceptance must say the session is bound to the caregiver: %+v", got.Family.SessionMemberId)
+	}
 	nanny.Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusConflict, nil) // single use
 	nanny.Get("/api/invitations/"+created.Token, http.StatusOK, &prev)
 	if prev.Status != httpapi.InvitationStatusAccepted {
@@ -91,7 +94,16 @@ func TestInviteAcceptFlow(t *testing.T) {
 
 	// As the nanny: in the family, but parent-only things are refused.
 	me := "/api/members/" + got.MemberId.String()
-	nanny.Get("/api/family", http.StatusOK, nil)
+	var asNanny httpapi.Family
+	nanny.Get("/api/family", http.StatusOK, &asNanny)
+	if asNanny.SessionMemberId == nil || *asNanny.SessionMemberId != got.MemberId {
+		t.Errorf("GET /family must name the session's member: %+v", asNanny.SessionMemberId)
+	}
+	var asMom httpapi.Family
+	c.Get("/api/family", http.StatusOK, &asMom)
+	if asMom.SessionMemberId != nil {
+		t.Errorf("a demo session is not bound to anyone: %v", *asMom.SessionMemberId)
+	}
 	nanny.Get(me+"/invitations", http.StatusForbidden, nil)
 	nanny.Post(me+"/invitations", inviteBody("nanny", "care_log"), http.StatusForbidden, nil)
 	nanny.Get(me+"/access-log", http.StatusForbidden, nil)
@@ -140,13 +152,17 @@ func TestRevokePendingAndAcceptedInvitations(t *testing.T) {
 	c.Post(invitePath(mom)+"/00000000-0000-4000-8000-000000000001/revoke", nil, http.StatusNotFound, nil)
 
 	// Revoking an accepted caregiver removes their access at once.
+	grandma := testutil.New(t)
 	var got httpapi.InvitationAcceptance
-	c.Post("/api/invitations/"+b.Token+"/accept", nil, http.StatusCreated, &got)
+	grandma.Post("/api/invitations/"+b.Token+"/accept", nil, http.StatusCreated, &got)
 	cg := "/api/members/" + got.MemberId.String()
-	c.Get(cg+"/invitations", http.StatusForbidden, nil) // active: a known person, not a parent
-	// accept replaced this client's session with the caregiver's; the family is the same
+	grandma.Get(cg+"/invitations", http.StatusForbidden, nil) // active: a known person, not a parent
+	grandma.Get("/api/family", http.StatusOK, nil)
 	c.Post(invitePath(mom)+"/"+b.Invitation.Id.String()+"/revoke", nil, http.StatusOK, &inv)
-	c.Get(cg+"/invitations", http.StatusNotFound, nil)
+	// The revoked caregiver's session no longer works anywhere, not even for the family.
+	grandma.Get(cg+"/invitations", http.StatusUnauthorized, nil)
+	grandma.Get("/api/family", http.StatusUnauthorized, nil)
+	c.Get(cg+"/invitations", http.StatusNotFound, nil) // and the parent cannot act as them
 	var f httpapi.Family
 	c.Get("/api/family", http.StatusOK, &f)
 	for _, x := range f.Caregivers {
@@ -181,7 +197,7 @@ func TestAccessLogShowsInvitationEventsAndCaregiverActivity(t *testing.T) {
 	var created httpapi.CreatedInvitation
 	c.Post(invitePath(mom), inviteBody("nanny", "care_log"), http.StatusCreated, &created)
 	var got httpapi.InvitationAcceptance
-	c.Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusCreated, &got)
+	testutil.New(t).Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusCreated, &got)
 	c.Post(invitePath(mom)+"/"+created.Invitation.Id.String()+"/revoke", nil, http.StatusOK, nil)
 
 	var log httpapi.AccessLogList

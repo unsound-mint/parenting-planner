@@ -14,7 +14,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/notify"
+	"github.com/unsound-mint/parenting-planner/api/internal/offers"
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
@@ -61,6 +65,11 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 			return err
 		}
 		familyID = id
+		// Every family, from a template or a visitor's own details, gets its
+		// own copy of the partner offers for the admin panel to edit.
+		if err := offers.Seed(ctx, q, id, today); err != nil {
+			return err
+		}
 		return q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: id, ExpiresAt: time.Now().Add(SessionTTL)})
 	})
 	return familyID, token, err
@@ -93,10 +102,24 @@ func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) e
 const SkipDays = 7
 
 // SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
-// row changes; a new demo is a new family, which starts at real time.
-func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID) error {
-	_, err := store.New(pool).SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
-	return err
+// rows change; a new demo is a new family, which starts at real time.
+//
+// now is the family's clock before the skip. The check-ins of the last week are copied
+// forward by the skipped days, so the week the family lands in has the same mood and
+// sleep history: the seeded story (a low-mood pattern, the This week chart) survives the
+// skip instead of falling out of the 7 day window. Each skip copies the then-last week,
+// so the pattern carries on through further skips.
+func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		if err := q.CopyMoodCheckinsForwardVisibleToParent(ctx, store.CopyMoodCheckinsForwardVisibleToParentParams{
+			Days: SkipDays, FamilyID: familyID, FromAt: now.AddDate(0, 0, -SkipDays), ToAt: now,
+		}); err != nil {
+			return err
+		}
+		_, err := q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+		return err
+	})
 }
 
 // HashToken is how session tokens are stored and looked up.
@@ -240,9 +263,10 @@ func seedPsychologist(ctx context.Context, q *store.Queries, familyID, motherID 
 }
 
 // seedPregnancyPassport fills the health passport. Some of Emily's records are
-// private so the partner's view shows the access rules at work. All lab values
-// sit inside the lab's own reference range. No glucose, GBS or Tdap rows: the
-// plan expects them missing.
+// private so the partner's view shows the access rules at work. Ferritin and
+// vitamin D sit below their range, so the passport flags them and Emily's bell
+// has a value_flagged notification for each (the older one read). No glucose,
+// GBS or Tdap rows: the plan expects them missing.
 func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID, today time.Time, week int) error {
 	member := func(id uuid.UUID) uuid.NullUUID { return uuid.NullUUID{UUID: id, Valid: true} }
 
@@ -256,6 +280,7 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 	}
 
 	firstVisit := today.AddDate(0, 0, -(week-9)*7)
+	var flagged []store.LabResult
 	for _, l := range []store.CreateLabValueParams{
 		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "family", Kind: "hemoglobin", TakenOn: firstVisit, Name: ptr("Hemoglobin"), Value: ptr(12.4), Unit: ptr("g/dL"), RefLow: ptr(11.0), RefHigh: ptr(15.0)},
 		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "partner", Kind: "ferritin", TakenOn: firstVisit, Name: ptr("Ferritin"), Value: ptr(12.0), Unit: ptr("ng/mL"), RefLow: ptr(15.0), RefHigh: ptr(150.0)},
@@ -265,8 +290,26 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 		{SubjectMemberID: member(partner), OwnerMemberID: partner, Visibility: "private", Kind: "glucose_fasting", TakenOn: today.AddDate(0, -5, 0), Name: ptr("Fasting glucose"), Value: ptr(88.0), Unit: ptr("mg/dL"), RefLow: ptr(70.0), RefHigh: ptr(99.0)},
 	} {
 		l.FamilyID = familyID
-		if _, err := q.CreateLabValue(ctx, l); err != nil {
+		row, err := q.CreateLabValue(ctx, l)
+		if err != nil {
 			return err
+		}
+		if _, out := rules.LabOutOfRange(*l.Value, l.RefLow, l.RefHigh); out {
+			flagged = append(flagged, row)
+		}
+	}
+	// Notified a few days apart, before today; Emily has read the first one.
+	for i, l := range flagged {
+		at := today.AddDate(0, 0, i*2-len(flagged)*2).Add(14 * time.Hour)
+		if err := notify.LabFlagged(ctx, q, familyID, l, mom, at); err != nil {
+			return err
+		}
+		if i == 0 {
+			if err := q.MarkAllNotificationsRead(ctx, store.MarkAllNotificationsReadParams{
+				ReadAt: pgtype.Timestamptz{Time: at.Add(time.Hour), Valid: true}, FamilyID: familyID, RecipientID: mom,
+			}); err != nil {
+				return err
+			}
 		}
 	}
 
