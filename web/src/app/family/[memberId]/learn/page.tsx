@@ -16,6 +16,7 @@ import { LearnBoard } from "@/components/learn/learn-board";
 import type { Talked } from "@/components/learn/lesson-list";
 import { JourneyStrip } from "@/components/journey/journey-strip";
 import { PracticeSection } from "@/components/simulator/practice-section";
+import { VirtualBabyEntry } from "@/components/virtual-baby/entry-card";
 
 // Learn: the one place to learn and prepare together. Learning paths with both
 // parents' progress, lessons that open in place, a quiz to compare answers and
@@ -106,6 +107,11 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
           helpHref={helpHref(memberId)}
         />
       )}
+
+      {/* Virtual Baby (its own route) is for every parent, planning included, so it sits outside the practice gate. */}
+      <Rise i={3} className="grid gap-4 @4xl:grid-cols-2 @7xl:grid-cols-3">
+        <VirtualBabyEntry memberId={memberId} />
+      </Rise>
 
       {practice && (
         <Rise i={4}>

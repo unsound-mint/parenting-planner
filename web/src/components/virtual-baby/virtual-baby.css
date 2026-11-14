@@ -1,0 +1,102 @@
+/* Global, prefixed (CSS modules do not work with this repo's turbopack css rule).
+   The Virtual Baby's own loops and one-shot bursts. Only transform and opacity
+   move. The idle bob and blink come from illustrations.css (pp-ill-*). */
+
+/* Sleep "z"s drift up and fade, staggered by --z-delay. */
+.pp-vb-z {
+  position: absolute;
+  font-family: var(--font-display, serif);
+  font-weight: 600;
+  color: var(--ink-2, #4a423a);
+  opacity: 0;
+  animation: pp-vb-z 3.2s cubic-bezier(0.23, 1, 0.32, 1) var(--z-delay, 0s) infinite;
+  pointer-events: none;
+}
+
+.pp-vb-night .pp-vb-z {
+  color: #fcebd5;
+}
+
+@keyframes pp-vb-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.7);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(18px, -46px) scale(1.15);
+  }
+}
+
+/* A burst of hearts or sparkles after a moment is handled. Remounted per
+   answer (keyed), so it plays once each time. */
+.pp-vb-burst {
+  position: absolute;
+  opacity: 0;
+  animation: pp-vb-burst 1.3s cubic-bezier(0.23, 1, 0.32, 1) var(--b-delay, 0s) forwards;
+  pointer-events: none;
+}
+
+@keyframes pp-vb-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 8px) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(calc(var(--b-x, 0px) * 0.4), -14px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--b-x, 0px), -64px) scale(0.9);
+  }
+}
+
+/* The sun or moon in the window drifts slowly. */
+.pp-vb-sky {
+  animation: pp-vb-sky 9s ease-in-out infinite;
+}
+
+@keyframes pp-vb-sky {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Day and night crossfade on the scene (two stacked washes). */
+.pp-vb-wash {
+  transition: opacity 0.9s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Need meters fill with a transform, not width. */
+.pp-vb-meter {
+  transform-origin: 0 50%;
+  transition: transform 0.3s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-vb-z,
+  .pp-vb-sky {
+    animation: none;
+  }
+  .pp-vb-z {
+    opacity: 0.7;
+  }
+  .pp-vb-z:nth-child(n + 2) {
+    display: none;
+  }
+  .pp-vb-burst {
+    animation: none;
+    display: none;
+  }
+  .pp-vb-wash {
+    transition: opacity 0.2s linear;
+  }
+}

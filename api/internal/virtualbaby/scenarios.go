@@ -8,7 +8,8 @@ import (
 
 // Scenario wording is Dayana's (AGENTS.md): plain, kind, never diagnostic.
 // Every choice's feedback cites one of the pages below, opened on the checked
-// date. The simulation is practice, not a prediction of a real baby.
+// date. US sources first (AAP, CDC, NICHD); the NHS only where no US page
+// we opened says it (changing-table safety, wiping, overstimulation). The simulation is practice, not a prediction of a real baby.
 
 var checked = time.Date(2026, 11, 14, 0, 0, 0, 0, time.UTC)
 
@@ -18,6 +19,8 @@ var (
 	srcCrying    = content.Source{Title: "CDC: About Abusive Head Trauma", URL: "https://www.cdc.gov/child-abuse-neglect/about/about-abusive-head-trauma.html", CheckedAt: checked}
 	srcSoothe    = content.Source{Title: "NHS: Soothing a crying baby", URL: "https://www.nhs.uk/baby/caring-for-a-newborn/soothing-a-crying-baby/", CheckedAt: checked}
 	srcNappy     = content.Source{Title: "NHS: How to change your baby's nappy", URL: "https://www.nhs.uk/baby/caring-for-a-newborn/how-to-change-your-babys-nappy/", CheckedAt: checked}
+	srcCalm      = content.Source{Title: "HealthyChildren.org (AAP): How to Calm a Fussy Baby", URL: "https://www.healthychildren.org/English/ages-stages/baby/crying-colic/Pages/Calming-A-Fussy-Baby.aspx", CheckedAt: checked}
+	srcRash      = content.Source{Title: "HealthyChildren.org (AAP): Common Diaper Rashes and Treatments", URL: "https://www.healthychildren.org/English/ages-stages/baby/diapers-clothing/Pages/Diaper-Rash.aspx", CheckedAt: checked}
 )
 
 type Need string
@@ -153,10 +156,10 @@ var scenarios = []Scenario{
 		Choices: []Choice{
 			{ID: "change", Label: "Change her now", Action: Change, Feedback: rec(
 				"A fresh diaper, then sleep.",
-				"Changing a diaper soon after a wee or poo helps prevent diaper rash. Young babies may need 10 or 12 changes a day.", srcNappy)},
+				"Change diapers often. A wet or soiled diaper left on too long can make her skin chafe and lead to diaper rash.", srcRash)},
 			{ID: "later", Label: "Leave it until the next feed", Action: Wait, Feedback: other(
 				"Sooner is kinder to her skin.",
-				"Changing as soon as possible after a wee or poo helps prevent diaper rash.", srcNappy)},
+				"Moisture from a wet diaper left on too long can make skin chafe. Changing often helps prevent diaper rash.", srcRash)},
 		},
 	},
 	{
@@ -238,12 +241,12 @@ var scenarios = []Scenario{
 		ID: "checked-all", Need: Fussy, Title: "Still crying",
 		Cue: "She is fed, changed and not too warm, and she is still crying.",
 		Choices: []Choice{
-			{ID: "hold", Label: "Hold her close, sway and hum", Action: Soothe, Feedback: rec(
+			{ID: "hold", Label: "Hold her close and rock her", Action: Soothe, Feedback: rec(
 				"Close and gentle.",
-				"Holding her, swaying, talking or singing, a gentle walk or soft background noise can all help.", srcSoothe)},
-			{ID: "bath", Label: "Try a warm bath", Action: Soothe, Feedback: rec(
-				"Worth a try.",
-				"A warm bath calms some babies, though it upsets others. If it does not help, closeness and gentle movement are next.", srcSoothe)},
+				"Rocking her or walking with her in a carrier helps many babies. Calming motions remind them of the movement they felt in the womb.", srcCalm)},
+			{ID: "noise", Label: "Turn on a fan or white noise", Action: Soothe, Feedback: rec(
+				"A steady sound can settle her.",
+				"A calming sound, like a fan, a white noise machine or a heartbeat recording, helps some babies settle.", srcCalm)},
 			{ID: "switch", Label: "Keep switching tricks every minute", Action: Soothe, Feedback: other(
 				"Slower can work better.",
 				"Babies can be overstimulated. Pick one calm thing, like holding her and swaying, and give it time.", srcSoothe)},
@@ -255,7 +258,7 @@ var scenarios = []Scenario{
 		Choices: []Choice{
 			{ID: "step-away", Label: "Put her in her crib and step away to calm down", Action: StepAway, Feedback: rec(
 				"Looking after yourself is looking after her.",
-				"Long crying is normal for babies. Put her in a safe place, walk away to calm down, and check on her every 5 to 10 minutes.", srcCrying)},
+				"Place her in her crib with nothing else in it, leave the room for 10 to 15 minutes, and check on her once you are calm. It is never safe to shake a baby.", srcCalm)},
 			{ID: "hand-over", Label: "Hand her to your partner and take a break", Action: StepAway, Feedback: rec(
 				"That is what a team is for.",
 				"When crying gets too much, calling in someone you trust, a partner, friend or relative, is the right move.", srcCrying)},
