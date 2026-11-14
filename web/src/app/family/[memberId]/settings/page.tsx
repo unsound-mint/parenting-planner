@@ -8,6 +8,8 @@ import { stageLabel } from "@/lib/format";
 import { StageControl } from "@/components/today/stage-control";
 import { NotificationsCard, StageCard } from "@/components/settings/privacy-cards";
 import { PageFrame, PageGrid } from "@/components/shell/page";
+import { EssentialsToggle } from "@/components/settings/essentials-toggle";
+import { getEssentialsOnly } from "@/lib/essentials";
 
 // Settings for the person acting: the stage and due date (parents) and what the
 // notification bell holds. Who sees what is on the Privacy screen.
@@ -29,7 +31,10 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
   if (family && !me) redirect("/family");
   if (!family || !me) notFound();
   const caregiver = isCaregiver(me.role);
-  const { data: notifications } = await api.GET("/members/{memberId}/notifications", { params: { path: { memberId } } });
+  const [{ data: notifications }, essentialsOnly] = await Promise.all([
+    api.GET("/members/{memberId}/notifications", { params: { path: { memberId } } }),
+    caregiver ? false : getEssentialsOnly(memberId),
+  ]);
   const loss = inLossSupport(family);
 
   return (
@@ -48,6 +53,7 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
           </StageCard>
         )}
         {notifications && <NotificationsCard list={notifications} />}
+        {!caregiver && <EssentialsToggle memberId={memberId} initial={essentialsOnly} />}
       </PageGrid>
     </PageFrame>
   );

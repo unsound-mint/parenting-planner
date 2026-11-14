@@ -45,6 +45,22 @@ export function isAsleep(e?: CareLogEntry): boolean {
   return !!e && e.kind === "sleep" && !e.endedAt;
 }
 
+/**
+ * When the next feed is likely, from the average gap between the last feeds in
+ * the log. Needs three feeds; null otherwise. An estimate: babies do not keep a schedule.
+ */
+export function nextFeedEstimate(entries: CareLogEntry[]): string | null {
+  const feeds = entries
+    .filter((e) => e.kind === "feed")
+    .map((e) => Date.parse(e.startedAt))
+    .sort((a, b) => b - a)
+    .slice(0, 6);
+  if (feeds.length < 3) return null;
+  const gaps = feeds.slice(0, -1).map((t, i) => t - feeds[i + 1]);
+  const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+  return new Date(feeds[0] + mean).toISOString();
+}
+
 /** "1 h 35 min", "40 min". */
 export function durationWords(ms: number): string {
   const min = Math.max(0, Math.round(ms / 60_000));
