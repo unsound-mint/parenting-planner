@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Baby, Brain, CalendarCheck, IdCard, Route, Users, UsersRound, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
+import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 
 // Ordered by how often a parent needs them: this week first, then the weekly
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 // long view last. Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck },
+  { href: "/plan", screen: "plan", label: "Plan", icon: planIcon },
   { href: "/care", screen: "care", label: "Care", icon: Brain },
   { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
   { href: "/directory", screen: "directory", label: "Find help", icon: Users },
@@ -19,15 +21,16 @@ const items: { href: string; screen: string; label: string; icon: LucideIcon }[]
   { href: "/people", screen: "people", label: "People", icon: UsersRound },
 ];
 
-// Screens whose endpoint may still answer 501: listed only when the layout saw it work.
+// baby and people wait on endpoints that may still answer 501: listed only when the layout saw them work (available).
 const probed = new Set(["baby", "people"]);
 
-export function FamilyNav({ memberId, role, available = [] }: { memberId: string; role: Role; available?: string[] }) {
+// hasPlan is false while GET tasks does not answer 200 (501 in production without preview mocks): no Plan entry then.
+export function FamilyNav({ memberId, role, hasPlan, available = [] }: { memberId: string; role: Role; hasPlan: boolean; available?: string[] }) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
   return (
     <nav aria-label="Family" className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
-      {items.filter((item) => canOpen(role, item.screen) && (!probed.has(item.screen) || available.includes(item.screen))).map((item) => {
+      {items.filter((item) => canOpen(role, item.screen) && (item.screen !== "plan" || hasPlan) && (!probed.has(item.screen) || available.includes(item.screen))).map((item) => {
         const href = base + item.href;
         const active = pathname === href;
         return (

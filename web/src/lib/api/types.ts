@@ -76,3 +76,5 @@ export type AppointmentQuestionList = S["AppointmentQuestionList"];
 export type CalendarEvent = S["CalendarEvent"];
 export type CheckoutSession = S["CheckoutSession"];
 export type Subscription = S["Subscription"];
+export type TaskKind = S["TaskKind"];
+export type HospitalBag = S["HospitalBag"];

@@ -28,6 +28,8 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
   if (!person) notFound();
+  // The Plan entry shows only once tasks work: the API answers 501 until then.
+  const hasPlan = !isCaregiver(person.role) && (await api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } })).response.ok;
 
   // Screens that wait on their endpoint appear only once it answers 200 (a 501 hides them).
   const path = { params: { path: { memberId } } };
@@ -49,7 +51,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink />
           </div>
         </div>
-        <FamilyNav memberId={memberId} role={person.role} available={available} />
+        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} available={available} />
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>

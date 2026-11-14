@@ -8,6 +8,7 @@ import { passportMocks } from "./fixtures/passport";
 import { peopleMocks } from "./fixtures/people";
 import { pricingMocks } from "./fixtures/pricing";
 import { weeklyPlanMocks } from "./fixtures/weekly-plan";
+import { taskMocks } from "./fixtures/tasks";
 import { todayMocks } from "./fixtures/today";
 
 // Every feature registers its preview mocks here, one import per file in
@@ -22,6 +23,7 @@ const tables: MockTable[] = [
   passportMocks,
   peopleMocks,
   pricingMocks,
+  taskMocks,
   todayMocks,
   weeklyPlanMocks,
 ];
