@@ -40,7 +40,7 @@ func childcareDecisionRule(f Facts) (Result, bool) {
 		return Result{}, false
 	}
 	by := *first.DecideBy
-	reason := fmt.Sprintf("%s offered you a place and asked for an answer by %s.", first.Name, by.Format("Jan 2"))
+	reason := fmt.Sprintf("Because %s offered you a place and asked for an answer by %s.", first.Name, by.Format("Jan 2"))
 	switch open {
 	case 1:
 	case 2:

@@ -1,17 +1,18 @@
 "use client";
 
 import { Popover } from "@base-ui/react/popover";
-import { ArrowRight, ArrowRightLeft, Check, ChevronDown, Clock, ExternalLink } from "lucide-react";
+import { ArrowRight, ArrowRightLeft, Check, ChevronDown, Clock } from "lucide-react";
 import { useState } from "react";
 import type { Task } from "@/lib/api/types";
-import { formatLongDate, formatShortDate } from "@/lib/format";
 import type { Person } from "@/lib/roles";
 import { dueTone, isOffered, taskDays, daysLeftWords, toneClass } from "@/lib/tasks";
 import { roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
+import { formatShortDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { OwnerAvatar } from "./owner";
 import { useFamilyNow } from "@/components/shell/family-clock";
+import { SourceLink } from "@/components/joy/source-line";
 
 /** What a row needs from the screen: who is who, and the four things a person can do. */
 export type TaskCtx = {
@@ -165,16 +166,13 @@ export function canHandOver(task: Task, ctx: TaskCtx) {
   return task.assigneeId === ctx.selfId && !task.done && !isOffered(task);
 }
 
-/** The extra text under a task: what to do, and the source with its checked date. Only what the row does not already show. */
+/** The extra text under a task: what to do, and a quiet source link. Only what the row does not already show. */
 export function TaskDetail({ task }: { task: Task }) {
   return (
     <div className="mt-2 flex flex-col gap-1.5 text-label text-muted-foreground">
       {task.detail && <p className="max-w-prose text-body text-foreground">{task.detail}</p>}
       {task.source && (
-        <a href={task.source.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-mono text-caption underline-offset-2 hover:underline">
-          <ExternalLink aria-hidden className="size-3" />
-          {task.source.title} · checked {formatLongDate(task.source.checkedAt)}
-        </a>
+        <SourceLink source={task.source} className="w-fit text-caption" />
       )}
     </div>
   );

@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import { BookOpen, Check, ChevronDown } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { Guide } from "@/lib/api/types";
-import { formatLongDate } from "@/lib/format";
 import type { LessonAction } from "@/lib/learn";
 import { lessonActionIcon } from "@/lib/visuals";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SourceLink } from "@/components/joy/source-line";
 
 type Props = {
   memberId: string;
@@ -104,12 +104,8 @@ export function LessonCard({ memberId, guide, action, done: alreadyDone, audienc
               <li key={s}>{s}</li>
             ))}
           </ol>
-          <p className="pb-2 font-mono text-caption text-muted-foreground">
-            Demo content, not medical advice.{" "}
-            <a href={guide.source.url} target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-foreground">
-              {guide.source.title}
-            </a>
-            , checked {formatLongDate(guide.source.checkedAt)}
+          <p className="pb-2 text-caption">
+            <SourceLink source={guide.source} />
           </p>
         </div>
       </div>

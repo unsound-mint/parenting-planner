@@ -64,7 +64,7 @@ func TestTetanusBooster(t *testing.T) {
 	checkStatus(t, "9 years ago", "tetanus-booster", f, "")
 	f.Immunizations[Partner]["tdap"] = today.AddDate(-11, 0, 0)
 	it := checkStatus(t, "11 years ago", "tetanus-booster", f, Due)
-	if it != nil && it.Reason != "Your last tetanus booster on record was on Nov 14, 2015, more than 10 years ago." {
+	if it != nil && it.Reason != "Because guidelines suggest a booster about every 10 years, and your last one on record was on Nov 14, 2015. Your doctor can confirm whether you are due." {
 		t.Errorf("reason = %q", it.Reason)
 	}
 	f.Immunizations[Partner]["td"] = today.AddDate(-1, 0, 0)
@@ -80,7 +80,7 @@ func TestTetanusBooster(t *testing.T) {
 func TestInfantTwoMonthVaccines(t *testing.T) {
 	checkStatus(t, "5 weeks", "infant-2-month-vaccines", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 35)), "")
 	it := checkStatus(t, "7 weeks", "infant-2-month-vaccines", factsAt("postpartum", Partner, childAged("Leo", 0, 0, 49)), Upcoming)
-	if it != nil && (it.DueBy == nil || it.Reason != "Leo is 7 weeks old and the first vaccines are due at 2 months.") {
+	if it != nil && (it.DueBy == nil || it.Reason != "Because guidelines schedule the first vaccines at 2 months, and Leo is 7 weeks old. Your pediatrician can book the visit.") {
 		t.Errorf("7 weeks: %+v", it)
 	}
 	checkStatus(t, "10 weeks", "infant-2-month-vaccines", factsAt("infant", Mother, childAged("Leo", 0, 2, 10)), Due)
@@ -94,7 +94,7 @@ func TestInfantTwoMonthVaccines(t *testing.T) {
 func TestPostpartumVisit(t *testing.T) {
 	checkStatus(t, "2 weeks", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 14)), Upcoming)
 	it := checkStatus(t, "week six", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 37)), Due)
-	if it != nil && (it.DueBy == nil || !it.DueBy.Equal(today.AddDate(0, 0, 4)) || it.Reason != "Leo is 5 weeks old and no checkup for you after the birth is on record.") {
+	if it != nil && (it.DueBy == nil || !it.DueBy.Equal(today.AddDate(0, 0, 4)) || it.Reason != "Because WHO guidance suggests a checkup for you around the sixth week after birth, and Leo is 5 weeks old with none on record. Your OB or midwife can book it.") {
 		t.Errorf("week six: %+v", it)
 	}
 	checkStatus(t, "7 weeks", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 49)), Overdue)
@@ -119,7 +119,7 @@ func TestPreschoolBoosters(t *testing.T) {
 	ava := childAged("Ava", 4, 1, 0)
 	ava.Doses = map[string]int{"dtap": 4, "ipv": 3, "mmr": 1, "varicella": 1}
 	it := checkStatus(t, "4 years", "preschool-boosters", factsAt("preschool", Partner, ava), Due)
-	if it != nil && it.Reason != "Ava is 4 and these doses are not on record yet: DTaP dose 5, polio (IPV) dose 4, MMR dose 2, chickenpox (varicella) dose 2." {
+	if it != nil && it.Reason != "Because guidelines list boosters between 4 and 6 years, and Ava is 4 with these not on record yet: DTaP dose 5, polio (IPV) dose 4, MMR dose 2, chickenpox (varicella) dose 2. Your pediatrician can check the record." {
 		t.Errorf("reason = %q", it.Reason)
 	}
 	ava.Doses = map[string]int{"dtap": 5, "ipv": 4, "mmr": 2, "varicella": 2}
