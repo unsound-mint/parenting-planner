@@ -7010,6 +7010,35 @@ components:
           allOf:
             - $ref: "#/components/schemas/PsychologistBooking"
           description: The latest session that has started and has no note yet.
+        suggestions:
+          type: array
+          description: |
+            Topics the parent might add, from themes that come up in two or
+            more of their own diary entries of the last 7 days (sleep, the
+            birth, work...). Computed from the acting parent's own entries
+            only, whatever their visibility, and returned only to them.
+            Wording names the theme, never quotes an entry. At most one,
+            absent or empty when there is none. Adding one is
+            updateDiaryEntry on diaryEntryId with agendaTopic = text.
+          maxItems: 1
+          items:
+            $ref: "#/components/schemas/AgendaSuggestion"
+
+    AgendaSuggestion:
+      type: object
+      required: [text, reason, diaryEntryId]
+      properties:
+        text:
+          type: string
+          example: Sleep lately
+        reason:
+          type: string
+          description: Why it is suggested, counting entries only.
+          example: You wrote about sleep in 2 entries this week.
+        diaryEntryId:
+          type: string
+          format: uuid
+          description: The newest of the parent's matching entries that has no agenda topic yet; the topic goes on this entry.
 
     PsychologistAgendaUpdate:
       type: object
@@ -9398,6 +9427,26 @@ components:
           type: string
           maxLength: 120
           description: A short topic for the author's next psychologist session, never the entry text.
+        mood:
+          $ref: "#/components/schemas/DiaryMood"
+        first:
+          type: boolean
+          description: |
+            The author marks the entry as one of the baby's or the family's
+            firsts (first kick, first smile). A label on the entry with the
+            entry's visibility; a shared first is what a family story can show.
+            Default false.
+
+    DiaryMood:
+      type: integer
+      minimum: 1
+      maximum: 5
+      description: |
+        How the author felt when writing, on the MoodCheckin.mood scale (1 =
+        very low, 5 = very good). Optional, set once when the entry is written.
+        It is part of the entry, so it has the entry's visibility: whoever may
+        read the entry sees it. It is not a mood check-in and does not feed
+        mood patterns, agenda topics or the plan.
 
     DiaryEntryUpdate:
       type: object
@@ -9409,10 +9458,13 @@ components:
           type: string
           maxLength: 120
           description: Set or change the agenda topic; an empty string removes it. Leave out to keep it.
+        first:
+          type: boolean
+          description: Mark or unmark the entry as a first. Leave out to keep it.
 
     DiaryEntry:
       type: object
-      required: [id, authorId, writtenAt, body, visibility]
+      required: [id, authorId, writtenAt, body, visibility, first]
       properties:
         id:
           type: string
@@ -9430,6 +9482,11 @@ components:
         agendaTopic:
           type: string
           description: Only on the author's own entries.
+        mood:
+          $ref: "#/components/schemas/DiaryMood"
+        first:
+          type: boolean
+          description: True when the author marked the entry as a first.
 
     DiaryEntryList:
       type: object

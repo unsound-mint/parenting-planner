@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createDiaryEntry = `-- name: CreateDiaryEntry :one
-INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic)
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at
+INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, mood, is_first)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first
 `
 
 type CreateDiaryEntryParams struct {
@@ -24,6 +25,8 @@ type CreateDiaryEntryParams struct {
 	WrittenAt     time.Time
 	BodySealed    []byte
 	AgendaTopic   *string
+	Mood          pgtype.Int2
+	IsFirst       bool
 }
 
 func (q *Queries) CreateDiaryEntry(ctx context.Context, arg CreateDiaryEntryParams) (DiaryEntry, error) {
@@ -34,6 +37,8 @@ func (q *Queries) CreateDiaryEntry(ctx context.Context, arg CreateDiaryEntryPara
 		arg.WrittenAt,
 		arg.BodySealed,
 		arg.AgendaTopic,
+		arg.Mood,
+		arg.IsFirst,
 	)
 	var i DiaryEntry
 	err := row.Scan(
@@ -45,12 +50,14 @@ func (q *Queries) CreateDiaryEntry(ctx context.Context, arg CreateDiaryEntryPara
 		&i.BodySealed,
 		&i.AgendaTopic,
 		&i.CreatedAt,
+		&i.Mood,
+		&i.IsFirst,
 	)
 	return i, err
 }
 
 const getOwnDiaryEntryVisibleToParent = `-- name: GetOwnDiaryEntryVisibleToParent :one
-SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at FROM diary_entries WHERE id = $1 AND family_id = $2 AND owner_member_id = $3 FOR UPDATE
+SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries WHERE id = $1 AND family_id = $2 AND owner_member_id = $3 FOR UPDATE
 `
 
 type GetOwnDiaryEntryVisibleToParentParams struct {
@@ -73,6 +80,8 @@ func (q *Queries) GetOwnDiaryEntryVisibleToParent(ctx context.Context, arg GetOw
 		&i.BodySealed,
 		&i.AgendaTopic,
 		&i.CreatedAt,
+		&i.Mood,
+		&i.IsFirst,
 	)
 	return i, err
 }
@@ -118,7 +127,7 @@ func (q *Queries) ListDiaryAgendaTopicsVisibleToParent(ctx context.Context, arg 
 }
 
 const listDiaryEntriesVisibleToParent = `-- name: ListDiaryEntriesVisibleToParent :many
-SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at FROM diary_entries
+SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries
 WHERE family_id = $1 AND written_at >= $2
   AND (owner_member_id = $3 OR visibility IN ('partner', 'family'))
 ORDER BY written_at DESC, created_at DESC
@@ -149,6 +158,8 @@ func (q *Queries) ListDiaryEntriesVisibleToParent(ctx context.Context, arg ListD
 			&i.BodySealed,
 			&i.AgendaTopic,
 			&i.CreatedAt,
+			&i.Mood,
+			&i.IsFirst,
 		); err != nil {
 			return nil, err
 		}
@@ -161,13 +172,14 @@ func (q *Queries) ListDiaryEntriesVisibleToParent(ctx context.Context, arg ListD
 }
 
 const updateOwnDiaryEntryVisibleToParent = `-- name: UpdateOwnDiaryEntryVisibleToParent :one
-UPDATE diary_entries SET visibility = $1, agenda_topic = $2
-WHERE id = $3 AND family_id = $4 AND owner_member_id = $5 RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at
+UPDATE diary_entries SET visibility = $1, agenda_topic = $2, is_first = $3
+WHERE id = $4 AND family_id = $5 AND owner_member_id = $6 RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first
 `
 
 type UpdateOwnDiaryEntryVisibleToParentParams struct {
 	Visibility  string
 	AgendaTopic *string
+	IsFirst     bool
 	ID          uuid.UUID
 	FamilyID    uuid.UUID
 	ViewerID    uuid.UUID
@@ -178,6 +190,7 @@ func (q *Queries) UpdateOwnDiaryEntryVisibleToParent(ctx context.Context, arg Up
 	row := q.db.QueryRow(ctx, updateOwnDiaryEntryVisibleToParent,
 		arg.Visibility,
 		arg.AgendaTopic,
+		arg.IsFirst,
 		arg.ID,
 		arg.FamilyID,
 		arg.ViewerID,
@@ -192,6 +205,8 @@ func (q *Queries) UpdateOwnDiaryEntryVisibleToParent(ctx context.Context, arg Up
 		&i.BodySealed,
 		&i.AgendaTopic,
 		&i.CreatedAt,
+		&i.Mood,
+		&i.IsFirst,
 	)
 	return i, err
 }
