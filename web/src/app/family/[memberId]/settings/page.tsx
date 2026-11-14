@@ -6,7 +6,10 @@ import { inLossSupport } from "@/lib/loss";
 import { PREGNANCY_LOSS_ENABLED } from "@/lib/features";
 import { stageLabel } from "@/lib/format";
 import { StageControl } from "@/components/today/stage-control";
-import { NotificationsCard, StageCard } from "@/components/settings/privacy-cards";
+import { Compass } from "lucide-react";
+import { JourneyPreferences } from "@/components/fertility/journey-preferences";
+import { getJourneySettings } from "@/lib/journey-settings";
+import { Card, NotificationsCard, StageCard } from "@/components/settings/privacy-cards";
 import { PageFrame, PageGrid } from "@/components/shell/page";
 import { EssentialsToggle } from "@/components/settings/essentials-toggle";
 import { getEssentialsOnly } from "@/lib/essentials";
@@ -31,9 +34,10 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
   if (family && !me) redirect("/family");
   if (!family || !me) notFound();
   const caregiver = isCaregiver(me.role);
-  const [{ data: notifications }, essentialsOnly] = await Promise.all([
+  const [{ data: notifications }, essentialsOnly, journey] = await Promise.all([
     api.GET("/members/{memberId}/notifications", { params: { path: { memberId } } }),
     caregiver ? false : getEssentialsOnly(memberId),
+    caregiver ? undefined : getJourneySettings(memberId),
   ]);
   const loss = inLossSupport(family);
 
@@ -51,6 +55,11 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
               <StageControl memberId={memberId} stage={family.stage} dueDate={family.dueDate} hasChild={family.children.length > 0} lossEntry={PREGNANCY_LOSS_ENABLED} />
             )}
           </StageCard>
+        )}
+        {journey && (
+          <Card title="Your journey" icon={Compass}>
+            <JourneyPreferences memberId={memberId} initial={journey} showTrying={family.stage === "planning" || family.stage === "trying"} />
+          </Card>
         )}
         {notifications && <NotificationsCard list={notifications} />}
         {!caregiver && <EssentialsToggle memberId={memberId} initial={essentialsOnly} />}

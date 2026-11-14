@@ -223,6 +223,7 @@ func seedPlanning(ctx context.Context, q *store.Queries, today time.Time) (uuid.
 		s.mood(maya, "partner", 1+2*i, m.mood, m.energy, 7.5, "")
 	}
 	s.mood(daniel, "partner", 2, 4, 4, 7, "")
+	s.fertility(maya, daniel)
 	s.learning(Planning, maya, daniel)
 	s.missions(Planning, maya, daniel)
 	return s.done()

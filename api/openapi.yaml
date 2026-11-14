@@ -54,6 +54,7 @@ tags:
   - name: storybook
   - name: missions
   - name: badges
+  - name: fertility
   - name: childcare
 paths:
   /healthz:
@@ -9923,6 +9924,377 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/fertility-entries:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createFertilityEntry
+      tags: [fertility]
+      summary: The acting parent logs a period day, symptom, ovulation test, temperature, fertility test or treatment note
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        visibility is required and is private or partner: sharing one entry with the
+        partner is the author's explicit choice per item, the UI defaults to private and
+        the server never widens it. There is no family level. A day has one flow, one
+        temperature and one ovulation test result per author: logging again replaces it.
+        kind period needs code spotting, light, medium or heavy; symptom needs a code
+        from the fixed list (cramps, headache, breast_tenderness, bloating,
+        mood_change, fatigue, nausea, fertile_mucus, low_energy); ovulation_test needs code negative,
+        faint or positive; bbt needs tempC (34 to 40, Celsius); test and treatment_note
+        need note. A date in the future is only allowed for kind test (a planned test).
+        note is encrypted at rest. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FertilityEntryInput"
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FertilityEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      operationId: listFertilityEntries
+      tags: [fertility]
+      summary: The acting parent's entries from the last 180 days, plus planned tests, and entries the partner shared
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Own entries plus entries the other parent shared with the partner
+        (access.CanParentRead; there is no family level). Newest date first. Reads are
+        audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FertilityEntryList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/fertility-entries/{entryId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: entryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateFertilityEntry
+      tags: [fertility]
+      summary: The author changes who may read an entry
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Only the author. Any other id, including the partner's shared entry, is 404 so
+        the response does not reveal that it exists. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FertilityEntryUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FertilityEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteFertilityEntry
+      tags: [fertility]
+      summary: The author deletes an entry
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Only the author; any other id is 404. Audited.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/fertility-overview:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getFertilityOverview
+      tags: [fertility]
+      summary: Cycles so far, and an estimate of the next period and the fertile window
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Computed from the acting parent's own period days only (a partner's shared
+        entries never feed it). The estimate is absent until two complete cycles are
+        logged (cyclesNeeded says how many are missing). It is always an estimate: ovulation
+        about 14 days before the next period, fertile window from 5 days before ovulation to
+        1 day after (ACOG). It never guarantees anything and never diagnoses. clinician says
+        whether the time spent trying (journey settings: tryingSince) reaches the point where ACOG
+        suggests talking to a clinician: 12 months, 6 months when older than 35.
+        Reads are audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FertilityOverview"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/preconception-checklist:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getPreconceptionChecklist
+      tags: [fertility]
+      summary: The preparation checklist for the acting parent, with the partner's shared ticks
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        The items that apply to the acting parent's role (appointments, vitamins,
+        questions for the doctor, vaccines, lifestyle, partner health), each with its source,
+        whether it is done, and whether the other parent shared a tick for the same item.
+        The partner's ticks stay hidden unless they shared them. Reads are audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreconceptionChecklist"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/preconception-checklist/{itemKey}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: itemKey
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: setPreconceptionItem
+      tags: [fertility]
+      summary: The acting parent ticks or unticks an item
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Unknown itemKey, or an item that does not apply to the acting parent's role, is
+        404. visibility says whether the partner sees this tick (default private).
+        Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreconceptionTickInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreconceptionChecklist"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/journey-settings:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getJourneySettings
+      tags: [fertility]
+      summary: The acting parent's journey preferences
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Private to the acting parent. Defaults (all false, no date) when never saved.
+        hideBabyContent is the one flag other screens read: when true, This week and
+        Learn leave out baby-size, baby-development and baby-name content for this
+        parent. Not audited on read: only the owner can read it, and screens read it on
+        every page.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneySettings"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      operationId: updateJourneySettings
+      tags: [fertility]
+      summary: The acting parent saves their journey preferences
+      description: |
+        Fertility data is private to its author. Mother and partner only: a grandparent
+        or nanny gets 404 and never sees any of it. Never part of exports, the plan, the
+        calendar feed, notifications or live updates.
+        
+        Replaces the whole record. tryingSince is optional and not in the future; it only
+        feeds the clinician hint in getFertilityOverview. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneySettings"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JourneySettings"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MissionKey:
@@ -16842,3 +17214,228 @@ components:
             $ref: "#/components/schemas/ShoppingItem"
         sizes:
           $ref: "#/components/schemas/SizeSuggestion"
+
+    FertilityVisibility:
+      type: string
+      description: private = author only; partner = author and the other parent. There is no family level.
+      enum: [private, partner]
+
+    FertilityKind:
+      type: string
+      enum: [period, symptom, ovulation_test, bbt, test, treatment_note]
+
+    FertilityEntryInput:
+      type: object
+      required: [kind, date, visibility]
+      properties:
+        kind:
+          $ref: "#/components/schemas/FertilityKind"
+        date:
+          type: string
+          format: date
+        code:
+          type: string
+          maxLength: 40
+        tempC:
+          type: number
+          minimum: 34
+          maximum: 40
+        note:
+          type: string
+          maxLength: 500
+        visibility:
+          $ref: "#/components/schemas/FertilityVisibility"
+
+    FertilityEntryUpdate:
+      type: object
+      required: [visibility]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/FertilityVisibility"
+
+    FertilityEntry:
+      type: object
+      required: [id, authorId, kind, date, visibility, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/FertilityKind"
+        date:
+          type: string
+          format: date
+        code:
+          type: string
+        tempC:
+          type: number
+        note:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/FertilityVisibility"
+        createdAt:
+          type: string
+          format: date-time
+
+    FertilityEntryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FertilityEntry"
+
+    FertilityCycle:
+      type: object
+      required: [startDate]
+      properties:
+        startDate:
+          type: string
+          format: date
+          description: First day of bleeding.
+        lengthDays:
+          type: integer
+          description: Absent for the cycle in progress.
+
+    FertilityEstimate:
+      type: object
+      description: An estimate, never a guarantee. Show it as one.
+      required: [averageCycleDays, shortestCycleDays, longestCycleDays, spreadDays, cyclesUsed, nextPeriod, ovulation, windowStart, windowEnd]
+      properties:
+        averageCycleDays:
+          type: integer
+        shortestCycleDays:
+          type: integer
+        longestCycleDays:
+          type: integer
+        spreadDays:
+          type: integer
+          description: Longest minus shortest cycle. The dates can move by about this much.
+        cyclesUsed:
+          type: integer
+        nextPeriod:
+          type: string
+          format: date
+        ovulation:
+          type: string
+          format: date
+        windowStart:
+          type: string
+          format: date
+        windowEnd:
+          type: string
+          format: date
+
+    ClinicianHint:
+      type: object
+      required: [thresholdMonths, suggest]
+      properties:
+        monthsTrying:
+          type: integer
+          description: Absent until tryingSince is set.
+        thresholdMonths:
+          type: integer
+          description: 12, or 6 when the parent is older than 35.
+        suggest:
+          type: boolean
+          description: True when monthsTrying has reached thresholdMonths. A prompt to talk to a clinician, not a diagnosis.
+
+    FertilityOverview:
+      type: object
+      required: [cycles, clinician, sources]
+      properties:
+        cycles:
+          type: array
+          description: Oldest first, at most the last 6 and the one in progress.
+          items:
+            $ref: "#/components/schemas/FertilityCycle"
+        cycleDay:
+          type: integer
+          description: Day of the cycle in progress, 1 on the first day of bleeding. Absent without period days.
+        estimate:
+          $ref: "#/components/schemas/FertilityEstimate"
+        cyclesNeeded:
+          type: integer
+          description: Complete cycles still missing before an estimate is shown. Absent once there is one.
+        clinician:
+          $ref: "#/components/schemas/ClinicianHint"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    PreconceptionGroup:
+      type: string
+      enum: [appointments, vitamins, questions, vaccines, lifestyle, partner_health]
+
+    PreconceptionItem:
+      type: object
+      required: [key, group, title, detail, source, done, partnerDone]
+      properties:
+        key:
+          type: string
+        group:
+          $ref: "#/components/schemas/PreconceptionGroup"
+        title:
+          type: string
+        detail:
+          type: string
+        source:
+          $ref: "#/components/schemas/Source"
+        done:
+          type: boolean
+        doneAt:
+          type: string
+          format: date-time
+        visibility:
+          $ref: "#/components/schemas/FertilityVisibility"
+        partnerDone:
+          type: boolean
+          description: True only when the other parent ticked the same item and shared the tick.
+        partnerOnly:
+          type: boolean
+          description: True when the item is not on the acting parent's list (for example folic acid on the partner's side) and is shown only because the other parent shared the tick. It cannot be ticked here and is not counted in total.
+
+    PreconceptionChecklist:
+      type: object
+      required: [items, done, total, partnerShared]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreconceptionItem"
+        done:
+          type: integer
+        total:
+          type: integer
+        partnerShared:
+          type: integer
+          description: How many of the other parent's ticks they shared with the acting parent.
+
+    PreconceptionTickInput:
+      type: object
+      required: [done]
+      properties:
+        done:
+          type: boolean
+        visibility:
+          $ref: "#/components/schemas/FertilityVisibility"
+
+    JourneySettings:
+      type: object
+      required: [hideBabyContent, fertilityTreatment, previousLoss]
+      properties:
+        hideBabyContent:
+          type: boolean
+        fertilityTreatment:
+          type: boolean
+        previousLoss:
+          type: boolean
+          description: A history, not active loss support (see Family.pregnancyLoss).
+        tryingSince:
+          type: string
+          format: date
