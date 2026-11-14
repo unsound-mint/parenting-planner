@@ -189,6 +189,9 @@ func SetDone(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Pers
 		if err != nil {
 			return err
 		}
+		if t.Kind == "paperwork" && !p.IsParent() {
+			return ErrNotFound // paperwork is for parents only, like the hub
+		}
 		if !p.IsParent() && t.AssigneeMemberID != p.ID {
 			return ErrForbidden
 		}

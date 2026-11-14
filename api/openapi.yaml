@@ -28,6 +28,7 @@ tags:
   - name: content
   - name: today
   - name: tasks
+  - name: paperwork
   - name: thanks
   - name: calendar
   - name: simulator
@@ -3458,6 +3459,87 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/family-paperwork:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getFamilyPaperwork
+      tags: [paperwork]
+      summary: The US family paperwork hub for the family's stage
+      description: |
+        One screen's data: the paperwork checklist (the family's paperwork
+        tasks plus why, how and a sourced page for each), workplace rights
+        cards with a request note, a pointer to state leave programs, and
+        the benefit questions with the programs to look at. Parents only;
+        a grandparent or nanny gets 404. Tick an item with updateTask.
+        Deadlines count from the birth date, or from the due date until the
+        baby is born, and are either official (from the cited page) or a
+        suggested target (basis). Not legal advice.
+      responses:
+        "200":
+          description: The hub
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FamilyPaperwork"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/family-paperwork/benefits:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: checkBenefits
+      tags: [paperwork]
+      summary: Which assistance programs are worth a look for these yes/no answers
+      description: |
+        Nothing is stored: the answers are used for this response only. It
+        never says the family qualifies; the agency decides. The answers
+        are yes or no, no income figures. Keys must be the question ids
+        returned by getFamilyPaperwork (400 otherwise). Parents only
+        (404 for a caregiver).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BenefitAnswers"
+      responses:
+        "200":
+          description: Programs to look at, with the reason for each
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BenefitHighlights"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -12983,6 +13065,183 @@ components:
             from the due date as an estimate).
         source:
           $ref: "#/components/schemas/Source"
+
+    FamilyPaperwork:
+      type: object
+      required: [today, phase, items, rights, statePointer, benefits]
+      properties:
+        today:
+          type: string
+          format: date
+          description: The family's today (the demo clock), for counting days left.
+        phase:
+          type: string
+          enum: [before, newborn, later]
+          description: before the birth, with a baby under a year, or later.
+        anchorOn:
+          type: string
+          format: date
+          description: The date deadlines count from (the birth date, else the due date). Absent in planning.
+        anchorKind:
+          $ref: "#/components/schemas/TaskDueAnchor"
+        items:
+          type: array
+          description: Soonest deadline first, items with no deadline last.
+          items:
+            $ref: "#/components/schemas/PaperworkItem"
+        rights:
+          type: array
+          items:
+            $ref: "#/components/schemas/RightsCard"
+        statePointer:
+          $ref: "#/components/schemas/StateLeavePointer"
+        benefits:
+          $ref: "#/components/schemas/BenefitsFinder"
+
+    PaperworkItem:
+      type: object
+      required: [key, why, how, basis, task, moreSources]
+      properties:
+        key:
+          type: string
+        task:
+          $ref: "#/components/schemas/Task"
+        why:
+          type: string
+        how:
+          type: array
+          items:
+            type: string
+        basis:
+          type: string
+          enum: [official, suggested, anytime]
+          description: official = the date comes from the cited page; suggested = our target; anytime = no deadline.
+        moreSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    RightsNote:
+      type: object
+      required: [subject, body]
+      properties:
+        subject:
+          type: string
+        body:
+          type: string
+          description: A request note with [placeholders] to fill in before sending.
+
+    RightsCard:
+      type: object
+      required: [id, title, law, covers, ask, howToAsk, note, source]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        law:
+          type: string
+        covers:
+          type: string
+        ask:
+          type: array
+          description: What you can ask your employer for.
+          items:
+            type: string
+        howToAsk:
+          type: string
+        note:
+          $ref: "#/components/schemas/RightsNote"
+        source:
+          $ref: "#/components/schemas/Source"
+
+    StateLeavePointer:
+      type: object
+      required: [title, text, source]
+      properties:
+        title:
+          type: string
+        text:
+          type: string
+        source:
+          $ref: "#/components/schemas/Source"
+
+    BenefitQuestion:
+      type: object
+      required: [id, text]
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+
+    BenefitProgram:
+      type: object
+      required: [id, name, what, where, source, moreSources]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        what:
+          type: string
+        where:
+          type: string
+          description: Who to contact to apply.
+        source:
+          $ref: "#/components/schemas/Source"
+        moreSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    BenefitsFinder:
+      type: object
+      required: [questions, programs, household, finderText, finderSource]
+      properties:
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/BenefitQuestion"
+        programs:
+          type: array
+          items:
+            $ref: "#/components/schemas/BenefitProgram"
+        household:
+          type: boolean
+          description: True when the family stage means a pregnancy or a child under 5 (known from the stage, so not asked).
+        finderText:
+          type: string
+        finderSource:
+          $ref: "#/components/schemas/Source"
+
+    BenefitAnswers:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: object
+          description: Question id to yes (true) or no (false).
+          additionalProperties:
+            type: boolean
+
+    BenefitHighlight:
+      type: object
+      required: [programId, reason]
+      properties:
+        programId:
+          type: string
+        reason:
+          type: string
+
+    BenefitHighlights:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BenefitHighlight"
 
     TaskList:
       type: object

@@ -108,7 +108,7 @@ func TestRecoveryGuidanceIsSourcedAndFollowsTheBabysAge(t *testing.T) {
 	p := seededNewbornFamily(c, t) // Leo is 7 weeks old
 	var g httpapi.RecoveryGuidance
 	c.Get("/api/members/"+p.mom.Id.String()+"/recovery-guidance", http.StatusOK, &g)
-	if g.Phase != httpapi.CheckupWindow || g.DaysSinceBirth != 49 || g.PostnatalCheck.Status != httpapi.RecoveryGuidancePostnatalCheckStatus("open") {
+	if g.Phase != httpapi.RecoveryGuidancePhaseCheckupWindow || g.DaysSinceBirth != 49 || g.PostnatalCheck.Status != httpapi.RecoveryGuidancePostnatalCheckStatus("open") {
 		t.Errorf("guidance = %+v", g)
 	}
 	if len(g.Points) == 0 || len(g.Sources) == 0 {

@@ -15,7 +15,7 @@ import (
 
 const acceptTaskReassignment = `-- name: AcceptTaskReassignment :one
 UPDATE tasks SET assignee_member_id = pending_assignee_member_id, pending_assignee_member_id = NULL
-WHERE id = $1 AND family_id = $2 AND pending_assignee_member_id IS NOT NULL RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+WHERE id = $1 AND family_id = $2 AND pending_assignee_member_id IS NOT NULL RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at, catalog_key
 `
 
 type AcceptTaskReassignmentParams struct {
@@ -47,16 +47,17 @@ func (q *Queries) AcceptTaskReassignment(ctx context.Context, arg AcceptTaskReas
 		&i.SourceCheckedOn,
 		&i.CreatedByMemberID,
 		&i.CreatedAt,
+		&i.CatalogKey,
 	)
 	return i, err
 }
 
 const createTask = `-- name: CreateTask :one
 INSERT INTO tasks (family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id,
-                   source_title, source_url, source_checked_on, created_by_member_id)
+                   source_title, source_url, source_checked_on, created_by_member_id, catalog_key)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
-        $10, $11, $12, $13)
-RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+        $10, $11, $12, $13, $14)
+RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at, catalog_key
 `
 
 type CreateTaskParams struct {
@@ -73,6 +74,7 @@ type CreateTaskParams struct {
 	SourceUrl         *string
 	SourceCheckedOn   *time.Time
 	CreatedByMemberID uuid.UUID
+	CatalogKey        *string
 }
 
 func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, error) {
@@ -90,6 +92,7 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		arg.SourceUrl,
 		arg.SourceCheckedOn,
 		arg.CreatedByMemberID,
+		arg.CatalogKey,
 	)
 	var i Task
 	err := row.Scan(
@@ -113,12 +116,13 @@ func (q *Queries) CreateTask(ctx context.Context, arg CreateTaskParams) (Task, e
 		&i.SourceCheckedOn,
 		&i.CreatedByMemberID,
 		&i.CreatedAt,
+		&i.CatalogKey,
 	)
 	return i, err
 }
 
 const getTaskForUpdate = `-- name: GetTaskForUpdate :one
-SELECT id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at FROM tasks WHERE id = $1 AND family_id = $2 FOR UPDATE
+SELECT id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at, catalog_key FROM tasks WHERE id = $1 AND family_id = $2 FOR UPDATE
 `
 
 type GetTaskForUpdateParams struct {
@@ -151,12 +155,13 @@ func (q *Queries) GetTaskForUpdate(ctx context.Context, arg GetTaskForUpdatePara
 		&i.SourceCheckedOn,
 		&i.CreatedByMemberID,
 		&i.CreatedAt,
+		&i.CatalogKey,
 	)
 	return i, err
 }
 
 const listTasks = `-- name: ListTasks :many
-SELECT id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at FROM tasks
+SELECT id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at, catalog_key FROM tasks
 WHERE family_id = $1 AND ($2::text IS NULL OR kind = $2::text)
 ORDER BY seq
 `
@@ -196,6 +201,7 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 			&i.SourceCheckedOn,
 			&i.CreatedByMemberID,
 			&i.CreatedAt,
+			&i.CatalogKey,
 		); err != nil {
 			return nil, err
 		}
@@ -209,7 +215,7 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 
 const setTaskDone = `-- name: SetTaskDone :one
 UPDATE tasks SET done = $1, done_at = $2, done_by_member_id = $3
-WHERE id = $4 AND family_id = $5 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+WHERE id = $4 AND family_id = $5 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at, catalog_key
 `
 
 type SetTaskDoneParams struct {
@@ -250,13 +256,14 @@ func (q *Queries) SetTaskDone(ctx context.Context, arg SetTaskDoneParams) (Task,
 		&i.SourceCheckedOn,
 		&i.CreatedByMemberID,
 		&i.CreatedAt,
+		&i.CatalogKey,
 	)
 	return i, err
 }
 
 const setTaskPendingAssignee = `-- name: SetTaskPendingAssignee :one
 UPDATE tasks SET pending_assignee_member_id = $1
-WHERE id = $2 AND family_id = $3 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+WHERE id = $2 AND family_id = $3 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at, catalog_key
 `
 
 type SetTaskPendingAssigneeParams struct {
@@ -289,6 +296,7 @@ func (q *Queries) SetTaskPendingAssignee(ctx context.Context, arg SetTaskPending
 		&i.SourceCheckedOn,
 		&i.CreatedByMemberID,
 		&i.CreatedAt,
+		&i.CatalogKey,
 	)
 	return i, err
 }

@@ -131,6 +131,10 @@ func (s *Server) ListTasks(ctx context.Context, req ListTasksRequestObject) (Lis
 	}
 	out := TaskList{Items: make([]Task, 0, len(items))}
 	for _, it := range items {
+		// Paperwork is a parents' list (the family paperwork hub): a caregiver with family_plan does not see it.
+		if it.Kind == "paperwork" && !taskPerson(m).IsParent() {
+			continue
+		}
 		out.Items = append(out.Items, taskOut(it))
 	}
 	return ListTasks200JSONResponse(out), nil

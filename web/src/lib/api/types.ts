@@ -255,6 +255,13 @@ export type PreconceptionChecklist = S["PreconceptionChecklist"];
 export type PreconceptionItem = S["PreconceptionItem"];
 export type PreconceptionGroup = S["PreconceptionGroup"];
 export type JourneySettings = S["JourneySettings"];
+
+// US family paperwork hub.
+export type FamilyPaperwork = S["FamilyPaperwork"];
+export type PaperworkItem = S["PaperworkItem"];
+export type RightsCard = S["RightsCard"];
+export type BenefitsFinder = S["BenefitsFinder"];
+export type BenefitHighlights = S["BenefitHighlights"];
 export type ChildcareOption = S["ChildcareOption"];
 export type ChildcareOptionInput = S["ChildcareOptionInput"];
 export type ChildcareOptionList = S["ChildcareOptionList"];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -201,7 +202,14 @@ export function PlanScreen({
         {active === "task" && (
           <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} now={now} weekOf={trackWeeks ? dueOn : undefined} suggestions={weekTasks} onAdd={(title, dueOn) => add(title, { dueOn })} />
         )}
-        {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />}
+        {active === "paperwork" && (
+          <>
+            <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />
+            <Link href={`/family/${selfId}/paperwork`} className="mt-2 inline-flex min-h-11 items-center text-label text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
+              Why each step matters, your rights at work and benefits: Family paperwork
+            </Link>
+          </>
+        )}
         {active === "leave" && leave && (
           <LeavePlanner
             initial={leave}
