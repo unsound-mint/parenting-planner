@@ -54,7 +54,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
-      <aside className="flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
+      <aside className="print:hidden flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
         <div className="flex items-center justify-between gap-3 md:block">
           <p className="px-2 text-[15px] font-semibold tracking-tight">{PRODUCT_NAME}</p>
           <div className="md:hidden">
@@ -69,7 +69,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
+        <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
           <RoleSwitch people={people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
           <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
@@ -93,7 +93,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
 function ShellFallback() {
   return (
     <div className="flex min-h-dvh flex-1">
-      <aside className="hidden w-56 border-r border-border bg-card md:block" />
+      <aside className="hidden print:hidden w-56 border-r border-border bg-card md:block" />
       <p className="p-10 text-muted-foreground">Opening your family...</p>
     </div>
   );

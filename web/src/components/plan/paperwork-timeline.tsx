@@ -11,25 +11,25 @@ import { DoneToggle, DueChip, OfferLine, TaskActions, TaskDetail, TaskTitle, has
 // US paperwork as a deadline timeline, closest first. The deadlines come from
 // the API (anchored to the due date or birth), so moving either moves them here.
 // The next open deadline is the one highlighted card; finished ones sit at the end.
-export function PaperworkTimeline({ tasks, ctx }: { tasks: Task[]; ctx: TaskCtx }) {
+export function PaperworkTimeline({ tasks, ctx, highlightId }: { tasks: Task[]; ctx: TaskCtx; highlightId?: string }) {
   const ordered = openFirst(tasks);
   const focusId = ordered.find((t) => !t.done)?.id;
   return (
     <ol aria-label="Paperwork deadlines, closest first" className="flex max-w-3xl flex-col">
       {ordered.map((task, i) => (
-        <TimelineItem key={task.id} task={task} ctx={ctx} focus={task.id === focusId} last={i === ordered.length - 1} />
+        <TimelineItem key={task.id} task={task} ctx={ctx} focus={task.id === focusId} highlight={task.id === highlightId} last={i === ordered.length - 1} />
       ))}
     </ol>
   );
 }
 
-function TimelineItem({ task, ctx, focus, last }: { task: Task; ctx: TaskCtx; focus: boolean; last: boolean }) {
-  const [open, setOpen] = useState(focus && hasDetail(task));
+function TimelineItem({ task, ctx, focus, highlight, last }: { task: Task; ctx: TaskCtx; focus: boolean; highlight: boolean; last: boolean }) {
+  const [open, setOpen] = useState((focus || highlight) && hasDetail(task));
   const days = taskDays(task);
   const tone = dueTone(task);
   const detailId = `detail-${task.id}`;
   return (
-    <li className="grid grid-cols-[1rem_minmax(0,1fr)] gap-x-3 md:grid-cols-[5rem_1rem_minmax(0,1fr)] md:gap-x-4">
+    <li id={`task-${task.id}`} className="scroll-mt-24 grid grid-cols-[1rem_minmax(0,1fr)] gap-x-3 md:grid-cols-[5rem_1rem_minmax(0,1fr)] md:gap-x-4">
       <div className="hidden pt-4 text-right md:block">
         {task.done ? (
           <span className="inline-flex size-6 items-center justify-center rounded-full bg-status-ok-soft text-status-ok">
@@ -59,7 +59,7 @@ function TimelineItem({ task, ctx, focus, last }: { task: Task; ctx: TaskCtx; fo
         <span className={cn("relative z-10 mt-[22px] size-3 rounded-full ring-4 ring-background", toneDot[tone], focus && "size-4 -translate-y-0.5")} />
       </div>
 
-      <div className={cn("mb-3 min-w-0 rounded-2xl p-3 md:p-4", focus ? "border border-primary bg-card shadow-[0_0_0_3px_var(--secondary)]" : "")}>
+      <div className={cn("mb-3 min-w-0 rounded-2xl p-3 md:p-4", focus ? "border border-primary bg-card shadow-[0_0_0_3px_var(--secondary)]" : "", highlight && !focus && "ring-2 ring-primary")}>
         <div className="flex items-start gap-3">
           <DoneToggle task={task} ctx={ctx} />
           <div className="min-w-0 flex-1">
