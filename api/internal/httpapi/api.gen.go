@@ -343,6 +343,36 @@ type Source struct {
 // Stage Where the family is on the journey from planning to age 9.
 type Stage string
 
+// Task defines model for Task.
+type Task struct {
+	// AssigneeId The parent who owns the task now.
+	AssigneeId openapi_types.UUID  `json:"assigneeId"`
+	DueOn      *openapi_types.Date `json:"dueOn,omitempty"`
+	Id         openapi_types.UUID  `json:"id"`
+
+	// PendingAssigneeId Set while the task is offered to the other parent and not yet accepted.
+	PendingAssigneeId *openapi_types.UUID `json:"pendingAssigneeId,omitempty"`
+	Title             string              `json:"title"`
+}
+
+// TaskInput defines model for TaskInput.
+type TaskInput struct {
+	DueOn *openapi_types.Date `json:"dueOn,omitempty"`
+	Title string              `json:"title"`
+}
+
+// TaskList defines model for TaskList.
+type TaskList struct {
+	// Items Soonest due first, undated last.
+	Items []Task `json:"items"`
+}
+
+// TaskReassignmentInput defines model for TaskReassignmentInput.
+type TaskReassignmentInput struct {
+	// ToMemberId The parent the task is offered to. Must be in the family and not the acting parent.
+	ToMemberId openapi_types.UUID `json:"toMemberId"`
+}
+
 // Visibility Who besides the author may see a sensitive record.
 // private = author only; partner = author and the other parent;
 // care_team = author and their professionals, not the partner; family = both parents.
@@ -350,6 +380,9 @@ type Visibility string
 
 // MemberId defines model for MemberId.
 type MemberId = openapi_types.UUID
+
+// TaskId defines model for TaskId.
+type TaskId = openapi_types.UUID
 
 // CreateDemoSessionJSONRequestBody defines body for CreateDemoSession for application/json ContentType.
 type CreateDemoSessionJSONRequestBody = CreateDemoSessionRequest
@@ -362,6 +395,12 @@ type UpdateDiaryEntryJSONRequestBody = DiaryEntryUpdate
 
 // CreateMoodCheckinJSONRequestBody defines body for CreateMoodCheckin for application/json ContentType.
 type CreateMoodCheckinJSONRequestBody = MoodCheckinInput
+
+// CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
+type CreateTaskJSONRequestBody = TaskInput
+
+// ProposeTaskReassignmentJSONRequestBody defines body for ProposeTaskReassignment for application/json ContentType.
+type ProposeTaskReassignmentJSONRequestBody = TaskReassignmentInput
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -392,6 +431,21 @@ type ServerInterface interface {
 	// GetMemberPlan This week's plan for one parent
 	// (GET /members/{memberId}/plan)
 	GetMemberPlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListTasks All of the family's tasks, soonest due first, undated last
+	// (GET /members/{memberId}/tasks)
+	ListTasks(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateTask The acting parent adds a family task, assigned to themselves
+	// (POST /members/{memberId}/tasks)
+	CreateTask(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ProposeTaskReassignment The assignee offers the task to the other parent
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment)
+	ProposeTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
+	// AcceptTaskReassignment The proposed parent takes the task over
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/accept)
+	AcceptTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
+	// DeclineTaskReassignment The proposed parent declines; the task stays with its assignee
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/decline)
+	DeclineTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -610,6 +664,163 @@ func (siw *ServerInterfaceWrapper) GetMemberPlan(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// ListTasks operation middleware
+func (siw *ServerInterfaceWrapper) ListTasks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListTasks(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTask operation middleware
+func (siw *ServerInterfaceWrapper) CreateTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTask(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProposeTaskReassignment operation middleware
+func (siw *ServerInterfaceWrapper) ProposeTaskReassignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProposeTaskReassignment(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptTaskReassignment operation middleware
+func (siw *ServerInterfaceWrapper) AcceptTaskReassignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptTaskReassignment(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeclineTaskReassignment operation middleware
+func (siw *ServerInterfaceWrapper) DeclineTaskReassignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeclineTaskReassignment(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -739,6 +950,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/diary-entries", wrapper.ListDiaryEntries)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/diary-entries", wrapper.CreateDiaryEntry)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/members/{memberId}/diary-entries/{entryId}", wrapper.UpdateDiaryEntry)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/tasks", wrapper.ListTasks)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks", wrapper.CreateTask)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}/reassignment", wrapper.ProposeTaskReassignment)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}/reassignment/accept", wrapper.AcceptTaskReassignment)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}/reassignment/decline", wrapper.DeclineTaskReassignment)
 
 	return m
 }
@@ -1194,6 +1410,331 @@ func (response GetMemberPlan404JSONResponse) VisitGetMemberPlanResponse(w http.R
 	return err
 }
 
+type ListTasksRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListTasksResponseObject interface {
+	VisitListTasksResponse(w http.ResponseWriter) error
+}
+
+type ListTasks200JSONResponse TaskList
+
+func (response ListTasks200JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks401JSONResponse Error
+
+func (response ListTasks401JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks404JSONResponse Error
+
+func (response ListTasks404JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTaskRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateTaskJSONRequestBody
+}
+
+type CreateTaskResponseObject interface {
+	VisitCreateTaskResponse(w http.ResponseWriter) error
+}
+
+type CreateTask201JSONResponse Task
+
+func (response CreateTask201JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask400JSONResponse Error
+
+func (response CreateTask400JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask401JSONResponse Error
+
+func (response CreateTask401JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask404JSONResponse Error
+
+func (response CreateTask404JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignmentRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+	Body     *ProposeTaskReassignmentJSONRequestBody
+}
+
+type ProposeTaskReassignmentResponseObject interface {
+	VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error
+}
+
+type ProposeTaskReassignment200JSONResponse Task
+
+func (response ProposeTaskReassignment200JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment400JSONResponse Error
+
+func (response ProposeTaskReassignment400JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment401JSONResponse Error
+
+func (response ProposeTaskReassignment401JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment404JSONResponse Error
+
+func (response ProposeTaskReassignment404JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment409JSONResponse Error
+
+func (response ProposeTaskReassignment409JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignmentRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+}
+
+type AcceptTaskReassignmentResponseObject interface {
+	VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error
+}
+
+type AcceptTaskReassignment200JSONResponse Task
+
+func (response AcceptTaskReassignment200JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment401JSONResponse Error
+
+func (response AcceptTaskReassignment401JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment404JSONResponse Error
+
+func (response AcceptTaskReassignment404JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment409JSONResponse Error
+
+func (response AcceptTaskReassignment409JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignmentRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+}
+
+type DeclineTaskReassignmentResponseObject interface {
+	VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error
+}
+
+type DeclineTaskReassignment200JSONResponse Task
+
+func (response DeclineTaskReassignment200JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment401JSONResponse Error
+
+func (response DeclineTaskReassignment401JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment404JSONResponse Error
+
+func (response DeclineTaskReassignment404JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment409JSONResponse Error
+
+func (response DeclineTaskReassignment409JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// CreateDemoSession Start a demo with a fresh copy of a synthetic family
@@ -1223,6 +1764,21 @@ type StrictServerInterface interface {
 	// GetMemberPlan This week's plan for one parent
 	// (GET /members/{memberId}/plan)
 	GetMemberPlan(ctx context.Context, request GetMemberPlanRequestObject) (GetMemberPlanResponseObject, error)
+	// ListTasks All of the family's tasks, soonest due first, undated last
+	// (GET /members/{memberId}/tasks)
+	ListTasks(ctx context.Context, request ListTasksRequestObject) (ListTasksResponseObject, error)
+	// CreateTask The acting parent adds a family task, assigned to themselves
+	// (POST /members/{memberId}/tasks)
+	CreateTask(ctx context.Context, request CreateTaskRequestObject) (CreateTaskResponseObject, error)
+	// ProposeTaskReassignment The assignee offers the task to the other parent
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment)
+	ProposeTaskReassignment(ctx context.Context, request ProposeTaskReassignmentRequestObject) (ProposeTaskReassignmentResponseObject, error)
+	// AcceptTaskReassignment The proposed parent takes the task over
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/accept)
+	AcceptTaskReassignment(ctx context.Context, request AcceptTaskReassignmentRequestObject) (AcceptTaskReassignmentResponseObject, error)
+	// DeclineTaskReassignment The proposed parent declines; the task stays with its assignee
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/decline)
+	DeclineTaskReassignment(ctx context.Context, request DeclineTaskReassignmentRequestObject) (DeclineTaskReassignmentResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -1521,56 +2077,212 @@ func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, m
 	}
 }
 
+// ListTasks operation middleware
+func (sh *strictHandler) ListTasks(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListTasksRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListTasks(ctx, request.(ListTasksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListTasks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListTasksResponseObject); ok {
+		if err := validResponse.VisitListTasksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTask operation middleware
+func (sh *strictHandler) CreateTask(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateTaskRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateTaskJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTask(ctx, request.(CreateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTaskResponseObject); ok {
+		if err := validResponse.VisitCreateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ProposeTaskReassignment operation middleware
+func (sh *strictHandler) ProposeTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request ProposeTaskReassignmentRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	var body ProposeTaskReassignmentJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ProposeTaskReassignment(ctx, request.(ProposeTaskReassignmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ProposeTaskReassignment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ProposeTaskReassignmentResponseObject); ok {
+		if err := validResponse.VisitProposeTaskReassignmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptTaskReassignment operation middleware
+func (sh *strictHandler) AcceptTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request AcceptTaskReassignmentRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptTaskReassignment(ctx, request.(AcceptTaskReassignmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptTaskReassignment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptTaskReassignmentResponseObject); ok {
+		if err := validResponse.VisitAcceptTaskReassignmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeclineTaskReassignment operation middleware
+func (sh *strictHandler) DeclineTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request DeclineTaskReassignmentRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeclineTaskReassignment(ctx, request.(DeclineTaskReassignmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeclineTaskReassignment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeclineTaskReassignmentResponseObject); ok {
+		if err := validResponse.VisitDeclineTaskReassignmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7FpZb9xGEv4rBe4CSQB6Zpw4DysjD46cQ8hlWEryYAlOD7uG7KjZzXQXNeYK898XffAaUtJ4LSkBkhdh",
-	"RPZRd31Vxesk02WlFSqyydF1UjHDSiQ0/r8fsFyjOeHuN0ebGVGR0Co5Ss4KBJaRUDlUzKCiBZwVaBCE",
-	"BaVB6lyoFKwGKhB+PgHLGgvbQmRFXA/CnqvaugPcElZVz/2PF69OICswu7RABSOgQth2yxqlVrkFCsda",
-	"tFZo9ZGFDSuFbBbnKkkT4cirGBVJmihWYnKUlC0baWLwj1oY5MkRmRrTxGYFlszxt9GmZJQcJXUt3Epq",
-	"KrfXkhEqT3a7XbvYS+a4ENKLpTK6QkMC/WOW4w9aUeH/iScIRZijSXZpshaGipeMcHQhdw8mF6aJ4AfQ",
-	"1TJ5PSF4yOybxO/1S4dkpAOKL7qz9fp3zMidfWyQEb7EUp8GYb/GP2q0NOWcsKxk5OzfBjfJUfKvZW9b",
-	"yyi7pTvrrF27T2R3yBwto50Tg/zV25ZtFBVIIosm4Uwl01WzgBecA4MrJmsEb6jbAhUIsmAROeA7Ycku",
-	"kjRBVZeOlspgrpjKmgExvdBfCmaarxSZZsYIaip09Jo7tbfWvJnR3sHavxJWrIUU1Nwl+V/6lbs02RpB",
-	"hOoFTUzxCYlyxh7n7KnjdHhe5GlE2qw+OxGeqKqeMalWNCV79z2qnIrk6PPVapUmpVDtg6f3JpI9/t6X",
-	"h+/FnFcIwtJOjfVH3KIl2Ahjydlct+xWz+lNbteRwoxhU+LDebcT/HPFoyONSb4X6d0htq+M0WZ6daa5",
-	"JwjfsbKSbovS9HajazVr+iVay/IDYp8/t18/R9HXPlzMkOTivEE1UuZtQgmJYaKgNOE1vpyNXKdIwGvj",
-	"U2kbc5xR3JkfcrTE3CFM/op4OT35WDsxEnLYIl5a0Jv+BiDNWZMCRyOukMPG6BIijYv+tkHyOjAghVxt",
-	"DxbYK79+TmKWonZv237qF7nd95GAAkvt25aEnqm0N4g5K/pBa37swItQH5gWUKHJm3kUcaAiSq35/AFK",
-	"E87mHIOZNhz54VkhTaxErL7VtRliHlU7xHVvwXg/2QzojHx2EhsRdGf8HijshiTUK6Jk70TpsMHnPgOF",
-	"30/nPKWV/Ngbn8IXcIWmAam3KXze/pdrzZ3DHX58q75xXrxTNWNq/GOwEisCoTyelswSfPoMCvdqRNKn",
-	"zwY09Tfds5bvSZEPn4mHbv7/p+IY+CaUcmEryZof52H9we5vtMTDYu9rt3LW5fwZ6Yiimzl5HS9sAXSp",
-	"qUATgicpNLM4+pVkM6EydzbA6P0C0Q0aPtXGZcB1Ay5b1hY+1ldoeI0p+D91lelSqPyT1DmBcg+BxyR4",
-	"WAKTTJ0QlnMprBwU0HcVmHvO0NesQ2mktxmUZOqYEeY6VCWtImxmEJW7JE2uWJYJhdGhfPhERUy+LZBJ",
-	"XzO70t2SyHyy03XlLUAiM/6Em3ToBTBFTwNq7hJhR7nDSkhMyLkij5Er6bhOXdCqJBMKJFN5zfIhaulp",
-	"4zV+2RxUbRtkVqu5O5vQhGBVJQXG7kPflFAumq+ZRQ7ax1FhnP2wWXJMLTFYQ49xc1ln2uKToKbZFKtr",
-	"k92NhMKqAJyoPthuT8NqZ72C5AFwOjLRru/U1V2c9orv5NpxcZPlDkgZ2G701cRrMkmT1ltnDfG0k9M+",
-	"iMfssg0m+9pFBVaXqFVMgJlWG2FK5D4n5rXgKIVCsCSkDH0sp/6DEPpNAk2T2si7Bd3K1y1OB1zMifC0",
-	"BcsT/gx6TmJDRNhopvC7ro3CJiD/SjKlfDNOA8sR/jNqhcSXjkXThB99eyRNKm3JBfm69P23DVMusJDm",
-	"XIYEYNBmhdbeRPyPt+M6rJfLLyMgsc+LhjVawZ0TFggBEELJGrCIwMCisoLEFUIAiItzVRlxxQjhi3a1",
-	"VrJ5DjEl9Y+ZCvr2OSu69vNzlTGDbwlZOVkpDFRGb0JXjEmbgtLkj4hnP28l/gWsNbVtTxualH2TyZM3",
-	"SJLOd+KdzsJCWXoxly0sZrUR1Jw6fw6GHjuiHu84iWVaXwrsG6FV9bZd0ueqSnyHTWhwCrXRc2WkIsMy",
-	"gjXSFlHBFtdLLwdWieUCvnTsBbW0qQpcyR0sy8fKjZB4rj7+rWSX6Bb99slzUHiFBpAL6rbxsG/dQMEU",
-	"X8BxwVSO/REBp6XnSoTWnd4qePUatAHSOXrVbQUVQeDCxVef3RwfTvDn6kVNxZHT0rhTvYBXP52ewZJj",
-	"qZdRQhYy3/y0wMA9b9XJFD9XFskCU1AQVT8p2bS9aAgSD61rm+kKLaCH+cGwMiZlSCCMRl3rGCkilHKO",
-	"6GKiM9EXr05ctkYTNJusFk8XK+cqukLFKpEcJZ8tVovPvA3FzvOYER8QdQDFLix6ebgsNG3vxg45Wvoy",
-	"Nt8yrSjCVJ8AM797+XvMlX3//NamyE1t5N045JGp0T+wlVY22PSnq6f3Rkfs8vhbxzYe3kSV8+fD+UKr",
-	"U2HBoi8SCmQ8TkhOkZ4cBy8bUTGZHuzS5NlqdW+chA7aDCPtiz4+JEdvLtLE1mXJHBJzmcJQa9TeXRhs",
-	"DNrCd8pBb1wk3eujOwtluXUhy21LLtwFy03XNMtxxrq+Qfq63b2n0tUjqPSn7xIv9KePKvROzGd9ztUb",
-	"b09ZbTxijHaVBuHHvODjaddc6sXdZgAv8ADS/3ujxL+N7z9Q3mP01KPJHrPqyzsLmLhtilWm4juLcz8n",
-	"AhfWHXx2iBqYQairxcScvTBChWSX122ptFtywUzzBBWZrpCk2dmlMD53xJVQydpO0v9HtntvC2aQB31R",
-	"gaULAmPJfy8sdb11d/kDmvze0OEvYfrutmd/jqN5cXSqipgjgvnPVsADYmcBnI1m1i10HLjbFqVcoy8w",
-	"Qi+7m4a/mSe5X7LspuW7i7RLuGP6e3jr0knrLkdDOMsx81BqW2hPn0EWoKnj0KGFszBR57hhtSQLwpfE",
-	"EUm2mcs4bBUQ1lZwVG5ZQBqzCKAfLT0MANif9T1y3h+OzqZGFWTAk0dO0X8bB518KwJbIyKw7ny3ucEJ",
-	"D4n0y2t/wgnf7X/C8j5Om17PfTsST/6gT0cuPDTPimk88LXDwPkzpkKycTVNrcJPpqLvwwvVFhL+AQju",
-	"a6FM1rz9kGYmgzWpCzbPVs/mAkAYAz9iAIhz54MiwOqRIkCbL/9x/odx/mjcvprfy2xaYcTHwrRJ/P1C",
-	"Qak1f5KFccwhoM8vfSLUzbCvX3EY8BvMgx4U+O0Puf7uyO+409NfDfXNgazh1PBhguxkmv3IMGs0F/0H",
-	"Z/35OCu0wS0Ueuv8oIENogxf/rxfjK3imHY2tJ4QlhYyXWLvh/3cxNQSHQ7JhcIU8IrJ2nd6Wc6EsjSY",
-	"TZwrV/iPhmvCApNSb5G7GsciLuArlhUgCMv2m+LGVUDtcM53ZzOPLv23nX4iNId7vkEKnusn0B/k9A8W",
-	"7z1pf/cgf+bMYYt4+ZH1UyrY+CkORhMZ2LE30ovdXrNoMBV5c+HUFYrjoGY/hkuWrBJek/Gk6xb8+16n",
-	"Kwzi/7EZN3ji7xz83/vS7mL3vwAAAP//",
+	"7FtZbxu3Fv4rB3MvkBaYSE6aPtRGH1yni9GmCWK3fYiNlBoezbDikFOSI2VuoP9+wWU2ibKUxkuB5MWQ",
+	"Rxzy8KzfWfQ+yWRZSYHC6OT4fVIRRUo0qNx/L7CcoTqn9jNFnSlWGSZFcpxcFggkM0zkUBGFwkzgskCF",
+	"wDQICVzmTKSgJZgC4bdz0KTRsCpYVoT1wPSVqLXdwC4hVXXiPpy+OoeswGyhwRTEgCmYbl+ZIZci12D8",
+	"thq1ZlI80jAnJePN5EokacIseRUxRZImgpSYHCdle400Ufh3zRTS5NioGtNEZwWWxN5vLlVJTHKc1DWz",
+	"K01T2Xe1UUzkyXqdJpdELzwvImcY/+XHnLBuFzvenxWMu8MqJStUhqF7THJ8IYUp3D9hByYM5qiSdZrM",
+	"mDLFc2JwdCC1D7YOTBNGD6CrveL7CEv6y75J3Ltu6ZCMdEDxdbe3nP2FmbF7nykkBp9jKS+8OF/j3zVq",
+	"s31zg2XFw83+q3CeHCf/mfbaOw28m9q9Ltu1m0R2m8RoGb25pfJ/OO3VjTAFGpYFpbPKmMmqmcAppUBg",
+	"SXiN4ExhVaAAZjRoRAr4jmmjJ0maoKhLS0ulMBdEZM2AmJ7pzxlRzffCqCaiBLUpZLDLvdKbSdpEpHew",
+	"9JdMsxnjzDT7OP97v3KdJivFjEFxarZU8bFhJUZNbEufupsO9wt3GpEWlWfHwnNR1RGVallTkne/oMhN",
+	"kRx/fXR0lCYlE+2DJ7fGko37fegdfmExq2AGS72trL/iCrWBOVPaWJ3rlt1oOb3KrTtSiFJkm3i/380E",
+	"/1bRYEhjkm+Fe3vY9r1SUm0fnUnqCMJ3pKy4fUVI83YuaxFV/RK1JvkBvs/t26+PUfSDcxcRkqyfVyhG",
+	"wryJKT4wbAkoTWiNz6Oe6wIN0Fq5YN36HKsUe+NDjtoQuwnhfyAutnc+k5aNBimsEBca5Lw/AYykpEmB",
+	"omJLpDBXsoRA46Q/bRC8DnRIHg3ogxn2yq2PcUybIN2bXr9wi+zbtxGA/JXab1sS+kulvULEtOiFlPTM",
+	"wiMmPjIsoECVN3EUcaAgSilpfAMhDUZjjsJMKor08KiQJpojVj/JWg0xj6gtprs1Z7wZbAZ0hnt2HBsR",
+	"tNd/DwS2Iwj1gijJO1ZabPC1i0D+85OYpbScH1vjE/gWlqga4HKVwtftf7mU1Brc4du34hvHxb2iGVPj",
+	"HoPmWBlgwiF2TrSBp8+gsF+NSHr6bEBTf9ItS/mWBHn3kXho5v88FAfHt0UpZbripPk1DusPNn8lOR7m",
+	"e1/blVGTc3ukI4p23+R1OLAF0KU0BSrvPI1AFcXRrziJuMrc6gAxH+aIdkj4QiobAWcN2GhZa/hCLlHR",
+	"GlNwf+oqkyUT+ZepNQJhHwINQfCwAMaJODdYxkJYOUjR96ewI2Pos+IhN9KbFIoTcUYM5tJnJa0gdKYQ",
+	"hT0kTZYky5jAYFDOfaIwhL8tkHCXMXOZM21Y5oKdrCunARyJcjvskqFjwDZ6GlCzj4Ud5RYroSGMx5I8",
+	"YmxKR2VqnVbFCRPAichrkg9RS08brfG75qBsWyHRUsTObHyZg1QVZxjqG33ZQ1hvPiMaKUjnR5my+kOi",
+	"5Kiao9eGHuPmvM6kxsdeTNEQK2uV7UdCfpUHTqY+WG8v/GqrvczwA+B0uES7vhNXd3DaC77ja3eLXZo7",
+	"IGWgu8FWEyfJJE1aa40q4kXHp00Qj9midSab0kUBWpYoRQiAmRRzpkqkLibmNaPImUDQhnHuK2VW/Ach",
+	"9F0MTZNa8f2MbvlrF6eDW8RYeNGC5a37KXQ3CQURpoOawl+yVgIbj/wrToRw5T4JJEf4ZlQKCV/aK6rG",
+	"f+jLI2lSSW2sk69LV+GbE2Edi5GUch8AFOqskNKpiPvwdpyH9Xy5JHoRgc5as1wg7qp1BlNcFRLkSmh3",
+	"PUP0whrnSFC7giWt8aW4zaJchYIykZ/eQLjN+1YF49iTa4Uzn6OyyuerqC6GtvcjgoKQBho0QLIMK4P0",
+	"oOsdaNhsaNQDnsf0zZVb45D5cGZ2dA2g7NO9FZ6oleyi8YPQ4IWUwsJBiwEcJEyhFpZ46nzDwZDAafE/",
+	"R4b29dfoBWDD8w4+G3lzByBoTVy7JvCi1gZm2KL/4B9aHTNbLYT9irYpmJ6+2C1/H+UMm25Lwgw1o+iN",
+	"2ed+UJIGNCIQ0Cg0M2yJ4HPByZWoFFsSg/Btu1oK3pxAQJ/9Y3vDTdM6uRIZUfjWICm3VjIFlZJzXwAn",
+	"XKcdg8LeJy3zvoWZNG0PRfuOR19PduQN8LANk+FMy1tfgbqOcVVjVitmmgurX174ob3S9TsyKRcM+45H",
+	"Vb1tl/R6WLGfsfG9DCbmMlYxEkaRzOqFWSEKWOFs6vhAKjadwHf2el4sLSqFTFL0QcTBojnjeCW++LMk",
+	"C7SL/vzyBAQuUQFSZrrXqH9v1kBBBJ3AWUFEjv0Wwf6uBPNVerkS8Oo1SAVG5uhEt2Km8AxnFko5IGvv",
+	"YRl/JU5rUxxbKY3bXhN49fLiEqYUSzkNHNKQuT6HBgL2+cAWroRGo4EIKIypXgretI0t8Bz3fTCdyQo1",
+	"oMvovWJlhHPvxYkZtcCC0wtZkzUwC3+sip6+OrfAHJWXbHI0eTI5sqYiKxSkYslx8tXkaPKV06HQZBpf",
+	"xDkJ6T2edRWOH9Y/bHdyQjMMtfku1NkzKUzISB3Wzdzb078CLO5bZTfWP3d1jNZj92BUje6BrqTQXqef",
+	"Hj25NTpCQdedOtZx/00QOT0ZNitbmTINGp3HK5DQ0G69QPP4zFvZiIqtRuE6TZ4dHd3aTXyxPHKR9ove",
+	"PyTHb67TRNdlSWzSZUGhMq1SO3MhMFeoC9cUAzm3nnSjZWY1lOTauiz7WnJtD5jOu/p4jhHt+hHND+3b",
+	"GyI9ugeRvvw5cUx/cq9M79h82YdPOXf6lNXKxd6gV6lnfogLzp92deSe3W0EcAz3+fj/dnL8p/D9R/J7",
+	"jCj6xLFPT+Vib6APr20H+W32XYYhAssC69ZtpmyTZyAKoa4mW+rsmOGLIXr6vq2KrKeUEdU8RmFUVzMy",
+	"URjElIsdYSVUvNZb4f+R7r7XBbEAycnLFFhaJzDmvEWUXRvNHn6HKr/RX/xXqL497dnDGJpjRyeqgDlC",
+	"3v7VEVCfnJMIem2h48DcVsj5DF0twbetutGaN3GS+yXTDtiur9Mu4I7p7+GtDSetuRwP4SzFzEEpm7da",
+	"+hQSD03tDS1auPTjORTnpOZGA3PVr4Ak28ilLLbyCGvFKAq7zCONKALou8h3AwA22/r3HPeHXfJtpfI8",
+	"oMk9h+hPxkC3Bs9gpVgA1p3tNjuM8BBPP33vdjin6815uA8x2jQ6JBZ2/qgpsWsHzbNi2x+43GFg/BkR",
+	"PtjYnKYW/iMRwfbhVLSJhHsAjLpcKOM1bafyIhGsSa2zeXb0LOYA/MTHPTqAMGJykAc4uicP0MbLz8Z/",
+	"N8YflNtl8xuRTQoM+JipNoh/mCsopaSPM995PQT0uaWPmdgN+/oVhwG/Qev3ToHfZj/7U0d+Z52c/m2o",
+	"LwayhgMCd+NktwZX7hlmjUYgPuOsh8dZvgyuoZArawcNzBG5H/L7MB9bhYmMqGs9N1hqyGSJvR32LVJV",
+	"c7Q4JGcCU8Al4bWr9JKcMKHNoM1wJWziP+qjMw2Ec7nyvS+NOIHvSVYAM1i2P1BobAbU9uFddTZz6NKN",
+	"cbvmbwz3/IjGW64bNvkoo78zf+9I+9Sd/KVVhxXi4pF2DWmYuy5O28ka6LFT0p0qbIhe3AAP7Leu3hRC",
+	"/qwZtW3cD2PcA42+N6tJicCZbwBuYwK34V2Cga6P+akryCnnbYXV+5FH2rU2ncxubN0OdMdrx53UfC4l",
+	"5GyJoU6zCTdTqJSspEYgFhB37d0T77DLWrdt/cmO4o3rK98NoOj7+feMJHyv/DOEeHgIQSjVQLpfThG9",
+	"SCFMgbTzKKVGvhxlba013eSKp+/97+/W06Haf2QBZ8/a8HPAG2y1HYtYIFYeQrQjL1ALw3hk/sYZp55c",
+	"iWdH3wCbRxIO12kOmUi7mw1i8zkq3fuFwMcYWnnlfcTmDMgdmv32qMk9V2x2uYDPtZrbPu2bB/Q1nTl4",
+	"W+jGkiKR8lb8y9Sb6wO7mZcrgUoXrIJSLlG7oST3A9QJHOJELPplBlZkNLsVcRun7rJRr/FAVvvZju7E",
+	"jgKGpN14H1ngwJrk0k2W3YL5UMxsVv/A9nOrRvLcX+mzlXxyVhKUWZ/0lqKNKyoxU4zAX8x4xjMpg+HL",
+	"N9dWc30P3tuGG+xPpqRiTqnDVu/bHqMbqbJ2Ef4PMz+DJ660Mfi/L9mtr9f/DwAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

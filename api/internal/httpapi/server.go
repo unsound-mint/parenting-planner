@@ -103,6 +103,9 @@ var (
 	errNoSession    = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember     = Error{Code: "not_found", Message: "no such parent in this family"}
 	errNoDiaryEntry = Error{Code: "not_found", Message: "no such diary entry of yours"}
+	errNoTask       = Error{Code: "not_found", Message: "no such task in this family"}
+	errNotAssignee  = Error{Code: "not_task_assignee", Message: "only the assignee can offer this task to the other parent"}
+	errNotOffered   = Error{Code: "not_offered_to_you", Message: "this task was not offered to you"}
 )
 
 // errKind tells a handler which typed error response to return.

@@ -293,6 +293,191 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/tasks:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: The acting parent adds a family task, assigned to themselves
+      description: To give it to the other parent, propose a reassignment; they must accept.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: All of the family's tasks, soonest due first, undated last
+      description: Tasks are shared by both parents, so both see the same list.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}/reassignment:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: proposeTaskReassignment
+      tags: [tasks]
+      summary: The assignee offers the task to the other parent
+      description: |
+        The task keeps its assignee until the other parent accepts.
+        409 if the acting parent is not the assignee or offers it to themselves.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskReassignmentInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}/reassignment/accept:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: acceptTaskReassignment
+      tags: [tasks]
+      summary: The proposed parent takes the task over
+      description: |
+        Ownership moves only here. 409 if the acting parent is not the one it was offered to.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}/reassignment/decline:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: declineTaskReassignment
+      tags: [tasks]
+      summary: The proposed parent declines; the task stays with its assignee
+      description: |
+        409 if the acting parent is not the one it was offered to.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MemberId:
@@ -302,6 +487,14 @@ components:
       description: |
         The acting parent. There is no login, so the UI says which parent is
         using the app; the API checks that this parent belongs to the session's family.
+      schema:
+        type: string
+        format: uuid
+
+    TaskId:
+      name: taskId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -572,3 +765,55 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/DiaryEntry"
+
+    TaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        dueOn:
+          type: string
+          format: date
+
+    TaskReassignmentInput:
+      type: object
+      required: [toMemberId]
+      properties:
+        toMemberId:
+          type: string
+          format: uuid
+          description: The parent the task is offered to. Must be in the family and not the acting parent.
+
+    Task:
+      type: object
+      required: [id, title, assigneeId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        dueOn:
+          type: string
+          format: date
+        assigneeId:
+          type: string
+          format: uuid
+          description: The parent who owns the task now.
+        pendingAssigneeId:
+          type: string
+          format: uuid
+          description: Set while the task is offered to the other parent and not yet accepted.
+
+    TaskList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Soonest due first, undated last.
+          items:
+            $ref: "#/components/schemas/Task"
