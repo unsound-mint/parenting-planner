@@ -12,3 +12,4 @@ export type PlanItemStatus = S["PlanItemStatus"];
 export type Visibility = S["Visibility"];
 export type MoodCheckin = S["MoodCheckin"];
 export type MoodCheckinInput = S["MoodCheckinInput"];
+export type PlanCategory = S["PlanCategory"];

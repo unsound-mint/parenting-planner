@@ -51,3 +51,9 @@ export const statusLabel: Record<PlanItemStatus, string> = {
   due: "Due",
   upcoming: "Upcoming",
 };
+
+/** Whole days from today (UTC) to an ISO date; negative when it has passed. */
+export function daysUntil(isoDate: string, now = new Date()): number {
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((new Date(isoDate).getTime() - today) / 86_400_000);
+}

@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CalendarCheck, Route, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Only screens that work are listed (organizer rule: hide what does not work).
 // Add an entry here when its route lands.
-const items = [{ href: "", label: "This week" }, { href: "/journey", label: "Journey" }];
+const items: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "", label: "This week", icon: CalendarCheck },
+  { href: "/journey", label: "Journey", icon: Route },
+];
 
 export function FamilyNav({ memberId }: { memberId: string }) {
   const pathname = usePathname();
@@ -22,10 +26,11 @@ export function FamilyNav({ memberId }: { memberId: string }) {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-lg px-2.5 py-1.5 text-sm transition-colors duration-150",
-              active ? "bg-secondary font-medium text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-label transition-colors duration-150",
+              active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
+            <item.icon className="size-4.5 shrink-0" aria-hidden />
             {item.label}
           </Link>
         );

@@ -45,6 +45,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <header className="flex items-center gap-3 px-4 pt-5 md:px-8">
           <ParentSwitch parents={family.parents} memberId={memberId} />
           <span className="flex-1" />
+          <span className="inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
+            Demo data
+          </span>
           <span className="hidden text-[13px] text-muted-foreground sm:inline">{familyContext(family)}</span>
           <div className="hidden md:block">
             <UrgentHelpLink />

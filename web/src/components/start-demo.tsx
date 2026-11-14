@@ -6,7 +6,7 @@ import { api } from "@/lib/api/client";
 import type { DemoTemplate } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 
-export function StartDemo({ template, label }: { template: DemoTemplate; label: string }) {
+export function StartDemo({ template, label, primary = true }: { template: DemoTemplate; label: string; primary?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,10 +25,16 @@ export function StartDemo({ template, label }: { template: DemoTemplate; label: 
 
   return (
     <div>
-      <Button onClick={start} disabled={pending} size="lg" className="h-11 rounded-full px-6 text-base">
+      <Button
+        onClick={start}
+        disabled={pending}
+        size="lg"
+        variant={primary ? "default" : "outline"}
+        className="h-11 w-full rounded-full px-6 text-base sm:w-auto"
+      >
         {pending ? "Setting up your family..." : label}
       </Button>
-      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      {error && <p className="mt-2 text-label text-destructive">{error}</p>}
     </div>
   );
 }

@@ -67,14 +67,40 @@ function plural(n: number, unit: string): string {
   return `${n} ${unit}${n === 1 ? "" : "s"}`;
 }
 
-function ageText(birthDate: string, ageMonths: number): string {
+// The child's age as one number and unit, for the hero ring and the headline.
+function agePart(birthDate: string, ageMonths: number): { value: number; unit: string } {
   const days = Math.max(0, daysBetween(birthDate, utcToday()));
-  if (days < 14) return plural(days, "day");
-  if (days < 84) return plural(Math.floor(days / 7), "week");
-  if (ageMonths < 24) return plural(ageMonths, "month");
-  const years = Math.floor(ageMonths / 12);
+  if (days < 14) return { value: days, unit: "day" };
+  if (days < 84) return { value: Math.floor(days / 7), unit: "week" };
+  if (ageMonths < 24) return { value: ageMonths, unit: "month" };
+  return { value: Math.floor(ageMonths / 12), unit: "year" };
+}
+
+function ageText(birthDate: string, ageMonths: number): string {
+  const { value, unit } = agePart(birthDate, ageMonths);
   const rest = ageMonths % 12;
-  return rest === 0 ? plural(years, "year") : `${plural(years, "year")} and ${plural(rest, "month")}`;
+  if (unit === "year" && rest !== 0) return `${plural(value, "year")} and ${plural(rest, "month")}`;
+  return plural(value, unit);
+}
+
+function weeksLeft(family: Family, week: number): number {
+  return family.dueDate
+    ? Math.max(0, Math.ceil((new Date(family.dueDate).getTime() - utcToday()) / DAY / 7))
+    : Math.max(0, 40 - week);
+}
+
+/** The one big number in the hero, with its unit, and the ring fill (0 to 1). */
+export function journeyFigure(family: Family): { value: number | null; unit: string; caption: string; progress: number } {
+  const { progress } = journeyPosition(family);
+  const child = family.children[0];
+  if (family.stage === "pregnancy" && family.gestationalWeek != null) {
+    return { value: weeksLeft(family, family.gestationalWeek), unit: "weeks", caption: "to go", progress };
+  }
+  if (child && monthsRange[family.stage]) {
+    const { value, unit } = agePart(child.birthDate, child.ageMonths);
+    return { value, unit: value === 1 ? unit : `${unit}s`, caption: "old", progress };
+  }
+  return { value: null, unit: "", caption: "", progress };
 }
 
 /** Headline and a short follow-up sentence, both computed from the family's data. */
@@ -82,9 +108,7 @@ export function journeyHeadline(family: Family): { headline: string; support: st
   const child = family.children[0];
   if (family.stage === "pregnancy" && family.gestationalWeek != null) {
     const week = family.gestationalWeek;
-    const left = family.dueDate
-      ? Math.max(0, Math.ceil((new Date(family.dueDate).getTime() - utcToday()) / DAY / 7))
-      : Math.max(0, 40 - week);
+    const left = weeksLeft(family, week);
     const wait =
       left === 0
         ? "Your baby could arrive any day now."

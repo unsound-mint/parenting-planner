@@ -39,6 +39,32 @@ Avoid: pink and baby blue, mom-only cues, purple gradients, cards inside cards, 
 6. Two parents, two accents: `mom` and `partner`. Use them for ownership in the shared plan and the shift handoff, not as decoration.
 7. Sources, dates and lab values are set in mono.
 
+## Hierarchy and visuals
+
+A tired parent should understand a screen before reading a word. Show, then label.
+
+Type scale. Use only these utilities, defined in `globals.css` and adapted from the Material 3 type scale:
+
+| Utility | Size / line | Use |
+| --- | --- | --- |
+| `text-display` | 44 / 48 | One hero number per screen at most ("15 weeks"). |
+| `text-headline` | 28 / 36 | The screen's status sentence. Exactly one per screen. |
+| `text-title` | 17 / 24 | Section and card titles. |
+| `text-body` | 15 / 24 | Running text. |
+| `text-label` | 13 / 20 | Controls, list secondary lines, meta. |
+| `text-caption` | 12 / 16 | Sources, axis ticks, timestamps. |
+
+Rules:
+
+1. Three reads per screen: the status (headline or hero number), the one focus, then everything else. If two things compete for first read, shrink one.
+2. A card uses at most three levels (title, body or label, caption). Change weight and colour before size; muted text is for secondary lines only.
+3. One uppercase eyebrow per screen at most. Section titles are sentence case in `text-title`.
+4. Spacing is on a 4 px grid: 4, 8, 12, 16, 24, 32, 48. Related items sit 8 to 12 apart, groups 24 or more apart. More space between groups than inside them.
+5. Every number that matters is drawn: progress as a ring or bar, a series as a chart, a count as a figure in a tile. Text repeats it for screen readers, not instead of it.
+6. Every category, stage, status and action has a lucide icon, used the same way everywhere (the maps live in `web/src/lib/visuals.ts`). An icon that marks an item sits in a soft tinted circle; icons in buttons stand alone.
+7. Choices are pictures when they can be: faces for mood, batteries for energy, a lock or people for who can see.
+8. Before calling a screen done, look at screenshots at 1440 and 390 px and run two tests. Squint test: blurred, the three reads still stand out in order. No-words test: with the text covered, the status, the next step and the trend are still clear.
+
 ## Tokens
 
 All tokens live in `web/src/app/globals.css`; use them through Tailwind (`bg-card`, `text-muted-foreground`, `text-status-due bg-status-due-soft`, `text-partner`). Never hard-code a color in a component. Fonts: Inter for everything, JetBrains Mono for sources and values.

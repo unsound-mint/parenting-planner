@@ -11,7 +11,7 @@ const tone: Record<PlanItemStatus, string> = {
 
 export function StatusPill({ status, dueBy, className }: { status: PlanItemStatus; dueBy?: string; className?: string }) {
   return (
-    <span className={cn("inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-[11.5px] font-semibold whitespace-nowrap", tone[status], className)}>
+    <span className={cn("inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-caption font-semibold whitespace-nowrap", tone[status], className)}>
       {statusLabel[status]}
       {dueBy && status !== "overdue" ? ` · by ${formatShortDate(dueBy)}` : ""}
     </span>
