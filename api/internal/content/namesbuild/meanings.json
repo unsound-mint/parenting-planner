@@ -1,1 +1,482 @@
-{}
+{
+ "Aarav": {
+  "origin": "Hindi",
+  "meaning": "sound, loud noise",
+  "url": "https://en.wiktionary.org/wiki/Aarav#English"
+ },
+ "Abbas": {
+  "origin": "Arabic",
+  "meaning": "frowner, untamed lion",
+  "url": "https://en.wiktionary.org/wiki/Abbas#English"
+ },
+ "Aidan": {
+  "origin": "Irish",
+  "meaning": "little fire",
+  "url": "https://en.wiktionary.org/wiki/Aidan#English"
+ },
+ "Aisling": {
+  "origin": "Irish",
+  "meaning": "dream, vision",
+  "url": "https://en.wiktionary.org/wiki/Aisling#Irish"
+ },
+ "Ajani": {
+  "origin": "Yoruba",
+  "meaning": "one fought for",
+  "url": "https://en.wiktionary.org/wiki/Ajani#Yoruba"
+ },
+ "Ali": {
+  "origin": "Arabic",
+  "meaning": "high, exalted",
+  "url": "https://en.wiktionary.org/wiki/Ali#English"
+ },
+ "Alvin": {
+  "origin": "Old English",
+  "meaning": "elf friend",
+  "url": "https://en.wiktionary.org/wiki/Alvin#English"
+ },
+ "Amani": {
+  "origin": "Swahili",
+  "meaning": "peace",
+  "url": "https://en.wiktionary.org/wiki/Amani#Swahili"
+ },
+ "Amelia": {
+  "origin": "Germanic",
+  "meaning": "vigor, bravery",
+  "url": "https://en.wiktionary.org/wiki/Amelia#English"
+ },
+ "Amir": {
+  "origin": "Arabic",
+  "meaning": "commander, prince",
+  "url": "https://en.wiktionary.org/wiki/Amir#English"
+ },
+ "Amira": {
+  "origin": "Arabic",
+  "meaning": "princess",
+  "url": "https://en.wiktionary.org/wiki/Amira#English"
+ },
+ "Anwar": {
+  "origin": "Arabic",
+  "meaning": "most luminous",
+  "url": "https://en.wiktionary.org/wiki/Anwar#English"
+ },
+ "Ari": {
+  "origin": "Hebrew",
+  "meaning": "lion",
+  "url": "https://en.wiktionary.org/wiki/Ari#English"
+ },
+ "Ariel": {
+  "origin": "Hebrew",
+  "meaning": "lion of God",
+  "url": "https://en.wiktionary.org/wiki/Ariel#English"
+ },
+ "Arya": {
+  "origin": "Sanskrit",
+  "meaning": "noble, respectable",
+  "url": "https://en.wiktionary.org/wiki/Arya#English"
+ },
+ "Aseem": {
+  "origin": "Hindi",
+  "meaning": "boundless, infinite",
+  "url": "https://en.wiktionary.org/wiki/Aseem#English"
+ },
+ "Asha": {
+  "origin": "Sanskrit",
+  "meaning": "hope, wish",
+  "url": "https://en.wiktionary.org/wiki/Asha#English"
+ },
+ "Audrey": {
+  "origin": "Old English",
+  "meaning": "noble strength",
+  "url": "https://en.wiktionary.org/wiki/Audrey#English"
+ },
+ "August": {
+  "origin": "Latin",
+  "meaning": "venerable",
+  "url": "https://en.wiktionary.org/wiki/August#English"
+ },
+ "Avani": {
+  "origin": "Sanskrit",
+  "meaning": "earth",
+  "url": "https://en.wiktionary.org/wiki/Avani#English"
+ },
+ "Bahati": {
+  "origin": "Swahili",
+  "meaning": "fortune, luck",
+  "url": "https://en.wiktionary.org/wiki/Bahati#Swahili"
+ },
+ "Blake": {
+  "origin": "Old English",
+  "meaning": "black or pale",
+  "url": "https://en.wiktionary.org/wiki/Blake#English"
+ },
+ "Charles": {
+  "origin": "Germanic",
+  "meaning": "free man",
+  "url": "https://en.wiktionary.org/wiki/Charles#English"
+ },
+ "Chloe": {
+  "origin": "Greek",
+  "meaning": "young green shoot",
+  "url": "https://en.wiktionary.org/wiki/Chloe#English"
+ },
+ "Connor": {
+  "origin": "Old Irish",
+  "meaning": "lover of hounds",
+  "url": "https://en.wiktionary.org/wiki/Connor#English"
+ },
+ "Conor": {
+  "origin": "Old Irish",
+  "meaning": "lover of hounds",
+  "url": "https://en.wiktionary.org/wiki/Conor#English"
+ },
+ "Cyril": {
+  "origin": "Greek",
+  "meaning": "lord, master",
+  "url": "https://en.wiktionary.org/wiki/Cyril#English"
+ },
+ "Dakota": {
+  "origin": "Dakota",
+  "meaning": "ally",
+  "url": "https://en.wiktionary.org/wiki/Dakota#English"
+ },
+ "Daniel": {
+  "origin": "Hebrew",
+  "meaning": "God is my judge",
+  "url": "https://en.wiktionary.org/wiki/Daniel#English"
+ },
+ "David": {
+  "origin": "Hebrew",
+  "meaning": "beloved",
+  "url": "https://en.wiktionary.org/wiki/David#English"
+ },
+ "Dominic": {
+  "origin": "Latin",
+  "meaning": "of the Lord",
+  "url": "https://en.wiktionary.org/wiki/Dominic#English"
+ },
+ "Edward": {
+  "origin": "Germanic",
+  "meaning": "wealthy guardian",
+  "url": "https://en.wiktionary.org/wiki/Edward#English"
+ },
+ "Elijah": {
+  "origin": "Hebrew",
+  "meaning": "Yahweh is my God",
+  "url": "https://en.wiktionary.org/wiki/Elijah#English"
+ },
+ "Elizabeth": {
+  "origin": "Hebrew",
+  "meaning": "my God is an oath",
+  "url": "https://en.wiktionary.org/wiki/Elizabeth#English"
+ },
+ "Elmer": {
+  "origin": "Old English",
+  "meaning": "noble, famous",
+  "url": "https://en.wiktionary.org/wiki/Elmer#English"
+ },
+ "Emilio": {
+  "origin": "Latin",
+  "meaning": "rival",
+  "url": "https://en.wiktionary.org/wiki/Emilio#Italian"
+ },
+ "Emily": {
+  "origin": "Latin",
+  "meaning": "rival, emulator",
+  "url": "https://en.wiktionary.org/wiki/Emily#English"
+ },
+ "Emma": {
+  "origin": "Germanic",
+  "meaning": "entire",
+  "url": "https://en.wiktionary.org/wiki/Emma#English"
+ },
+ "Enzo": {
+  "origin": "Germanic",
+  "meaning": "home ruler",
+  "url": "https://en.wiktionary.org/wiki/Enzo#English"
+ },
+ "Ethan": {
+  "origin": "Hebrew",
+  "meaning": "firm, strong, long-lived",
+  "url": "https://en.wiktionary.org/wiki/Ethan#English"
+ },
+ "Freya": {
+  "origin": "Old Norse",
+  "meaning": "mistress, lady",
+  "url": "https://en.wiktionary.org/wiki/Freya#English"
+ },
+ "Gemma": {
+  "origin": "Latin",
+  "meaning": "jewel",
+  "url": "https://en.wiktionary.org/wiki/Gemma#English"
+ },
+ "George": {
+  "origin": "Greek",
+  "meaning": "farmer, earth worker",
+  "url": "https://en.wiktionary.org/wiki/George#English"
+ },
+ "Ida": {
+  "origin": "Germanic",
+  "meaning": "work",
+  "url": "https://en.wiktionary.org/wiki/Ida#English"
+ },
+ "Imani": {
+  "origin": "Swahili",
+  "meaning": "faith, belief",
+  "url": "https://en.wiktionary.org/wiki/Imani#English"
+ },
+ "Iris": {
+  "origin": "Greek",
+  "meaning": "rainbow",
+  "url": "https://en.wiktionary.org/wiki/Iris#English"
+ },
+ "Jair": {
+  "origin": "Hebrew",
+  "meaning": "he will light up",
+  "url": "https://en.wiktionary.org/wiki/Jair#English"
+ },
+ "Jamila": {
+  "origin": "Arabic",
+  "meaning": "beautiful",
+  "url": "https://en.wiktionary.org/wiki/Jamila#English"
+ },
+ "Joanna": {
+  "origin": "Hebrew",
+  "meaning": "God is gracious",
+  "url": "https://en.wiktionary.org/wiki/Joanna#English"
+ },
+ "John": {
+  "origin": "Hebrew",
+  "meaning": "God is gracious",
+  "url": "https://en.wiktionary.org/wiki/John#English"
+ },
+ "Joseph": {
+  "origin": "Hebrew",
+  "meaning": "God will add",
+  "url": "https://en.wiktionary.org/wiki/Joseph#English"
+ },
+ "Joshua": {
+  "origin": "Hebrew",
+  "meaning": "Yahweh is salvation",
+  "url": "https://en.wiktionary.org/wiki/Joshua#English"
+ },
+ "Kevin": {
+  "origin": "Old Irish",
+  "meaning": "dear birth",
+  "url": "https://en.wiktionary.org/wiki/Kevin#English"
+ },
+ "Leo": {
+  "origin": "Latin",
+  "meaning": "lion",
+  "url": "https://en.wiktionary.org/wiki/Leo#English"
+ },
+ "Lillian": {
+  "origin": "Latin",
+  "meaning": "lily",
+  "url": "https://en.wiktionary.org/wiki/Lillian#English"
+ },
+ "Louis": {
+  "origin": "Germanic",
+  "meaning": "famous in battle",
+  "url": "https://en.wiktionary.org/wiki/Louis#English"
+ },
+ "Maeve": {
+  "origin": "Middle Irish",
+  "meaning": "intoxicating",
+  "url": "https://en.wiktionary.org/wiki/Maeve#English"
+ },
+ "Malaika": {
+  "origin": "Swahili",
+  "meaning": "angel",
+  "url": "https://en.wiktionary.org/wiki/Malaika#Swahili"
+ },
+ "Mark": {
+  "origin": "Latin",
+  "meaning": "from Mars, god of war",
+  "url": "https://en.wiktionary.org/wiki/Mark#English"
+ },
+ "Matteo": {
+  "origin": "Hebrew",
+  "meaning": "gift of the Lord",
+  "url": "https://en.wiktionary.org/wiki/Matteo#Italian"
+ },
+ "Mei": {
+  "origin": "Chinese",
+  "meaning": "beautiful",
+  "url": "https://en.wiktionary.org/wiki/Mei#English"
+ },
+ "Michael": {
+  "origin": "Hebrew",
+  "meaning": "who is like God",
+  "url": "https://en.wiktionary.org/wiki/Michael#English"
+ },
+ "Micheal": {
+  "origin": "Hebrew",
+  "meaning": "who is like God",
+  "url": "https://en.wiktionary.org/wiki/Miche%C3%A1l#Irish"
+ },
+ "Mila": {
+  "origin": "Slavic",
+  "meaning": "grace, beloved",
+  "url": "https://en.wiktionary.org/wiki/Mila#English"
+ },
+ "Milagros": {
+  "origin": "Spanish",
+  "meaning": "miracles",
+  "url": "https://en.wiktionary.org/wiki/Milagros#English"
+ },
+ "Muhammad": {
+  "origin": "Arabic",
+  "meaning": "praised, commendable",
+  "url": "https://en.wiktionary.org/wiki/Muhammad#English"
+ },
+ "Naomi": {
+  "origin": "Hebrew",
+  "meaning": "my pleasantness",
+  "url": "https://en.wiktionary.org/wiki/Naomi#English"
+ },
+ "Nova": {
+  "origin": "Latin",
+  "meaning": "new",
+  "url": "https://en.wiktionary.org/wiki/Nova#English"
+ },
+ "Pascal": {
+  "origin": "Latin",
+  "meaning": "of Easter",
+  "url": "https://en.wiktionary.org/wiki/Pascal#English"
+ },
+ "Peter": {
+  "origin": "Greek",
+  "meaning": "stone, rock",
+  "url": "https://en.wiktionary.org/wiki/Peter#English"
+ },
+ "Prithvi": {
+  "origin": "Sanskrit",
+  "meaning": "the vast one",
+  "url": "https://en.wiktionary.org/wiki/Prithvi#English"
+ },
+ "Rahma": {
+  "origin": "Arabic",
+  "meaning": "mercy, compassion",
+  "url": "https://en.wiktionary.org/wiki/Rahma#Swahili"
+ },
+ "Remington": {
+  "origin": "Old English",
+  "meaning": "boundary stream settlement",
+  "url": "https://en.wiktionary.org/wiki/Remington#English"
+ },
+ "Rishi": {
+  "origin": "Sanskrit",
+  "meaning": "sage",
+  "url": "https://en.wiktionary.org/wiki/Rishi#English"
+ },
+ "Rodolfo": {
+  "origin": "Germanic",
+  "meaning": "glorious wolf",
+  "url": "https://en.wiktionary.org/wiki/Rodolfo#Italian"
+ },
+ "Rory": {
+  "origin": "Old Irish",
+  "meaning": "red king",
+  "url": "https://en.wiktionary.org/wiki/Rory#English"
+ },
+ "Rowan": {
+  "origin": "Irish",
+  "meaning": "little red one",
+  "url": "https://en.wiktionary.org/wiki/Rowan#English"
+ },
+ "Samuel": {
+  "origin": "Hebrew",
+  "meaning": "God has set",
+  "url": "https://en.wiktionary.org/wiki/Samuel#English"
+ },
+ "Santiago": {
+  "origin": "Spanish",
+  "meaning": "Saint James",
+  "url": "https://en.wiktionary.org/wiki/Santiago#English"
+ },
+ "Sarah": {
+  "origin": "Hebrew",
+  "meaning": "lady, princess",
+  "url": "https://en.wiktionary.org/wiki/Sarah#English"
+ },
+ "Sigurd": {
+  "origin": "Old Norse",
+  "meaning": "victory guard",
+  "url": "https://en.wiktionary.org/wiki/Sigurd#English"
+ },
+ "Sinead": {
+  "origin": "Hebrew",
+  "meaning": "God is gracious",
+  "url": "https://en.wiktionary.org/wiki/Sin%C3%A9ad#English"
+ },
+ "Sophia": {
+  "origin": "Greek",
+  "meaning": "wisdom",
+  "url": "https://en.wiktionary.org/wiki/Sophia#English"
+ },
+ "Sutton": {
+  "origin": "Old English",
+  "meaning": "south town",
+  "url": "https://en.wiktionary.org/wiki/Sutton#English"
+ },
+ "Sylvie": {
+  "origin": "Latin",
+  "meaning": "forest",
+  "url": "https://en.wiktionary.org/wiki/Sylvie#English"
+ },
+ "Tao": {
+  "origin": "Chinese",
+  "meaning": "the way",
+  "url": "https://en.wiktionary.org/wiki/Tao#English"
+ },
+ "Tara": {
+  "origin": "Old Irish",
+  "meaning": "high place",
+  "url": "https://en.wiktionary.org/wiki/Tara#English"
+ },
+ "Thomas": {
+  "origin": "Aramaic",
+  "meaning": "twin",
+  "url": "https://en.wiktionary.org/wiki/Thomas#English"
+ },
+ "Valeria": {
+  "origin": "Latin",
+  "meaning": "healthy, strong",
+  "url": "https://en.wiktionary.org/wiki/Valeria#English"
+ },
+ "Vera": {
+  "origin": "Russian",
+  "meaning": "faith",
+  "url": "https://en.wiktionary.org/wiki/Vera#English"
+ },
+ "Vivian": {
+  "origin": "Latin",
+  "meaning": "alive",
+  "url": "https://en.wiktionary.org/wiki/Vivian#English"
+ },
+ "William": {
+  "origin": "Germanic",
+  "meaning": "will and helmet",
+  "url": "https://en.wiktionary.org/wiki/William#English"
+ },
+ "Zakaria": {
+  "origin": "Hebrew",
+  "meaning": "the Lord has remembered",
+  "url": "https://en.wiktionary.org/wiki/Zakaria#Swahili"
+ },
+ "Zayn": {
+  "origin": "Arabic",
+  "meaning": "beauty",
+  "url": "https://en.wiktionary.org/wiki/Zayn#English"
+ },
+ "Zechariah": {
+  "origin": "Hebrew",
+  "meaning": "the Lord has remembered",
+  "url": "https://en.wiktionary.org/wiki/Zechariah#English"
+ },
+ "Zuri": {
+  "origin": "Swahili",
+  "meaning": "good",
+  "url": "https://en.wiktionary.org/wiki/Zuri#English"
+ }
+}
