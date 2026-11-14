@@ -65,6 +65,63 @@ export const events = {
   anatomyScan: { id: uid(601), kind: "appointment", title: "Anatomy follow-up scan", day: 19, from: "14:00", to: "15:00", owner: "mother", attendees: ["mother"], location: CLINIC },
 } satisfies Record<string, Spec>;
 
+// Older stages. The real seed (api/internal/demo/families.go) gives the planning
+// family Maya and Daniel (Dr. Okafor, obstetrician; Dr. Brooks, primary care at
+// Cedar Park Family Medicine) and the preschool family Rachel and Tom with Ava,
+// 4 (Dr. Rahman, Foothills Children's Clinic). Their calendars and plans follow
+// these two sets, never the pregnancy family's.
+export type OlderStage = "planning" | "child";
+
+/** Which older-stage mock set a family gets; undefined for pregnancy, newborn and anything else. */
+export function olderStage(family: Pick<Family, "stage">): OlderStage | undefined {
+  if (family.stage === "planning" || family.stage === "trying") return "planning";
+  if (family.stage === "toddler" || family.stage === "preschool" || family.stage === "school_age") return "child";
+  return undefined;
+}
+
+const BROOKS = "Cedar Park Family Medicine";
+const FOOTHILLS = "Foothills Children's Clinic";
+
+export const planningEvents = {
+  mmrShot: { id: uid(630), kind: "appointment", title: "MMR shot with Dr. Brooks", day: 2, from: "08:30", to: "09:00", owner: "mother", attendees: ["mother"], location: BROOKS },
+  budgetTalk: { id: uid(631), kind: "reminder", title: "Talk about budget, leave and who does what", day: 4, from: "19:30", to: "20:30", owner: "partner", attendees: ["mother", "partner"] },
+  preconceptionVisit: { id: uid(632), kind: "appointment", title: "Preconception visit with Dr. Okafor", day: 9, from: "10:00", to: "10:45", owner: "mother", attendees: ["mother", "partner"] },
+} satisfies Record<string, Spec>;
+
+export const childEvents = {
+  parentEvening: { id: uid(635), kind: "class", title: "Parent evening at preschool", day: 3, from: "18:00", to: "19:00", attendees: ["mother", "partner"] },
+  checkup: { id: uid(636), kind: "appointment", title: "4-year check-up with Dr. Rahman", day: 5, from: "09:00", to: "09:45", owner: "mother", attendees: ["mother"], location: FOOTHILLS },
+  schoolTour: { id: uid(637), kind: "reminder", title: "Tour Aspen Hill Elementary", day: 8, from: "16:30", to: "17:30", owner: "partner", attendees: ["mother", "partner"] },
+} satisfies Record<string, Spec>;
+
+type TaskSpec = { n: number; title: string; day: number; owner: Who };
+export const planningTaskPlan = {
+  budgetTalk: { n: 5, title: planningEvents.budgetTalk.title, day: 4, owner: "partner" },
+  history: { n: 1, title: "Write down your family health history", day: 6, owner: "mother" },
+} satisfies Record<string, TaskSpec>;
+export const childTaskPlan = {
+  cutoff: { n: 1, title: "Check the kindergarten cutoff date for your state", day: 3, owner: "mother" },
+  tour: { n: 2, title: childEvents.schoolTour.title, day: 8, owner: "partner" },
+} satisfies Record<string, TaskSpec>;
+
+/** The calendar and Today of an older-stage family, in day order. */
+export function olderWeek(stage: OlderStage, c: Couple, familyId: string): CalendarEvent[] {
+  const task = (t: TaskSpec): CalendarEvent => ({
+    id: `mock-task-${stage}-${t.n}`,
+    kind: "task",
+    title: t.title,
+    startsAt: `${dayOf(t.day)}T00:00:00Z`,
+    allDay: true,
+    ownerId: c[t.owner].id,
+    attendeeIds: [c[t.owner].id],
+    visibility: "family",
+    taskId: taskId(familyId, t.n),
+  });
+  return stage === "planning"
+    ? [calendarEvent(planningEvents.mmrShot, c), calendarEvent(planningEvents.budgetTalk, c), task(planningTaskPlan.history), calendarEvent(planningEvents.preconceptionVisit, c)]
+    : [calendarEvent(childEvents.parentEvening, c), task(childTaskPlan.cutoff), calendarEvent(childEvents.checkup, c), calendarEvent(childEvents.schoolTour, c)];
+}
+
 /** Tasks the calendar and Today also show. `n` is the task's position in the tasks fixture seed. */
 export const taskPlan = {
   pediatrician: { n: 2, title: "Choose a pediatrician", day: 2, owner: "mother" },

@@ -1,7 +1,7 @@
 import type { components } from "@/lib/api/schema.gen";
 import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
-import { at, calendarEvent, couple, dayOf, events, taskId, taskPlan } from "../timeline";
+import { at, calendarEvent, childEvents, childTaskPlan, couple, dayOf, events, olderStage, planningEvents, planningTaskPlan, taskId, taskPlan } from "../timeline";
 
 type Guide = components["schemas"]["Guide"];
 
@@ -70,7 +70,10 @@ export const todayMocks = {
     const role = memberId === c.partner.id ? "partner" : "mother";
     // Both demo tasks and the visit are pregnancy prep; loss support hides them.
     const loss = inLossSupport(family);
-    const mine = loss ? [] : Object.values(taskPlan).filter((t) => c[t.owner].id === memberId);
+    const stage = olderStage(family);
+    const plan = stage === "planning" ? planningTaskPlan : stage === "child" ? childTaskPlan : taskPlan;
+    const mine = loss ? [] : Object.values(plan).filter((t) => c[t.owner].id === memberId);
+    const next = stage === "planning" ? planningEvents.mmrShot : stage === "child" ? childEvents.checkup : events.prenatalVisit;
     return {
       memberId,
       role,
@@ -78,9 +81,9 @@ export const todayMocks = {
       stage: family.stage,
       planItems: [],
       tasks: mine.map((t) => ({ id: taskId(family.id, t.n), title: t.title, assigneeId: memberId, kind: "task" as const, done: false, dueOn: dayOf(t.day) })),
-      events: loss ? [] : [calendarEvent(events.prenatalVisit, c)],
-      nextShift: { id: "shift-next", kind: "shift", title: "Nanny shift", startsAt: at(1, "08:00"), endsAt: at(1, "16:00"), allDay: false, attendeeIds: [memberId], visibility: "family" },
-      careSummary: { onDuty: { memberId, since: at(0, "08:00"), via: "shift" } },
+      events: loss ? [] : [calendarEvent(next, c)],
+      // Shifts and the care summary are for the baby at home: none for planning or preschool.
+      ...(stage ? {} : { nextShift: { id: "shift-next", kind: "shift", title: "Nanny shift", startsAt: at(1, "08:00"), endsAt: at(1, "16:00"), allDay: false, attendeeIds: [memberId], visibility: "family" as const }, careSummary: { onDuty: { memberId, since: at(0, "08:00"), via: "shift" as const } } }),
       pendingHandoffs: [],
       guides: [],
     };

@@ -55,6 +55,9 @@ export function laneWindow(family: Family, items: PlanItem[]): Lane {
 /** A headline about what is next, from the family's plan. */
 export function journeyHeadline(lane: Lane): string {
   const n = lane.inWindow.length;
+  // Steps with no date are still waiting; "nothing to schedule" would hide them.
+  const undated = lane.later.filter((i) => !i.dueBy && i.status !== "upcoming").length;
+  if (n === 0 && undated > 0) return `${countThings(undated)} to do, with no date yet.`;
   const steps = n === 0 ? "Nothing to schedule" : `${countThings(n)} to do`;
   return lane.babyDue && n > 0 ? `${steps} before you meet your baby.` : `${steps} in the next ${lane.weeks} weeks.`;
 }

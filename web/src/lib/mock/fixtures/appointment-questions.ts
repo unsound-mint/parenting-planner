@@ -1,8 +1,8 @@
-import type { AppointmentQuestion } from "@/lib/api/types";
+import type { AppointmentQuestion, Family } from "@/lib/api/types";
 import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { isoAt, uid } from "./dates";
-import { calendarEvent, couple, events, lastVisit } from "../timeline";
+import { calendarEvent, childEvents, couple, events, lastVisit, olderStage, planningEvents, type Couple } from "../timeline";
 
 const obVisit = events.prenatalVisit.id;
 const scan = events.anatomyScan.id;
@@ -17,6 +17,40 @@ export function demoQuestions(memberId: string): AppointmentQuestion[] {
   ];
 }
 
+// The next visits and the questions parents saved for them, per older stage.
+function older(stage: "planning" | "child", family: Family, c: Couple, me: string) {
+  const q = (n: number, o: Pick<AppointmentQuestion, "text" | "appointmentId" | "askedForAppointmentId" | "visibility"> & Partial<AppointmentQuestion>): AppointmentQuestion => ({
+    id: uid(640 + n),
+    authorId: me,
+    carriedOver: false,
+    answered: false,
+    createdAt: isoAt(-n, 19),
+    ...o,
+  });
+  if (stage === "planning") {
+    const visit = planningEvents.preconceptionVisit.id;
+    const shot = planningEvents.mmrShot.id;
+    return {
+      appointments: [calendarEvent(planningEvents.mmrShot, c), calendarEvent(planningEvents.preconceptionVisit, c)],
+      items: [
+        q(1, { text: "Can I get the flu shot at the same visit?", appointmentId: shot, askedForAppointmentId: shot, visibility: "private" }),
+        q(2, { text: "Should I take anything besides folic acid?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+        q(3, { text: "Do we need carrier screening, and will insurance pay for it?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+        q(4, { text: "How long after the MMR shot should we wait to try?", appointmentId: visit, askedForAppointmentId: lastVisit.id, carriedOver: true, visibility: "partner" }),
+      ],
+    };
+  }
+  const visit = childEvents.checkup.id;
+  return {
+    appointments: [calendarEvent(childEvents.checkup, c)],
+    items: [
+      q(1, { text: "Is the vision screen part of the check-up?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+      q(2, { text: "Which boosters are due before kindergarten?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+      q(3, { text: `Is it normal that ${family.children[0]?.name ?? "she"} still wakes at night sometimes?`, appointmentId: visit, askedForAppointmentId: lastVisit.id, carriedOver: true, visibility: "private" }),
+    ],
+  };
+}
+
 // Two upcoming appointments (from the shared timeline), one question carried over from a visit that already happened.
 export const appointmentQuestionMocks = {
   ...mock("/members/{memberId}/appointment-questions", "get", async (ctx) => {
@@ -24,6 +58,8 @@ export const appointmentQuestionMocks = {
     // Every demo question is about the pregnancy; loss support shows none.
     if (inLossSupport(family)) return { appointments: [], items: [] };
     const c = couple(family);
+    const stage = olderStage(family);
+    if (stage) return older(stage, family, c, ctx.path.memberId);
     return {
     appointments: [calendarEvent(events.prenatalVisit, c), calendarEvent(events.anatomyScan, c)],
     items: demoQuestions(ctx.path.memberId),

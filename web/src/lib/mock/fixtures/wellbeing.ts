@@ -1,7 +1,7 @@
 import type { DiaryEntry, MoodScreeningDraft, MoodScreeningResult, ScreeningBand, ScreeningChoice, ScreeningQuestionnaire } from "@/lib/api/types";
 import { mock } from "../registry";
 import { CHECKED, isoAt, uid } from "./dates";
-import { couple } from "../timeline";
+import { couple, olderStage } from "../timeline";
 
 // Private journal and mood screening. Nothing is stored: a reload shows the
 // seed again, and the screens keep what you just saved in their own state.
@@ -94,7 +94,10 @@ function band(instrument: "epds" | "phq9", score: number): ScreeningBand {
 
 export const wellbeingMocks = {
   ...mock("/members/{memberId}/diary-entries", "get", async (ctx) => {
-    const { mother } = couple(await ctx.family());
+    const family = await ctx.family();
+    // The demo entries are about the pregnancy; the other families start with an empty journal.
+    if (olderStage(family)) return { items: [] };
+    const { mother } = couple(family);
     if (ctx.path.memberId === mother.id) return { items: diarySeed(mother.id) };
     // The partner sees Emily's shared entry, never her topics.
     return { items: diarySeed(mother.id).filter((e) => e.visibility === "partner").map((e) => ({ ...e, agendaTopic: undefined })) };
