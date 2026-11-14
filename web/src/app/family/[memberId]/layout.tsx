@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense, ViewTransition } from "react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
@@ -48,6 +49,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           <span className="inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
             Demo data
           </span>
+          <Link href="/pricing" className="text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
+            Plans
+          </Link>
           <span className="hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
           <div className="hidden md:block">
             <UrgentHelpLink />

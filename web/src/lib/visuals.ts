@@ -4,10 +4,12 @@ import {
   Blocks,
   BookOpen,
   Brain,
+  ConciergeBell,
   ClipboardCheck,
   Footprints,
   HeartHandshake,
   HeartPulse,
+  Leaf,
   Lock,
   Milk,
   Sparkles,
@@ -18,7 +20,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import type { PlanCategory, PlanItemStatus, Visibility } from "@/lib/api/types";
+import type { PlanCategory, PlanItemStatus, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -60,6 +62,12 @@ export const visibilityIcon: Record<Visibility, LucideIcon> = {
   partner: HeartHandshake,
   care_team: Stethoscope,
   family: Users,
+};
+
+export const tierIcon: Record<Tier, LucideIcon> = {
+  free: Leaf,
+  plus: Sparkles,
+  concierge: ConciergeBell,
 };
 
 /** Soft tinted circle behind an item icon, by plan status. */
