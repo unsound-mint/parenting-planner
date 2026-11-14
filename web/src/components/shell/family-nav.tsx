@@ -113,15 +113,17 @@ export function FamilyTabBar(props: NavProps) {
       active ? "bg-me-soft text-me" : "text-muted-foreground",
     );
 
+  // The nav box spans the closed More panel too; only the bar and the open panel take taps, so
+  // the band above the bar never swallows a tap meant for the page.
   return (
-    <nav aria-label="Family" className="print:hidden fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 md:hidden">
+    <nav aria-label="Family" className="print:hidden pointer-events-none fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 md:hidden">
       {more.length > 0 && (
         <div
           id="nav-more"
           inert={!moreOpen}
           className={cn(
             "mb-2 origin-bottom rounded-3xl border border-line bg-card p-2 shadow-[0_12px_32px_rgb(60_40_20/0.14)] backdrop-blur-md transition-[opacity,transform] duration-(--duration-base) ease-(--ease-out)",
-            moreOpen ? "opacity-100" : "pointer-events-none translate-y-2 scale-[0.97] opacity-0",
+            moreOpen ? "pointer-events-auto opacity-100" : "pointer-events-none translate-y-2 scale-[0.97] opacity-0",
           )}
         >
           <div className="grid grid-cols-3 gap-1">
@@ -134,7 +136,7 @@ export function FamilyTabBar(props: NavProps) {
           </div>
         </div>
       )}
-      <div className="flex gap-1 rounded-3xl border border-line bg-card/95 p-2 shadow-[0_8px_24px_rgb(60_40_20/0.10)] backdrop-blur-md">
+      <div className="pointer-events-auto flex gap-1 rounded-3xl border border-line bg-card/95 p-2 shadow-[0_8px_24px_rgb(60_40_20/0.10)] backdrop-blur-md">
         {bar.map((item) => (
           <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={tab(isActive(item))}>
             <item.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
