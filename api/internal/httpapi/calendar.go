@@ -120,20 +120,7 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 // remove its 501 from openapi.yaml and replace its test. The web shows an
 // empty state on 501.
 
+func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
 func (s *Server) UpdateCalendarEvent(_ context.Context, _ UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
 	return UpdateCalendarEvent501JSONResponse(Error{Code: "not_implemented", Message: "the calendar is not available yet"}), nil
 }
-
-func (s *Server) CreateAppointmentQuestion(_ context.Context, _ CreateAppointmentQuestionRequestObject) (CreateAppointmentQuestionResponseObject, error) {
-	return CreateAppointmentQuestion501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
-}
-
-func (s *Server) ListAppointmentQuestions(_ context.Context, _ ListAppointmentQuestionsRequestObject) (ListAppointmentQuestionsResponseObject, error) {
-	return ListAppointmentQuestions501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
-}
-
-func (s *Server) UpdateAppointmentQuestion(_ context.Context, _ UpdateAppointmentQuestionRequestObject) (UpdateAppointmentQuestionResponseObject, error) {
-	return UpdateAppointmentQuestion501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
-}
-
-func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
