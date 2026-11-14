@@ -132,6 +132,7 @@ var (
 	errSessionNotStarted = Error{Code: "session_not_started", Message: "you can write a note once the session has started"}
 	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
 	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
+	errNoPlanItem        = Error{Code: "not_found", Message: "this item is not on this parent's plan"}
 )
 
 // errKind tells a handler which typed error response to return.
