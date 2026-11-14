@@ -419,6 +419,23 @@ type Shift struct {
 	CreatedAt time.Time
 }
 
+type Story struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ChildID       uuid.NullUUID
+	ChildName     string
+	AgeMonths     pgtype.Int4
+	Theme         string
+	SignedAs      string
+	Title         string
+	Memories      []byte
+	Pages         []byte
+	GeneratedBy   string
+	CreatedAt     time.Time
+}
+
 type StripeEvent struct {
 	ID         string
 	Type       string

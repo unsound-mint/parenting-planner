@@ -12,8 +12,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/storybook"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
 
@@ -232,6 +234,14 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
+	// A finished picture book, shared with Marcus, so the storybook shelf is not empty.
+	if err := storybook.Seed(ctx, q, fam, aisha, leo, "Leo", born, today, storybook.Born, "Mommy", access.Partner, 3,
+		"You held my finger the whole first night and would not let go",
+		"Daddy sang the same silly song again and again, and you went quiet to listen",
+		"Grandma Linda knitted you a yellow hat that was much too big",
+	); err != nil {
+		return uuid.Nil, err
+	}
 	return fam, nil
 }
 
@@ -351,5 +361,24 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	}
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
 	s.learning(Preschool, rachel, tom)
-	return s.done()
+	fam, err := s.done()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	// Tom's bedtime book is shared with Rachel; Rachel's adventure is still private,
+	// so each parent's shelf shows a different pair.
+	if err := storybook.Seed(ctx, q, fam, tom, ava, "Ava", born, today, storybook.Bedtime, "Daddy", access.Partner, 6,
+		"You fed the ducks and laughed when one of them sneezed",
+		"We built a blanket fort and you invited every stuffed animal you own",
+		"You named the brightest star over the porch Pancake",
+	); err != nil {
+		return uuid.Nil, err
+	}
+	if err := storybook.Seed(ctx, q, fam, rachel, ava, "Ava", born, today, storybook.Adventure, "Mommy", access.Private, 2,
+		"You climbed the big hill all by yourself and shouted hello to the clouds",
+		"You found a snail and gave it a leaf for lunch",
+	); err != nil {
+		return uuid.Nil, err
+	}
+	return fam, nil
 }

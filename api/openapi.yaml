@@ -42,6 +42,7 @@ tags:
   - name: admin
   - name: account
   - name: portraits
+  - name: storybook
 paths:
   /healthz:
     get:
@@ -4564,6 +4565,182 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/stories:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createStory
+      tags: [storybook]
+      summary: The acting parent makes a picture-book story from memories they chose
+      description: |
+        The parent picks a theme, the child and one to four short memory lines
+        (typed, a starter, or copied from their own diary). With childId the
+        name is the child's first name and the age comes from their birth
+        date; without it childName is required (a nickname before birth).
+
+        The text is written by the Claude API when the server has a key, from
+        only the first name, the age in months, the theme, signedAs and the
+        memory lines; never photos, never other records. Without a key, or on
+        any error or a reply that fails the checks (6 to 10 pages, no medical
+        words, no links or numbers), a built-in template writes it and
+        generatedBy is template.
+
+        visibility is private or partner (400 otherwise). Mother and partner;
+        a grandparent or nanny gets 404. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Story"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listStories
+      tags: [storybook]
+      summary: The stories the acting parent may read
+      description: |
+        Their own stories plus the other parent's stories shared with them,
+        newest first, at most 50. aiEnabled says whether new stories are
+        written by the Claude API or by the template. Caregivers get 404.
+        Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoryList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/stories/{storyId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: storyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getStory
+      tags: [storybook]
+      summary: One story the acting parent may read
+      description: |
+        404 when the story does not exist or is the other parent's private
+        story. Caregivers get 404. Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Story"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      operationId: updateStory
+      tags: [storybook]
+      summary: The author shares or unshares a story with the other parent
+      description: |
+        Only the author; any other story id is 404. visibility is private or
+        partner (400 otherwise). Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StoryUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Story"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteStory
+      tags: [storybook]
+      summary: The author deletes a story
+      description: Only the author; any other story id is 404. Audited.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -9335,6 +9512,124 @@ components:
         agendaTopic:
           type: string
           description: Only on the author's own entries.
+
+    StoryTheme:
+      type: string
+      description: |
+        bedtime = a calm goodnight story; adventure = a small outdoor adventure;
+        born = the day you were born; sibling = a new baby is coming.
+      enum: [bedtime, adventure, born, sibling]
+
+    StoryArt:
+      type: string
+      description: Which illustration scene the web draws behind the page.
+      enum: [moon, stars, sunrise, garden, home, hearts, journey, cuddle]
+
+    StoryPage:
+      type: object
+      required: [text, art]
+      properties:
+        text:
+          type: string
+        art:
+          $ref: "#/components/schemas/StoryArt"
+
+    StoryMemory:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 2
+          maxLength: 280
+
+    StoryInput:
+      type: object
+      required: [theme, memories, visibility]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        childName:
+          type: string
+          maxLength: 40
+          description: Required when childId is not sent.
+        theme:
+          $ref: "#/components/schemas/StoryTheme"
+        signedAs:
+          type: string
+          maxLength: 24
+          description: What the child calls the author ("Mommy", "Daddy"). Defaults to Mommy for the mother and Daddy for the partner.
+        memories:
+          type: array
+          minItems: 1
+          maxItems: 4
+          items:
+            $ref: "#/components/schemas/StoryMemory"
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    StoryUpdate:
+      type: object
+      required: [visibility]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    Story:
+      type: object
+      required: [id, authorId, title, theme, childName, signedAs, memories, pages, visibility, generatedBy, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        childId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        theme:
+          $ref: "#/components/schemas/StoryTheme"
+        childName:
+          type: string
+        ageMonths:
+          type: integer
+          description: The child's age when the story was made; absent before birth.
+        signedAs:
+          type: string
+        memories:
+          type: array
+          description: The memory lines the author chose, as the story used them.
+          items:
+            type: string
+        pages:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoryPage"
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        generatedBy:
+          type: string
+          enum: [ai, template]
+        createdAt:
+          type: string
+          format: date-time
+
+    StoryList:
+      type: object
+      required: [items, aiEnabled]
+      properties:
+        items:
+          type: array
+          description: Newest first, at most 50.
+          items:
+            $ref: "#/components/schemas/Story"
+        aiEnabled:
+          type: boolean
+          description: True when new stories are written by the Claude API, false when by the template.
 
     DiaryEntryList:
       type: object

@@ -2427,6 +2427,99 @@ export interface paths {
         patch: operations["updateDiaryEntry"];
         trace?: never;
     };
+    "/members/{memberId}/stories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The stories the acting parent may read
+         * @description Their own stories plus the other parent's stories shared with them,
+         *     newest first, at most 50. aiEnabled says whether new stories are
+         *     written by the Claude API or by the template. Caregivers get 404.
+         *     Audited.
+         */
+        get: operations["listStories"];
+        put?: never;
+        /**
+         * The acting parent makes a picture-book story from memories they chose
+         * @description The parent picks a theme, the child and one to four short memory lines
+         *     (typed, a starter, or copied from their own diary). With childId the
+         *     name is the child's first name and the age comes from their birth
+         *     date; without it childName is required (a nickname before birth).
+         *
+         *     The text is written by the Claude API when the server has a key, from
+         *     only the first name, the age in months, the theme, signedAs and the
+         *     memory lines; never photos, never other records. Without a key, or on
+         *     any error or a reply that fails the checks (6 to 10 pages, no medical
+         *     words, no links or numbers), a built-in template writes it and
+         *     generatedBy is template.
+         *
+         *     visibility is private or partner (400 otherwise). Mother and partner;
+         *     a grandparent or nanny gets 404. Audited.
+         */
+        post: operations["createStory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/stories/{storyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One story the acting parent may read
+         * @description 404 when the story does not exist or is the other parent's private
+         *     story. Caregivers get 404. Audited.
+         */
+        get: operations["getStory"];
+        put?: never;
+        post?: never;
+        /**
+         * The author deletes a story
+         * @description Only the author; any other story id is 404. Audited.
+         */
+        delete: operations["deleteStory"];
+        options?: never;
+        head?: never;
+        /**
+         * The author shares or unshares a story with the other parent
+         * @description Only the author; any other story id is 404. visibility is private or
+         *     partner (400 otherwise). Audited.
+         */
+        patch: operations["updateStory"];
+        trace?: never;
+    };
     "/members/{memberId}/screening-questionnaires": {
         parameters: {
             query?: never;
@@ -5170,6 +5263,66 @@ export interface components {
             visibility: components["schemas"]["Visibility"];
             /** @description Only on the author's own entries. */
             agendaTopic?: string;
+        };
+        /**
+         * @description bedtime = a calm goodnight story; adventure = a small outdoor adventure;
+         *     born = the day you were born; sibling = a new baby is coming.
+         * @enum {string}
+         */
+        StoryTheme: "bedtime" | "adventure" | "born" | "sibling";
+        /**
+         * @description Which illustration scene the web draws behind the page.
+         * @enum {string}
+         */
+        StoryArt: "moon" | "stars" | "sunrise" | "garden" | "home" | "hearts" | "journey" | "cuddle";
+        StoryPage: {
+            text: string;
+            art: components["schemas"]["StoryArt"];
+        };
+        StoryMemory: {
+            text: string;
+        };
+        StoryInput: {
+            /** Format: uuid */
+            childId?: string;
+            /** @description Required when childId is not sent. */
+            childName?: string;
+            theme: components["schemas"]["StoryTheme"];
+            /** @description What the child calls the author ("Mommy", "Daddy"). Defaults to Mommy for the mother and Daddy for the partner. */
+            signedAs?: string;
+            memories: components["schemas"]["StoryMemory"][];
+            visibility: components["schemas"]["Visibility"];
+        };
+        StoryUpdate: {
+            visibility: components["schemas"]["Visibility"];
+        };
+        Story: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            authorId: string;
+            /** Format: uuid */
+            childId?: string;
+            title: string;
+            theme: components["schemas"]["StoryTheme"];
+            childName: string;
+            /** @description The child's age when the story was made; absent before birth. */
+            ageMonths?: number;
+            signedAs: string;
+            /** @description The memory lines the author chose, as the story used them. */
+            memories: string[];
+            pages: components["schemas"]["StoryPage"][];
+            visibility: components["schemas"]["Visibility"];
+            /** @enum {string} */
+            generatedBy: "ai" | "template";
+            /** Format: date-time */
+            createdAt: string;
+        };
+        StoryList: {
+            /** @description Newest first, at most 50. */
+            items: components["schemas"]["Story"][];
+            /** @description True when new stories are written by the Claude API, false when by the template. */
+            aiEnabled: boolean;
         };
         DiaryEntryList: {
             /** @description Newest first. */
@@ -11595,6 +11748,278 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listStories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoryList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Story"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Story"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateStory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                storyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoryUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Story"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
