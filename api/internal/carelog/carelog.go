@@ -355,18 +355,19 @@ func LatestSummary(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 
 // PendingFor lists handoffs to a person that they have not accepted yet. It is
 // the person's own inbox, so it is not written to the access log.
-func PendingFor(ctx context.Context, pool *pgxpool.Pool, familyID, person uuid.UUID, now time.Time) ([]store.Handoff, error) {
-	all, err := store.New(pool).ListHandoffs(ctx, store.ListHandoffsParams{
+func PendingFor(ctx context.Context, pool *pgxpool.Pool, familyID, person uuid.UUID, now time.Time) ([]Handoff, error) {
+	q := store.New(pool)
+	all, err := q.ListHandoffs(ctx, store.ListHandoffsParams{
 		FamilyID: familyID, Since: now.Add(-Window), Involving: uuid.NullUUID{UUID: person, Valid: true},
 	})
 	if err != nil {
 		return nil, err
 	}
-	var out []store.Handoff
+	var pending []store.Handoff
 	for _, h := range all {
 		if h.ToMemberID == person && h.Status == "pending" {
-			out = append(out, h)
+			pending = append(pending, h)
 		}
 	}
-	return out, nil
+	return withNotes(ctx, q, familyID, pending)
 }
