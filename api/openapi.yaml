@@ -5164,7 +5164,28 @@ components:
         visibility:
           $ref: "#/components/schemas/Visibility"
         flag:
-          $ref: "#/components/schemas/ValueFlag"
+          $ref: "#/components/schemas/LabFlag"
+
+    LabFlag:
+      type: object
+      description: |
+        Set only when the value is outside the reference range stored with the
+        result (below refLow or above refHigh; a value equal to a bound is in
+        range). Computed by the server from database state. The wording is
+        fixed and never diagnostic: it only says to discuss the value with a
+        doctor.
+      required: [direction, message, basis]
+      properties:
+        direction:
+          type: string
+          enum: [low, high]
+        message:
+          type: string
+          example: Outside the usual range. Discuss with your doctor.
+        basis:
+          type: string
+          description: Where the range comes from.
+          example: Reference range reported with this lab result
 
     VaccineStatus:
       type: string
@@ -5244,8 +5265,6 @@ components:
           type: integer
           minimum: 1
           maximum: 99
-        flag:
-          $ref: "#/components/schemas/ValueFlag"
 
     CareRole:
       type: string
@@ -6703,10 +6722,9 @@ components:
         recipient is waiting (handoff); handoff_accepted = the recipient's
         handoff was taken (handoff); plan_item_due = one of the recipient's
         own plan items became due or overdue (entityId: ruleId);
-        value_flagged = one of the recipient's own records (or their
-        child's, for both parents) is outside the usual range (lab result
-        or growth point id; never sent to caregivers or the other parent
-        for a parent's own record); appointment_reminder = the recipient's
+        value_flagged = one of the recipient's own lab results (or their
+        child's, for both parents) got a LabFlag (lab result id; never sent
+        to caregivers or the other parent for a parent's own record); appointment_reminder = the recipient's
         appointment is tomorrow (calendar event); invitation_accepted = a
         caregiver the recipient invited joined (invitation);
         subscription_started = the family's paid plan started (both
@@ -7468,27 +7486,3 @@ components:
         givenOn:
           type: string
           format: date
-
-    FlagDirection:
-      type: string
-      enum: [low, high]
-
-    ValueFlag:
-      type: object
-      required: [direction, urgent, message, source]
-      description: |
-        Set by the server when a value is outside the usual range in a US
-        guideline from the ranges catalog. message is fixed ("Outside the
-        usual range. Discuss with your doctor."), never a diagnosis or a
-        treatment. urgent = the value is in the range the guideline says
-        needs care now; the UI opens the fixed urgent screen instead of
-        showing the message.
-      properties:
-        direction:
-          $ref: "#/components/schemas/FlagDirection"
-        urgent:
-          type: boolean
-        message:
-          type: string
-        source:
-          $ref: "#/components/schemas/Source"

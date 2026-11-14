@@ -5,6 +5,8 @@ import { directoryMocks } from "./fixtures/directory";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { passportMocks } from "./fixtures/passport";
 import { pricingMocks } from "./fixtures/pricing";
+import { scheduleMocks } from "./fixtures/schedule";
+import { simulatorMocks } from "./fixtures/simulator";
 import { weeklyPlanMocks } from "./fixtures/weekly-plan";
 import { taskMocks } from "./fixtures/tasks";
 import { todayMocks } from "./fixtures/today";
@@ -22,6 +24,8 @@ const tables: MockTable[] = [
   taskMocks,
   todayMocks,
   weeklyPlanMocks,
+  scheduleMocks,
+  simulatorMocks,
 ];
 
 export const previewMocks = mockMiddleware(Object.assign({}, ...tables));

@@ -2726,7 +2726,25 @@ export interface components {
             /** Format: date */
             takenOn: string;
             visibility: components["schemas"]["Visibility"];
-            flag?: components["schemas"]["ValueFlag"];
+            flag?: components["schemas"]["LabFlag"];
+        };
+        /**
+         * @description Set only when the value is outside the reference range stored with the
+         *     result (below refLow or above refHigh; a value equal to a bound is in
+         *     range). Computed by the server from database state. The wording is
+         *     fixed and never diagnostic: it only says to discuss the value with a
+         *     doctor.
+         */
+        LabFlag: {
+            /** @enum {string} */
+            direction: "low" | "high";
+            /** @example Outside the usual range. Discuss with your doctor. */
+            message: string;
+            /**
+             * @description Where the range comes from.
+             * @example Reference range reported with this lab result
+             */
+            basis: string;
         };
         /** @enum {string} */
         VaccineStatus: "done" | "overdue" | "due" | "upcoming";
@@ -2776,7 +2794,6 @@ export interface components {
             /** @description Against the WHO or CDC chart for the child's age and sex, computed by the server. */
             weightPercentile?: number;
             heightPercentile?: number;
-            flag?: components["schemas"]["ValueFlag"];
         };
         /** @enum {string} */
         CareRole: "obstetrician" | "pediatrician" | "primary_care" | "psychologist" | "lactation_consultant" | "midwife" | "dentist";
@@ -3616,10 +3633,9 @@ export interface components {
          *     recipient is waiting (handoff); handoff_accepted = the recipient's
          *     handoff was taken (handoff); plan_item_due = one of the recipient's
          *     own plan items became due or overdue (entityId: ruleId);
-         *     value_flagged = one of the recipient's own records (or their
-         *     child's, for both parents) is outside the usual range (lab result
-         *     or growth point id; never sent to caregivers or the other parent
-         *     for a parent's own record); appointment_reminder = the recipient's
+         *     value_flagged = one of the recipient's own lab results (or their
+         *     child's, for both parents) got a LabFlag (lab result id; never sent
+         *     to caregivers or the other parent for a parent's own record); appointment_reminder = the recipient's
          *     appointment is tomorrow (calendar event); invitation_accepted = a
          *     caregiver the recipient invited joined (invitation);
          *     subscription_started = the family's paid plan started (both
@@ -4003,22 +4019,6 @@ export interface components {
         VaccineDoseUpdate: {
             /** Format: date */
             givenOn: string;
-        };
-        /** @enum {string} */
-        FlagDirection: "low" | "high";
-        /**
-         * @description Set by the server when a value is outside the usual range in a US
-         *     guideline from the ranges catalog. message is fixed ("Outside the
-         *     usual range. Discuss with your doctor."), never a diagnosis or a
-         *     treatment. urgent = the value is in the range the guideline says
-         *     needs care now; the UI opens the fixed urgent screen instead of
-         *     showing the message.
-         */
-        ValueFlag: {
-            direction: components["schemas"]["FlagDirection"];
-            urgent: boolean;
-            message: string;
-            source: components["schemas"]["Source"];
         };
     };
     responses: never;
