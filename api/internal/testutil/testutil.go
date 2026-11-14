@@ -93,6 +93,11 @@ func (c *Client) Patch(path string, body any, wantStatus int, out any) {
 	c.do(http.MethodPatch, path, body, wantStatus, out)
 }
 
+func (c *Client) Delete(path string, wantStatus int, out any) {
+	c.t.Helper()
+	c.do(http.MethodDelete, path, nil, wantStatus, out)
+}
+
 // PostWithHeaders is Post with extra request headers, for callers such as
 // webhooks that authenticate with a header instead of the session cookie.
 func (c *Client) PostWithHeaders(path string, headers map[string]string, body any, wantStatus int, out any) {
