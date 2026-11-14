@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 )
 
 // Secret is a string that prints as "[redacted]" through fmt, slog and JSON,
@@ -33,6 +34,10 @@ type Config struct {
 	// Model overrides the model id used for the AI plan; empty means the
 	// caller's default.
 	Model string
+	// BaseURL overrides the API address; only tests set it.
+	BaseURL string
+	// Timeout bounds one AI call; zero means 12 seconds.
+	Timeout time.Duration
 }
 
 // Enabled reports whether a key is set.

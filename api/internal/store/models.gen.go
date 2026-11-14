@@ -33,20 +33,6 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
-type AppointmentQuestion struct {
-	ID              uuid.UUID
-	Seq             pgtype.Int8
-	FamilyID        uuid.UUID
-	OwnerMemberID   uuid.UUID
-	Visibility      string
-	AskedForEventID uuid.UUID
-	Body            string
-	Answered        bool
-	Answer          *string
-	AnsweredAt      pgtype.Timestamptz
-	CreatedAt       time.Time
-}
-
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
@@ -128,16 +114,6 @@ type DiaryEntry struct {
 	BodySealed    []byte
 	AgendaTopic   *string
 	CreatedAt     time.Time
-}
-
-type EmergencyContact struct {
-	ID        uuid.UUID
-	Seq       pgtype.Int8
-	FamilyID  uuid.UUID
-	Name      string
-	Relation  string
-	Phone     string
-	CreatedAt time.Time
 }
 
 type Family struct {
@@ -366,6 +342,24 @@ type Shift struct {
 	StartsOn  *time.Time
 	RoundID   uuid.NullUUID
 	CreatedAt time.Time
+}
+
+type StripeEvent struct {
+	ID         string
+	Type       string
+	ReceivedAt time.Time
+}
+
+type Subscription struct {
+	FamilyID             uuid.UUID
+	Tier                 string
+	Status               string
+	StripeCustomerID     *string
+	StripeSubscriptionID *string
+	CheckoutSessionID    string
+	StartedAt            time.Time
+	CurrentPeriodEnd     pgtype.Timestamptz
+	UpdatedAt            time.Time
 }
 
 type Task struct {

@@ -99,7 +99,7 @@ func TestVoiceNoteValidation(t *testing.T) {
 		t.Errorf("2 MB chunked: status %d, body %s", code, raw)
 	}
 	var n int
-	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM voice_notes WHERE family_id = $1`, fam.Id).Scan(&n); err != nil || n != 1 {
+	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM voice_notes WHERE family_id = $1 AND handoff_id IS NULL`, fam.Id).Scan(&n); err != nil || n != 1 {
 		t.Errorf("stored notes = %d (%v), want only the 1 MB one", n, err)
 	}
 }
@@ -173,10 +173,8 @@ func TestUnattachedVoiceNotesAreDeletedAfterADay(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	// Stands in for createHandoff (#370) attaching the note.
-	if _, err := c.Pool.Exec(ctx, `UPDATE voice_notes SET handoff_id = gen_random_uuid() WHERE id = $1`, attached.Id); err != nil {
-		t.Fatal(err)
-	}
+	partner := testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	c.Post(handoffs(mom.Id), map[string]any{"toMemberId": partner.Id, "voiceNoteId": attached.Id}, http.StatusCreated, nil)
 
 	uploadVoiceNote(t, c, voiceNotesPath(mom), "audio/webm", []byte("new"))
 

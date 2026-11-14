@@ -22,7 +22,7 @@ func event(title, vis string, startsIn time.Duration, attendees ...uuid.UUID) ma
 	}
 }
 
-// titles lists the stored events only: seeded tasks also appear in the feed and have their own test.
+// calTitles lists the stored events only: seeded tasks also appear in the feed and have their own test.
 func calTitles(l httpapi.CalendarEventList) []string {
 	out := []string{}
 	for _, e := range l.Items {

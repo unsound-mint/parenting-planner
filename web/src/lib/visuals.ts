@@ -156,11 +156,11 @@ export const roleLabel: Record<Role, string> = {
   nanny: "Nanny",
 };
 
-export const roleAccent: Record<Role, { bg: string; text: string }> = {
-  mother: { bg: "bg-mom", text: "text-mom" },
-  partner: { bg: "bg-partner", text: "text-partner" },
-  grandparent: { bg: "bg-grandparent", text: "text-grandparent" },
-  nanny: { bg: "bg-nanny", text: "text-nanny" },
+export const roleAccent: Record<Role, { bg: string; text: string; soft: string }> = {
+  mother: { bg: "bg-mom", text: "text-mom", soft: "bg-mom-soft" },
+  partner: { bg: "bg-partner", text: "text-partner", soft: "bg-partner-soft" },
+  grandparent: { bg: "bg-grandparent", text: "text-grandparent", soft: "bg-grandparent-soft" },
+  nanny: { bg: "bg-nanny", text: "text-nanny", soft: "bg-nanny-soft" },
 };
 
 /** Psychologist flow concepts (docs/product.md, must-have 7). */

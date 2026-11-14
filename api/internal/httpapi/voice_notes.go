@@ -13,8 +13,8 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
-// Voice notes for handoffs (#291). Attaching a note to a handoff, and letting
-// the handoff's people play it, comes with the care log (#370).
+// Voice notes for handoffs (#291). A note is attached by createHandoff; the
+// uploader and whoever may see that handoff can play it.
 
 func (s *Server) CreateVoiceNote(ctx context.Context, req CreateVoiceNoteRequestObject) (CreateVoiceNoteResponseObject, error) {
 	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
@@ -54,7 +54,7 @@ func (s *Server) CreateVoiceNote(ctx context.Context, req CreateVoiceNoteRequest
 }
 
 func (s *Server) GetVoiceNote(ctx context.Context, req GetVoiceNoteRequestObject) (GetVoiceNoteResponseObject, error) {
-	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
@@ -63,7 +63,7 @@ func (s *Server) GetVoiceNote(ctx context.Context, req GetVoiceNoteRequestObject
 	case kind == errNotFound:
 		return GetVoiceNote404JSONResponse(errNoMember), nil
 	}
-	n, err := carelog.GetVoiceNote(ctx, s.pool, familyID, m.ID, req.VoiceNoteId)
+	n, err := carelog.GetVoiceNote(ctx, s.pool, familyID, carePerson(m), req.VoiceNoteId)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return GetVoiceNote404JSONResponse(errNoVoiceNote), nil
 	}

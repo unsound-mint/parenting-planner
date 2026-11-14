@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Check, Clock, FileText, MapPin, MessageCircleQuestion, NotebookPen, Route } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { daysUntilInstant, formatClock, formatLongDate, whenWords, dayKey } from "@/lib/format";
@@ -32,6 +32,8 @@ async function Appointment({ params }: { params: Promise<{ memberId: string; app
     api.GET("/members/{memberId}/appointments/{appointmentId}/prep", { params: { path: { memberId, appointmentId } } }),
   ]);
   const self = family && familyPeople(family).find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !self) redirect("/family");
   if (!family || !self || isCaregiver(self.role) || !prep) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
   const { appointment, travel, documents, questions, note } = prep;

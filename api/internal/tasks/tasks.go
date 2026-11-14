@@ -196,7 +196,7 @@ func SetDone(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Pers
 		if done {
 			at, by = pgtype.Timestamptz{Time: now, Valid: true}, uuid.NullUUID{UUID: p.ID, Valid: true}
 		}
-		out, err = q.SetTaskDone(ctx, store.SetTaskDoneParams{ID: id, Done: done, DoneAt: at, DoneByMemberID: by})
+		out, err = q.SetTaskDone(ctx, store.SetTaskDoneParams{ID: id, FamilyID: familyID, Done: done, DoneAt: at, DoneByMemberID: by})
 		if err != nil {
 			return err
 		}
@@ -230,7 +230,7 @@ func Propose(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Pers
 		if !(Person{ID: target.ID, Role: target.Role, Permissions: target.Permissions}).CanUse() {
 			return ErrBadAssignee
 		}
-		out, err = q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: id, PendingAssigneeMemberID: uuid.NullUUID{UUID: to, Valid: true}})
+		out, err = q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: id, FamilyID: familyID, PendingAssigneeMemberID: uuid.NullUUID{UUID: to, Valid: true}})
 		if err != nil {
 			return err
 		}
@@ -242,14 +242,14 @@ func Propose(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Pers
 // Accept moves ownership to the person the task was offered to.
 func Accept(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time) (store.Task, error) {
 	return answer(ctx, pool, familyID, p, id, now, func(q *store.Queries) (store.Task, error) {
-		return q.AcceptTaskReassignment(ctx, id)
+		return q.AcceptTaskReassignment(ctx, store.AcceptTaskReassignmentParams{ID: id, FamilyID: familyID})
 	})
 }
 
 // Decline drops the offer; the task stays with its assignee.
 func Decline(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time) (store.Task, error) {
 	return answer(ctx, pool, familyID, p, id, now, func(q *store.Queries) (store.Task, error) {
-		return q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: id})
+		return q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: id, FamilyID: familyID})
 	})
 }
 

@@ -6,7 +6,7 @@ export const BOOKING_ENABLED = false;
 // Plus features show a lock while the family is on the free plan. Turn this off
 // if the server has no Stripe keys (createCheckoutSession answers 503): then no
 // one could unlock them and the demo would lose a feature.
-export const PAYWALL_LOCKS = true;
+export const PAYWALL_LOCKS = false;
 
 // Pregnancy loss support (createPregnancyLoss). A write cannot be probed without
 // recording or undoing a loss, so the entry waits on this flag. Turn it on when

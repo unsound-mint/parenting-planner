@@ -65,13 +65,6 @@ VALUES (@family_id, @child_id, @measured_on, @weight_kg, @height_cm) RETURNING *
 -- name: ListGrowthMeasurements :many
 SELECT * FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on;
 
--- Mirrors access.CanParentReadHealthRecord: records about the child are readable by
--- everyone allowed the baby passport (both parents, and caregivers with baby_passport),
--- whatever their owner chose; only the parent's own records use visibility.
--- name: ListChildAllergiesVisibleToParent :many
-SELECT * FROM allergies WHERE family_id = @family_id AND subject_child_id = @child_id
-ORDER BY created_at DESC;
-
 -- Logging health records (POST /members/{memberId}/immunizations, ...).
 
 -- name: ChildInFamily :one

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense, ViewTransition } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
@@ -12,7 +12,7 @@ import { DemoMenu } from "@/components/shell/demo-menu";
 import { DemoClock } from "@/components/shell/demo-clock";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
-import { FamilyNav } from "@/components/shell/family-nav";
+import { FamilyNav, FamilyTabBar } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
 import { FamilyClockProvider } from "@/components/shell/family-clock";
@@ -45,9 +45,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   if (boundTo && boundTo !== memberId) redirect(`/family/${boundTo}`);
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
-  if (!person) notFound();
-  // The Plan entry shows only once tasks work: the API answers 501 until then.
-  const hasPlan = !isCaregiver(person.role) && (await api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } })).response.ok;
+  // An address from another family (an old tab after the visitor started a new demo
+  // or their own family) opens the current family instead of a 404.
+  if (!person) redirect("/family");
 
   // Parents only: a caregiver's nav has neither entry, and probing the care log as a caregiver would be an extra audited read.
   // Baby needs a child and a working care log; People needs the invitations endpoint.
@@ -68,19 +68,23 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     ...(invitations ? { people: invitations.response.status } : {}),
   });
 
+  const navProps = { memberId, role: person.role, hidden, childName: hasOlderChild(family) ? family.children[0]?.name : undefined };
+  const context = familyContext(family);
+  // "Week 25 of pregnancy · due Feb 27": the first phrase leads, the rest is quieter.
+  const cut = context.search(/ of |, /);
+
   return (
-    <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
-      <aside className="print:hidden flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
-        <div className="flex items-center justify-between gap-3 md:block">
-          <p className="px-2 text-[15px] font-semibold tracking-tight">{PRODUCT_NAME}</p>
-          <div className="md:hidden">
-            <UrgentHelpLink memberId={memberId} />
-          </div>
-        </div>
-        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} hidden={hidden} childName={hasOlderChild(family) ? family.children[0]?.name : undefined} />
-        <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
-          <p className="font-medium text-foreground">Demo family</p>
-          <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
+    // data-acting swaps the --me / --them accent for the whole document (globals.css).
+    <div data-acting={person.role} className="flex min-h-dvh flex-1 flex-col md:flex-row">
+      <aside className="print:hidden sticky top-0 hidden h-dvh w-62 shrink-0 flex-col gap-5 overflow-y-auto border-r border-line px-4 pt-6 pb-4 md:flex">
+        <p className="flex items-center gap-2.5 px-2.5 font-heading text-[1.0625rem] font-semibold whitespace-nowrap [font-variation-settings:'SOFT'_100]">
+          <BrandMark />
+          {PRODUCT_NAME}
+        </p>
+        <FamilyNav {...navProps} />
+        <div className="mt-auto rounded-2xl bg-muted px-3.5 py-3 text-label font-normal text-muted-foreground">
+          <p className="font-semibold text-ink">Demo family</p>
+          <p>Synthetic data. Your own copy, kept in this browser session.</p>
           {!boundTo && (
             <Link href="/admin" className="mt-1.5 inline-block underline underline-offset-2 hover:text-foreground">
               Demo admin
@@ -90,17 +94,25 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
       </aside>
 
       {/* One width cap for the header and the page, so their edges line up, and the container
-          that PageGrid's columns query (docs/design.md, Layout). */}
-      <div className="@container flex w-full min-w-0 max-w-page flex-1 flex-col">
-        <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
+          that PageGrid's columns query (docs/design.md, Layout). The phone padding keeps the end of every page clear of the tab bar. */}
+      <div className="@container flex w-full min-w-0 max-w-page flex-1 flex-col max-md:pb-20">
+        <header className="print:hidden flex flex-wrap items-center gap-x-2 gap-y-2 px-4 md:gap-x-3 pt-3 md:min-h-21 md:px-8 md:pt-0">
           <RoleSwitch people={boundTo ? people.filter((p) => p.id === boundTo) : people} memberId={memberId} />
+          {context && (
+            <span className="order-3 hidden text-label font-normal text-muted-foreground lg:inline">
+              {cut > 0 ? (
+                <>
+                  <b className="font-semibold text-ink">{context.slice(0, cut)}</b>
+                  {context.slice(cut)}
+                </>
+              ) : (
+                <b className="font-semibold text-ink">{context}</b>
+              )}
+            </span>
+          )}
           <span className="order-3 hidden flex-1 md:block" />
-          <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due max-md:hidden">
-            Demo data
-          </span>
           {!boundTo && (
             <>
-              <ResetDemo className="max-md:hidden" />
               <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} className="max-md:hidden" />
               <DemoMenu
                 memberId={memberId}
@@ -111,15 +123,15 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
               <Link href="/pricing" className="order-4 text-label max-[1399px]:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
                 {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
               </Link>
+              <ResetDemo className="max-md:hidden" />
             </>
           )}
-          <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
           {notifications.data && (
             <div className="order-5">
               <NotificationBell memberId={memberId} role={person.role} initial={notifications.data} />
             </div>
           )}
-          <div className="order-5 hidden md:block">
+          <div className="order-6">
             <UrgentHelpLink memberId={memberId} />
           </div>
         </header>
@@ -128,14 +140,26 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           <ViewTransition>{children}</ViewTransition>
         </FamilyClockProvider>
       </div>
+      <FamilyTabBar {...navProps} />
     </div>
+  );
+}
+
+/** A small sun over a hill: the product mark beside the name. */
+function BrandMark() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden className="shrink-0">
+      <circle cx="15" cy="15" r="14" className="fill-sun" />
+      <path d="M8 18c2-6 12-6 14 0" className="stroke-me" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      <circle cx="15" cy="10" r="3" className="fill-leaf" />
+    </svg>
   );
 }
 
 function ShellFallback() {
   return (
     <div className="flex min-h-dvh flex-1">
-      <aside className="hidden print:hidden w-56 border-r border-border bg-card md:block" />
+      <aside className="hidden print:hidden w-62 border-r border-line md:block" />
       <p className="p-10 text-muted-foreground">Opening your family...</p>
     </div>
   );

@@ -3,108 +3,147 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, CalendarCheck, CalendarDays, Ellipsis, GraduationCap, HeartHandshake, IdCard, Route, Search, ShieldCheck, Target, UsersRound, type LucideIcon } from "lucide-react";
+import { Baby, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, Route, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
-import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 
-type Group = "daily" | "care" | "more";
-type Item = { href: string; screen: string; label: string; icon: LucideIcon; group: Group };
+type Group = "main" | "more";
+type Item = {
+  href: string;
+  screen: string;
+  label: string;
+  icon: LucideIcon;
+  group: Group;
+  /** Phone tab label when the full one does not fit. */
+  short?: string;
+  /** Shown only when this screen is not in the nav: the screen that normally links to it is missing. */
+  fallbackFor?: string;
+};
 
-// Grouped by how often a parent opens them: the daily screens, then care and
-// records, then the rest. On phones the daily group is the bar and the rest
-// sit behind More. Each role sees only the screens canOpen() allows (lib/roles.ts).
+// Three daily screens, then the records. Plan, Journey, Practice, Find help and
+// Privacy are reached from inside a screen (This week, Learn, Journal and care,
+// People), so they appear here only as a fallback when that screen is missing:
+// caregivers cannot open Learn or People, and Learn is hidden in loss support.
+// Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: Item[] = [
-  { href: "", screen: "", label: "This week", icon: CalendarCheck, group: "daily" },
-  { href: "/plan", screen: "plan", label: "Plan", icon: planIcon, group: "daily" },
-  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "daily" },
-  { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "daily" },
-  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake, group: "care" },
-  { href: "/passport", screen: "passport", label: "Passport", icon: IdCard, group: "care" },
-  { href: "/directory", screen: "directory", label: "Find help", icon: Search, group: "care" },
-  { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "more" },
-  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more" },
-  { href: "/learn", screen: "learn", label: "Learn", icon: GraduationCap, group: "more" },
+  { href: "", screen: "", label: "This week", icon: Sprout, group: "main" },
+  { href: "/learn", screen: "learn", label: "Learn", icon: BookOpen, group: "main" },
+  { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "main", fallbackFor: "learn" },
+  { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main" },
+  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "more" },
+  { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "more" },
+  { href: "/passport", screen: "passport", label: "Baby passport", short: "Passport", icon: IdCard, group: "more" },
   { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
-  { href: "/settings", screen: "settings", label: "Privacy", icon: ShieldCheck, group: "more" },
+  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more", fallbackFor: "learn" },
+  { href: "/settings", screen: "settings", label: "Privacy", icon: ShieldCheck, group: "more", fallbackFor: "people" },
 ];
-const GROUPS: Group[] = ["daily", "care", "more"];
 
-// A phone bar fits five entries at 390px without wrapping or scrolling.
-const PHONE_SLOTS = 5;
+// The phone bar holds four tabs at 390 px: the daily screens and More.
+const PHONE_SLOTS = 4;
 
-const linkClass = (active: boolean) =>
-  cn(
-    "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-caption whitespace-nowrap transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
-    active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-  );
+type NavProps = { memberId: string; role: Role; hidden?: string[]; childName?: string };
 
-// hasPlan is false while GET tasks does not answer 200 (501 in production without preview mocks): no Plan entry then.
-// hidden: other screens whose endpoint refuses this person (403, 404) or is not built and has no preview mock.
-// Phones get one row: the most used entries, then More, which opens the rest in place.
-export function FamilyNav({ memberId, role, hasPlan, hidden = [], childName }: { memberId: string; role: Role; hasPlan: boolean; hidden?: string[]; childName?: string }) {
+// hidden: screens whose endpoint refuses this person (403, 404) or is not built and has no preview mock.
+function useNav({ memberId, role, hidden = [], childName }: NavProps) {
   const pathname = usePathname();
-  // Open for one path only, so the panel closes after navigating.
-  const [openAt, setOpenAt] = useState<string | null>(null);
-  const moreOpen = openAt === pathname;
   const base = `/family/${memberId}`;
-  const visible = items.filter((item) => canOpen(role, item.screen) && (item.screen !== "plan" || hasPlan) && !hidden.includes(item.screen));
+  const allowed = (item: Item) => canOpen(role, item.screen) && !hidden.includes(item.screen);
+  const visible = items.filter((item) => allowed(item) && (!item.fallbackFor || !items.some((i) => i.screen === item.fallbackFor && allowed(i))));
   const isActive = (item: Item) => (item.href === "" ? pathname === base : pathname.startsWith(base + item.href));
   // Past toddler age the Baby screen is the child's own: it carries their name.
   const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.screen === "baby" && childName ? childName : item.label);
+  return { pathname, base, visible, isActive, label };
+}
+
+/** The desktop side nav: the daily group, a rule, then the records. */
+export function FamilyNav(props: NavProps) {
+  const { base, visible, isActive, label } = useNav(props);
+  return (
+    <nav aria-label="Family" className="flex flex-col">
+      {(["main", "more"] as const).map((g) => {
+        const group = visible.filter((i) => i.group === g);
+        return group.length ? (
+          <div key={g} className="flex flex-col gap-1 border-line not-first:mt-2.5 not-first:border-t not-first:pt-2.5">
+            {group.map((item) => {
+              const active = isActive(item);
+              return (
+                <Link
+                  key={item.href}
+                  href={base + item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "press flex min-h-11 items-center gap-3 rounded-xl px-3 text-body font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    active ? "bg-me-soft text-ink" : "text-ink-2 hover:bg-muted",
+                  )}
+                >
+                  <item.icon className={cn("size-5 shrink-0", active && "text-me")} strokeWidth={1.7} aria-hidden />
+                  {label(item)}
+                </Link>
+              );
+            })}
+          </div>
+        ) : null;
+      })}
+    </nav>
+  );
+}
+
+/**
+ * The phone tab bar, floating at the bottom: This week, Learn, Journal, More.
+ * More opens the rest in a panel above the bar. Rendered outside the page column
+ * so `fixed` anchors to the viewport; PageFrame leaves room for it.
+ */
+export function FamilyTabBar(props: NavProps) {
+  const { pathname, base, visible, isActive, label } = useNav(props);
+  // Open for one path only, so the panel closes after navigating.
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const moreOpen = openAt === pathname;
   const fits = visible.length <= PHONE_SLOTS;
-  const bar = fits ? visible : visible.filter((i) => i.group === "daily").slice(0, PHONE_SLOTS - 1);
+  const bar = fits ? visible : visible.filter((i) => i.group === "main").slice(0, PHONE_SLOTS - 1);
   const more = fits ? [] : visible.filter((i) => !bar.includes(i));
   const moreActive = more.some(isActive);
 
-  const link = (item: Item, className?: string) => (
-    <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={cn(linkClass(isActive(item)), className)}>
-      <item.icon className="size-4.5 shrink-0" aria-hidden />
-      {label(item)}
-    </Link>
-  );
+  const tab = (active: boolean) =>
+    cn(
+      "press flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 text-caption font-semibold whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+      active ? "bg-me-soft text-me" : "text-muted-foreground",
+    );
 
   return (
-    <nav aria-label="Family">
-      <div className="hidden flex-col md:flex">
-        {GROUPS.map((g) => {
-          const group = visible.filter((i) => i.group === g);
-          return group.length ? (
-            <div key={g} className="flex flex-col gap-1 border-border not-first:mt-3 not-first:border-t not-first:pt-3">
-              {group.map((item) => link(item))}
-            </div>
-          ) : null;
-        })}
-      </div>
-      <div className="flex gap-1 md:hidden">
-        {bar.map((item) => link(item))}
-        {more.length > 0 && (
-          <button
-            type="button"
-            aria-expanded={moreOpen}
-            aria-controls="nav-more"
-            onClick={() => setOpenAt(moreOpen ? null : pathname)}
-            className={linkClass(moreActive || moreOpen)}
-          >
-            <Ellipsis className="size-4.5 shrink-0" aria-hidden />
-            More
-          </button>
-        )}
-      </div>
+    <nav aria-label="Family" className="print:hidden fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 md:hidden">
       {more.length > 0 && (
         <div
           id="nav-more"
           inert={!moreOpen}
           className={cn(
-            "grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out) md:hidden",
-            moreOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+            "mb-2 origin-bottom rounded-3xl border border-line bg-card p-2 shadow-[0_12px_32px_rgb(60_40_20/0.14)] backdrop-blur-md transition-[opacity,transform] duration-(--duration-base) ease-(--ease-out)",
+            moreOpen ? "opacity-100" : "pointer-events-none translate-y-2 scale-[0.97] opacity-0",
           )}
         >
-          <div className="min-h-0 overflow-hidden">
-            <div className="mt-1 grid grid-cols-4 gap-1 border-t border-border pt-2">{more.map((item) => link(item))}</div>
+          <div className="grid grid-cols-3 gap-1">
+            {more.map((item) => (
+              <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={cn(tab(isActive(item)), "min-h-16")}>
+                <item.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
+                {item.short ?? label(item)}
+              </Link>
+            ))}
           </div>
         </div>
       )}
+      <div className="flex gap-1 rounded-3xl border border-line bg-card/95 p-2 shadow-[0_8px_24px_rgb(60_40_20/0.10)] backdrop-blur-md">
+        {bar.map((item) => (
+          <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={tab(isActive(item))}>
+            <item.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
+            {item.short ?? label(item)}
+          </Link>
+        ))}
+        {more.length > 0 && (
+          <button type="button" aria-expanded={moreOpen} aria-controls="nav-more" onClick={() => setOpenAt(moreOpen ? null : pathname)} className={tab(moreActive || moreOpen)}>
+            {moreOpen ? <X className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden /> : <Ellipsis className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />}
+            More
+          </button>
+        )}
+      </div>
     </nav>
   );
 }

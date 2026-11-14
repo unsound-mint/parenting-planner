@@ -45,7 +45,7 @@ func (l liveStream) VisitGetLiveUpdatesResponse(w http.ResponseWriter) error {
 	}
 	h := w.Header()
 	h.Set("Content-Type", "text/event-stream")
-	h.Set("Cache-Control", "no-cache")
+	h.Set("Cache-Control", "no-cache, no-transform")
 	h.Set("X-Accel-Buffering", "no") // tell nginx-style proxies not to buffer
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, ": connected\n\n")
