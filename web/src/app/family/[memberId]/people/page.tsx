@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import Link from "next/link";
 import { UsersRound } from "lucide-react";
@@ -59,6 +60,9 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
       <header>
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
+        <Link href={`/family/${memberId}/paperwork`} className="mt-2 inline-block text-label text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
+          Family paperwork
+        </Link>
       </header>
       <Link
         href={`/family/${memberId}/people/friends`}

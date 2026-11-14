@@ -1,8 +1,8 @@
 -- name: CreateTask :one
 INSERT INTO tasks (family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id,
-                   source_title, source_url, source_checked_on, created_by_member_id)
+                   source_title, source_url, source_checked_on, created_by_member_id, catalog_key)
 VALUES (@family_id, @kind, @title, @detail, @due_on, @due_anchor, @due_offset_days, @bag, @assignee_member_id,
-        @source_title, @source_url, @source_checked_on, @created_by_member_id)
+        @source_title, @source_url, @source_checked_on, @created_by_member_id, @catalog_key)
 RETURNING *;
 
 -- name: ListTasks :many

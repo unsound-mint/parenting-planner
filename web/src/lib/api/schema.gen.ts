@@ -1716,6 +1716,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/family-paperwork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The US family paperwork hub for the family's stage
+         * @description One screen's data: the paperwork checklist (the family's paperwork
+         *     tasks plus why, how and a sourced page for each), workplace rights
+         *     cards with a request note, a pointer to state leave programs, and
+         *     the benefit questions with the programs to look at. Parents only;
+         *     a grandparent or nanny gets 404. Tick an item with updateTask.
+         *     Deadlines count from the birth date, or from the due date until the
+         *     baby is born, and are either official (from the cited page) or a
+         *     suggested target (basis). Not legal advice.
+         */
+        get: operations["getFamilyPaperwork"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/family-paperwork/benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Which assistance programs are worth a look for these yes/no answers
+         * @description Nothing is stored: the answers are used for this response only. It
+         *     never says the family qualifies; the agency decides. The answers
+         *     are yes or no, no income figures. Keys must be the question ids
+         *     returned by getFamilyPaperwork (400 otherwise). Parents only
+         *     (404 for a caregiver).
+         */
+        post: operations["checkBenefits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/tasks": {
         parameters: {
             query?: never;
@@ -6994,6 +7067,96 @@ export interface components {
              */
             dueOffsetDays?: number;
             source?: components["schemas"]["Source"];
+        };
+        FamilyPaperwork: {
+            /**
+             * Format: date
+             * @description The family's today (the demo clock), for counting days left.
+             */
+            today: string;
+            /**
+             * @description before the birth, with a baby under a year, or later.
+             * @enum {string}
+             */
+            phase: "before" | "newborn" | "later";
+            /**
+             * Format: date
+             * @description The date deadlines count from (the birth date, else the due date). Absent in planning.
+             */
+            anchorOn?: string;
+            anchorKind?: components["schemas"]["TaskDueAnchor"];
+            /** @description Soonest deadline first, items with no deadline last. */
+            items: components["schemas"]["PaperworkItem"][];
+            rights: components["schemas"]["RightsCard"][];
+            statePointer: components["schemas"]["StateLeavePointer"];
+            benefits: components["schemas"]["BenefitsFinder"];
+        };
+        PaperworkItem: {
+            key: string;
+            task: components["schemas"]["Task"];
+            why: string;
+            how: string[];
+            /**
+             * @description official = the date comes from the cited page; suggested = our target; anytime = no deadline.
+             * @enum {string}
+             */
+            basis: "official" | "suggested" | "anytime";
+            moreSources: components["schemas"]["Source"][];
+        };
+        RightsNote: {
+            subject: string;
+            /** @description A request note with [placeholders] to fill in before sending. */
+            body: string;
+        };
+        RightsCard: {
+            id: string;
+            title: string;
+            law: string;
+            covers: string;
+            /** @description What you can ask your employer for. */
+            ask: string[];
+            howToAsk: string;
+            note: components["schemas"]["RightsNote"];
+            source: components["schemas"]["Source"];
+        };
+        StateLeavePointer: {
+            title: string;
+            text: string;
+            source: components["schemas"]["Source"];
+        };
+        BenefitQuestion: {
+            id: string;
+            text: string;
+        };
+        BenefitProgram: {
+            id: string;
+            name: string;
+            what: string;
+            /** @description Who to contact to apply. */
+            where: string;
+            source: components["schemas"]["Source"];
+            moreSources: components["schemas"]["Source"][];
+        };
+        BenefitsFinder: {
+            questions: components["schemas"]["BenefitQuestion"][];
+            programs: components["schemas"]["BenefitProgram"][];
+            /** @description True when the family stage means a pregnancy or a child under 5 (known from the stage, so not asked). */
+            household: boolean;
+            finderText: string;
+            finderSource: components["schemas"]["Source"];
+        };
+        BenefitAnswers: {
+            /** @description Question id to yes (true) or no (false). */
+            answers: {
+                [key: string]: boolean;
+            };
+        };
+        BenefitHighlight: {
+            programId: string;
+            reason: string;
+        };
+        BenefitHighlights: {
+            items: components["schemas"]["BenefitHighlight"][];
         };
         TaskList: {
             /** @description Soonest due first, undated last. */
@@ -13587,6 +13750,117 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getFamilyPaperwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The hub */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FamilyPaperwork"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    checkBenefits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitAnswers"];
+            };
+        };
+        responses: {
+            /** @description Programs to look at, with the reason for each */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenefitHighlights"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
