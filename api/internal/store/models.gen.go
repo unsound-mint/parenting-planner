@@ -25,6 +25,20 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
+type AppointmentQuestion struct {
+	ID              uuid.UUID
+	Seq             pgtype.Int8
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	AskedForEventID uuid.UUID
+	Body            string
+	Answered        bool
+	Answer          *string
+	AnsweredAt      pgtype.Timestamptz
+	CreatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
