@@ -940,6 +940,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/pregnancy-growth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every pregnancy week at once, for the 3D baby view
+         * @description Weeks 4 to 40 in order, each with the baby's size and what develops
+         *     that week as hotspots on a body area, so the 3D view can scrub
+         *     through the weeks without a request per week. Each hotspot
+         *     paraphrases the NHS page of its own week and carries that source and
+         *     the date it was checked. Each fact appears in one week only.
+         *
+         *     currentWeek is the family's gestational week today (demo clock), so
+         *     the view can open on it. The same gate as getPregnancyWeek: the
+         *     mother and partner read it; a caregiver id gets 404, because the
+         *     member must be a parent. 409 not_pregnant when the stage is not
+         *     pregnancy, which includes pregnancy loss support (it moves the
+         *     family to planning).
+         */
+        get: operations["getPregnancyGrowth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/today": {
         parameters: {
             query?: never;
@@ -3770,6 +3801,30 @@ export interface components {
             /** @description Birth prep modules for this week (from week 28), locked until the family reaches week 32. */
             birthPrep: components["schemas"]["Guide"][];
             source: components["schemas"]["Source"];
+        };
+        PregnancyGrowth: {
+            /** @description The family's week today, clamped to 4 to 40. */
+            currentWeek: number;
+            /** @description Weeks 4 to 40 in order. */
+            weeks: components["schemas"]["PregnancyGrowthWeek"][];
+        };
+        PregnancyGrowthWeek: {
+            week: number;
+            size: components["schemas"]["BabySize"];
+            /** @description What develops this week, at least one. */
+            hotspots: components["schemas"]["GrowthHotspot"][];
+        };
+        GrowthHotspot: {
+            /**
+             * @description Where the hotspot sits on the baby. body is the whole baby (growth,
+             *     proportions), cord is the umbilical cord and placenta, movement is
+             *     kicks and wriggles.
+             * @enum {string}
+             */
+            area: "brain" | "face" | "eyes" | "ears" | "mouth" | "heart" | "lungs" | "tummy" | "kidneys" | "hands" | "legs" | "skin" | "bones" | "movement" | "body" | "cord";
+            /** @description One short sentence in plain words, never a diagnosis. */
+            text: string;
+            sources: components["schemas"]["Source"][];
         };
         PregnancyWeekSummary: {
             week: number;
@@ -7154,6 +7209,64 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPregnancyGrowth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PregnancyGrowth"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

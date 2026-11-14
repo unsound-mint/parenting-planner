@@ -236,3 +236,41 @@ func TestStageNowIsNotServedInPregnancy(t *testing.T) {
 		t.Errorf("code = %q", e.Code)
 	}
 }
+
+func TestPregnancyGrowthServesEveryWeek(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, partner := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	var g httpapi.PregnancyGrowth
+	c.Get("/api/members/"+mom.Id.String()+"/pregnancy-growth", http.StatusOK, &g)
+	if g.CurrentWeek != 25 || len(g.Weeks) != 37 || g.Weeks[0].Week != 4 || g.Weeks[36].Week != 40 {
+		t.Fatalf("currentWeek=%d, %d weeks", g.CurrentWeek, len(g.Weeks))
+	}
+	w25 := g.Weeks[21]
+	if w25.Week != 25 || w25.Size.Comparison != "a zucchini" || w25.Size.WeightG == nil || len(w25.Hotspots) == 0 {
+		t.Errorf("week 25: %+v", w25)
+	}
+	for _, h := range w25.Hotspots {
+		if len(h.Sources) != 1 || h.Sources[0].Url == "" || h.Sources[0].CheckedAt.IsZero() {
+			t.Errorf("week 25 hotspot without its source: %+v", h)
+		}
+	}
+	c.Get("/api/members/"+partner.Id.String()+"/pregnancy-growth", http.StatusOK, nil)
+
+	// The same gate as the weekly card: parents only, so a caregiver id is not found.
+	for _, cg := range fam.Caregivers {
+		c.Get("/api/members/"+cg.Id.String()+"/pregnancy-growth", http.StatusNotFound, nil)
+		c.Get("/api/members/"+cg.Id.String()+"/pregnancy-weeks/25", http.StatusNotFound, nil)
+	}
+	other := testutil.New(t)
+	other.StartDemo("pregnancy")
+	other.Get("/api/members/"+mom.Id.String()+"/pregnancy-growth", http.StatusNotFound, nil)
+
+	nf := testutil.New(t)
+	newborn := testutil.Parent(t, nf.StartDemo("newborn"), httpapi.ParentRoleMother)
+	var e httpapi.Error
+	nf.Get("/api/members/"+newborn.Id.String()+"/pregnancy-growth", http.StatusConflict, &e)
+	if e.Code != "not_pregnant" {
+		t.Errorf("code = %q", e.Code)
+	}
+}

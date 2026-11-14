@@ -1742,6 +1742,52 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/pregnancy-growth:
+    get:
+      operationId: getPregnancyGrowth
+      tags: [content]
+      summary: Every pregnancy week at once, for the 3D baby view
+      description: |
+        Weeks 4 to 40 in order, each with the baby's size and what develops
+        that week as hotspots on a body area, so the 3D view can scrub
+        through the weeks without a request per week. Each hotspot
+        paraphrases the NHS page of its own week and carries that source and
+        the date it was checked. Each fact appears in one week only.
+
+        currentWeek is the family's gestational week today (demo clock), so
+        the view can open on it. The same gate as getPregnancyWeek: the
+        mother and partner read it; a caregiver id gets 404, because the
+        member must be a parent. 409 not_pregnant when the stage is not
+        pregnancy, which includes pregnancy loss support (it moves the
+        family to planning).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PregnancyGrowth"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/today:
     get:
       operationId: getToday
@@ -6841,6 +6887,55 @@ components:
             $ref: "#/components/schemas/Guide"
         source:
           $ref: "#/components/schemas/Source"
+
+    PregnancyGrowth:
+      type: object
+      required: [currentWeek, weeks]
+      properties:
+        currentWeek:
+          type: integer
+          minimum: 4
+          maximum: 40
+          description: The family's week today, clamped to 4 to 40.
+        weeks:
+          type: array
+          description: Weeks 4 to 40 in order.
+          items:
+            $ref: "#/components/schemas/PregnancyGrowthWeek"
+
+    PregnancyGrowthWeek:
+      type: object
+      required: [week, size, hotspots]
+      properties:
+        week:
+          type: integer
+        size:
+          $ref: "#/components/schemas/BabySize"
+        hotspots:
+          type: array
+          description: What develops this week, at least one.
+          items:
+            $ref: "#/components/schemas/GrowthHotspot"
+
+    GrowthHotspot:
+      type: object
+      required: [area, text, sources]
+      properties:
+        area:
+          type: string
+          description: |
+            Where the hotspot sits on the baby. body is the whole baby (growth,
+            proportions), cord is the umbilical cord and placenta, movement is
+            kicks and wriggles.
+          enum: [brain, face, eyes, ears, mouth, heart, lungs, tummy, kidneys, hands, legs, skin, bones, movement, body, cord]
+        text:
+          type: string
+          description: One short sentence in plain words, never a diagnosis.
+        sources:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Source"
 
     PregnancyWeekSummary:
       type: object
