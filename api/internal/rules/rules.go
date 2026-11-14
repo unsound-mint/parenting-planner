@@ -82,6 +82,10 @@ type Item struct {
 	Category Category
 	Source   Source
 	Result
+	// Progress is what the parent recorded on the item ("booked", "done"),
+	// filled in by plan.ForMember from the store; empty until they record
+	// something. The rules never read it.
+	Progress string
 }
 
 // Plan evaluates rules for the viewing parent and sorts the items by urgency.
@@ -114,8 +118,10 @@ func Plan(rs []Rule, f Facts) []Item {
 func All() []Rule {
 	rs := append([]Rule{}, planningRules...)
 	rs = append(rs, pregnancyRules...)
+	rs = append(rs, postpartumRules...)
 	rs = append(rs, childRules...)
-	return append(rs, wellbeingRules...)
+	rs = append(rs, wellbeingRules...)
+	return append(rs, screeningRules...)
 }
 
 func day(y int, m time.Month, d int) time.Time { return time.Date(y, m, d, 0, 0, 0, 0, time.UTC) }

@@ -1,14 +1,16 @@
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { LabResult } from "@/lib/api/types";
 import { formatLongDate } from "@/lib/format";
-import { passportIcon, visibilityIcon, visibilityLabel } from "@/lib/visuals";
-import { cn } from "@/lib/utils";
+import { passportIcon } from "@/lib/visuals";
+import { VisibilityChip } from "./visibility-chip";
+import { LabFlag } from "./lab-flag";
 import { RangeBar } from "./range-bar";
 import { EmptyLine, SectionCard } from "./section-card";
 import { labPosition, latestLabs } from "./summary";
 
 const positionText = { low: "Below range", in: "In range", high: "Above range", unknown: "No range given" } as const;
 
-export function LabsCard({ labs, showVisibility }: { labs: LabResult[]; showVisibility: boolean }) {
+export function LabsCard({ labs, showVisibility, memberId, canAsk, owner }: { labs: LabResult[]; showVisibility: boolean; memberId: string; canAsk: boolean; owner?: string }) {
   const latest = latestLabs(labs);
   return (
     <SectionCard id="labs-title" icon={passportIcon.labs} title="Lab results">
@@ -18,37 +20,32 @@ export function LabsCard({ labs, showVisibility }: { labs: LabResult[]; showVisi
         <ul className="flex flex-col divide-y divide-border">
           {latest.map((lab) => {
             const pos = labPosition(lab);
-            const Lock = visibilityIcon[lab.visibility];
+            const out = pos === "low" || pos === "high";
+            const Arrow = pos === "low" ? ArrowDown : ArrowUp;
             return (
-              <li key={lab.id} className="grid gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-body font-medium">
-                    {lab.name}
-                    {showVisibility && (
-                      <span title={visibilityLabel[lab.visibility]} className="text-muted-foreground">
-                        <Lock className="size-3.5" aria-hidden />
-                        <span className="sr-only">{visibilityLabel[lab.visibility]}</span>
+              <li key={lab.id} id={`lab-${lab.id}`} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-body font-medium">{lab.name}</p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-caption text-muted-foreground">
+                      {formatLongDate(lab.takenOn)}
+                      {showVisibility && <VisibilityChip visibility={lab.visibility} />}
+                    </p>
+                  </div>
+                  <p className="flex shrink-0 items-center gap-2">
+                    {out && (
+                      <span className="flex size-6 items-center justify-center rounded-full bg-status-due-soft text-status-due">
+                        <Arrow className="size-3.5" aria-hidden />
                       </span>
                     )}
-                  </p>
-                  <p className="font-mono text-caption text-muted-foreground">{formatLongDate(lab.takenOn)}</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <p className="flex items-baseline justify-between gap-2">
                     <span className="font-mono text-title tabular-nums">
                       {lab.value} <span className="text-label font-normal text-muted-foreground">{lab.unit}</span>
                     </span>
-                    <span className={cn("text-caption font-medium", pos === "low" || pos === "high" ? "text-status-due" : "text-muted-foreground")}>
-                      {positionText[pos]}
-                    </span>
+                    <span className="sr-only">{positionText[pos]}</span>
                   </p>
-                  <RangeBar lab={lab} />
-                  {pos !== "unknown" && (
-                    <p className="font-mono text-caption text-muted-foreground">
-                      range {lab.refLow ?? "…"} to {lab.refHigh ?? "…"} {lab.unit}
-                    </p>
-                  )}
                 </div>
+                <RangeBar lab={lab} ends />
+                <LabFlag lab={lab} memberId={memberId} canAsk={canAsk} owner={owner} />
               </li>
             );
           })}

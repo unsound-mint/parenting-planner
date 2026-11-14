@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/unsound-mint/parenting-planner/api/internal/admin"
 	"github.com/unsound-mint/parenting-planner/api/internal/content"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 )
@@ -29,10 +30,14 @@ func (s *Server) ListGuides(ctx context.Context, req ListGuidesRequestObject) (L
 	if req.Params.Kind != nil {
 		want = content.Kind(*req.Params.Kind)
 	}
+	edits, err := admin.Edits(ctx, s.q, familyID)
+	if err != nil {
+		return nil, err
+	}
 	entries := content.Guides(state, content.Viewer{Role: m.Role}, want)
 	out := GuideList{Items: make([]Guide, 0, len(entries))}
 	for _, e := range entries {
-		out.Items = append(out.Items, guideOut(e))
+		out.Items = append(out.Items, guideOut(edits.Guide(e)))
 	}
 	return ListGuides200JSONResponse(out), nil
 }
@@ -63,6 +68,11 @@ func (s *Server) GetPregnancyWeek(ctx context.Context, req GetPregnancyWeekReque
 		// The contract limits week to 4..40, so this is unreachable.
 		return GetPregnancyWeek400JSONResponse(Error{Code: "invalid_request", Message: "week must be 4 to 40"}), nil
 	}
+	edits, err := admin.Edits(ctx, s.q, familyID)
+	if err != nil {
+		return nil, err
+	}
+	card = edits.Card(card)
 	out := PregnancyWeek{
 		Week: card.Week, IsCurrentWeek: card.Week == state.Week, WhyItMatters: card.WhyItMatters,
 		Tasks: card.Tasks, Questions: card.Questions, BirthPrep: make([]Guide, 0, len(card.BirthPrep)),
@@ -84,7 +94,7 @@ func (s *Server) contentState(ctx context.Context, familyID uuid.UUID) (content.
 	if err != nil {
 		return content.State{}, false, err
 	}
-	today := s.today()
+	today := s.today(ctx)
 	st := content.State{Stage: fam.Stage}
 	st.Week, st.HasWeek = rules.Facts{Today: today, Stage: fam.Stage, DueDate: fam.DueDate}.GestationalWeek()
 	if n := len(kids); n > 0 {
@@ -107,6 +117,13 @@ func guideOut(e content.Entry) Guide {
 	if e.Minutes > 0 {
 		g.Minutes = &e.Minutes
 	}
+	if e.RuleID != "" {
+		id := e.RuleID
+		g.RuleId = &id
+	}
+	if e.Action != nil {
+		g.Action = guideActionOut(e.Action)
+	}
 	for _, st := range e.Stages {
 		g.Stages = append(g.Stages, Stage(st))
 	}
@@ -124,4 +141,25 @@ func guideOut(e content.Entry) Guide {
 		g.UnlocksAtWeek = &unlock
 	}
 	return g
+}
+
+func guideActionOut(a *content.Action) *GuideAction {
+	out := GuideAction{Kind: GuideActionKind(a.Kind)}
+	if a.Label != "" {
+		out.Label = &a.Label
+	}
+	if a.Title != "" {
+		out.Title = &a.Title
+	}
+	if a.Question != "" {
+		out.Question = &a.Question
+	}
+	if a.Shift != nil {
+		days := make([]Weekday, 0, len(a.Shift.Days))
+		for _, d := range a.Shift.Days {
+			days = append(days, Weekday(d))
+		}
+		out.Shift = &ShiftSuggestion{Title: a.Shift.Title, Days: days, StartTime: a.Shift.StartTime, EndTime: a.Shift.EndTime}
+	}
+	return &out
 }

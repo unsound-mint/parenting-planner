@@ -54,7 +54,8 @@ const DEFAULT_SLEEP = 7;
 
 // A one-minute check-in. Private by default: the parent chooses per entry who
 // else may see it (docs/product.md, diaries and check-ins are private).
-export function MoodCheckinCard({ memberId, partnerName }: { memberId: string; partnerName?: string }) {
+// bare: drawn inside another card (This week's mood and sleep card) without its own frame.
+export function MoodCheckinCard({ memberId, partnerName, bare }: { memberId: string; partnerName?: string; bare?: boolean }) {
   const router = useRouter();
   const [mood, setMood] = useState<string[]>([]);
   const [energy, setEnergy] = useState<string[]>([]);
@@ -105,7 +106,7 @@ export function MoodCheckinCard({ memberId, partnerName }: { memberId: string; p
   }
 
   return (
-    <section aria-labelledby="checkin-title" className="rounded-2xl border border-border bg-card p-5">
+    <section aria-labelledby="checkin-title" className={bare ? undefined : "rounded-2xl border border-border bg-card p-5"}>
       <h2 id="checkin-title" className="text-title">
         How are you today?
       </h2>

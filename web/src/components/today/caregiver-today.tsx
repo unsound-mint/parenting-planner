@@ -1,13 +1,21 @@
+"use client";
+
 import { CalendarClock, Droplet, HandHeart, Milk, MoonStar, type LucideIcon } from "lucide-react";
 import type { CareLogEntry, Today } from "@/lib/api/types";
 import { daysUntilInstant, formatClock, whenWords } from "@/lib/format";
 import { roleAccent } from "@/lib/visuals";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // What a grandparent or nanny does next: their shift, who has the baby, the
 // last feed, sleep and diaper, and handoffs waiting for them. Every section
 // renders only when Today returned it, which the API does by role and permission.
-export function CaregiverToday({ today, names }: { today: Today; names: Record<string, string> }) {
-  const { nextShift, careSummary, pendingHandoffs } = today;
+// shiftOnly: the baby screen already draws the care summary, the duty and the
+// handoff from the care log, so it asks for the next shift alone.
+export function CaregiverToday({ today, names, shiftOnly = false }: { today: Today; names: Record<string, string>; shiftOnly?: boolean }) {
+  const now = useFamilyNow();
+  const { nextShift } = today;
+  const careSummary = shiftOnly ? undefined : today.careSummary;
+  const pendingHandoffs = shiftOnly ? [] : today.pendingHandoffs;
   const onDuty = careSummary?.onDuty;
   const last: { icon: LucideIcon; label: string; entry?: CareLogEntry }[] = [
     { icon: Milk, label: "Last feed", entry: careSummary?.lastFeed },
@@ -53,7 +61,7 @@ export function CaregiverToday({ today, names }: { today: Today; names: Record<s
                 <p className="text-label text-muted-foreground">Your next shift</p>
                 <p className="text-title">{nextShift.title}</p>
                 <p className="font-mono text-caption text-muted-foreground">
-                  {whenWords(daysUntilInstant(nextShift.startsAt))} · {formatClock(nextShift.startsAt)}
+                  {whenWords(daysUntilInstant(nextShift.startsAt, now))} · {formatClock(nextShift.startsAt)}
                   {nextShift.endsAt && ` to ${formatClock(nextShift.endsAt)}`}
                 </p>
               </div>

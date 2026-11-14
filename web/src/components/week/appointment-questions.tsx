@@ -2,7 +2,7 @@ import { serverApi } from "@/lib/api/server";
 import { QuestionsCard } from "./appointment-questions-card";
 
 // Questions for the next visit, grouped under the appointment they belong to.
-// Hidden for caregivers (403) and while the endpoint answers 501 or fails.
+// Hidden for caregivers (403) and when the request fails.
 export async function AppointmentQuestions({ memberId, partnerName }: { memberId: string; partnerName?: string }) {
   let list;
   try {

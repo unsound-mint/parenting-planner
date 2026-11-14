@@ -1,16 +1,20 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { CloudOff } from "lucide-react";
+import { CloudOff, Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
-import type { PsychologistAgenda, PsychologistSlots } from "@/lib/api/types";
-import { daysUntilInstant, familyContext, whenWords } from "@/lib/format";
-import { AgendaCard } from "@/components/care/agenda-card";
+import { requireParent } from "@/lib/guard";
+import type { DiaryEntry, PsychologistAgenda, PsychologistSlots, ScreeningQuestionnaire } from "@/lib/api/types";
+import { daysUntilInstant, whenWords } from "@/lib/format";
+import { AgendaCard, TopicsReadyHeadline } from "@/components/care/agenda-card";
 import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
+import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { PageFrame, PageGrid } from "@/components/shell/page";
+import { familyNow } from "@/lib/clock";
 
 // "Care": the psychologist agenda, booking and the note after a session.
-// The private diary joins once its endpoints land (#202). Everything here belongs to the acting parent only.
+// Links to the private journal and the mood questionnaires sit under the agenda. Everything here belongs to the acting parent only.
 export default function CarePage({ params }: PageProps<"/family/[memberId]/care">) {
   return (
     <Suspense fallback={<CareFallback />}>
@@ -21,12 +25,15 @@ export default function CarePage({ params }: PageProps<"/family/[memberId]/care"
 
 async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: agenda }, { data: slots }] = await Promise.all([
+  const [{ data: family }, { data: agenda }, { data: slots }, { data: diary }, { data: questionnaires }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
+    api.GET("/members/{memberId}/diary-entries", path),
+    api.GET("/members/{memberId}/screening-questionnaires", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent) notFound();
@@ -35,9 +42,11 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     <CareView
       memberId={memberId}
       name={parent.displayName}
-      context={familyContext(family)}
       agenda={agenda}
       slots={slots}
+      entries={diary?.items.filter((e) => e.authorId === memberId)}
+      questionnaires={questionnaires?.items}
+      now={familyNow(family)}
     />
   );
 }
@@ -45,49 +54,53 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
 type ViewProps = {
   memberId: string;
   name: string;
-  context: string;
   agenda?: PsychologistAgenda;
   slots?: PsychologistSlots;
+  entries?: DiaryEntry[];
+  questionnaires?: ScreeningQuestionnaire[];
+  now: Date;
 };
 
-function CareView({ memberId, name, context, agenda, slots }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires, now }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
 
-  let headline = `Your psychologist, ${name}. Bring what matters and pick a time.`;
-  if (noteDue) headline = `How did your session with ${noteDue.provider.name} go, ${name}?`;
-  else if (next) headline = `Your session with ${next.provider.name} is ${whenWords(daysUntilInstant(next.startsAt))}.`;
-  else if (topics.length > 0)
-    headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready for your psychologist, ${name}. Pick a time.`;
+  let headline: React.ReactNode = <TopicsReadyHeadline memberId={memberId} topics={topics} fallback={`Pick a time with your psychologist, ${name}.`} />;
+  if (noteDue) headline = `How did it go, ${name}?`;
+  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt, now))}.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 lg:grid-cols-[minmax(0,720px)]">
+    <PageFrame>
       <section aria-labelledby="care-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
           </h1>
-          <p className="mt-2 text-label font-normal text-muted-foreground">{context} · private to you</p>
+          <p className="mt-2 flex items-center gap-1.5 text-label font-normal text-muted-foreground">
+            <Lock className="size-3.5 shrink-0" aria-hidden />
+            Private to you. Your partner sees none of this.
+          </p>
         </div>
 
         {!agenda ? (
           <Unavailable />
         ) : (
-          <>
+          // The session step, the agenda and the wellbeing links: two across, three on the widest screens.
+          <PageGrid cols={3}>
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
-              <NextSessionTile booking={next} topicCount={topics.length} />
+              <NextSessionTile booking={next} />
             ) : slots ? (
-              <SlotPicker memberId={memberId} slots={slots} topicCount={topics.length} />
+              <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
-            <AgendaCard topics={topics} />
-          </>
+            <AgendaCard memberId={memberId} topics={topics} />
+            <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
+          </PageGrid>
         )}
       </section>
-
-    </main>
+    </PageFrame>
   );
 }
 

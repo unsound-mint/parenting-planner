@@ -1,30 +1,103 @@
-import { formatLongDate } from "@/lib/format";
+"use client";
+
+import { daysUntil } from "@/lib/format";
 import { passportIcon } from "@/lib/visuals";
 import type { PassportPerson } from "@/lib/api/types";
-import type { Focus } from "./summary";
-import { RangeBar } from "./range-bar";
+import type { FollowUp } from "./summary";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
-// The one focus of the screen: what to do next for the selected person.
-export function NextStep({ person, focus }: { person: PassportPerson; focus: Focus }) {
-  if (focus.kind === "none") return null;
+function inDays(n: number): string {
+  if (n === 0) return "today";
+  const d = Math.abs(n);
+  const span = d === 1 ? "1 day" : `${d} days`;
+  return n > 0 ? `in ${span}` : `${span} ago`;
+}
+
+function describe(item: FollowUp, who: string, now: Date): { title: string; line: string; late: boolean; href?: string } {
+  if (item.kind === "vaccine") {
+    const late = item.vaccine.status === "overdue";
+    return {
+      title: `${item.vaccine.name}, ${item.vaccine.dose.toLowerCase()}`,
+      line: `${late ? "Was due" : "Due"} ${inDays(daysUntil(item.vaccine.dueOn ?? "", now))}. Book it at the next visit.`,
+      late,
+    };
+  }
+  if (item.kind === "lab") {
+    return {
+      title: `${item.lab.name} is ${item.lab.value > (item.lab.refHigh ?? Infinity) ? "above" : "below"} range`,
+      line: "",
+      href: `#lab-${item.lab.id}`,
+      late: false,
+    };
+  }
+  return {
+    title: `${item.substance} is a suspected allergy`,
+    line: `Ask about testing to confirm it at ${who} next visit.`,
+    late: false,
+  };
+}
+
+const icons = { vaccine: passportIcon.vaccines, lab: passportIcon.labs, allergy: passportIcon.allergies };
+
+// Every open follow-up for the selected person, each with its one action. The
+// only place that says "due"; the vaccine and lab cards below show the same
+// items as marks, not words. The headline count is items.length.
+export function NextStep({ person, items, onLogVaccine }: { person: PassportPerson; items: FollowUp[]; onLogVaccine?: (vaccineName: string) => void }) {
+  const now = useFamilyNow();
   const who = person.isActingParent ? "your" : `${person.name}'s`;
-  const Icon = focus.kind === "vaccine" ? passportIcon.vaccines : focus.kind === "lab" ? passportIcon.labs : passportIcon.allergies;
-  const text =
-    focus.kind === "vaccine"
-      ? { title: `${focus.vaccine.name}, ${focus.vaccine.dose.toLowerCase()}`, line: `${focus.vaccine.status === "overdue" ? "Was due" : "Due"} ${formatLongDate(focus.vaccine.dueOn ?? "")}. Book it at the next visit.` }
-      : focus.kind === "lab"
-        ? { title: `${focus.lab.name} is ${focus.lab.value > (focus.lab.refHigh ?? Infinity) ? "above" : "below"} range`, line: `Worth bringing up at ${who} next visit.` }
-        : { title: `${focus.substance} is a suspected allergy`, line: `Ask about testing to confirm it at ${who} next visit.` };
+  if (items.length === 0) {
+    return (
+      <section aria-labelledby="next-step" className="flex items-center gap-4 rounded-2xl bg-status-ok-soft p-5 text-status-ok">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card">
+          <passportIcon.vaccines className="size-5" aria-hidden />
+        </span>
+        <h2 id="next-step" className="text-title">Nothing to do right now.</h2>
+      </section>
+    );
+  }
+  const rows = items.map((item) => ({ item, ...describe(item, who, now) }));
+  const anyLate = rows.some((r) => r.late);
   return (
-    <section aria-labelledby="next-step" className="flex items-center gap-4 rounded-2xl bg-status-due-soft p-5 text-status-due">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card">
-        <Icon className="size-5" aria-hidden />
-      </span>
-      <div className="min-w-0 flex-1">
-        <h2 id="next-step" className="text-title">{text.title}</h2>
-        <p className="text-label font-normal">{text.line}</p>
-        {focus.kind === "lab" && <div className="mt-2 max-w-xs"><RangeBar lab={focus.lab} /></div>}
-      </div>
+    <section
+      aria-labelledby="next-step"
+      className={`rounded-2xl p-5 ${anyLate ? "bg-status-late-soft text-status-late" : "bg-status-due-soft text-status-due"}`}
+    >
+      <h2 id="next-step" className="text-caption font-semibold tracking-wide uppercase">
+        {rows.length === 1 ? "Next step" : `Next steps · ${rows.length}`}
+      </h2>
+      <ul className="mt-3 flex flex-col gap-3">
+        {rows.map((r, i) => {
+          const Icon = icons[r.item.kind];
+          return (
+            <li key={i} className="flex items-center gap-4">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card">
+                <Icon className="size-5" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-title">{r.title}</p>
+                {r.line && <p className="text-label font-normal">{r.line}</p>}
+              </div>
+              {r.href && (
+                <a
+                  href={r.href}
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-card px-4 text-label font-semibold outline-none transition-colors duration-150 hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  See result
+                </a>
+              )}
+              {r.item.kind === "vaccine" && onLogVaccine && (
+                <button
+                  type="button"
+                  onClick={() => onLogVaccine(r.item.kind === "vaccine" ? r.item.vaccine.name : "")}
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-card px-4 text-label font-semibold outline-none transition-colors duration-150 hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  Log as given
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

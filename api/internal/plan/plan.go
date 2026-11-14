@@ -5,22 +5,74 @@ package plan
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
-// ForMember returns the plan for one parent. The clock is passed in so callers
-// and tests control it.
+// ForMember returns the plan for one parent, with the progress that parent
+// recorded on each item. The clock is passed in so callers and tests control it.
 func ForMember(ctx context.Context, q *store.Queries, familyID, memberID uuid.UUID, today, now time.Time) ([]rules.Item, error) {
 	f, err := LoadFacts(ctx, q, familyID, memberID, today, now)
 	if err != nil {
 		return nil, err
 	}
-	return rules.Plan(rules.All(), f), nil
+	items := rules.Plan(rules.All(), f)
+	// Only this parent's own progress; a booked or done item stays on the
+	// plan with its status unchanged, so nothing disappears unseen.
+	progress, err := q.ListPlanItemProgress(ctx, store.ListPlanItemProgressParams{FamilyID: familyID, MemberID: memberID})
+	if err != nil {
+		return nil, err
+	}
+	byRule := make(map[string]string, len(progress))
+	for _, p := range progress {
+		byRule[p.RuleID] = p.Status
+	}
+	for i := range items {
+		items[i].Progress = byRule[items[i].RuleID]
+	}
+	return items, nil
+}
+
+const entityPlanItemProgress = "plan_item_progress"
+
+// ErrNotOnPlan means the rule id is not on this parent's plan right now.
+var ErrNotOnPlan = errors.New("plan: item is not on this parent's plan")
+
+// SetProgress records the acting parent's progress on one item of their own
+// plan and returns the item with it. Only items currently on that parent's
+// plan can be marked; anything else is ErrNotOnPlan.
+func SetProgress(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, ruleID, status string, today, now time.Time) (rules.Item, error) {
+	var out rules.Item
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		items, err := ForMember(ctx, q, familyID, actor, today, now)
+		if err != nil {
+			return err
+		}
+		idx := slices.IndexFunc(items, func(it rules.Item) bool { return it.RuleID == ruleID })
+		if idx < 0 {
+			return ErrNotOnPlan
+		}
+		p, err := q.UpsertPlanItemProgress(ctx, store.UpsertPlanItemProgressParams{
+			FamilyID: familyID, MemberID: actor, RuleID: ruleID, Status: status, UpdatedAt: now,
+		})
+		if err != nil {
+			return err
+		}
+		out = items[idx]
+		out.Progress = p.Status
+		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityPlanItemProgress, p.ID.String())
+	})
+	return out, err
 }
 
 func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UUID, today, now time.Time) (rules.Facts, error) {
@@ -125,6 +177,21 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 	for _, m := range moods {
 		if m.OwnerMemberID == memberID {
 			f.RecentMoods = append(f.RecentMoods, rules.MoodSample{At: m.RecordedAt, Mood: int(m.Mood)})
+		}
+	}
+
+	// Only the viewer's own questionnaires feed their plan.
+	screens, err := q.ListMoodScreeningsVisibleToParent(ctx, store.ListMoodScreeningsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID, Since: now.AddDate(-1, 0, 0),
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, s := range screens {
+		if s.OwnerMemberID == memberID {
+			f.MoodScreenings = append(f.MoodScreenings, rules.ScreeningSample{
+				At: s.TakenAt, Instrument: s.Instrument, Score: int(s.Score), Band: rules.Band(s.Band), Urgent: s.Urgent,
+			})
 		}
 	}
 

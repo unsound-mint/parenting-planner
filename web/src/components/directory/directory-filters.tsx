@@ -34,7 +34,7 @@ export function DirectoryFilters({
   counts: Partial<Record<ProviderType, number>>;
 }) {
   return (
-    <div className="mt-6 flex flex-col gap-3">
+    <div className="flex flex-col gap-3">
       <nav aria-label="Provider type" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:px-0">
         <Link href={href(base, undefined, state)} scroll={false} aria-current={!type ? "true" : undefined} className={cn(chip, !type ? on : off)}>
           <ListFilter className="size-4" aria-hidden />
