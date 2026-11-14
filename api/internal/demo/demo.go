@@ -103,5 +103,29 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	}); err != nil {
 		return uuid.Nil, err
 	}
+	// Emily's last week: two low, short-sleep days just before today, so one
+	// more low check-in completes the three-day pattern (demo-script step 4).
+	// Jake has no check-ins (demo-script step 2).
+	for _, c := range []struct {
+		daysAgo    int
+		mood       int16
+		energy     int16
+		sleep      float64
+		visibility string
+		note       *string
+	}{
+		{6, 4, 4, 7.5, "partner", ptr("Good prenatal class with Jake.")},
+		{4, 3, 3, 6.5, "private", nil},
+		{2, 2, 2, 5, "private", ptr("Back pain kept me up. Worried about the birth.")},
+		{1, 2, 2, 5.5, "private", nil},
+	} {
+		if _, err := q.CreateMoodCheckin(ctx, store.CreateMoodCheckinParams{
+			FamilyID: fam.ID, OwnerMemberID: mom.ID, Visibility: c.visibility,
+			RecordedAt: today.AddDate(0, 0, -c.daysAgo).Add(21 * time.Hour),
+			Mood:       c.mood, Energy: c.energy, SleepHours: c.sleep, Note: c.note,
+		}); err != nil {
+			return uuid.Nil, err
+		}
+	}
 	return fam.ID, nil
 }
