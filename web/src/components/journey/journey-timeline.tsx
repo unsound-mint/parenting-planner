@@ -42,7 +42,11 @@ export function JourneyTimeline({ family }: { family: Family }) {
               <span className="min-w-0">
                 <span className={cn("block text-sm leading-tight", state === "current" ? "font-semibold text-foreground" : "text-muted-foreground", state === "future" && "font-medium")}>
                   {node.label}
-                  {state === "current" && <span className="sr-only"> (you are here)</span>}
+                  {state === "current" && (
+                    <span className="ml-2 rounded-md bg-primary px-1.5 py-0.5 align-middle text-[10.5px] font-semibold text-primary-foreground md:sr-only">
+                      You are here
+                    </span>
+                  )}
                 </span>
                 <span className="block text-xs leading-snug text-muted-foreground">{node.hint}</span>
               </span>

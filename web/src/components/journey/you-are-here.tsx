@@ -13,7 +13,7 @@ export function YouAreHere() {
       className="flex w-full items-center md:relative md:block md:size-6"
     >
       <span className="size-6 shrink-0 rounded-full border-2 border-primary bg-card md:absolute md:inset-0" aria-hidden />
-      <span className="ml-auto rounded-md bg-primary px-2 py-0.5 text-[11.5px] font-semibold whitespace-nowrap text-primary-foreground md:absolute md:bottom-full md:left-1/2 md:mb-1.5 md:ml-0 md:-translate-x-1/2">
+      <span className="hidden rounded-md bg-primary px-2 py-0.5 text-[11.5px] font-semibold whitespace-nowrap text-primary-foreground md:absolute md:bottom-full md:left-1/2 md:mb-1.5 md:block md:-translate-x-1/2">
         You are here
       </span>
     </motion.div>
