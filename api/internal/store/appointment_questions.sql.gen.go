@@ -15,7 +15,7 @@ import (
 
 const answerAppointmentQuestionVisibleToParent = `-- name: AnswerAppointmentQuestionVisibleToParent :one
 UPDATE appointment_questions SET answered = $1, answer = $2, answered_at = $3
-WHERE id = $4 AND owner_member_id = $5 RETURNING id, seq, family_id, owner_member_id, visibility, asked_for_event_id, body, answered, answer, answered_at, created_at
+WHERE id = $4 AND family_id = $5 AND owner_member_id = $6 RETURNING id, seq, family_id, owner_member_id, visibility, asked_for_event_id, body, answered, answer, answered_at, created_at
 `
 
 type AnswerAppointmentQuestionVisibleToParentParams struct {
@@ -23,6 +23,7 @@ type AnswerAppointmentQuestionVisibleToParentParams struct {
 	Answer     *string
 	AnsweredAt pgtype.Timestamptz
 	ID         uuid.UUID
+	FamilyID   uuid.UUID
 	ViewerID   uuid.UUID
 }
 
@@ -33,6 +34,7 @@ func (q *Queries) AnswerAppointmentQuestionVisibleToParent(ctx context.Context, 
 		arg.Answer,
 		arg.AnsweredAt,
 		arg.ID,
+		arg.FamilyID,
 		arg.ViewerID,
 	)
 	var i AppointmentQuestion

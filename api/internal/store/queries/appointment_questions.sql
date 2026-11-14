@@ -21,7 +21,7 @@ FOR UPDATE;
 -- Mirrors access.CanParentRead for an update: only the author.
 -- name: AnswerAppointmentQuestionVisibleToParent :one
 UPDATE appointment_questions SET answered = @answered, answer = @answer, answered_at = @answered_at
-WHERE id = @id AND owner_member_id = @viewer_id RETURNING *;
+WHERE id = @id AND family_id = @family_id AND owner_member_id = @viewer_id RETURNING *;
 
 -- Mirrors access.CanParentRead: appointments the viewer may see (their own, or family
 -- visibility), with the people attending, past and upcoming.

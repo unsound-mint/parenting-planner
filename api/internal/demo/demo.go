@@ -349,7 +349,7 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 		}
 		if aq.answeredAt != nil {
 			if _, err := q.AnswerAppointmentQuestionVisibleToParent(ctx, store.AnswerAppointmentQuestionVisibleToParentParams{
-				ID: created.ID, ViewerID: mom, Answered: true, Answer: ptr("At the next visit, the clinic will hand out the schedule."),
+				ID: created.ID, FamilyID: familyID, ViewerID: mom, Answered: true, Answer: ptr("At the next visit, the clinic will hand out the schedule."),
 				AnsweredAt: pgtype.Timestamptz{Time: *aq.answeredAt, Valid: true},
 			}); err != nil {
 				return err

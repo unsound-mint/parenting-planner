@@ -244,7 +244,7 @@ func Answer(ctx context.Context, pool *pgxpool.Pool, familyID, author, id uuid.U
 			at, text = pgtype.Timestamptz{Time: now, Valid: true}, answer
 		}
 		updated, err := q.AnswerAppointmentQuestionVisibleToParent(ctx, store.AnswerAppointmentQuestionVisibleToParentParams{
-			ID: cur.ID, ViewerID: author, Answered: answered, Answer: text, AnsweredAt: at,
+			ID: cur.ID, FamilyID: familyID, ViewerID: author, Answered: answered, Answer: text, AnsweredAt: at,
 		})
 		if err != nil {
 			return err
