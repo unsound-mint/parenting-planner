@@ -9,6 +9,7 @@ import { JournalAndCare } from "@/components/care/journal-and-care";
 import { CareTeamCard, FindHelpCard, ScreeningCard } from "@/components/care/care-rows";
 import { shortName } from "@/components/care/names";
 import { recommend } from "@/components/directory/recommend";
+import { firstOpenings } from "@/components/directory/openings";
 import { startersFor } from "@/components/diary/starters";
 
 // Journal and care: the composer first, the parent's entries with per-entry
@@ -36,7 +37,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, requests, patterns] = await Promise.all([
+  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, openTimes, visits, patterns] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
@@ -45,7 +46,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/mood-screenings", path),
     api.GET("/members/{memberId}/passport", path),
     api.GET("/providers"),
-    api.GET("/members/{memberId}/booking-requests", path),
+    api.GET("/members/{memberId}/provider-slots", path),
+    api.GET("/members/{memberId}/provider-bookings", path),
     api.GET("/members/{memberId}/mood-patterns", path),
   ]);
   const fam = family.data;
@@ -58,7 +60,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   const now = familyNow(fam);
   const psychologist = slots.data?.provider ?? agenda.data?.nextSession?.provider;
   const team = passport.data?.people.find((p) => p.isActingParent)?.careTeam ?? [];
-  const picks = recommend(providers.data?.items ?? [], patterns.data?.items[0], fam.stage).slice(0, 2).map((r) => r.provider);
+  const picks = recommend(providers.data?.items ?? [], firstOpenings(openTimes.data?.items ?? []), patterns.data?.items[0], fam.stage);
+  const nextVisit = visits.data?.items.find((b) => new Date(b.startsAt).getTime() > now.getTime());
   const latest = (screenings.data?.items ?? []).filter((r) => r.authorId === memberId)[0];
 
   return (
@@ -91,7 +94,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       <Rise i={3} className="mt-4 grid min-w-0 items-start gap-6 @4xl:grid-cols-2 @7xl:grid-cols-3">
         {passport.data && <CareTeamCard memberId={memberId} team={team} />}
         {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
-        {providers.data && <FindHelpCard memberId={memberId} picks={picks} requests={requests.data?.items ?? []} now={now} />}
+        {providers.data && openTimes.data && <FindHelpCard memberId={memberId} picks={picks} next={nextVisit} now={now} />}
       </Rise>
     </PageFrame>
   );

@@ -1,22 +1,27 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Activity, ChevronDown, ListFilter, SearchX, WifiOff } from "lucide-react";
+import { SearchX, WifiOff } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
-import type { ProviderType } from "@/lib/api/types";
+import type { ProviderType, VisitMode } from "@/lib/api/types";
 import { countWord } from "@/lib/format";
-import { providerTypes } from "@/lib/visuals";
+import { providerTypes, visitModes } from "@/lib/visuals";
 import { DirectoryFilters } from "@/components/directory/directory-filters";
 import { PartnerOffers } from "@/components/offers/partner-offers";
-import { ProviderCard, whenLabel } from "@/components/directory/provider-card";
+import { ProviderCard } from "@/components/directory/provider-card";
+import { YourVisits } from "@/components/directory/your-visits";
 import { recommend, type Recommendation } from "@/components/directory/recommend";
+import { firstOpenings, openingLabel } from "@/components/directory/openings";
 import { PageFrame } from "@/components/shell/page";
+import { Rise } from "@/components/joy/rise";
 import { familyNow } from "@/lib/clock";
 
-// Provider directory: synthetic providers by type and state, with a booking
-// request that is saved and shown as "Requested". Filters are URL search
-// params (?type=perinatal_therapist&state=CA) so the plan can link here.
+// Provider directory: synthetic providers with real open times stored per
+// family. The parent's booked visits first, then picks for the family's
+// situation, then everyone with filters. Filters are URL search params
+// (?type=perinatal_therapist&state=TX&mode=video) so the plan and the care
+// screen can link here; a provider's profile and times are at ./[providerId].
 export default function DirectoryPage({ params, searchParams }: PageProps<"/family/[memberId]/directory">) {
   return (
     <Suspense fallback={<DirectoryFallback />}>
@@ -35,119 +40,121 @@ async function Directory({
   const { memberId } = await params;
   await requireParent(memberId);
   const sp = await searchParams;
-  const typeParam = typeof sp.type === "string" ? sp.type : undefined;
-  const stateParam = typeof sp.state === "string" ? sp.state : undefined;
-  const type = providerTypes.find((t) => t === typeParam);
-  const state = stateParam && /^[A-Z]{2}$/.test(stateParam) ? stateParam : undefined;
+  const type = providerTypes.find((t) => t === sp.type) as ProviderType | undefined;
+  const mode = visitModes.find((m) => m === sp.mode) as VisitMode | undefined;
+  const state = typeof sp.state === "string" && /^[A-Z]{2}$/.test(sp.state) ? sp.state : undefined;
 
   const api = await serverApi();
-  const [all, shown, requests, patterns, family, offers] = await Promise.all([
+  const path = { params: { path: { memberId } } };
+  const [all, slots, bookings, patterns, family, offers] = await Promise.all([
     api.GET("/providers"),
-    api.GET("/providers", { params: { query: { type, state } } }),
-    api.GET("/members/{memberId}/booking-requests", { params: { path: { memberId } } }),
+    api.GET("/members/{memberId}/provider-slots", path),
+    api.GET("/members/{memberId}/provider-bookings", path),
     // No pattern means recommendations come from the family's stage alone.
-    api.GET("/members/{memberId}/mood-patterns", { params: { path: { memberId } } }),
+    api.GET("/members/{memberId}/mood-patterns", path),
     api.GET("/family"),
-    api.GET("/members/{memberId}/partner-offers", { params: { path: { memberId } } }),
+    api.GET("/members/{memberId}/partner-offers", path),
   ]);
-  if (all.response.status === 404 || requests.response.status === 404) notFound();
+  if (all.response.status === 404 || slots.response.status === 404) notFound();
 
   const base = `/family/${memberId}/directory`;
   const everyone = all.data?.items ?? [];
-  const items = shown.data?.items ?? [];
-  const requested = new Set((requests.data?.items ?? []).map((r) => r.providerId));
-  const failed = !all.data || !shown.data;
-
-  const pattern = patterns.data?.items[0];
-  const picks = recommend(everyone, pattern, family.data?.stage);
-  const filtered = !!(type || state);
+  const openings = firstOpenings(slots.data?.items ?? []);
+  const failed = !all.data || !slots.data;
   const now = family.data ? familyNow(family.data) : new Date();
+  const partnerName = family.data?.parents.find((p) => p.id !== memberId)?.displayName;
 
-  // "Fits your last N check-ins" is said once above the cards when every card
-  // shares it; a card carries its own reason only when the reasons differ.
-  const reasonOf = (r: Recommendation) => (r.reason === "pattern" ? `Fits your last ${r.days ?? "few"} check-ins` : undefined);
-  const reasons = new Set(picks.map(reasonOf));
-  const fitLabel = reasons.size === 1 ? [...reasons][0] : undefined;
-  const cardReasons: Record<string, string | undefined> = reasons.size === 1 ? {} : Object.fromEntries(picks.map((r) => [r.provider.id, reasonOf(r)]));
+  const picks = recommend(everyone, openings, patterns.data?.items[0], family.data?.stage);
+  // Soonest opening first; no opening sorts last ("~" is after any ISO time).
+  const soon = (id: string) => openings.get(id)?.startsAt ?? "~";
+  const fits = (p: (typeof everyone)[number]) => (!state || p.state === state) && (!mode || p.visitModes.includes(mode));
+  const shown = everyone.filter((p) => fits(p) && (!type || p.type === type)).sort((a, b) => soon(a.id).localeCompare(soon(b.id)) || a.name.localeCompare(b.name));
 
   // Filter options come from the unfiltered list so they do not vanish once picked.
   const states = [...new Set(everyone.map((p) => p.state))].sort();
   const counts: Partial<Record<ProviderType, number>> = {};
-  for (const p of everyone) if (!state || p.state === state) counts[p.type] = (counts[p.type] ?? 0) + 1;
+  for (const p of everyone) if (fits(p)) counts[p.type] = (counts[p.type] ?? 0) + 1;
+  const visits = bookings.data?.items ?? [];
+  const hasVisits = visits.some((b) => new Date(b.startsAt).getTime() > now.getTime());
 
   return (
     <PageFrame>
-      <section aria-labelledby="directory-headline" className="min-w-0">
-        <h1 id="directory-headline" className="max-w-2xl text-headline text-balance">
-          {headline(picks, pattern !== undefined, failed, now)}
-        </h1>
-        <p className="mt-2 text-label font-normal text-muted-foreground">
-          Demo providers, made up for this app. A request is saved, nothing is sent. Only you can see it.
+      <Rise as="header" i={0}>
+        <h1 className="max-w-3xl text-headline text-balance md:text-[2.75rem] md:leading-[1.1]">{headline(picks, failed, now)}</h1>
+        <p className="mt-2 max-w-prose text-body text-ink-2">
+          These providers and their open times are made up for this demo. A booking stays here and on your calendar; nothing is sent to anyone.
         </p>
+      </Rise>
 
-        {failed ? (
-          <Empty icon={WifiOff} title="The directory did not load." hint="Your plan is not affected. Try again in a moment.">
-            <Link href={base} className="text-label font-semibold text-primary underline-offset-4 hover:underline">
-              Try again
-            </Link>
-          </Empty>
-        ) : (
-          <>
-            {picks.length > 0 && (
-              <>
-                {fitLabel && (
-                  <p className="mt-6 flex items-center gap-1.5 text-label font-semibold text-primary">
-                    <Activity className="size-4" aria-hidden />
-                    {fitLabel}
-                  </p>
-                )}
-                <ul className={`${fitLabel ? "mt-3" : "mt-6"} grid gap-4 md:grid-cols-2 xl:grid-cols-3`}>
-                  {picks.map((r) => (
-                    <ProviderCard key={r.provider.id} provider={r.provider} memberId={memberId} requested={requested.has(r.provider.id)} featured reason={cardReasons[r.provider.id]} now={now} />
-                  ))}
-                </ul>
-              </>
+      {failed ? (
+        <Empty icon={WifiOff} title="The directory did not load." hint="Your plan is not affected. Try again in a moment.">
+          <Link href={base} className="text-label font-semibold text-primary underline-offset-4 hover:underline">
+            Try again
+          </Link>
+        </Empty>
+      ) : (
+        <>
+          {hasVisits && (
+            <Rise as="section" i={1} aria-labelledby="visits-heading">
+              <h2 id="visits-heading" className="text-title font-semibold">
+                Your visits
+              </h2>
+              <YourVisits memberId={memberId} bookings={visits} partnerName={partnerName} now={now} className="mt-3 @7xl:grid @7xl:grid-cols-2 @7xl:gap-3" />
+            </Rise>
+          )}
+
+          {picks.length > 0 && (
+            <Rise as="section" i={2} aria-labelledby="picks-heading">
+              <h2 id="picks-heading" className="text-title font-semibold">
+                Suggested for you now
+              </h2>
+              <ul className="mt-3 grid gap-4 @3xl:grid-cols-2 @7xl:grid-cols-3">
+                {picks.map((r) => (
+                  <ProviderCard key={r.provider.id} provider={r.provider} href={`${base}/${r.provider.id}`} first={r.first} reason={r.reason} featured now={now} />
+                ))}
+              </ul>
+            </Rise>
+          )}
+
+          <Rise as="section" i={3} aria-labelledby="all-heading" className="border-t border-line pt-6">
+            <h2 id="all-heading" className="flex items-baseline gap-2 text-title font-semibold">
+              Everyone
+              <span className="font-mono text-label font-normal text-muted-foreground">{shown.length === everyone.length ? everyone.length : `${shown.length} of ${everyone.length}`}</span>
+            </h2>
+            <div className="mt-3">
+              <DirectoryFilters base={base} type={type} state={state} mode={mode} states={states} counts={counts} />
+            </div>
+            {shown.length === 0 ? (
+              <Empty icon={SearchX} title="No one matches these filters." hint="Try another type, any state or any way of meeting.">
+                <Link href={base} className="text-label font-semibold text-primary underline-offset-4 hover:underline">
+                  Show everyone
+                </Link>
+              </Empty>
+            ) : (
+              <ul className="mt-4 grid items-stretch gap-3 @3xl:grid-cols-2 @7xl:grid-cols-3">
+                {shown.map((p) => (
+                  <ProviderCard key={p.id} provider={p} href={`${base}/${p.id}`} first={openings.get(p.id)} now={now} />
+                ))}
+              </ul>
             )}
-
-            <details open={filtered || picks.length === 0} className="group mt-8 border-t border-border pt-2">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-title outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
-                <ListFilter className="size-5 text-muted-foreground" aria-hidden />
-                Browse all providers
-                <span className="font-mono text-label text-muted-foreground">{everyone.length}</span>
-                <ChevronDown className="ml-auto size-5 text-muted-foreground transition-transform duration-200 group-open:rotate-180" aria-hidden />
-              </summary>
-              <div className="mt-3">
-                <DirectoryFilters base={base} type={type} state={state} states={states} counts={counts} />
-              </div>
-              {items.length === 0 ? (
-                <Empty icon={SearchX} title="No one matches these filters." hint="Try another type or any state.">
-                  <Link href={base} className="text-label font-semibold text-primary underline-offset-4 hover:underline">
-                    Show everyone
-                  </Link>
-                </Empty>
-              ) : (
-                <ul className="mt-4 grid items-start gap-3 @4xl:grid-cols-2 @7xl:grid-cols-3">
-                  {items.map((p) => (
-                    <ProviderCard key={p.id} provider={p} memberId={memberId} requested={requested.has(p.id)} now={now} />
-                  ))}
-                </ul>
-              )}
-            </details>
-          </>
-        )}
-        {/* Shown only when the endpoint answers; offers never touch the provider picks above. */}
-        {offers.data && <PartnerOffers memberId={memberId} offers={offers.data.items.slice(0, 3)} />}
-      </section>
+          </Rise>
+        </>
+      )}
+      {/* Shown only when the endpoint answers; offers never touch the provider picks above. */}
+      {offers.data && <PartnerOffers memberId={memberId} offers={offers.data.items.slice(0, 3)} />}
     </PageFrame>
   );
 }
 
-function headline(picks: Recommendation[], pattern: boolean, failed: boolean, now: Date): string {
+/** "tomorrow 10:00 AM" inside a sentence. */
+const inSentence = (label: string) => label.replace(/^(Today|Tomorrow)/, (m) => m.toLowerCase());
+
+function headline(picks: Recommendation[], failed: boolean, now: Date): string {
   if (failed) return "We could not load the directory.";
-  if (picks.length === 0) return "Browse providers by type and state.";
-  const first = [...picks].sort((a, b) => a.provider.nextAvailable.localeCompare(b.provider.nextAvailable))[0];
-  const when = whenLabel(first.provider.nextAvailable, now);
-  return pattern ? `Someone to talk to, free ${when}.` : `${countWord(picks.length)} good ${picks.length === 1 ? "fit" : "fits"}, the first free ${when}.`;
+  const first = picks.map((r) => r.first?.startsAt).filter((s): s is string => !!s).sort()[0];
+  if (!first) return "Find someone who can help.";
+  if (picks[0].pattern && picks[0].first) return `Someone to talk to, free ${inSentence(openingLabel(picks[0].first.startsAt, now))}.`;
+  return `${countWord(picks.length)} good ${picks.length === 1 ? "fit" : "fits"} for right now, the first free ${inSentence(openingLabel(first, now))}.`;
 }
 
 function Empty({ icon: Icon, title, hint, children }: { icon: React.ElementType; title: string; hint: string; children?: React.ReactNode }) {
@@ -168,16 +175,12 @@ function Empty({ icon: Icon, title, hint, children }: { icon: React.ElementType;
 function DirectoryFallback() {
   return (
     <main className="px-4 pt-6 md:px-8" aria-busy>
-      <div className="h-8 w-2/3 max-w-xl animate-pulse rounded-lg bg-muted" />
+      <div className="h-10 w-2/3 max-w-xl animate-pulse rounded-lg bg-muted" />
       <div className="mt-3 h-4 w-1/3 animate-pulse rounded bg-muted" />
-      <div className="mt-6 flex gap-2">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-9 w-28 animate-pulse rounded-full bg-muted" />
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-56 animate-pulse rounded-3xl bg-muted" />
         ))}
-      </div>
-      <div className="mt-6 grid max-w-3xl gap-4 md:grid-cols-2">
-        <div className="h-64 animate-pulse rounded-2xl bg-muted" />
-        <div className="h-64 animate-pulse rounded-2xl bg-muted" />
       </div>
     </main>
   );

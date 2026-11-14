@@ -1,15 +1,15 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, Phone, Search } from "lucide-react";
-import type { BookingRequest, CareTeamMember, MoodScreeningResult, Provider, ScreeningQuestionnaire } from "@/lib/api/types";
+import { ArrowRight, CalendarCheck, ClipboardCheck, Phone, Search } from "lucide-react";
+import type { CareTeamMember, MoodScreeningResult, ProviderBooking, ScreeningQuestionnaire } from "@/lib/api/types";
 import { formatDayNumber, formatMonth } from "@/lib/format";
 import { careRoleIcon, careRoleLabel, providerTypeIcon, providerTypeLabel } from "@/lib/visuals";
 import { bandWords } from "@/components/wellbeing/screening-bands";
-import { BookButton } from "@/components/directory/book-button";
-import { whenLabel } from "@/components/directory/provider-card";
+import type { Recommendation } from "@/components/directory/recommend";
+import { openingLabel } from "@/components/directory/openings";
 import { cn } from "@/lib/utils";
 
 // The calmer rows under the journal: the parent's care team, their mood
-// questionnaire, and Find help near you (the directory's door). Small cards,
+// questionnaire, and Find help (the directory's door). Small cards,
 // one line per thing, each with the one action it needs.
 
 function CalmCard({ title, href, linkLabel, children }: { title: string; href?: string; linkLabel?: string; children: React.ReactNode }) {
@@ -121,23 +121,40 @@ function Arrow({ href, label }: { href: string; label: string }) {
   );
 }
 
-/** Find help near you: the directory's best fits, with a request each. Requests are the acting parent's own. */
-export function FindHelpCard({ memberId, picks, requests, now }: { memberId: string; picks: Provider[]; requests: BookingRequest[]; now: Date }) {
-  const asked = new Set(requests.map((r) => r.providerId));
+/**
+ * Find help: the parent's next booked visit, then two or three providers that
+ * fit right now, each with its reason and its real next opening. Every row
+ * opens the provider's times in the directory.
+ */
+export function FindHelpCard({ memberId, picks, next, now }: { memberId: string; picks: Recommendation[]; next?: ProviderBooking; now: Date }) {
+  const base = `/family/${memberId}/directory`;
   return (
-    <CalmCard title="Find help near you" href={`/family/${memberId}/directory`} linkLabel="Everyone">
-      {picks.length === 0 ? (
-        <Row icon={Search} side={<Arrow href={`/family/${memberId}/directory`} label="Browse providers" />}>
-          <p className="text-body font-medium">Doulas, therapists, lactation help</p>
-          <p className="text-caption text-muted-foreground">Browse by type and state</p>
+    <CalmCard title="Find help" href={base} linkLabel="Directory">
+      {next && (
+        <Row icon={CalendarCheck} tint="bg-leaf-soft text-leaf" side={<Arrow href={`${base}/${next.providerId}`} label={`Your visit with ${next.providerName}`} />}>
+          <p className="truncate text-body font-medium">{next.providerName}</p>
+          <p className="truncate text-caption text-leaf">
+            Booked · <span className="font-mono">{openingLabel(next.startsAt, now)}</span>
+          </p>
+        </Row>
+      )}
+      {picks.length === 0 && !next ? (
+        <Row icon={Search} side={<Arrow href={base} label="Browse providers" />}>
+          <p className="text-body font-medium">Doulas, therapists, pediatricians</p>
+          <p className="text-caption text-muted-foreground">Browse by type and book a time</p>
         </Row>
       ) : (
-        picks.map((p) => (
-          <Row key={p.id} icon={providerTypeIcon[p.type]} tint="bg-them-soft text-them" side={<div className="@container w-40 shrink-0"><BookButton memberId={memberId} providerId={p.id} providerName={p.name} requested={asked.has(p.id)} compact /></div>}>
-            <p className="truncate text-body font-medium">{p.name}</p>
-            <p className="truncate text-caption text-muted-foreground">
-              {providerTypeLabel[p.type].one} · free {whenLabel(p.nextAvailable, now)}
+        picks.map(({ provider: p, first, reason }) => (
+          <Row key={p.id} icon={providerTypeIcon[p.type]} tint="bg-them-soft text-them" side={<Arrow href={`${base}/${p.id}`} label={`See times with ${p.name}`} />}>
+            <p className="truncate text-body font-medium">
+              {p.name} <span className="text-caption font-normal text-muted-foreground">{providerTypeLabel[p.type].one}</span>
             </p>
+            <p className="text-caption text-muted-foreground">{reason}</p>
+            {first && (
+              <p className="mt-0.5 text-caption font-semibold text-status-up">
+                Next opening <span className="font-mono">{openingLabel(first.startsAt, now)}</span>
+              </p>
+            )}
           </Row>
         ))
       )}
