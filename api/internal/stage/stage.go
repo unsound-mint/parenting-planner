@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -59,7 +60,7 @@ func Apply(stage string, due *time.Time, hasChild bool, in Update, today time.Ti
 }
 
 // UpdateFamily applies an update in one transaction.
-func UpdateFamily(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, in Update, today time.Time) error {
+func UpdateFamily(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, in Update, today, now time.Time) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		fam, err := q.GetFamily(ctx, familyID)
@@ -74,14 +75,16 @@ func UpdateFamily(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, i
 		if err != nil {
 			return err
 		}
-		_, err = q.UpdateFamilyStage(ctx, store.UpdateFamilyStageParams{ID: familyID, Stage: stage, DueDate: due})
-		return err
+		if _, err = q.UpdateFamilyStage(ctx, store.UpdateFamilyStageParams{ID: familyID, Stage: stage, DueDate: due}); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Family, Actor: actor}, now)
 	})
 }
 
 // BabyIsHome adds the child and moves the family to postpartum. The due date
 // stays stored; the gestational week is simply no longer shown.
-func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, name string, born, today time.Time) error {
+func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, name string, born, today, now time.Time) error {
 	if born.After(today) || born.Before(today.AddDate(0, 0, -30)) {
 		return ErrBadBirthDate
 	}
@@ -101,7 +104,10 @@ func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, nam
 		if err := q.ActivateAgreedShifts(ctx, store.ActivateAgreedShiftsParams{FamilyID: familyID, StartsOn: &today}); err != nil {
 			return err
 		}
-		_, err = q.UpdateFamilyStage(ctx, store.UpdateFamilyStageParams{ID: familyID, Stage: "postpartum", DueDate: fam.DueDate})
-		return err
+		if _, err = q.UpdateFamilyStage(ctx, store.UpdateFamilyStageParams{ID: familyID, Stage: "postpartum", DueDate: fam.DueDate}); err != nil {
+			return err
+		}
+		// Every open screen refreshes: the stage, the child and the shifts changed.
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Family, Actor: actor}, now)
 	})
 }

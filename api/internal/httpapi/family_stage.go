@@ -34,7 +34,7 @@ func (s *Server) UpdateFamily(ctx context.Context, req UpdateFamilyRequestObject
 	if req.Body.DueDate != nil {
 		in.DueDate = &req.Body.DueDate.Time
 	}
-	err = stage.UpdateFamily(ctx, s.pool, familyID, in, s.today())
+	err = stage.UpdateFamily(ctx, s.pool, familyID, m.ID, in, s.today(), s.cfg.Now())
 	switch {
 	case errors.Is(err, stage.ErrDueDateRequired):
 		return UpdateFamily400JSONResponse(errDueDateRequired), nil
@@ -64,7 +64,7 @@ func (s *Server) CreateBabyArrival(ctx context.Context, req CreateBabyArrivalReq
 	case !isParentRole(m.Role):
 		return CreateBabyArrival403JSONResponse(errForbidden), nil
 	}
-	err = stage.BabyIsHome(ctx, s.pool, familyID, req.Body.Name, req.Body.BirthDate.Time, s.today())
+	err = stage.BabyIsHome(ctx, s.pool, familyID, m.ID, req.Body.Name, req.Body.BirthDate.Time, s.today(), s.cfg.Now())
 	switch {
 	case errors.Is(err, stage.ErrBadBirthDate):
 		return CreateBabyArrival400JSONResponse(errBadBirthDate), nil

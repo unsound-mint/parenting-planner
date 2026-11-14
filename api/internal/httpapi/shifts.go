@@ -62,7 +62,7 @@ func (s *Server) CreateShift(ctx context.Context, req CreateShiftRequestObject) 
 	if b.RoundId != nil {
 		round = b.RoundId
 	}
-	sh, err := shifts.Create(ctx, s.pool, familyID, m.ID, shifts.New{Title: b.Title, Days: days, Start: b.StartTime, End: b.EndTime, RoundID: round}, s.today())
+	sh, err := shifts.Create(ctx, s.pool, familyID, m.ID, shifts.New{Title: b.Title, Days: days, Start: b.StartTime, End: b.EndTime, RoundID: round}, s.today(), s.cfg.Now())
 	switch {
 	case errors.Is(err, shifts.ErrOverlap):
 		return CreateShift409JSONResponse(errShiftOverlap), nil

@@ -103,7 +103,7 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 	if b.AllDay != nil {
 		in.AllDay = *b.AllDay
 	}
-	e, err := calendar.Create(ctx, s.pool, familyID, m.ID, in)
+	e, err := calendar.Create(ctx, s.pool, familyID, m.ID, in, s.cfg.Now())
 	switch {
 	case errors.Is(err, calendar.ErrBadAttendee):
 		return CreateCalendarEvent400JSONResponse(errBadAttendee), nil

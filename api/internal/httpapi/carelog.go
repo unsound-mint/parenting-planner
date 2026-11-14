@@ -102,7 +102,7 @@ func (s *Server) CreateCareLogEntry(ctx context.Context, req CreateCareLogEntryR
 		v := int16(*b.AmountMl)
 		in.AmountMl = &v
 	}
-	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in)
+	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in, s.cfg.Now())
 	switch {
 	case errors.Is(err, carelog.ErrNoChild):
 		return CreateCareLogEntry409JSONResponse(errNoChild), nil
@@ -159,7 +159,7 @@ func (s *Server) CreateHandoff(ctx context.Context, req CreateHandoffRequestObje
 		return CreateHandoff403JSONResponse(errNoCareLogAccess), nil
 	}
 	b := req.Body
-	h, err := carelog.CreateHandoff(ctx, s.pool, familyID, carePerson(m), b.ToMemberId, b.Note, b.ShiftId)
+	h, err := carelog.CreateHandoff(ctx, s.pool, familyID, carePerson(m), b.ToMemberId, b.Note, b.ShiftId, s.cfg.Now())
 	switch {
 	case errors.Is(err, carelog.ErrHandoffInvalid):
 		return CreateHandoff409JSONResponse(errHandoffInvalid), nil
