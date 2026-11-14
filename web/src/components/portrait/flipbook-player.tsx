@@ -207,7 +207,7 @@ export function FlipbookPlayer({
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
-              className="relative aspect-[4/5] w-full cursor-grab touch-pan-y overflow-hidden rounded-3xl [clip-path:inset(0_round_1.5rem)] border border-line bg-card outline-none select-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/50 active:cursor-grabbing"
+              className="relative aspect-[4/5] w-full cursor-grab touch-pan-y overflow-hidden rounded-3xl border border-line bg-card outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
             >
               {frames.map((f, i) => (
                 <div
