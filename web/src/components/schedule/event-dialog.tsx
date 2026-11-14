@@ -7,7 +7,7 @@ import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
 import { CalendarPlus, ChevronDown, Download, EyeOff, Lock, Trash2, X } from "lucide-react";
 import { api, isPreviewMock } from "@/lib/api/client";
-import type { CalendarEvent, CalendarVisibility } from "@/lib/api/types";
+import type { CalendarEvent, CalendarVisibility, Stage } from "@/lib/api/types";
 import { dayKey } from "@/lib/format";
 import { easternClock, easternInstant, isStoredKind, storedKinds, type StoredKind } from "@/lib/schedule";
 import { calendarKindIcon, calendarKindLabel } from "@/lib/visuals";
@@ -28,6 +28,27 @@ const kindForm: Record<StoredKind, { label: string; placeholder: string; where: 
   other: { label: "Event", placeholder: "Lunch with the grandparents", where: "Where", range: true, privateByDefault: false },
 };
 
+/** The visit example follows the family's stage: no "prenatal" for a family with a newborn. */
+const visitExample = (stage?: Stage): string => {
+  switch (stage) {
+    case "planning":
+    case "trying":
+      return "Preconception visit";
+    case "pregnancy":
+      return "Prenatal checkup";
+    case "postpartum":
+    case "infant":
+      return "Well-baby checkup";
+    case "toddler":
+      return "Pediatrician visit";
+    case "preschool":
+    case "school_age":
+      return "Dentist visit";
+    default:
+      return "Doctor visit";
+  }
+};
+
 // Create (no event) or edit (event) one stored calendar event. The trigger is
 // whatever the caller passes, so an event card can be the button.
 export function EventDialog({
@@ -36,6 +57,7 @@ export function EventDialog({
   event,
   today,
   feedActive,
+  stage,
   children,
   triggerClassName,
 }: {
@@ -45,6 +67,7 @@ export function EventDialog({
   today: string;
   /** The person has a calendar link: only then does hiding details matter. */
   feedActive: boolean;
+  stage?: Stage;
   children: ReactNode;
   triggerClassName?: string;
 }) {
@@ -74,7 +97,7 @@ export function EventDialog({
   const [f, setF] = useState(init);
   const set = <K extends keyof ReturnType<typeof init>>(k: K, v: ReturnType<typeof init>[K]) => setF((c) => ({ ...c, [k]: v }));
   const editing = !!event;
-  const form = kindForm[f.kind];
+  const form = { ...kindForm[f.kind], ...(f.kind === "appointment" ? { placeholder: visitExample(stage) } : {}) };
   const shared = f.people.size > 0;
   const visibility: CalendarVisibility = shared ? "family" : "private";
   const hasRange = form.range && !f.allDay;

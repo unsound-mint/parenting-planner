@@ -100,6 +100,7 @@ async function Calendar({
             guests={guests}
             today={today}
             feedActive={!!feed.data?.active}
+            stage={family.stage}
             triggerClassName="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 text-label font-medium text-primary-foreground outline-none transition-colors duration-150 hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9"
           >
             <Plus aria-hidden className="size-4" />
