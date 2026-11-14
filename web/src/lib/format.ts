@@ -46,7 +46,9 @@ export function familyContext(family: Family): string {
   }
   const child = family.children[0];
   if (child) {
-    const age = child.ageMonths < 24 ? `${child.ageMonths} months` : `${Math.floor(child.ageMonths / 12)} years`;
+    const m = child.ageMonths;
+    // From 24 months it is always 2 or more years, so only months need the singular.
+    const age = m < 24 ? `${m} ${m === 1 ? "month" : "months"}` : `${Math.floor(m / 12)} years`;
     return `${child.name}, ${age}`;
   }
   return stageLabel[family.stage];

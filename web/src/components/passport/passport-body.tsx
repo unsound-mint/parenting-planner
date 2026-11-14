@@ -13,6 +13,7 @@ import { attentionCount, followUps, tally, withLogged, type Logged } from "./sum
 import { SummaryCard } from "./summary-card";
 import { VaccineTimeline } from "./vaccine-timeline";
 import { vaccineKey } from "@/lib/vaccines";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 
 // The passport screen below the server fetch. Holds what the parent just
 // logged, so the next step, rings, vaccine timeline and labs change at once
@@ -41,7 +42,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
   }
 
   return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="block">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         {canLog && !form && (
@@ -71,7 +72,9 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
         </div>
       )}
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-6">
+      {/* Two rows of cards: the status row (summary, next step, profile) and the records row
+          (labs, vaccines, growth). Two across, then three on the widest screens. */}
+      <PageGrid cols={3} className="mt-6 items-stretch gap-4 lg:gap-6">
         <SummaryCard tally={tally(person)} />
         <NextStep
           person={person}
@@ -85,17 +88,17 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
               : undefined
           }
         />
-      </div>
-      <div className="mt-4 lg:mt-6">
-        <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
-      </div>
-      <div className="mt-4 grid items-start gap-4 lg:mt-6 lg:grid-cols-2 lg:gap-6">
+        <div className="min-w-0 @4xl:col-span-2 @7xl:col-span-1">
+          <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
+        </div>
+      </PageGrid>
+      <PageGrid cols={3} className="mt-4 gap-4 lg:mt-6 lg:gap-6">
         <LabsCard labs={person.labs} showVisibility={person.isActingParent} memberId={memberId} canAsk={canLog} owner={person.kind === "child" ? person.name : undefined} />
-        <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-4 lg:gap-6 @7xl:contents">
           <VaccineTimeline vaccines={person.vaccines} />
           {person.kind === "child" && <GrowthCard growth={person.growth} />}
         </div>
-      </div>
-    </main>
+      </PageGrid>
+    </PageFrame>
   );
 }

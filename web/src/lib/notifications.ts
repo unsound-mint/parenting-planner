@@ -1,4 +1,4 @@
-import { Bell, CalendarClock, ClipboardList, CreditCard, FlaskConical, Handshake, ListChecks, UserCheck, UsersRound, type LucideIcon } from "lucide-react";
+import { Bell, CalendarClock, ClipboardList, CreditCard, FlaskConical, Handshake, Hospital, ListChecks, UserCheck, UsersRound, type LucideIcon } from "lucide-react";
 import type { Notification, NotificationKind } from "@/lib/api/types";
 import { canOpen, type Role } from "@/lib/roles";
 
@@ -15,6 +15,7 @@ export const notificationTarget: Record<NotificationKind, { screen: string; icon
   value_flagged: { screen: "passport", icon: FlaskConical, tint: "bg-status-due-soft text-status-due" },
   appointment_reminder: { screen: "calendar", icon: CalendarClock, tint: "bg-status-up-soft text-status-up" },
   invitation_accepted: { screen: "people", icon: UsersRound, tint: "bg-status-ok-soft text-status-ok" },
+  labour_started: { screen: "hospital", icon: Hospital, tint: "bg-status-due-soft text-status-due" },
   subscription_started: { screen: "/pricing", icon: CreditCard, tint: "bg-status-ok-soft text-status-ok" },
 };
 
