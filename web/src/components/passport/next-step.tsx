@@ -38,7 +38,7 @@ const icons = { vaccine: passportIcon.vaccines, lab: passportIcon.labs, allergy:
 // Every open follow-up for the selected person, each with its one action. The
 // only place that says "due"; the vaccine and lab cards below show the same
 // items as marks, not words. The headline count is items.length.
-export function NextStep({ person, items }: { person: PassportPerson; items: FollowUp[] }) {
+export function NextStep({ person, items, onLogVaccine }: { person: PassportPerson; items: FollowUp[]; onLogVaccine?: (vaccineName: string) => void }) {
   const who = person.isActingParent ? "your" : `${person.name}'s`;
   if (items.length === 0) {
     return (
@@ -72,6 +72,15 @@ export function NextStep({ person, items }: { person: PassportPerson; items: Fol
                 <p className="text-title">{r.title}</p>
                 <p className="text-label font-normal">{r.line}</p>
               </div>
+              {r.item.kind === "vaccine" && onLogVaccine && (
+                <button
+                  type="button"
+                  onClick={() => onLogVaccine(r.item.kind === "vaccine" ? r.item.vaccine.name : "")}
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-card px-4 text-label font-semibold outline-none transition-colors duration-150 hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  Log as given
+                </button>
+              )}
             </li>
           );
         })}

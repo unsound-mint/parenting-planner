@@ -84,7 +84,7 @@ function CareView({ memberId, name, agenda, slots }: ViewProps) {
             ) : slots ? (
               <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
-            <AgendaCard topics={topics} />
+            <AgendaCard memberId={memberId} topics={topics} />
           </div>
         )}
       </section>
