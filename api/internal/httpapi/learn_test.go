@@ -216,7 +216,8 @@ func TestBabyNamesAreSharedWithLikesPerParent(t *testing.T) {
 	for _, n := range list.Items {
 		got = append(got, n.Name)
 	}
-	if strings.Join(got, ",") != "Theo,June,Ada,Miles,Rose" || !list.Items[0].BothLike || list.Items[3].BothLike {
+	// Hazel is a names quest match (both loved it in the deck).
+	if strings.Join(got, ",") != "Hazel,Theo,June,Ada,Miles,Rose" || !list.Items[0].BothLike || list.Items[4].BothLike {
 		t.Errorf("names = %v", got)
 	}
 

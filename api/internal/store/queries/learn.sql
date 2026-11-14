@@ -63,3 +63,35 @@ ON CONFLICT (name_id, member_id) DO NOTHING;
 
 -- name: UnlikeBabyName :exec
 DELETE FROM baby_name_likes WHERE name_id = @name_id AND family_id = @family_id AND member_id = @member_id;
+
+-- name: ListNameSwipes :many
+-- Every swipe of the family, both parents. Callers filter with
+-- together.Visible before showing one parent's answer to the other.
+SELECT * FROM baby_name_swipes WHERE family_id = @family_id ORDER BY swiped_at DESC;
+
+-- name: UpsertNameSwipe :exec
+INSERT INTO baby_name_swipes (family_id, member_id, name, verdict, swiped_at)
+VALUES (@family_id, @member_id, @name, @verdict, @swiped_at)
+ON CONFLICT (family_id, member_id, lower(name)) DO UPDATE SET verdict = EXCLUDED.verdict, swiped_at = EXCLUDED.swiped_at;
+
+-- name: DeleteNameSwipe :exec
+DELETE FROM baby_name_swipes WHERE family_id = @family_id AND member_id = @member_id AND lower(name) = lower(@name);
+
+-- name: GetBabyNameByName :one
+SELECT * FROM baby_names WHERE family_id = @family_id AND lower(name) = lower(@name);
+
+-- name: GetNamesQuest :one
+SELECT * FROM names_quests WHERE family_id = @family_id;
+
+-- name: SetNamesQuestLists :exec
+INSERT INTO names_quests (family_id, lists, updated_by, updated_at)
+VALUES (@family_id, @lists, @updated_by, @updated_at)
+ON CONFLICT (family_id) DO UPDATE SET lists = EXCLUDED.lists, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at;
+
+-- name: ListNameDuels :many
+SELECT * FROM baby_name_duels WHERE family_id = @family_id ORDER BY judged_at;
+
+-- name: UpsertNameDuel :exec
+INSERT INTO baby_name_duels (family_id, member_id, low_id, high_id, winner_id, judged_at)
+VALUES (@family_id, @member_id, @low_id, @high_id, @winner_id, @judged_at)
+ON CONFLICT (member_id, low_id, high_id) DO UPDATE SET winner_id = EXCLUDED.winner_id, judged_at = EXCLUDED.judged_at;

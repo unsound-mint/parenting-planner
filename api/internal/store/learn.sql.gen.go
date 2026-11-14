@@ -110,6 +110,21 @@ func (q *Queries) CreateQuizAnswer(ctx context.Context, arg CreateQuizAnswerPara
 	return i, err
 }
 
+const deleteNameSwipe = `-- name: DeleteNameSwipe :exec
+DELETE FROM baby_name_swipes WHERE family_id = $1 AND member_id = $2 AND lower(name) = lower($3)
+`
+
+type DeleteNameSwipeParams struct {
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	Name     string
+}
+
+func (q *Queries) DeleteNameSwipe(ctx context.Context, arg DeleteNameSwipeParams) error {
+	_, err := q.db.Exec(ctx, deleteNameSwipe, arg.FamilyID, arg.MemberID, arg.Name)
+	return err
+}
+
 const getBabyName = `-- name: GetBabyName :one
 SELECT n.id, n.family_id, n.name, n.added_by, n.created_at, COALESCE(array_agg(l.member_id ORDER BY l.created_at) FILTER (WHERE l.member_id IS NOT NULL), '{}')::uuid[] AS liked_by
 FROM baby_names n
@@ -142,6 +157,44 @@ func (q *Queries) GetBabyName(ctx context.Context, arg GetBabyNameParams) (GetBa
 		&i.AddedBy,
 		&i.CreatedAt,
 		&i.LikedBy,
+	)
+	return i, err
+}
+
+const getBabyNameByName = `-- name: GetBabyNameByName :one
+SELECT id, family_id, name, added_by, created_at FROM baby_names WHERE family_id = $1 AND lower(name) = lower($2)
+`
+
+type GetBabyNameByNameParams struct {
+	FamilyID uuid.UUID
+	Name     string
+}
+
+func (q *Queries) GetBabyNameByName(ctx context.Context, arg GetBabyNameByNameParams) (BabyName, error) {
+	row := q.db.QueryRow(ctx, getBabyNameByName, arg.FamilyID, arg.Name)
+	var i BabyName
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Name,
+		&i.AddedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getNamesQuest = `-- name: GetNamesQuest :one
+SELECT family_id, lists, updated_by, updated_at FROM names_quests WHERE family_id = $1
+`
+
+func (q *Queries) GetNamesQuest(ctx context.Context, familyID uuid.UUID) (NamesQuest, error) {
+	row := q.db.QueryRow(ctx, getNamesQuest, familyID)
+	var i NamesQuest
+	err := row.Scan(
+		&i.FamilyID,
+		&i.Lists,
+		&i.UpdatedBy,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -300,6 +353,69 @@ func (q *Queries) ListLessonReads(ctx context.Context, familyID uuid.UUID) ([]Le
 	return items, nil
 }
 
+const listNameDuels = `-- name: ListNameDuels :many
+SELECT family_id, member_id, low_id, high_id, winner_id, judged_at FROM baby_name_duels WHERE family_id = $1 ORDER BY judged_at
+`
+
+func (q *Queries) ListNameDuels(ctx context.Context, familyID uuid.UUID) ([]BabyNameDuel, error) {
+	rows, err := q.db.Query(ctx, listNameDuels, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []BabyNameDuel{}
+	for rows.Next() {
+		var i BabyNameDuel
+		if err := rows.Scan(
+			&i.FamilyID,
+			&i.MemberID,
+			&i.LowID,
+			&i.HighID,
+			&i.WinnerID,
+			&i.JudgedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listNameSwipes = `-- name: ListNameSwipes :many
+SELECT family_id, member_id, name, verdict, swiped_at FROM baby_name_swipes WHERE family_id = $1 ORDER BY swiped_at DESC
+`
+
+// Every swipe of the family, both parents. Callers filter with
+// together.Visible before showing one parent's answer to the other.
+func (q *Queries) ListNameSwipes(ctx context.Context, familyID uuid.UUID) ([]BabyNameSwipe, error) {
+	rows, err := q.db.Query(ctx, listNameSwipes, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []BabyNameSwipe{}
+	for rows.Next() {
+		var i BabyNameSwipe
+		if err := rows.Scan(
+			&i.FamilyID,
+			&i.MemberID,
+			&i.Name,
+			&i.Verdict,
+			&i.SwipedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listQuizAnswers = `-- name: ListQuizAnswers :many
 SELECT family_id, member_id, question_id, choice_id, answered_at FROM quiz_answers WHERE family_id = $1
 `
@@ -328,6 +444,29 @@ func (q *Queries) ListQuizAnswers(ctx context.Context, familyID uuid.UUID) ([]Qu
 		return nil, err
 	}
 	return items, nil
+}
+
+const setNamesQuestLists = `-- name: SetNamesQuestLists :exec
+INSERT INTO names_quests (family_id, lists, updated_by, updated_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (family_id) DO UPDATE SET lists = EXCLUDED.lists, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at
+`
+
+type SetNamesQuestListsParams struct {
+	FamilyID  uuid.UUID
+	Lists     []string
+	UpdatedBy uuid.UUID
+	UpdatedAt time.Time
+}
+
+func (q *Queries) SetNamesQuestLists(ctx context.Context, arg SetNamesQuestListsParams) error {
+	_, err := q.db.Exec(ctx, setNamesQuestLists,
+		arg.FamilyID,
+		arg.Lists,
+		arg.UpdatedBy,
+		arg.UpdatedAt,
+	)
+	return err
 }
 
 const startLessonRead = `-- name: StartLessonRead :one
@@ -378,5 +517,57 @@ type UnlikeBabyNameParams struct {
 
 func (q *Queries) UnlikeBabyName(ctx context.Context, arg UnlikeBabyNameParams) error {
 	_, err := q.db.Exec(ctx, unlikeBabyName, arg.NameID, arg.FamilyID, arg.MemberID)
+	return err
+}
+
+const upsertNameDuel = `-- name: UpsertNameDuel :exec
+INSERT INTO baby_name_duels (family_id, member_id, low_id, high_id, winner_id, judged_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (member_id, low_id, high_id) DO UPDATE SET winner_id = EXCLUDED.winner_id, judged_at = EXCLUDED.judged_at
+`
+
+type UpsertNameDuelParams struct {
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	LowID    uuid.UUID
+	HighID   uuid.UUID
+	WinnerID uuid.UUID
+	JudgedAt time.Time
+}
+
+func (q *Queries) UpsertNameDuel(ctx context.Context, arg UpsertNameDuelParams) error {
+	_, err := q.db.Exec(ctx, upsertNameDuel,
+		arg.FamilyID,
+		arg.MemberID,
+		arg.LowID,
+		arg.HighID,
+		arg.WinnerID,
+		arg.JudgedAt,
+	)
+	return err
+}
+
+const upsertNameSwipe = `-- name: UpsertNameSwipe :exec
+INSERT INTO baby_name_swipes (family_id, member_id, name, verdict, swiped_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (family_id, member_id, lower(name)) DO UPDATE SET verdict = EXCLUDED.verdict, swiped_at = EXCLUDED.swiped_at
+`
+
+type UpsertNameSwipeParams struct {
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	Name     string
+	Verdict  string
+	SwipedAt time.Time
+}
+
+func (q *Queries) UpsertNameSwipe(ctx context.Context, arg UpsertNameSwipeParams) error {
+	_, err := q.db.Exec(ctx, upsertNameSwipe,
+		arg.FamilyID,
+		arg.MemberID,
+		arg.Name,
+		arg.Verdict,
+		arg.SwipedAt,
+	)
 	return err
 }
