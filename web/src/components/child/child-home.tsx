@@ -12,6 +12,7 @@ import { MilestoneCard } from "@/components/child/milestone-card";
 import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
+import { StorybookCard } from "@/components/storybook/storybook-card";
 import { PortraitFlipbook } from "@/components/portrait";
 
 /**
@@ -65,6 +66,7 @@ export async function ChildHome({ memberId, family }: { memberId: string; family
           {(given.length > 0 || open.length > 0) && <VaccineTimeline vaccines={[...given, ...open]} />}
         </Stack>
         <Stack>
+          <StorybookCard memberId={memberId} childName={child.name.split(" ")[0]} />
           {childcare.length > 0 && (
             <section aria-labelledby="childcare-title" className="rounded-2xl border border-border bg-card p-5">
               <h2 id="childcare-title" className="text-title">
