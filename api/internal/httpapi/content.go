@@ -181,3 +181,49 @@ func sizeOut(sz content.Size) *BabySize {
 	}
 	return out
 }
+
+var (
+	errNowPregnant = Error{Code: "pregnant", Message: "the family is pregnant, use the pregnancy week"}
+	errNowNoChild  = Error{Code: "no_child", Message: "no child is on record yet"}
+)
+
+func (s *Server) GetStageNow(ctx context.Context, req GetStageNowRequestObject) (GetStageNowResponseObject, error) {
+	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return GetStageNow401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return GetStageNow404JSONResponse(errNoMember), nil
+	}
+	fam, err := s.q.GetFamily(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	var line content.NowLine
+	switch fam.Stage {
+	case "pregnancy":
+		return GetStageNow409JSONResponse(errNowPregnant), nil
+	case "planning", "trying":
+		line, _ = content.NowForPlanning(fam.Stage)
+	default:
+		kids, err := s.q.ListChildren(ctx, familyID)
+		if err != nil {
+			return nil, err
+		}
+		if len(kids) == 0 {
+			return GetStageNow409JSONResponse(errNowNoChild), nil
+		}
+		// ListChildren is oldest first; the youngest decides the content.
+		line = content.NowForChild(kids[len(kids)-1].BirthDate, s.today(ctx))
+	}
+	out := StageNow{
+		Stage: JourneyStage(line.Stage), Period: line.Period, Headline: line.Headline, Detail: line.Detail,
+		PlayIdea: line.PlayIdea, Note: line.Note, Sources: make([]Source, 0, len(line.Sources)),
+	}
+	for _, src := range line.Sources {
+		out.Sources = append(out.Sources, sourceOut(src))
+	}
+	return GetStageNow200JSONResponse(out), nil
+}

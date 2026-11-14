@@ -68,6 +68,7 @@ export type EmergencyContact = S["EmergencyContact"];
 export type Child = S["Child"];
 export type Today = S["Today"];
 export type PregnancyWeek = S["PregnancyWeek"];
+export type StageNow = S["StageNow"];
 export type PregnancyWeekSummary = S["PregnancyWeekSummary"];
 export type Guide = S["Guide"];
 export type GuideAction = S["GuideAction"];
