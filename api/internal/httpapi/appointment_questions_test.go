@@ -113,7 +113,7 @@ func TestCreatingAQuestion(t *testing.T) {
 
 func TestNoUpcomingAppointmentIsAConflict(t *testing.T) {
 	c := testutil.New(t)
-	fam := c.StartDemo("planning") // no appointments at all
+	fam := c.StartDemo("preschool") // no appointments at all
 	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 	c.Post(aqPath(mom.Id), map[string]any{"text": "x", "visibility": "private"}, http.StatusConflict, nil)
 	if l := aqList(c, mom.Id, ""); len(l.Items) != 0 || len(l.Appointments) != 0 {
