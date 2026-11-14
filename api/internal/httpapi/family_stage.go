@@ -52,6 +52,30 @@ func (s *Server) UpdateFamily(ctx context.Context, req UpdateFamilyRequestObject
 	return UpdateFamily200JSONResponse(fam), nil
 }
 
-func (s *Server) CreateBabyArrival(_ context.Context, _ CreateBabyArrivalRequestObject) (CreateBabyArrivalResponseObject, error) {
-	return CreateBabyArrival501JSONResponse(Error{Code: "not_implemented", Message: `"Baby is home" is not available yet`}), nil
+func (s *Server) CreateBabyArrival(ctx context.Context, req CreateBabyArrivalRequestObject) (CreateBabyArrivalResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return CreateBabyArrival401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return CreateBabyArrival404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return CreateBabyArrival403JSONResponse(errForbidden), nil
+	}
+	_, err = family.BabyIsHome(ctx, s.pool, familyID, m.ID, req.Body.Name, req.Body.BirthDate.Time, s.today(ctx))
+	switch {
+	case errors.Is(err, family.ErrBadBirthDate):
+		return CreateBabyArrival400JSONResponse(Error{Code: "bad_birth_date", Message: err.Error()}), nil
+	case errors.Is(err, family.ErrNotPregnant):
+		return CreateBabyArrival409JSONResponse(Error{Code: "not_pregnant", Message: err.Error()}), nil
+	case err != nil:
+		return nil, err
+	}
+	fam, err := s.loadFamily(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	return CreateBabyArrival201JSONResponse(fam), nil
 }
