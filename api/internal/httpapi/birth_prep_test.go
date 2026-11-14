@@ -16,8 +16,6 @@ func TestBirthPrepIsNotImplementedYet(t *testing.T) {
 	for _, call := range []stubCall{
 		{"GET", m + "/birth-plan", nil},
 		{"POST", m + "/labour-alerts", nil},
-		{"GET", m + "/appointments/00000000-0000-4000-8000-000000000600/prep", nil},
-		{"PUT", m + "/appointments/00000000-0000-4000-8000-000000000600/note", map[string]any{"text": "ok"}},
 	} {
 		call.expectNotImplemented(t, c)
 	}

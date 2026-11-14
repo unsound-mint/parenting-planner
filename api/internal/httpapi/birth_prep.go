@@ -1,6 +1,14 @@
 package httpapi
 
-import "context"
+import (
+	"context"
+	"errors"
+	"github.com/jackc/pgx/v5/pgtype"
+	"time"
+
+	"github.com/unsound-mint/parenting-planner/api/internal/appointments"
+	"github.com/unsound-mint/parenting-planner/api/internal/calendar"
+)
 
 // STUB for the birth prep issue: the contract is in openapi.yaml, the
 // implementation is not written yet. Replace each stub with a real handler
@@ -15,10 +23,67 @@ func (s *Server) CreateLabourAlert(_ context.Context, _ CreateLabourAlertRequest
 	return CreateLabourAlert501JSONResponse(Error{Code: "not_implemented", Message: "labour alerts are not available yet"}), nil
 }
 
-func (s *Server) GetAppointmentPrep(_ context.Context, _ GetAppointmentPrepRequestObject) (GetAppointmentPrepResponseObject, error) {
-	return GetAppointmentPrep501JSONResponse(Error{Code: "not_implemented", Message: "appointment prep is not available yet"}), nil
+var errVisitNotStarted = Error{Code: "visit_not_started", Message: "you can save a note once the visit starts"}
+
+func (s *Server) GetAppointmentPrep(ctx context.Context, req GetAppointmentPrepRequestObject) (GetAppointmentPrepResponseObject, error) {
+	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return GetAppointmentPrep401JSONResponse(errNoSession), nil
+	case kind != errNone:
+		return GetAppointmentPrep404JSONResponse(errNoMember), nil
+	}
+	prep, err := appointments.GetPrep(ctx, s.pool, familyID, member.ID, req.AppointmentId, s.now(ctx))
+	if errors.Is(err, appointments.ErrNoAppointment) {
+		return GetAppointmentPrep404JSONResponse(errNoAppointment), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	e := prep.Event
+	out := AppointmentPrep{
+		Appointment: calendarEventOut(calendar.Event{ID: e.ID.String(), Kind: e.Kind, Title: e.Title, StartsAt: e.StartsAt,
+			EndsAt: calendarEnd(e.EndsAt), AllDay: e.AllDay, Location: e.Location, OwnerID: &e.OwnerMemberID,
+			AttendeeIDs: e.AttendeeIds, Visibility: e.Visibility}),
+		Documents: []BringItem{{Title: "Photo ID and insurance card"}},
+		Questions: make([]AppointmentQuestion, 0, len(prep.Questions)),
+	}
+	for _, question := range prep.Questions {
+		out.Questions = append(out.Questions, questionOut(question))
+	}
+	if n := prep.Note; n != nil {
+		out.Note = &AppointmentNote{Text: n.Body, UpdatedAt: n.UpdatedAt.UTC()}
+	}
+	return GetAppointmentPrep200JSONResponse(out), nil
 }
 
-func (s *Server) SaveAppointmentNote(_ context.Context, _ SaveAppointmentNoteRequestObject) (SaveAppointmentNoteResponseObject, error) {
-	return SaveAppointmentNote501JSONResponse(Error{Code: "not_implemented", Message: "visit notes are not available yet"}), nil
+func (s *Server) SaveAppointmentNote(ctx context.Context, req SaveAppointmentNoteRequestObject) (SaveAppointmentNoteResponseObject, error) {
+	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return SaveAppointmentNote401JSONResponse(errNoSession), nil
+	case kind != errNone:
+		return SaveAppointmentNote404JSONResponse(errNoMember), nil
+	}
+	note, err := appointments.SaveNote(ctx, s.pool, familyID, member.ID, req.AppointmentId, req.Body.Text, s.now(ctx))
+	switch {
+	case errors.Is(err, appointments.ErrNoAppointment):
+		return SaveAppointmentNote404JSONResponse(errNoAppointment), nil
+	case errors.Is(err, appointments.ErrVisitNotStarted):
+		return SaveAppointmentNote409JSONResponse(errVisitNotStarted), nil
+	case err != nil:
+		return nil, err
+	}
+	return SaveAppointmentNote200JSONResponse{Text: note.Body, UpdatedAt: note.UpdatedAt.UTC()}, nil
+}
+
+func calendarEnd(ts pgtype.Timestamptz) *time.Time {
+	if !ts.Valid {
+		return nil
+	}
+	return &ts.Time
 }

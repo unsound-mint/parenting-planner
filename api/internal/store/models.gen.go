@@ -33,6 +33,14 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
+type AppointmentNote struct {
+	FamilyID      uuid.UUID
+	AuthorID      uuid.UUID
+	AppointmentID uuid.UUID
+	Body          string
+	UpdatedAt     time.Time
+}
+
 type AppointmentQuestion struct {
 	ID              uuid.UUID
 	Seq             pgtype.Int8
