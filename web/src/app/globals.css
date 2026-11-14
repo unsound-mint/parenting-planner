@@ -15,7 +15,7 @@
   --font-mono: var(--font-jetbrains-mono);
   --font-heading: var(--font-inter);
   /* Widest the family area gets, header and page together (docs/design.md, Layout):
-     1600 px of content plus the 32 px side padding. */
+     1600 px of content plus 32 px of padding on each side. */
   --container-page: 104rem;
 
   /* shadcn semantic colors */
