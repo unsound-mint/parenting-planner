@@ -24,14 +24,14 @@ CREATE TABLE postcard_loves (
 );
 CREATE INDEX postcard_loves_family_created_idx ON postcard_loves (family_id, created_at DESC);
 
--- love_sent joins the bell. labour_started is in the contract already; the
--- constraint of 00010 never listed it, so it is added here too.
+-- love_sent joins the bell. The list keeps labour_started from the birth plan
+-- migration.
 ALTER TABLE notifications DROP CONSTRAINT notifications_kind_check;
 ALTER TABLE notifications ADD CONSTRAINT notifications_kind_check CHECK (kind IN ('task_offered','task_offer_answered','handoff_received','handoff_accepted','plan_item_due','value_flagged','appointment_reminder','invitation_accepted','subscription_started','labour_started','love_sent'));
 
 -- +goose Down
-DELETE FROM notifications WHERE kind IN ('love_sent','labour_started');
+DELETE FROM notifications WHERE kind = 'love_sent';
 ALTER TABLE notifications DROP CONSTRAINT notifications_kind_check;
-ALTER TABLE notifications ADD CONSTRAINT notifications_kind_check CHECK (kind IN ('task_offered','task_offer_answered','handoff_received','handoff_accepted','plan_item_due','value_flagged','appointment_reminder','invitation_accepted','subscription_started'));
+ALTER TABLE notifications ADD CONSTRAINT notifications_kind_check CHECK (kind IN ('task_offered','task_offer_answered','handoff_received','handoff_accepted','plan_item_due','value_flagged','appointment_reminder','invitation_accepted','subscription_started','labour_started'));
 DROP TABLE postcard_loves;
 DROP TABLE postcard_lines;

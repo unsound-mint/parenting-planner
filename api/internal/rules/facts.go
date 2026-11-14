@@ -9,6 +9,9 @@ type Facts struct {
 	Viewer  Role
 	Stage   string
 	DueDate *time.Time
+	// PregnancyLoss is true while the family is in pregnancy loss support. The
+	// stage is planning then, but the preconception nudges must not fire.
+	PregnancyLoss bool
 
 	// Lab result kinds on record for the pregnant parent, with the latest date.
 	PregnancyLabs map[string]time.Time
