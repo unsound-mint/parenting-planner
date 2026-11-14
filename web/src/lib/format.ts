@@ -75,6 +75,7 @@ export function daysUntil(isoDate: string, now: Date): number {
 const ZONE = "America/New_York";
 const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: ZONE });
 const weekdayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: ZONE });
+const weekdayLongFmt = new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: ZONE });
 const monthFmt = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: ZONE });
 const dayNumFmt = new Intl.DateTimeFormat("en-US", { day: "numeric", timeZone: ZONE });
 const dayKeyFmt = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE });
@@ -82,6 +83,8 @@ const dayKeyFmt = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE });
 /** "10:30 AM" in Eastern time. */
 export const formatClock = (iso: string) => timeFmt.format(new Date(iso));
 export const formatWeekday = (iso: string) => weekdayFmt.format(new Date(iso));
+/** "Thursday", for sentences ("After Thursday's session"). */
+export const formatWeekdayLong = (iso: string) => weekdayLongFmt.format(new Date(iso));
 export const formatMonth = (iso: string) => monthFmt.format(new Date(iso));
 export const formatDayNumber = (iso: string) => dayNumFmt.format(new Date(iso));
 /** "2026-11-17": groups instants by calendar day in Eastern time. */

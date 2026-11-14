@@ -20,6 +20,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -27,6 +28,7 @@ const (
 	entityBooking     = "psychologist_booking"
 	entitySessionNote = "session_note"
 	entityMoodCheckin = "mood_checkin"
+	entityDiaryEntry  = "diary_entry"
 )
 
 const (
@@ -69,18 +71,22 @@ type Topic struct {
 	ID      uuid.UUID
 	Text    string
 	AddedAt time.Time
+	// DiaryEntryID is set when the topic came from one of the parent's own
+	// diary entries, so the UI can link back to the (still private) entry.
+	DiaryEntryID uuid.NullUUID
 }
 
 type Agenda struct {
 	Topics      []Topic // oldest first
 	NextSession *Booking
 	NoteDue     *Booking
+	Suggestions []Suggestion
 }
 
 // GetAgenda builds the acting parent's agenda from their own data only: their
 // own mood check-ins and their own bookings and notes. Private text (check-in
 // notes, session notes) never becomes a topic.
-func GetAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, now time.Time) (Agenda, error) {
+func GetAgenda(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, viewer uuid.UUID, now time.Time) (Agenda, error) {
 	var out Agenda
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -88,7 +94,10 @@ func GetAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UU
 		if out, err = buildAgenda(ctx, q, familyID, viewer, now); err != nil {
 			return err
 		}
-		for _, e := range []string{entityBooking, entitySessionNote, entityMoodCheckin} {
+		if out.Suggestions, err = suggestions(ctx, q, key, familyID, viewer, now, out.Topics); err != nil {
+			return err
+		}
+		for _, e := range []string{entityBooking, entitySessionNote, entityMoodCheckin, entityDiaryEntry} {
 			if err := access.Audit(ctx, q, familyID, viewer, access.ActionRead, e, ""); err != nil {
 				return err
 			}
@@ -142,7 +151,10 @@ func buildAgenda(ctx context.Context, q *store.Queries, familyID, viewer uuid.UU
 	}
 	for _, d := range dt {
 		if d.AgendaTopic != nil {
-			all = append(all, Topic{ID: uuid.NewSHA1(viewer, []byte("diary-"+d.ID.String())), Text: *d.AgendaTopic, AddedAt: d.WrittenAt})
+			all = append(all, Topic{
+				ID: uuid.NewSHA1(viewer, []byte("diary-"+d.ID.String())), Text: *d.AgendaTopic, AddedAt: d.WrittenAt,
+				DiaryEntryID: uuid.NullUUID{UUID: d.ID, Valid: true},
+			})
 		}
 	}
 	sort.SliceStable(all, func(i, j int) bool { return all[i].AddedAt.Before(all[j].AddedAt) })
@@ -185,7 +197,7 @@ const entityAgenda = "psychologist_agenda"
 // UpdateAgenda stores the parent's arrangement: topicIDs is the whole agenda in
 // the wanted order, a current topic left out is removed (and stays removed), an
 // empty list clears the agenda. It returns the agenda as it is afterwards.
-func UpdateAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, topicIDs []uuid.UUID, now time.Time) (Agenda, error) {
+func UpdateAgenda(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, viewer uuid.UUID, topicIDs []uuid.UUID, now time.Time) (Agenda, error) {
 	var out Agenda
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -219,8 +231,13 @@ func UpdateAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid
 		if err := access.Audit(ctx, q, familyID, viewer, access.ActionUpdate, entityAgenda, ""); err != nil {
 			return err
 		}
-		out, err = buildAgenda(ctx, q, familyID, viewer, now)
-		return err
+		if out, err = buildAgenda(ctx, q, familyID, viewer, now); err != nil {
+			return err
+		}
+		if out.Suggestions, err = suggestions(ctx, q, key, familyID, viewer, now, out.Topics); err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityDiaryEntry, "")
 	})
 	return out, err
 }
