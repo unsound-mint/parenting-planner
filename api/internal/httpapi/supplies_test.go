@@ -49,10 +49,8 @@ func TestSuppliesSeedShowsOneLowItemFirstAndASizeSuggestion(t *testing.T) {
 	if s.Sizes == nil || s.Sizes.Clothing == "" || s.Sizes.Note == "" || s.Sizes.AgeMonths != 1 {
 		t.Errorf("sizes = %+v", s.Sizes)
 	}
-	// Formula has one logged bottle in the seed: not enough for an estimate.
-	if f := findItem(s, "Infant formula"); f.DaysLeft != nil {
-		t.Errorf("no estimate from fewer than 3 events: %+v", f)
-	}
+	// No formula check here: the newborn seed now logs two weeks of feeds plus
+	// today's (by the clock), so how many formula bottles it has varies.
 }
 
 func TestSupplyItemsValidateAndCaregiversCannotEdit(t *testing.T) {
