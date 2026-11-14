@@ -36,7 +36,7 @@ func (s *Server) UpdateFamily(ctx context.Context, req UpdateFamilyRequestObject
 			ch.DueDate = &d
 		}
 	}
-	if _, err := family.Update(ctx, s.pool, familyID, req.MemberId, ch, s.today()); err != nil {
+	if _, err := family.Update(ctx, s.pool, familyID, req.MemberId, ch, s.today(ctx)); err != nil {
 		switch {
 		case errors.Is(err, family.ErrNoChild):
 			return UpdateFamily409JSONResponse(Error{Code: "no_child", Message: err.Error()}), nil

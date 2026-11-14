@@ -6,8 +6,12 @@ import { roleAccent } from "@/lib/visuals";
 // What a grandparent or nanny does next: their shift, who has the baby, the
 // last feed, sleep and diaper, and handoffs waiting for them. Every section
 // renders only when Today returned it, which the API does by role and permission.
-export function CaregiverToday({ today, names }: { today: Today; names: Record<string, string> }) {
-  const { nextShift, careSummary, pendingHandoffs } = today;
+// shiftOnly: the baby screen already draws the care summary, the duty and the
+// handoff from the care log, so it asks for the next shift alone.
+export function CaregiverToday({ today, names, shiftOnly = false }: { today: Today; names: Record<string, string>; shiftOnly?: boolean }) {
+  const { nextShift } = today;
+  const careSummary = shiftOnly ? undefined : today.careSummary;
+  const pendingHandoffs = shiftOnly ? [] : today.pendingHandoffs;
   const onDuty = careSummary?.onDuty;
   const last: { icon: LucideIcon; label: string; entry?: CareLogEntry }[] = [
     { icon: Milk, label: "Last feed", entry: careSummary?.lastFeed },

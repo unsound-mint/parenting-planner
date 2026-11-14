@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronDown, ListFilter, SearchX, WifiOff } from "lucide-react";
+import { Activity, ChevronDown, ListFilter, SearchX, WifiOff } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
+import { requireParent } from "@/lib/guard";
 import type { ProviderType } from "@/lib/api/types";
 import { countWord } from "@/lib/format";
 import { providerTypes } from "@/lib/visuals";
@@ -29,6 +30,7 @@ async function Directory({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const sp = await searchParams;
   const typeParam = typeof sp.type === "string" ? sp.type : undefined;
   const stateParam = typeof sp.state === "string" ? sp.state : undefined;
@@ -56,6 +58,13 @@ async function Directory({
   const picks = recommend(everyone, pattern, family.data?.stage);
   const filtered = !!(type || state);
 
+  // "Fits your last N check-ins" is said once above the cards when every card
+  // shares it; a card carries its own reason only when the reasons differ.
+  const reasonOf = (r: Recommendation) => (r.reason === "pattern" ? `Fits your last ${r.days ?? "few"} check-ins` : undefined);
+  const reasons = new Set(picks.map(reasonOf));
+  const fitLabel = reasons.size === 1 ? [...reasons][0] : undefined;
+  const cardReasons: Record<string, string | undefined> = reasons.size === 1 ? {} : Object.fromEntries(picks.map((r) => [r.provider.id, reasonOf(r)]));
+
   // Filter options come from the unfiltered list so they do not vanish once picked.
   const states = [...new Set(everyone.map((p) => p.state))].sort();
   const counts: Partial<Record<ProviderType, number>> = {};
@@ -80,11 +89,19 @@ async function Directory({
         ) : (
           <>
             {picks.length > 0 && (
-              <ul className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {picks.map((r) => (
-                  <ProviderCard key={r.provider.id} provider={r.provider} memberId={memberId} requested={requested.has(r.provider.id)} featured reason={r.reason === "pattern" ? `Fits your last ${r.days ?? "few"} check-ins` : undefined} />
-                ))}
-              </ul>
+              <>
+                {fitLabel && (
+                  <p className="mt-6 flex items-center gap-1.5 text-label font-semibold text-primary">
+                    <Activity className="size-4" aria-hidden />
+                    {fitLabel}
+                  </p>
+                )}
+                <ul className={`${fitLabel ? "mt-3" : "mt-6"} grid gap-4 md:grid-cols-2 xl:grid-cols-3`}>
+                  {picks.map((r) => (
+                    <ProviderCard key={r.provider.id} provider={r.provider} memberId={memberId} requested={requested.has(r.provider.id)} featured reason={cardReasons[r.provider.id]} />
+                  ))}
+                </ul>
+              </>
             )}
 
             <details open={filtered || picks.length === 0} className="group mt-8 border-t border-border pt-2">

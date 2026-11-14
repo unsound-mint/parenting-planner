@@ -19,11 +19,11 @@ func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObje
 	case kind == errNotFound:
 		return GetMemberPlan404JSONResponse(errNoMember), nil
 	}
-	items, err := plan.ForMember(ctx, s.q, familyID, req.MemberId, s.today(), s.cfg.Now())
+	items, err := plan.ForMember(ctx, s.q, familyID, req.MemberId, s.today(ctx), s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
-	out := Plan{MemberId: req.MemberId, GeneratedAt: s.cfg.Now().UTC(), Items: make([]PlanItem, 0, len(items))}
+	out := Plan{MemberId: req.MemberId, GeneratedAt: s.now(ctx).UTC(), Items: make([]PlanItem, 0, len(items))}
 	for _, it := range items {
 		out.Items = append(out.Items, planItemOut(it))
 	}
@@ -66,7 +66,7 @@ func (s *Server) SetPlanItemProgress(ctx context.Context, req SetPlanItemProgres
 	case kind == errNotFound:
 		return SetPlanItemProgress404JSONResponse(errNoMember), nil
 	}
-	it, err := plan.SetProgress(ctx, s.pool, familyID, req.MemberId, req.RuleId, string(req.Body.Status), s.today(), s.cfg.Now())
+	it, err := plan.SetProgress(ctx, s.pool, familyID, req.MemberId, req.RuleId, string(req.Body.Status), s.today(ctx), s.now(ctx))
 	switch {
 	case errors.Is(err, plan.ErrNotOnPlan):
 		return SetPlanItemProgress404JSONResponse(errNoPlanItem), nil

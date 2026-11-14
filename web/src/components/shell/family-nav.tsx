@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, CalendarDays, HeartHandshake, IdCard, Route, Search, Target, type LucideIcon } from "lucide-react";
+import { Baby, CalendarCheck, CalendarDays, HeartHandshake, IdCard, Route, Search, Target, UsersRound, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,8 @@ const items: { href: string; screen: string; label: string; icon: LucideIcon }[]
   { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
   { href: "/directory", screen: "directory", label: "Find help", icon: Search },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
+  { href: "/baby", screen: "baby", label: "Baby", icon: Baby },
+  { href: "/people", screen: "people", label: "People", icon: UsersRound },
   { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target },
 ];

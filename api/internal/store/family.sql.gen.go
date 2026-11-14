@@ -142,7 +142,7 @@ func (q *Queries) CreateChild(ctx context.Context, arg CreateChildParams) (Child
 }
 
 const createFamily = `-- name: CreateFamily :one
-INSERT INTO families (template, stage, due_date) VALUES ($1, $2, $3) RETURNING id, template, stage, due_date, created_at
+INSERT INTO families (template, stage, due_date) VALUES ($1, $2, $3) RETURNING id, template, stage, due_date, created_at, demo_offset_days
 `
 
 type CreateFamilyParams struct {
@@ -160,6 +160,7 @@ func (q *Queries) CreateFamily(ctx context.Context, arg CreateFamilyParams) (Fam
 		&i.Stage,
 		&i.DueDate,
 		&i.CreatedAt,
+		&i.DemoOffsetDays,
 	)
 	return i, err
 }
@@ -196,7 +197,7 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 }
 
 const getFamily = `-- name: GetFamily :one
-SELECT id, template, stage, due_date, created_at FROM families WHERE id = $1
+SELECT id, template, stage, due_date, created_at, demo_offset_days FROM families WHERE id = $1
 `
 
 func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
@@ -208,12 +209,13 @@ func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		&i.Stage,
 		&i.DueDate,
 		&i.CreatedAt,
+		&i.DemoOffsetDays,
 	)
 	return i, err
 }
 
 const getFamilyForUpdate = `-- name: GetFamilyForUpdate :one
-SELECT id, template, stage, due_date, created_at FROM families WHERE id = $1 FOR UPDATE
+SELECT id, template, stage, due_date, created_at, demo_offset_days FROM families WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family, error) {
@@ -225,6 +227,7 @@ func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family,
 		&i.Stage,
 		&i.DueDate,
 		&i.CreatedAt,
+		&i.DemoOffsetDays,
 	)
 	return i, err
 }
@@ -421,8 +424,31 @@ func (q *Queries) RevokeCaregiver(ctx context.Context, arg RevokeCaregiverParams
 	return err
 }
 
+const skipFamilyDemoClock = `-- name: SkipFamilyDemoClock :one
+UPDATE families SET demo_offset_days = demo_offset_days + $1::int WHERE id = $2 RETURNING id, template, stage, due_date, created_at, demo_offset_days
+`
+
+type SkipFamilyDemoClockParams struct {
+	Days int32
+	ID   uuid.UUID
+}
+
+func (q *Queries) SkipFamilyDemoClock(ctx context.Context, arg SkipFamilyDemoClockParams) (Family, error) {
+	row := q.db.QueryRow(ctx, skipFamilyDemoClock, arg.Days, arg.ID)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+		&i.DemoOffsetDays,
+	)
+	return i, err
+}
+
 const updateFamilyStage = `-- name: UpdateFamilyStage :one
-UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING id, template, stage, due_date, created_at
+UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING id, template, stage, due_date, created_at, demo_offset_days
 `
 
 type UpdateFamilyStageParams struct {
@@ -440,6 +466,7 @@ func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStagePa
 		&i.Stage,
 		&i.DueDate,
 		&i.CreatedAt,
+		&i.DemoOffsetDays,
 	)
 	return i, err
 }

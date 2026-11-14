@@ -97,21 +97,44 @@ func recoverPanics(next http.Handler) http.Handler {
 	})
 }
 
-// today is the date used for plans. Families are in the US; UTC is close
-// enough until families store their own time zone.
-func (s *Server) today() time.Time {
-	y, m, d := s.cfg.Now().UTC().Date()
+// now is the session family's clock: the real time plus the days its demo
+// clock was skipped ahead (createDemoTimeSkip). Use it, not s.cfg.Now(), for
+// anything family-scoped, so plans, weeks and timelines move with the skip.
+func (s *Server) now(ctx context.Context) time.Time {
+	days, _ := ctx.Value(clockKey{}).(int32)
+	return s.cfg.Now().AddDate(0, 0, int(days))
+}
+
+// today is the date used for plans, on the session family's clock. Families
+// are in the US; UTC is close enough until families store their own time zone.
+func (s *Server) today(ctx context.Context) time.Time {
+	return dateOf(s.now(ctx))
+}
+
+// realToday ignores the demo clock. Seeding a new demo family uses it, since
+// the visitor's old session (with its skip) may still be on the request.
+func (s *Server) realToday() time.Time {
+	return dateOf(s.cfg.Now())
+}
+
+func dateOf(t time.Time) time.Time {
+	y, m, d := t.UTC().Date()
 	return time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
 }
 
 type ctxKey struct{}
 
-// session resolves the cookie to a family id and stores it in the context.
+// clockKey holds the session family's demo clock offset in days.
+type clockKey struct{}
+
+// session resolves the cookie to a family id and its demo clock offset and
+// stores both in the context.
 func (s *Server) session(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if c, err := r.Cookie(sessionCookie); err == nil && c.Value != "" {
-			if id, err := s.q.GetSessionFamily(r.Context(), demo.HashToken(c.Value)); err == nil {
-				r = r.WithContext(context.WithValue(r.Context(), ctxKey{}, id))
+			if row, err := s.q.GetSessionFamily(r.Context(), demo.HashToken(c.Value)); err == nil {
+				ctx := context.WithValue(r.Context(), ctxKey{}, row.FamilyID)
+				r = r.WithContext(context.WithValue(ctx, clockKey{}, row.DemoOffsetDays))
 			} else if !errors.Is(err, pgx.ErrNoRows) {
 				slog.Error("session lookup", "err", err)
 			}
