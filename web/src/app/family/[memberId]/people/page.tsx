@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { UsersRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
@@ -58,6 +60,18 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
       </header>
+      <Link
+        href={`/family/${memberId}/people/friends`}
+        className="press lift flex w-full max-w-2xl items-center gap-4 rounded-3xl bg-them-soft p-5 text-left"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-card text-them">
+          <UsersRound className="size-5" aria-hidden />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-title">Friend families</span>
+          <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
+        </span>
+      </Link>
       {/* The couple's own section comes first: who carries what, and a way to say thanks.
           Either part is left out when its endpoint is not available. */}
       {(loadMap.data || (thanks.data && suggestions.data)) && (

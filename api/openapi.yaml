@@ -2452,6 +2452,350 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/friends:
+    get:
+      operationId: getFriends
+      tags: [friends]
+      summary: Friend families, the updates shared with them, and the family's code
+      description: |
+        Friend families are other families this family connected with by an
+        invite code, both sides agreeing. A friend sees only what a parent
+        shared with friends, one item at a time (a moment, a week card, a
+        note), as a copy: never the diary, mood, health records, plan or the
+        child's records, and never a caregiver. Reactions are presets; there
+        are no comments, no counts and no messages. On a friend's update the
+        viewer sees only their own family's reactions; on their own family's
+        updates they see who reacted. families lists accepted friends and
+        pending requests both ways (a pending request shows names only).
+        updates are the family's own and its accepted friends' from the last
+        90 days, newest first. code is the family's current invite code, if
+        one was made and has not expired. Mother and partner; a grandparent
+        or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Friends"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-code:
+    post:
+      operationId: createFriendCode
+      tags: [friends]
+      summary: Make a new invite code for friend families (replaces the old one)
+      description: |
+        The code lets another family send a request; it grants nothing until
+        a parent here accepts. It expires after 7 days. Mother and partner;
+        a grandparent or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendCode"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-connections:
+    post:
+      operationId: createFriendConnection
+      tags: [friends]
+      summary: Ask to connect with the family whose code this is
+      description: |
+        Creates a pending request that the other family accepts or declines;
+        nothing is shared before that. 404 code_not_found for an unknown or
+        expired code, 409 own_code for the family's own code, 409
+        already_connected when the two families already have a connection or
+        a request. If the other family had already asked this one, the
+        request is accepted instead. Mother and partner; a grandparent or
+        nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendCodeInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendFamily"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-connections/{connectionId}/accept:
+    post:
+      operationId: acceptFriendConnection
+      tags: [friends]
+      summary: Accept a friend family's request
+      description: |
+        Only the family that was asked can accept; anything else is 404.
+        Mother and partner; a grandparent or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendFamily"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-connections/{connectionId}:
+    delete:
+      operationId: deleteFriendConnection
+      tags: [friends]
+      summary: Disconnect, decline or cancel
+      description: |
+        Either side can end a connection or a request at any time. Each
+        family's reactions on the other's updates are removed with it, and
+        neither sees the other's updates again. Mother and partner; a
+        grandparent or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No content
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-updates:
+    post:
+      operationId: createFriendUpdate
+      tags: [friends]
+      summary: Share one item with friend families
+      description: |
+        A copy of what the parent chose to share; it does not link to the
+        record it came from. kind week gets a headline written by the server
+        from the family's week or the child's age. Mother and partner; a
+        grandparent or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendUpdateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendUpdate"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-updates/{updateId}:
+    delete:
+      operationId: deleteFriendUpdate
+      tags: [friends]
+      summary: Stop sharing an update
+      description: |
+        Only its author can remove an update; friends stop seeing it at once.
+        404 otherwise.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: updateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No content
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/friend-updates/{updateId}/reaction:
+    put:
+      operationId: setFriendReaction
+      tags: [friends]
+      summary: React to a friend's update with a preset
+      description: |
+        One reaction per person per update; a new one replaces it. 404 when
+        the viewer cannot see the update. Mother and partner; a grandparent
+        or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: updateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FriendReactionInput"
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      operationId: deleteFriendReaction
+      tags: [friends]
+      summary: Take a reaction back
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: updateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No content
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/library-topics:
     get:
       operationId: listLibraryTopics
@@ -10156,6 +10500,137 @@ components:
         shift:
           $ref: "#/components/schemas/ShiftSuggestion"
 
+    Friends:
+      type: object
+      required: [families, updates]
+      properties:
+        code:
+          $ref: "#/components/schemas/FriendCode"
+        families:
+          type: array
+          items:
+            $ref: "#/components/schemas/FriendFamily"
+        updates:
+          type: array
+          items:
+            $ref: "#/components/schemas/FriendUpdate"
+
+    FriendCode:
+      type: object
+      required: [code, expiresAt]
+      properties:
+        code:
+          type: string
+          example: KQ7M-3XPA
+        expiresAt:
+          type: string
+          format: date-time
+
+    FriendCodeInput:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          minLength: 8
+          maxLength: 12
+          description: Case and the dash do not matter.
+
+    FriendFamily:
+      type: object
+      required: [connectionId, names, status, since]
+      properties:
+        connectionId:
+          type: string
+          format: uuid
+        names:
+          type: array
+          description: The other family's parents' first names. Never caregivers.
+          items:
+            type: string
+        status:
+          type: string
+          description: connected, incoming (they asked, this family may accept) or outgoing (this family asked).
+          enum: [connected, incoming, outgoing]
+        since:
+          type: string
+          format: date-time
+
+    FriendUpdateKind:
+      type: string
+      description: moment = a milestone or a small moment; week = this week's card; note = a few words.
+      enum: [moment, week, note]
+
+    FriendUpdateInput:
+      type: object
+      required: [kind, body]
+      properties:
+        kind:
+          $ref: "#/components/schemas/FriendUpdateKind"
+        body:
+          type: string
+          minLength: 1
+          maxLength: 280
+
+    FriendReactionKind:
+      type: string
+      enum: [heart, hug, got_this]
+
+    FriendReactionInput:
+      type: object
+      required: [reaction]
+      properties:
+        reaction:
+          $ref: "#/components/schemas/FriendReactionKind"
+
+    FriendReaction:
+      type: object
+      required: [name, reaction]
+      properties:
+        name:
+          type: string
+        reaction:
+          $ref: "#/components/schemas/FriendReactionKind"
+
+    FriendUpdate:
+      type: object
+      required: [id, mine, connectionId, familyNames, authorName, authoredByMe, kind, body, createdAt, reactions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        mine:
+          type: boolean
+          description: From the viewer's own family.
+        connectionId:
+          type: string
+          format: uuid
+          description: The friend connection it came through; nil uuid for the family's own.
+        familyNames:
+          type: array
+          items:
+            type: string
+        authorName:
+          type: string
+        authoredByMe:
+          type: boolean
+          description: The acting parent wrote it, so they may remove it.
+        kind:
+          $ref: "#/components/schemas/FriendUpdateKind"
+        headline:
+          type: string
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        reactions:
+          type: array
+          description: On the family's own update, everyone's; on a friend's update, only this family's.
+          items:
+            $ref: "#/components/schemas/FriendReaction"
+        myReaction:
+          $ref: "#/components/schemas/FriendReactionKind"
     LibraryEvidence:
       type: string
       description: |
