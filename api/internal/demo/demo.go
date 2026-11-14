@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
+	"github.com/unsound-mint/parenting-planner/api/internal/friends"
 	"github.com/unsound-mint/parenting-planner/api/internal/notify"
 	"github.com/unsound-mint/parenting-planner/api/internal/offers"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
@@ -74,6 +75,10 @@ func start(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, t Template, s
 		// Every family, from a template or a visitor's own details, gets its
 		// own copy of the partner offers for the admin panel to edit.
 		if err := offers.Seed(ctx, q, id, today); err != nil {
+			return err
+		}
+		// And two synthetic friend families, so People > Friends is not empty.
+		if err := friends.Seed(ctx, q, id, today); err != nil {
 			return err
 		}
 		return q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: id, ExpiresAt: time.Now().Add(SessionTTL)})
@@ -224,7 +229,17 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedMoney(ctx, q, fam.ID, "pregnancy", today); err != nil {
+		return uuid.Nil, err
+	}
+	// The bump once a month so far; week 28 is the next one to take.
+	if err := bumpWeeks(ctx, q, fam.ID, due, 8, 12, 16, 20, 24); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedMissions(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {

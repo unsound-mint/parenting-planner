@@ -248,3 +248,44 @@ func TestPassportFlagsOutOfRangeLabs(t *testing.T) {
 		t.Errorf("HDL equal to the bound must not be flagged, got %v", jake)
 	}
 }
+
+// A parent records, corrects and removes a child's measurements; the passport
+// lists them oldest first with the age at the visit.
+func TestGrowthMeasurements(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("newborn")
+	mom, partner := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	leo := fam.Children[0]
+	base := "/api/members/" + mom.Id.String() + "/growth-measurements"
+	day := func(daysAgo int) string { return testutil.Now.AddDate(0, 0, -daysAgo).Format("2006-01-02") }
+
+	c.Post(base, map[string]any{"childId": leo.Id, "measuredOn": day(-1), "weightKg": 5, "heightCm": 56}, http.StatusBadRequest, nil)  // tomorrow
+	c.Post(base, map[string]any{"childId": uuid.New(), "measuredOn": day(1), "weightKg": 5, "heightCm": 56}, http.StatusNotFound, nil) // not our child
+	c.Post(base, map[string]any{"childId": leo.Id, "measuredOn": day(1), "weightKg": 0, "heightCm": 56}, http.StatusBadRequest, nil)   // no weight
+	var g httpapi.GrowthPoint
+	c.Post(base, map[string]any{"childId": leo.Id, "measuredOn": day(1), "weightKg": 5.1, "heightCm": 57, "headCm": 38.2}, http.StatusCreated, &g)
+	if g.Id == uuid.Nil || g.HeadCm == nil || *g.HeadCm != 38.2 || g.AgeMonths != 1 {
+		t.Fatalf("created = %+v", g)
+	}
+	var upd httpapi.GrowthPoint
+	c.Patch(base+"/"+g.Id.String(), map[string]any{"childId": leo.Id, "measuredOn": day(1), "weightKg": 5.2, "heightCm": 57}, http.StatusOK, &upd)
+	if upd.Id != g.Id || upd.WeightKg != 5.2 || upd.HeadCm != nil {
+		t.Errorf("updated = %+v", upd)
+	}
+
+	p := getPassport(t, c, partner.Id)
+	var growth []httpapi.GrowthPoint
+	for _, person := range p.People {
+		if person.Id == leo.Id {
+			growth = person.Growth
+		}
+	}
+	if n := len(growth); n < 2 || growth[n-1].Id != g.Id {
+		t.Fatalf("the other parent sees it last, after the seeded visits: %+v", growth)
+	}
+	c.Delete(base+"/"+g.Id.String(), http.StatusNoContent, nil)
+	c.Delete(base+"/"+g.Id.String(), http.StatusNotFound, nil)
+	if n := c.AuditCount(fam.Id, "create", "growth_measurement"); n != 1 {
+		t.Errorf("audit rows = %d", n)
+	}
+}
