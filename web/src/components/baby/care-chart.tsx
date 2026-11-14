@@ -129,7 +129,7 @@ function DayChart({ entries, now, names, selectedId, onSelect }: ChartProps & { 
   const sleptMs = byKind("sleep").reduce((sum, e) => sum + Math.max(0, Math.min(sleepEnd(e, now), end) - Math.max(Date.parse(e.startedAt), start)), 0);
   const totals: Record<CareLogKind, string> = {
     feed: `${byKind("feed").length} ${byKind("feed").length === 1 ? "feed" : "feeds"}`,
-    sleep: `${durationWords(sleptMs)} asleep`,
+    sleep: durationWords(sleptMs),
     diaper: `${byKind("diaper").length} ${byKind("diaper").length === 1 ? "diaper" : "diapers"}`,
   };
   const hovered = inView.find((e) => e.id === hover);
@@ -261,7 +261,7 @@ function Mark({
         style={{ left: `${a}%`, width: `${w}%` }}
       >
         {/* The length fits from about 40 minutes at 1440 px; shorter naps say it on hover. */}
-        <span className={cn("font-mono", w < 3.2 && "sr-only")}>{durationWords(ms).replace(" min", "m").replace(" h", "h")}</span>
+        <span className={cn("font-mono", w < 3.2 ? "sr-only" : w < 8 && "max-sm:sr-only")}>{durationWords(ms).replace(" min", "m").replace(" h", "h")}</span>
       </button>
     );
   }
@@ -330,7 +330,7 @@ function WeekChart({ entries, now, selectedId, onSelect }: ChartProps) {
           {hours.map((h) => (
             <span
               key={h}
-              className={cn("absolute", h === 0 ? "" : h === 24 ? "-translate-x-full" : "-translate-x-1/2", h % 6 !== 0 && "max-md:hidden")}
+              className={cn("absolute whitespace-nowrap", h === 0 ? "" : h === 24 ? "-translate-x-full" : "-translate-x-1/2", h % 6 !== 0 && "max-md:hidden", h % 12 !== 0 && "max-sm:hidden")}
               style={{ left: `${(h / 24) * 100}%` }}
             >
               {h === 0 || h === 24 ? "12 AM" : h === 12 ? "12 PM" : h < 12 ? `${h} AM` : `${h - 12} PM`}

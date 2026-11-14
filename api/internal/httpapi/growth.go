@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"math"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/health"
@@ -23,6 +24,7 @@ func growthIn(b GrowthMeasurementInput) health.Growth {
 func growthOut(g store.GrowthMeasurement, born store.Child) GrowthPoint {
 	out := GrowthPoint{
 		Id: g.ID, MeasuredOn: openapi_types.Date{Time: g.MeasuredOn}, AgeMonths: monthsBetween(born.BirthDate, g.MeasuredOn),
+		AgeDays:  int(math.Round(g.MeasuredOn.Sub(born.BirthDate).Hours() / 24)),
 		WeightKg: float32(g.WeightKg), HeightCm: float32(g.HeightCm),
 	}
 	if g.HeadCm != nil {

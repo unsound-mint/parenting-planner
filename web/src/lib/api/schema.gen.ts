@@ -4231,6 +4231,8 @@ export interface components {
             /** Format: date */
             measuredOn: string;
             ageMonths: number;
+            /** @description Days since birth on the visit day, for labelling the first weeks. */
+            ageDays: number;
             weightKg: number;
             /** @description Length lying down under 2 years, standing height after. */
             heightCm: number;

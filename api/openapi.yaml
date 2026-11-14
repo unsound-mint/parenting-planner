@@ -7796,7 +7796,7 @@ components:
 
     GrowthPoint:
       type: object
-      required: [id, measuredOn, ageMonths, weightKg, heightCm]
+      required: [id, measuredOn, ageMonths, ageDays, weightKg, heightCm]
       properties:
         id:
           type: string
@@ -7806,6 +7806,9 @@ components:
           format: date
         ageMonths:
           type: integer
+        ageDays:
+          type: integer
+          description: Days since birth on the visit day, for labelling the first weeks.
         weightKg:
           type: number
         heightCm:

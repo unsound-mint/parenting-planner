@@ -22,7 +22,9 @@ const metrics: Record<Metric, { label: string; unit: string }> = {
 };
 const WHO = "https://www.who.int/tools/child-growth-standards";
 
-const ageWords = (months: number) => (months === 0 ? "newborn" : months < 24 ? `${months} mo` : `${Math.floor(months / 12)} y`);
+// Weeks matter in the first months, when visits are a week or two apart.
+const ageWords = ({ ageDays, ageMonths }: GrowthPoint) =>
+  ageDays < 4 ? "birth" : ageDays < 14 ? `${ageDays} days` : ageMonths < 3 ? `${Math.floor(ageDays / 7)} wk` : ageMonths < 24 ? `${ageMonths} mo` : `${Math.floor(ageMonths / 12)} y`;
 
 const W = 480;
 const H = 180;
@@ -61,7 +63,7 @@ function Chart({ points, metric }: { points: GrowthPoint[]; metric: Metric }) {
             {p.v}
           </text>
           <text x={x(p.t)} y={H - 8} textAnchor={pts.length > 1 && i === 0 ? "start" : pts.length > 1 && i === pts.length - 1 ? "end" : "middle"} className="fill-muted-foreground font-mono text-[11px]">
-            {ageWords(p.p.ageMonths)}
+            {ageWords(p.p)}
           </text>
         </g>
       ))}
@@ -235,7 +237,7 @@ export function GrowthCard({ growth, memberId, childId, name, canEdit }: { growt
                   <li key={g.id} className="flex min-h-11 items-center gap-3 py-1.5 text-label">
                     <span className="w-24 shrink-0">
                       <span className="font-mono">{formatShortDate(g.measuredOn)}</span>
-                      <span className="block text-caption text-muted-foreground">{ageWords(g.ageMonths)}</span>
+                      <span className="block text-caption text-muted-foreground">{ageWords(g)}</span>
                     </span>
                     <span className="flex-1 font-mono text-ink-2 tabular-nums">
                       {g.weightKg} kg · {g.heightCm} cm{g.headCm != null ? ` · head ${g.headCm}` : ""}

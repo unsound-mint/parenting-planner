@@ -264,7 +264,7 @@ export function SleepLogger({ memberId, childId, open }: { memberId: string; chi
   }
   const at = () => stamp(ago);
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr] gap-2">
       <button
         type="button"
         disabled={pending}
@@ -272,7 +272,7 @@ export function SleepLogger({ memberId, childId, open }: { memberId: string; chi
         onClick={() => save("now", { kind: "sleep", childId, startedAt: new Date(at()).toISOString() })}
         className={cn(chip, "border-primary/40 bg-secondary text-secondary-foreground hover:bg-secondary")}
       >
-        Fell asleep
+        Asleep now
       </button>
       {[30, 60, 120].map((m) => (
         <button
@@ -281,9 +281,11 @@ export function SleepLogger({ memberId, childId, open }: { memberId: string; chi
           disabled={pending}
           aria-busy={busy === String(m)}
           onClick={() => save(String(m), { kind: "sleep", childId, startedAt: new Date(at() - m * 60_000).toISOString(), endedAt: new Date(at()).toISOString() })}
+          aria-label={`Log a ${m < 60 ? `${m} minute` : `${m / 60} hour`} nap that just ended`}
+          title="A nap that just ended"
           className={chip}
         >
-          {m < 60 ? `${m} min nap` : `${m / 60} h nap`}
+          {m < 60 ? `${m} min` : `${m / 60} h`}
         </button>
       ))}
     </div>

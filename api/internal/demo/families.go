@@ -8,10 +8,12 @@ package demo
 import (
 	"context"
 	_ "embed"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
@@ -469,4 +471,51 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
 	s.learning(Preschool, rachel, tom)
 	return s.done()
+}
+
+// SeedRecentCare gives the newborn the hours since midnight (UTC, the seed's
+// day) up to now: the yesterday seed alone leaves the Baby screen's last 24
+// hours half empty for most of the day. Linda, who has the baby today, logs
+// it, so the parents' load map and thank-you counts stay as seeded. Every
+// entry is before now. It is a no-op for other templates.
+func SeedRecentCare(ctx context.Context, pool *pgxpool.Pool, t Template, familyID uuid.UUID, now time.Time) error {
+	if t != Newborn {
+		return nil
+	}
+	q := store.New(pool)
+	kids, err := q.ListChildren(ctx, familyID)
+	if err != nil || len(kids) == 0 {
+		return err
+	}
+	helpers, err := careHelpers(ctx, q, familyID)
+	if err != nil {
+		return err
+	}
+	linda := helpers["grandparent"]
+	midnight := now.UTC().Truncate(24 * time.Hour)
+	str := func(v string) *string { return &v }
+	feeds := []string{"bottle_breast_milk", "breast_right", "bottle_formula", "breast_left"}
+	diapers := []string{"wet", "dirty", "wet", "both"}
+	// Walking back from now in three-hour rounds: a feed, a diaper, then the sleep before them.
+	for i, end := 0, now; end.Sub(midnight) > 3*time.Hour; i, end = i+1, end.Add(-3*time.Hour) {
+		feedAt := end.Add(-25 * time.Minute)
+		f := store.CreateCareLogEntryParams{FamilyID: familyID, ChildID: kids[len(kids)-1].ID, AuthorMemberID: linda, Kind: "feed", StartedAt: feedAt, FeedMethod: str(feeds[i%len(feeds)])}
+		if strings.HasPrefix(feeds[i%len(feeds)], "bottle") {
+			f.AmountMl = pgtype.Int2{Int16: 90, Valid: true}
+		} else {
+			f.EndedAt = pgtype.Timestamptz{Time: feedAt.Add(18 * time.Minute), Valid: true}
+		}
+		sleepEnd := end.Add(-time.Duration(45+(i*13)%30) * time.Minute)
+		rows := []store.CreateCareLogEntryParams{
+			f,
+			{FamilyID: familyID, ChildID: kids[len(kids)-1].ID, AuthorMemberID: linda, Kind: "diaper", StartedAt: end.Add(-35 * time.Minute), Diaper: str(diapers[i%len(diapers)])},
+			{FamilyID: familyID, ChildID: kids[len(kids)-1].ID, AuthorMemberID: linda, Kind: "sleep", StartedAt: sleepEnd.Add(-time.Duration(80+(i*17)%50) * time.Minute), EndedAt: pgtype.Timestamptz{Time: sleepEnd, Valid: true}},
+		}
+		for _, r := range rows {
+			if _, err := q.CreateCareLogEntry(ctx, r); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
