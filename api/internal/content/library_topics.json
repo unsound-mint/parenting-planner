@@ -276,7 +276,7 @@
   "parentQuestions": [
    "Is any alcohol safe in pregnancy?",
    "I smoked before I knew I was pregnant, what now?",
-   "Can I take paracetamol or herbal remedies?",
+   "Can I take acetaminophen (Tylenol) or herbal remedies?",
    "Do I stop my regular medicine?"
   ],
   "category": "health",
@@ -288,7 +288,7 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "CDC says no amount of alcohol has been shown to be safe in pregnancy, and that stopping at any point still helps. The NHS says stopping smoking at any stage lowers the risk of stillbirth and early birth, and nicotine replacement can be used if needed. Paracetamol is the first-choice painkiller, and the UK medicines regulator says it is not linked to autism. Herbal and homeopathic products are not automatically safe, and regular medicines should not be stopped suddenly without advice.",
+  "whatToKnow": "CDC says no amount of alcohol has been shown to be safe in pregnancy, and that stopping at any point still helps. The NHS says stopping smoking at any stage lowers the risk of stillbirth and early birth, and nicotine replacement can be used if needed. Acetaminophen (Tylenol) is the first-choice painkiller, and the UK medicines regulator says it is not linked to autism. Herbal and homeopathic products are not automatically safe, and regular medicines should not be stopped suddenly without advice.",
   "whatToDo": [
    {
     "when": "When trying",
@@ -305,7 +305,7 @@
   ],
   "seeClinicianIf": "Ask a clinician if you cannot cut down alcohol or smoking, or if you take medicines for epilepsy, mental health, diabetes or blood pressure.",
   "evidence": "guideline",
-  "evidenceNote": "CDC and the NHS are consistent. The paracetamol statement is from the UK regulator as reported on the NHS page.",
+  "evidenceNote": "CDC and the NHS are consistent. The acetaminophen (Tylenol) statement is from the UK regulator as reported on the NHS page.",
   "sources": [
    {
     "title": "About Alcohol Use During Pregnancy (CDC)",
@@ -491,7 +491,7 @@
    },
    {
     "when": "Preparation",
-    "action": "Carry 2 auto-injectors, check expiry dates, practise with a trainer device and teach carers."
+    "action": "Carry 2 auto-injectors, check expiry dates, practice with a trainer device and teach carers."
    }
   ],
   "seeClinicianIf": "Call 911 (or your local emergency number) and go to the ER for any sign of anaphylaxis, even after the auto-injector, because treatment in hospital is needed. NHS says people usually stay 2 to 12 hours. Open the app's fixed Urgent help screen.",
@@ -685,7 +685,7 @@
    "unit": "month",
    "value": 0
   },
-  "whatToKnow": "The Apgar score rates heart rate, breathing, muscle tone, reflex response and colour at 1 and 5 minutes, each 0 to 2, for a maximum of 10. Most babies score above 7, and hands and feet often stay bluish at first, so a 10 is uncommon. It alerts staff when a baby needs help but does not predict long-term health, development or intelligence.",
+  "whatToKnow": "The Apgar score rates heart rate, breathing, muscle tone, reflex response and color at 1 and 5 minutes, each 0 to 2, for a maximum of 10. Most babies score above 7, and hands and feet often stay bluish at first, so a 10 is uncommon. It alerts staff when a baby needs help but does not predict long-term health, development or intelligence.",
   "whatToDo": [
    {
     "when": "After the birth",
@@ -903,7 +903,7 @@
   "whatToDo": [
    {
     "when": "Concern",
-    "action": "Speak to your GP or pediatrician and the school's special needs coordinator."
+    "action": "Speak to your doctor or pediatrician and the school's special needs coordinator."
    },
    {
     "when": "Meanwhile",
@@ -1140,7 +1140,7 @@
   ],
   "seeClinicianIf": "Ask the pediatrician if the site swells, drains pus for a long time, or the glands in the armpit become large.",
   "evidence": "guideline",
-  "evidenceNote": "WHO position paper 2018; national policies differ by TB rates. Kazakhstan routine schedule could not be checked from an opened official page.",
+  "evidenceNote": "WHO position paper 2018; national policies differ by TB rates.",
   "sources": [
    {
     "title": "WHO: Summary of the WHO Position Paper on BCG vaccines (February 2018)",
@@ -1171,7 +1171,7 @@
    "unit": "month",
    "value": 12
   },
-  "whatToKnow": "Sleeping on a sofa or armchair with a baby is a recognised risk factor. NHS advice is not to share a bed if the baby was born early or small, or if anyone smokes, drinks alcohol or takes drowsy medicines. CDC recommends room sharing.",
+  "whatToKnow": "Sleeping on a sofa or armchair with a baby is a recognized risk factor. NHS advice is not to share a bed if the baby was born early or small, or if anyone smokes, drinks alcohol or takes drowsy medicines. CDC recommends room sharing.",
   "whatToDo": [
    {
     "when": "When feeding at night",
@@ -1325,7 +1325,7 @@
    "unit": "year",
    "value": 12
   },
-  "whatToKnow": "NHS says many children under 5 wet the bed and most outgrow it. See a GP if it continues after home measures or restarts after at least 6 dry months. Encourage daytime drinking, regular toilet trips including before bed, waterproof covers; do not punish or routinely wake. An alarm or medicine may be suggested. ADHD and constipation can contribute.",
+  "whatToKnow": "NHS says many children under 5 wet the bed and most outgrow it. See a doctor if it continues after home measures or restarts after at least 6 dry months. Encourage daytime drinking, regular toilet trips including before bed, waterproof covers; do not punish or routinely wake. An alarm or medicine may be suggested. ADHD and constipation can contribute.",
   "whatToDo": [
    {
     "when": "Now",
@@ -1407,7 +1407,6 @@
   "title": "Raising a bilingual or trilingual child",
   "parentQuestions": [
    "Will two languages confuse my child?",
-   "Should we speak Russian, Kazakh and English at home?",
    "My child mixes languages",
    "Will two languages delay my child's speech?"
   ],
@@ -1522,12 +1521,12 @@
   "id": "birth-partner-doula-and-classes",
   "title": "Childbirth education classes: do they help?",
   "parentQuestions": [
-   "Do we need antenatal classes?",
+   "Do we need prenatal classes?",
    "Hypnobirthing or standard classes?",
    "Is a refresher class useful for a second baby?",
    "Should I have a doula?",
    "Can my husband be with me?",
-   "Are antenatal classes worth it?"
+   "Are prenatal classes worth it?"
   ],
   "category": "learning",
   "ageStart": {
@@ -1538,7 +1537,7 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "NHS antenatal classes usually start 8 to 10 weeks before the due date, run weekly for about 2 hours and cover labor, relaxation, delivery methods, newborn care and emotional wellbeing. They are free on the NHS, and refresher classes suit second babies. NICE says to offer all women education on the signs of labor, including how Braxton Hicks differs from active labor and how to contact the team. A Cochrane review (9 trials, last updated 2007) found the effects of general antenatal education on birth outcomes remain largely unknown.",
+  "whatToKnow": "NHS prenatal classes usually start 8 to 10 weeks before the due date, run weekly for about 2 hours and cover labor, relaxation, delivery methods, newborn care and emotional wellbeing. They are free on the NHS, and refresher classes suit second babies. NICE says to offer all women education on the signs of labor, including how Braxton Hicks differs from active labor and how to contact the team. A Cochrane review (9 trials, last updated 2007) found the effects of general prenatal education on birth outcomes remain largely unknown.",
   "whatToDo": [
    {
     "when": "By 28 to 30 weeks",
@@ -1558,7 +1557,7 @@
    },
    {
     "when": "From about 28 weeks",
-    "action": "Book an antenatal class and attend with your partner."
+    "action": "Book a prenatal class and attend with your partner."
    }
   ],
   "evidence": "research",
@@ -1611,7 +1610,7 @@
    "Do I need a birth plan?",
    "What should be in it?",
    "What if the plan changes?",
-   "Which positions are best in labour?",
+   "Which positions are best in labor?",
    "Are routine procedures like enema or shaving needed?"
   ],
   "category": "decisions",
@@ -1642,7 +1641,7 @@
     "action": "Write your preferences on one page and discuss with your midwife."
    },
    {
-    "when": "In labour",
+    "when": "In labor",
     "action": "Move, stay upright and change position as comfortable."
    }
   ],
@@ -1747,11 +1746,11 @@
    "unit": "pregnancyWeek",
    "value": 24
   },
-  "whatToKnow": "Light bleeding is common early on and does not always mean a miscarriage, but any bleeding should be checked with a maternity unit or doctor. The NHS defines miscarriage as loss before 24 weeks and lists risk factors such as age 35 or older, smoking, heavy caffeine or alcohol, and some medical conditions. It often has no known cause. Heavy bleeding, severe pain, shoulder pain or fainting are emergencies.",
+  "whatToKnow": "Light bleeding is common early on and does not always mean a miscarriage, but any bleeding should be checked with a hospital or doctor. The NHS defines miscarriage as loss before 24 weeks and lists risk factors such as age 35 or older, smoking, heavy caffeine or alcohol, and some medical conditions. It often has no known cause. Heavy bleeding, severe pain, shoulder pain or fainting are emergencies.",
   "whatToDo": [
    {
     "when": "Any bleeding",
-    "action": "Call your maternity unit, early pregnancy unit or local health advice line."
+    "action": "Call your hospital, early pregnancy unit or local health advice line."
    },
    {
     "when": "Heavy bleeding or severe pain",
@@ -1782,7 +1781,8 @@
    "rh-negative-anti-d",
    "reduced-fetal-movements-and-kick-counting",
    "prenatal-depression-and-anxiety"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "body-image-and-self-view",
@@ -1979,7 +1979,7 @@
    "How do I know if these are real contractions?",
    "What is the difference between Braxton Hicks and labor?",
    "Contractions stopped when I lay down, is that normal?",
-   "How do I know it is labour?",
+   "How do I know it is labor?",
    "When should I go to the hospital?",
    "What are Braxton Hicks?"
   ],
@@ -2008,7 +2008,7 @@
    },
    {
     "when": "Before the due date",
-    "action": "Ask your midwife or doctor at which pattern they want you to call, and save the maternity unit phone number."
+    "action": "Ask your midwife or doctor at which pattern they want you to call, and save the hospital phone number."
    },
    {
     "when": "From 36 weeks",
@@ -2021,7 +2021,7 @@
   ],
   "seeClinicianIf": "You are not sure, they are getting stronger or closer together, or any urgent sign appears (waters breaking, bleeding, less baby movement, contractions before 37 weeks).",
   "evidence": "guideline",
-  "evidenceNote": "ACOG and NHS describe the same distinguishing features; NICE tells services to teach this difference antenatally. The signs are guides, not a test, and a cervical exam is the only certain check.",
+  "evidenceNote": "ACOG and NHS describe the same distinguishing features; NICE tells services to teach this difference before birth. The signs are guides, not a test, and a cervical exam is the only certain check.",
   "sources": [
    {
     "title": "ACOG: How to Tell When Labor Begins",
@@ -2244,7 +2244,7 @@
     "action": "Wash hands, clean toys, keep newborns away from people with colds. NHS lists the RSV vaccine in pregnancy for baby protection in the first 6 months."
    }
   ],
-  "seeClinicianIf": "NHS says to call your local emergency number (911 in the US) or go to the ER for difficulty breathing, pauses in breathing, blue or grey skin, tongue or lips, or a floppy child who will not wake or stay awake. Ask for urgent help if the cold is worsening, feeding is much reduced, there has been a dry nappy for 12 hours, or you are worried. Open the app's Urgent help screen.",
+  "seeClinicianIf": "NHS says to call your local emergency number (911 in the US) or go to the ER for difficulty breathing, pauses in breathing, blue or grey skin, tongue or lips, or a floppy child who will not wake or stay awake. Ask for urgent help if the cold is worsening, feeding is much reduced, there has been a dry diaper for 12 hours, or you are worried. Open the app's Urgent help screen.",
   "evidence": "guideline",
   "evidenceNote": "NHS gives these steps and says to trust your own judgement if your child seems seriously unwell.",
   "sources": [
@@ -2354,7 +2354,7 @@
     "action": "Watch for fever, stomach pain, vomiting or blood in the stool and report at once."
    }
   ],
-  "seeClinicianIf": "Go to the ER immediately if a battery may be stuck, or call your local emergency number if the child has trouble breathing or chokes. Poison Control says an x-ray is usually needed right away. Pain or discharge from the nose or ear can mean a battery there. Open the app's fixed Urgent help screen. We did not open a Kazakhstan hotline.",
+  "seeClinicianIf": "Go to the ER immediately if a battery may be stuck, or call your local emergency number if the child has trouble breathing or chokes. Poison Control says an x-ray is usually needed right away. Pain or discharge from the nose or ear can mean a battery there. Open the app's fixed Urgent help screen.",
   "evidence": "guideline",
   "evidenceNote": "Poison Control page opened (National Capital Poison Center). It covers button batteries only; we did not open a source on magnets, so no magnet advice is included.",
   "sources": [
@@ -2550,7 +2550,7 @@
     "action": "Watch for the symptoms listed below."
    }
   ],
-  "seeClinicianIf": "Seek urgent care for fast or laboured breathing, blue or grey lips or skin, poor feeding, or unusual sleepiness.",
+  "seeClinicianIf": "Seek urgent care for fast or labored breathing, blue or grey lips or skin, poor feeding, or unusual sleepiness.",
   "evidence": "guideline",
   "evidenceNote": "Used in the US and many countries; not all countries screen routinely.",
   "sources": [
@@ -2971,7 +2971,7 @@
    "unit": "month",
    "value": 3
   },
-  "whatToKnow": "At this age risks are falls, hot drinks, sleep hazards and being left unattended on raised surfaces. NHS advises changing nappies on a mat on the floor or never turning away on a table, and holding the bottle and baby at feeds.",
+  "whatToKnow": "At this age risks are falls, hot drinks, sleep hazards and being left unattended on raised surfaces. NHS advises changing diapers on a mat on the floor or never turning away on a table, and holding the bottle and baby at feeds.",
   "whatToDo": [
    {
     "when": "Daily",
@@ -3108,7 +3108,7 @@
  },
  {
   "id": "choosing-where-to-give-birth",
-  "title": "Where to give birth: hospital, birth centre or home",
+  "title": "Where to give birth: hospital, birth center or home",
   "parentQuestions": [
    "Is home birth safe?",
    "How do I choose a maternity hospital?",
@@ -3123,7 +3123,7 @@
    "unit": "pregnancyWeek",
    "value": 38
   },
-  "whatToKnow": "The NHS says you can give birth at home, in a midwife-led unit or in hospital, and that birth is generally safe in any of them for low-risk women. In the large English Birthplace study, the main safety outcome did not differ significantly by place overall, but for first-time mothers planned home birth had a higher rate of poor outcomes (adjusted odds ratio about 1.75, and the NHS page quotes 9 versus 5 per 1,000). Interventions were lower outside obstetric units, and transfers during labour were more common for first-time mothers.",
+  "whatToKnow": "The NHS says you can give birth at home, in a midwife-led unit or in hospital, and that birth is generally safe in any of them for low-risk women. In the large English Birthplace study, the main safety outcome did not differ significantly by place overall, but for first-time mothers planned home birth had a higher rate of poor outcomes (adjusted odds ratio about 1.75, and the NHS page quotes 9 versus 5 per 1,000). Interventions were lower outside obstetric units, and transfers during labor were more common for first-time mothers.",
   "whatToDo": [
    {
     "when": "Second trimester",
@@ -3215,7 +3215,7 @@
   "whatToKnow": "The tip may look raw or yellowish at first, and healing usually takes about 7 to 10 days. If a bandage is used, apply petroleum jelly so it does not stick; a plastic ring falls off in about 5 to 8 days. Follow the provider's instructions for bathing and dressings.",
   "whatToDo": [
    {
-    "when": "Each nappy change",
+    "when": "Each diaper change",
     "action": "Check for bleeding and apply petroleum jelly if advised."
    },
    {
@@ -3260,7 +3260,7 @@
    "unit": "year",
    "value": 1
   },
-  "whatToKnow": "AAP lists lower risk of urinary tract infection in the first year, lower HIV and some STI risk in adulthood, and lower penile cancer risk (which is already very rare). WHO cites about 60% lower HIV acquisition in heterosexual men in African trials, an adult setting. RACP reports complication rates between 0.4% and 16% depending on definition, median about 1.5% in one review, bleeding about 0.8%, and notes the quality of published studies is low. ",
+  "whatToKnow": "AAP lists lower risk of urinary tract infection in the first year, lower HIV and some STI risk in adulthood, and lower penile cancer risk (which is already very rare). WHO cites about 60% lower HIV acquisition in heterosexual men in African trials, an adult setting. RACP reports complication rates between 0.4% and 16% depending on definition, median about 1.5% in one review, bleeding about 0.8%, and notes the quality of published studies is low.",
   "whatToDo": [
    {
     "when": "When deciding",
@@ -3313,7 +3313,7 @@
    "unit": "month",
    "value": 1
   },
-  "whatToKnow": "Circumcision is the removal of the foreskin. Major medical bodies describe it as a family decision rather than a medical necessity for most boys. Some give a weak preference (AAP says health benefits outweigh risks), some do not recommend routine circumcision (RACP, Canadian Paediatric Society), and some recommend deferring to the boy himself (Nordic ombudsmen, KNMG).",
+  "whatToKnow": "Circumcision is the removal of the foreskin. Major medical bodies describe it as a family decision rather than a medical necessity for most boys. Some give a weak preference (AAP says health benefits outweigh risks), some do not recommend routine circumcision (RACP, Canadian Pediatric Society), and some recommend deferring to the boy himself (Nordic ombudsmen, KNMG).",
   "whatToDo": [
    {
     "when": "Second trimester",
@@ -3379,7 +3379,7 @@
    "unit": "month",
    "value": 1
   },
-  "whatToKnow": "AAP says circumcision is painful but pain can be reduced with numbing cream and with a local injection at the base of the penis, which blocks pain more fully. RACP says doing the procedure without anaesthesia and analgesia is unacceptable, and that sucrose and topical cream alone do not control the pain adequately. The Canadian Paediatric Society lists local anaesthetic, sugar solution, numbing cream and acetaminophen.",
+  "whatToKnow": "AAP says circumcision is painful but pain can be reduced with numbing cream and with a local injection at the base of the penis, which blocks pain more fully. RACP says doing the procedure without anesthesia and analgesia is unacceptable, and that sucrose and topical cream alone do not control the pain adequately. The Canadian Pediatric Society lists local anesthetic, sugar solution, numbing cream and acetaminophen.",
   "whatToDo": [
    {
     "when": "Before booking",
@@ -3573,11 +3573,11 @@
   "whatToDo": [
    {
     "when": "During crying",
-    "action": "Check hunger, nappy, wind and temperature, then try holding, rocking, a warm bath, gentle white noise."
+    "action": "Check hunger, diaper, wind and temperature, then try holding, rocking, a warm bath, gentle white noise."
    },
    {
     "when": "Caring for yourself",
-    "action": "Put the baby safely in the cot and take a break if you feel overwhelmed; ask for help."
+    "action": "Put the baby safely in the crib and take a break if you feel overwhelmed; ask for help."
    }
   ],
   "seeClinicianIf": "See a clinician for a weak or high pitched cry, a cry that sounds different from usual, fever, not feeding, poor weight gain, or if you cannot cope.",
@@ -3632,7 +3632,7 @@
    },
    {
     "when": "If your child is uncomfortable",
-    "action": "Paracetamol or ibuprofen can ease aches or a high temperature. Check the label or ask a pharmacist, and see the weight-based dosing page rather than guessing (fever-medicine-by-weight)."
+    "action": "Acetaminophen (Tylenol) or ibuprofen can ease aches or a high temperature. Check the label or ask a pharmacist, and see the weight-based dosing page rather than guessing (fever-medicine-by-weight)."
    },
    {
     "when": "Always",
@@ -3643,7 +3643,7 @@
     "action": "Wash hands, use tissues once and bin them, do not share cups or towels."
    }
   ],
-  "seeClinicianIf": "NHS says to see a GP for a high temperature lasting more than 3 days, symptoms that get worse, shortness of breath or chest pain, a cold that has not improved after 10 days, or any time you are worried about your child. Call your local emergency number or go to the ER for blue or grey lips or severe breathing difficulty.",
+  "seeClinicianIf": "NHS says to see a doctor for a high temperature lasting more than 3 days, symptoms that get worse, shortness of breath or chest pain, a cold that has not improved after 10 days, or any time you are worried about your child. Call your local emergency number or go to the ER for blue or grey lips or severe breathing difficulty.",
   "evidence": "guideline",
   "evidenceNote": "NHS and CDC pages describe the same course and say antibiotics do not treat colds. NHS says little evidence supports vitamin C, echinacea or garlic.",
   "sources": [
@@ -3732,7 +3732,7 @@
    },
    {
     "when": "If relying on LAM",
-    "action": "Switch to another method as soon as baby is over 6 months, gets formula, solids or a dummy, periods return (even light spotting), night feeds stop, or feeds get further apart. NHS notes expressing may make LAM less reliable."
+    "action": "Switch to another method as soon as baby is over 6 months, gets formula, solids or a pacifier, periods return (even light spotting), night feeds stop, or feeds get further apart. NHS notes expressing may make LAM less reliable."
    },
    {
     "when": "If you want an IUD or IUS",
@@ -3794,7 +3794,7 @@
    }
   ],
   "evidence": "guideline",
-  "evidenceNote": "AAP and similar bodies favour public banking; the main disagreement is marketing claims from private banks, not between medical societies.",
+  "evidenceNote": "AAP and similar bodies favor public banking; the main disagreement is marketing claims from private banks, not between medical societies.",
   "sources": [
    {
     "title": "AAP Encourages Use of Public Cord Blood Banks (HealthyChildren.org)",
@@ -3889,14 +3889,14 @@
    },
    {
     "when": "Before any cough medicine",
-    "action": "Ask a pharmacist about age limits. Do not combine cough and cold products with paracetamol or ibuprofen, you can double up on ingredients."
+    "action": "Ask a pharmacist about age limits. Do not combine cough and cold products with acetaminophen (Tylenol) or ibuprofen, you can double up on ingredients."
    },
    {
     "when": "If the cough lingers",
     "action": "Note how long it has gone on and whether it is worse at night or with running or cold air, and mention it at the next visit."
    }
   ],
-  "seeClinicianIf": "NHS says to ask for an urgent appointment or call for help if the cough is very bad or quickly worsening, the child seems very unwell, finds it hard to breathe, has chest pain or coughs up blood. See a GP for a cough lasting more than 3 weeks. For severe breathing difficulty or blue or grey lips, call your local emergency number or go to the ER and open the app's Urgent help screen.",
+  "seeClinicianIf": "NHS says to ask for an urgent appointment or call for help if the cough is very bad or quickly worsening, the child seems very unwell, finds it hard to breathe, has chest pain or coughs up blood. See a doctor for a cough lasting more than 3 weeks. For severe breathing difficulty or blue or grey lips, call your local emergency number or go to the ER and open the app's Urgent help screen.",
   "evidence": "guideline",
   "evidenceNote": "NHS gives these steps and states the evidence for honey and herbal products is limited. The honey age limit comes from NHS wording (under 1 year).",
   "sources": [
@@ -4069,7 +4069,7 @@
    "unit": "month",
    "value": 24
   },
-  "whatToKnow": "US rules since 2011 ban traditional drop side cribs, and AAP advises keeping bumpers, pillows and soft toys out. NHS lists a firm mattress that fits snugly, bars no more than 6.5 cm apart, and a cot marked to a recognised standard.",
+  "whatToKnow": "US rules since 2011 ban traditional drop side cribs, and AAP advises keeping bumpers, pillows and soft toys out. NHS lists a firm mattress that fits snugly, bars no more than 6.5 cm apart, and a crib marked to a recognized standard.",
   "whatToDo": [
    {
     "when": "Buying",
@@ -4102,7 +4102,7 @@
  },
  {
   "id": "crisis-1-year",
-  "title": "The 'crisis of 1 year' (Vygotsky and Russian tradition)",
+  "title": "The 'crisis of 1 year' (Vygotsky)",
   "parentQuestions": [
    "What is the crisis of 1 year?"
   ],
@@ -4115,7 +4115,7 @@
    "unit": "month",
    "value": 18
   },
-  "whatToKnow": "In the Russian developmental psychology tradition (Vygotsky, Elkonin) a crisis around 1 year marks the shift from infancy to early childhood: walking, first words, wishes and early protest. Western research does not use this label but describes the same changes: walking, first words, separation and strong attachment.",
+  "whatToKnow": "In Vygotsky's and Elkonin's developmental psychology a crisis around 1 year marks the shift from infancy to early childhood: walking, first words, wishes and early protest. Western research does not use this label but describes the same changes: walking, first words, separation and strong attachment.",
   "whatToDo": [
    {
     "when": "Practice",
@@ -4158,7 +4158,7 @@
    "unit": "year",
    "value": 4
   },
-  "whatToKnow": "Vygotsky described a crisis at about 3 with negativism, stubbornness, self-will and 'I myself'; he said crises are not inevitable and vary widely. The Western equivalents are the terrible twos or threenager, and research on autonomy and tantrums finds peak at 18 to 36 months. One Russian kindergarten study found marked symptoms in about 59 percent of children, often tied to adult handling.",
+  "whatToKnow": "Vygotsky described a crisis at about 3 with negativism, stubbornness, self-will and 'I myself'; he said crises are not inevitable and vary widely. The Western equivalents are the terrible twos or threenager, and research on autonomy and tantrums finds peak at 18 to 36 months. One kindergarten study found marked symptoms in about 59 percent of children, often tied to adult handling.",
   "whatToDo": [
    {
     "when": "Daily",
@@ -4191,7 +4191,7 @@
   "parentQuestions": [
    "Is the crisis of 7 years real?",
    "My 6 or 7 year old became moody and defiant before school, is that the crisis?",
-   "What is the 7 year crisis in Russian psychology?"
+   "What is the 7 year crisis in Vygotsky's psychology?"
   ],
   "category": "development",
   "ageStart": {
@@ -4265,7 +4265,7 @@
    },
    {
     "when": "While you wait",
-    "action": "Keep your child upright and calm, give fluids, and check on them regularly, including at night. Paracetamol or ibuprofen can ease discomfort."
+    "action": "Keep your child upright and calm, give fluids, and check on them regularly, including at night. Acetaminophen (Tylenol) or ibuprofen can ease discomfort."
    },
    {
     "when": "Not this",
@@ -4312,7 +4312,7 @@
    "unit": "month",
    "value": 12
   },
-  "whatToKnow": "Feeling upset or angry at a crying baby is normal; keeping control of your behavior is what matters. The practical rule from NHS and AAP: if you are stressed and nobody can take over, put the baby down safely in the cot or crib, leave the room and calm down. Shaking a baby can cause brain damage, blindness or death, and no soothing method works every time, which is the point of the Period of PURPLE Crying program.",
+  "whatToKnow": "Feeling upset or angry at a crying baby is normal; keeping control of your behavior is what matters. The practical rule from NHS and AAP: if you are stressed and nobody can take over, put the baby down safely in the crib or crib, leave the room and calm down. Shaking a baby can cause brain damage, blindness or death, and no soothing method works every time, which is the point of the Period of PURPLE Crying program.",
   "whatToDo": [
    {
     "when": "Now, before it happens",
@@ -4320,7 +4320,7 @@
    },
    {
     "when": "When you reach your limit",
-    "action": "Put baby on their back in the crib or cot (nothing soft in it), leave the room, and breathe. NHS suggests about 10 minutes before going back; AAP suggests 10 to 15 minutes and not picking the baby up until you feel calm. Music, a call to someone, or a simple chore can help."
+    "action": "Put baby on their back in the crib or crib (nothing soft in it), leave the room, and breathe. NHS suggests about 10 minutes before going back; AAP suggests 10 to 15 minutes and not picking the baby up until you feel calm. Music, a call to someone, or a simple chore can help."
    },
    {
     "when": "After a break",
@@ -4432,7 +4432,7 @@
    "unit": "year",
    "value": 9
   },
-  "whatToKnow": "For a bleeding cut, press firmly with a clean cloth or bandage, raise a hand or arm above the head, and add more cloth on top if blood soaks through. If something is stuck in the wound, do not pull it out and do not press on it: press on both sides to bring the edges together. Once bleeding stops, rinse with tap or bottled water and cover with a clean dressing. Check that a bandage is not too tight by pressing the skin beyond it for 5 seconds and seeing colour return within 2 seconds.",
+  "whatToKnow": "For a bleeding cut, press firmly with a clean cloth or bandage, raise a hand or arm above the head, and add more cloth on top if blood soaks through. If something is stuck in the wound, do not pull it out and do not press on it: press on both sides to bring the edges together. Once bleeding stops, rinse with tap or bottled water and cover with a clean dressing. Check that a bandage is not too tight by pressing the skin beyond it for 5 seconds and seeing color return within 2 seconds.",
   "whatToDo": [
    {
     "when": "Bleeding",
@@ -4512,7 +4512,7 @@
   "parentQuestions": [
    "How do I know my child is dehydrated?",
    "My child has a fever and won't drink, what now?",
-   "How many wet nappies should there be?"
+   "How many wet diapers should there be?"
   ],
   "category": "health",
   "ageStart": {
@@ -4523,7 +4523,7 @@
    "unit": "month",
    "value": 144
   },
-  "whatToKnow": "NHS says babies, children and older adults are at more risk of dehydration, and a high temperature is one cause alongside vomiting and diarrhea. In babies it may show as a sunken soft spot, sunken eyes, few or no tears, fewer wet nappies, drowsiness or irritability. In older children it can look like dark strong-smelling pee, peeing less, dry mouth and lips, tiredness or dizziness.",
+  "whatToKnow": "NHS says babies, children and older adults are at more risk of dehydration, and a high temperature is one cause alongside vomiting and diarrhea. In babies it may show as a sunken soft spot, sunken eyes, few or no tears, fewer wet diapers, drowsiness or irritability. In older children it can look like dark strong-smelling pee, peeing less, dry mouth and lips, tiredness or dizziness.",
   "whatToDo": [
    {
     "when": "While your child is sick",
@@ -4531,14 +4531,14 @@
    },
    {
     "when": "Watch",
-    "action": "Count wet nappies or toilet trips, check for tears and a moist mouth, and note drowsiness."
+    "action": "Count wet diapers or toilet trips, check for tears and a moist mouth, and note drowsiness."
    },
    {
     "when": "When ill with a fever",
     "action": "Look for dehydration at each check, NHS fever advice lists it as a reason to call."
    }
   ],
-  "seeClinicianIf": "NHS says call for urgent advice for unusual tiredness or drowsiness, few wet nappies, dark yellow pee, fast breathing, no tears, or a sunken soft spot. Call your local emergency number or go to the ER if there is blue, grey, pale or blotchy skin, cold skin, fast or difficult breathing, confusion, or a child who is very sleepy or hard to wake, since these can signal shock. Open the app's Urgent help screen.",
+  "seeClinicianIf": "NHS says call for urgent advice for unusual tiredness or drowsiness, few wet diapers, dark yellow pee, fast breathing, no tears, or a sunken soft spot. Call your local emergency number or go to the ER if there is blue, grey, pale or blotchy skin, cold skin, fast or difficult breathing, confusion, or a child who is very sleepy or hard to wake, since these can signal shock. Open the app's Urgent help screen.",
   "evidence": "guideline",
   "evidenceNote": "NHS dehydration and fever pages agree on these signs. The pages we opened do not give a rehydration schedule by weight.",
   "sources": [
@@ -4711,7 +4711,7 @@
    "unit": "month",
    "value": 3
   },
-  "whatToKnow": "Young babies may need 10 to 12 changes a day. Change wet or dirty nappies promptly, clean with water or fragrance free wipes, dry well and allow nappy-free time. Avoid soaps, lotions, talc and antiseptic creams on the rash; a pharmacist can suggest a barrier cream.",
+  "whatToKnow": "Young babies may need 10 to 12 changes a day. Change wet or dirty diapers promptly, clean with water or fragrance free wipes, dry well and allow diaper-free time. Avoid soaps, lotions, talc and antiseptic creams on the rash; a pharmacist can suggest a barrier cream.",
   "whatToDo": [
    {
     "when": "Every change",
@@ -4719,7 +4719,7 @@
    },
    {
     "when": "If rash",
-    "action": "Change more often, leave the nappy off when possible, and use a thin barrier cream."
+    "action": "Change more often, leave the diaper off when possible, and use a thin barrier cream."
    }
   ],
   "seeClinicianIf": "See a clinician if the rash gets worse or spreads, does not clear, causes distress, or comes with a fever.",
@@ -4951,7 +4951,7 @@
    "unit": "year",
    "value": 9
   },
-  "whatToKnow": "NHS lists signs such as late speech, little interest in language play or the alphabet, reading below age level or slowly and hesitantly, spelling errors, trouble with sequences like days of the week, and frustration or withdrawal. A GP cannot diagnose dyslexia but can check hearing and vision; the school special needs coordinator can arrange screening, and formal assessment is by an educational psychologist or specialist teacher. Some letter reversal is common in early writing.",
+  "whatToKnow": "NHS lists signs such as late speech, little interest in language play or the alphabet, reading below age level or slowly and hesitantly, spelling errors, trouble with sequences like days of the week, and frustration or withdrawal. A doctor cannot diagnose dyslexia but can check hearing and vision; the school special needs coordinator can arrange screening, and formal assessment is by an educational psychologist or specialist teacher. Some letter reversal is common in early writing.",
   "whatToDo": [
    {
     "when": "Concern",
@@ -4999,11 +4999,11 @@
    "unit": "year",
    "value": 3
   },
-  "whatToKnow": "Ear infections are common under 3. Most settle within about 3 days, up to a week, with pain relief. NHS says see a GP for under 12 months, pain beyond 3 days, or repeats; antibiotics are not always needed. Pacifier use in the second half of the first year is linked to more infections.",
+  "whatToKnow": "Ear infections are common under 3. Most settle within about 3 days, up to a week, with pain relief. NHS says see a doctor for under 12 months, pain beyond 3 days, or repeats; antibiotics are not always needed. Pacifier use in the second half of the first year is linked to more infections.",
   "whatToDo": [
    {
     "when": "At onset",
-    "action": "Give age-appropriate paracetamol or ibuprofen for pain; keep water out of the ear; do not insert anything."
+    "action": "Give age-appropriate acetaminophen (Tylenol) or ibuprofen for pain; keep water out of the ear; do not insert anything."
    },
    {
     "when": "Daily",
@@ -5236,7 +5236,7 @@
   "id": "elkonin-leading-activity",
   "title": "Play first, study later: Elkonin's leading activity",
   "parentQuestions": [
-   "Why do Russian kindergartens stress play-based learning before school?",
+   "Why do some kindergartens stress play-based learning before school?",
    "Is role play important before school?"
   ],
   "category": "development",
@@ -5343,7 +5343,7 @@
   "parentQuestions": [
    "What is the Edinburgh scale my midwife gave me?",
    "What score on the EPDS is worrying?",
-   "Does a high score mean I have postnatal depression?"
+   "Does a high score mean I have postpartum depression?"
   ],
   "category": "parent-wellbeing",
   "ageStart": {
@@ -5354,10 +5354,10 @@
    "unit": "month",
    "value": 12
   },
-  "whatToKnow": "The Edinburgh Postnatal Depression Scale is a 10-item self-report questionnaire developed in 1987 to screen for postnatal depression in the community. It takes about 5 minutes and has a simple scoring method. It is a screening tool: it flags who should be talked to, and the original validation study compared it with a clinical interview. We could not open a guideline page that states the cutoff scores, so none are given here; the clinician who scores it applies the local cutoff.",
+  "whatToKnow": "The Edinburgh Postnatal Depression Scale is a 10-item self-report questionnaire developed in 1987 to screen for postpartum depression in the community. It takes about 5 minutes and has a simple scoring method. It is a screening tool: it flags who should be talked to, and the original validation study compared it with a clinical interview. We could not open a guideline page that states the cutoff scores, so none are given here; the clinician who scores it applies the local cutoff.",
   "whatToDo": [
    {
-    "when": "At the postnatal check or a visit in the first months",
+    "when": "At the postpartum check or a visit in the first months",
     "action": "Ask whether the scale is offered and answer how you have felt over the past week, not how you think you should feel."
    },
    {
@@ -5977,7 +5977,7 @@
    "unit": "year",
    "value": 12
   },
-  "whatToKnow": "NHS says anxiety shows as irritability, clinginess, sleep trouble, bedwetting in younger children, and avoidance or concentration problems in older ones. Listen, problem-solve, keep routines, teach slow breathing, use a worry box, and do not push into a stressful situation before talking. See a GP if severe, long lasting or affecting daily life.",
+  "whatToKnow": "NHS says anxiety shows as irritability, clinginess, sleep trouble, bedwetting in younger children, and avoidance or concentration problems in older ones. Listen, problem-solve, keep routines, teach slow breathing, use a worry box, and do not push into a stressful situation before talking. See a doctor if severe, long lasting or affecting daily life.",
   "whatToDo": [
    {
     "when": "Now",
@@ -6054,7 +6054,8 @@
   "related": [
    "fever-toddler",
    "vaccines-0-3"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "feed-on-demand-vs-schedule",
@@ -6108,7 +6109,7 @@
   "id": "fever-medicine-by-weight",
   "title": "Fever medicine: where to find the right amount",
   "parentQuestions": [
-   "How much paracetamol or ibuprofen can I give?",
+   "How much acetaminophen (Tylenol) or ibuprofen can I give?",
    "Can I give both?",
    "Is it safe to give aspirin?"
   ],
@@ -6121,7 +6122,7 @@
    "unit": "month",
    "value": 144
   },
-  "whatToKnow": "The American Academy of Pediatrics says to use your child's weight to choose the amount of acetaminophen (paracetamol) or ibuprofen, and the age if the weight is unknown, and to confirm with your doctor. It warns that giving the wrong amount is one of the biggest mistakes parents make. This topic gives no numbers: use the official dosing tables.",
+  "whatToKnow": "The American Academy of Pediatrics says to use your child's weight to choose the amount of acetaminophen (acetaminophen (Tylenol)) or ibuprofen, and the age if the weight is unknown, and to confirm with your doctor. It warns that giving the wrong amount is one of the biggest mistakes parents make. This topic gives no numbers: use the official dosing tables.",
   "whatToDo": [
    {
     "when": "Before any dose",
@@ -6133,11 +6134,11 @@
    },
    {
     "when": "Limits to know",
-    "action": "NHS says no aspirin under 16, no paracetamol under 2 months, and no ibuprofen under 3 months, under 5 kg, with chickenpox, when dehydrated, or with asthma unless a doctor advises. AAP says ibuprofen should not be used under 6 months unless a doctor says so. The pages differ, so ask your own doctor."
+    "action": "NHS says no aspirin under 16, no acetaminophen (Tylenol) under 2 months, and no ibuprofen under 3 months, under 5 kg, with chickenpox, when dehydrated, or with asthma unless a doctor advises. AAP says ibuprofen should not be used under 6 months unless a doctor says so. The pages differ, so ask your own doctor."
    },
    {
     "when": "Combining",
-    "action": "NHS says do not alternate ibuprofen and paracetamol unless a doctor or nurse tells you to."
+    "action": "NHS says do not alternate ibuprofen and acetaminophen (Tylenol) unless a doctor or nurse tells you to."
    }
   ],
   "seeClinicianIf": "A fever in the first 12 weeks needs medical attention at once (AAP). Ask the doctor or pharmacist before giving any medicine to a baby under 2 years. Call your local emergency number or go to the ER if a child has a stiff neck, non-fading rash, breathing difficulty or is hard to wake.",
@@ -6249,11 +6250,11 @@
   "whatToDo": [
    {
     "when": "During fever",
-    "action": "Dress lightly, offer fluids, give weight-based paracetamol or ibuprofen only if uncomfortable."
+    "action": "Dress lightly, offer fluids, give weight-based acetaminophen (Tylenol) or ibuprofen only if uncomfortable."
    },
    {
     "when": "Record",
-    "action": "Note temperature, how the child drinks, plays and wets nappies."
+    "action": "Note temperature, how the child drinks, plays and wets diapers."
    }
   ],
   "seeClinicianIf": "Under 3 months with 38C or more; fever over 5 days; stiff neck, rash that does not fade under a glass, trouble breathing, blue lips, very sleepy or inconsolable, dehydration, or a seizure.",
@@ -6283,7 +6284,7 @@
   "parentQuestions": [
    "My newborn feels warm, is it a fever?",
    "What temperature is dangerous?",
-   "Can I give paracetamol first?"
+   "Can I give acetaminophen (Tylenol) first?"
   ],
   "category": "health",
   "ageStart": {
@@ -6329,7 +6330,8 @@
    "taking-a-baby-temperature",
    "newborn-red-flags",
    "newborn-jaundice"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "first-dental-visit",
@@ -6403,10 +6405,10 @@
    },
    {
     "when": "First days",
-    "action": "Count feeds and wet and dirty nappies; ask for a lactation check before leaving."
+    "action": "Count feeds and wet and dirty diapers; ask for a lactation check before leaving."
    }
   ],
-  "seeClinicianIf": "Ask the same day if the baby feeds fewer than 8 times in 24 hours, is hard to wake for feeds, has very few wet nappies or looks yellow.",
+  "seeClinicianIf": "Ask the same day if the baby feeds fewer than 8 times in 24 hours, is hard to wake for feeds, has very few wet diapers or looks yellow.",
   "evidence": "guideline",
   "evidenceNote": "WHO and AAP agree on breastfeeding start; individual feeding choices (formula, mixed) are the parent's decision and should be supported.",
   "sources": [
@@ -6453,7 +6455,7 @@
    },
    {
     "when": "At the visit",
-    "action": "Ask about nappy counts, cord and circumcision healing, fever plan."
+    "action": "Ask about diaper counts, cord and circumcision healing, fever plan."
    }
   ],
   "seeClinicianIf": "Call before the visit for worries listed under jaundice, feeding or breathing; do not wait.",
@@ -6536,7 +6538,7 @@
    "unit": "pregnancyWeek",
    "value": 21
   },
-  "whatToKnow": "In the NHS programme the 12-week scan and the combined test (usually 11 to 14 weeks) screen for Down, Edwards and Patau syndromes using the scan and blood; a quadruple blood test at about 14 to 20 weeks is the fallback if the combined test is not possible. The 20-week anomaly scan, usually done at 18 to 21 weeks, looks for 11 specific conditions and checks growth, placenta and blood flow. The NHS notes some conditions are seen more clearly than others and the scan may not find everything. WHO recommends at least one scan before 24 weeks.",
+  "whatToKnow": "In the NHS program the 12-week scan and the combined test (usually 11 to 14 weeks) screen for Down, Edwards and Patau syndromes using the scan and blood; a quadruple blood test at about 14 to 20 weeks is the fallback if the combined test is not possible. The 20-week anomaly scan, usually done at 18 to 21 weeks, looks for 11 specific conditions and checks growth, placenta and blood flow. The NHS notes some conditions are seen more clearly than others and the scan may not find everything. WHO recommends at least one scan before 24 weeks.",
   "whatToDo": [
    {
     "when": "11 to 14 weeks",
@@ -6640,7 +6642,7 @@
   "whatToDo": [
    {
     "when": "Daily",
-    "action": "Tummy time awake, vary which way the baby faces in the cot."
+    "action": "Tummy time awake, vary which way the baby faces in the crib."
    },
    {
     "when": "If you notice flattening",
@@ -6688,7 +6690,7 @@
   "whatToDo": [
    {
     "when": "At home",
-    "action": "Rest, fluids, and paracetamol or ibuprofen if distressed (see fever-medicine-by-weight)."
+    "action": "Rest, fluids, and acetaminophen (Tylenol) or ibuprofen if distressed (see fever-medicine-by-weight)."
    },
    {
     "when": "Prevention",
@@ -7111,7 +7113,7 @@
     "action": "Keep routines predictable and safe; AAP names stable relationships and predictable routines as what young brains need."
    }
   ],
-  "seeClinicianIf": "Raise delays, behaviour changes, sleep or feeding problems, or signs of distress with the pediatrician, who can screen for developmental issues, trauma exposure and prenatal risks.",
+  "seeClinicianIf": "Raise delays, behavior changes, sleep or feeding problems, or signs of distress with the pediatrician, who can screen for developmental issues, trauma exposure and prenatal risks.",
   "evidence": "guideline",
   "evidenceNote": "From AAP pages. We could not open a childwelfare.gov foster care page (blocked or not found), so US system rules are not described beyond AAP.",
   "sources": [
@@ -7335,7 +7337,7 @@
   ],
   "seeClinicianIf": "Sexual behavior that disrupts daily activities, takes over other play and cannot be redirected, causes pain or injury, involves force or aggression, imitates adult sexual acts, or involves a much older child. Also raise any concern about toilet training that is painful or involves withholding stool.",
   "evidence": "theory",
-  "evidenceNote": "Psychosexual stages are a historical psychoanalytic framework with no solid experimental support and several recognised criticisms. The pediatric facts about the same ages come from AAP guidance and are separate from the theory.",
+  "evidenceNote": "Psychosexual stages are a historical psychoanalytic framework with no solid experimental support and several recognized criticisms. The pediatric facts about the same ages come from AAP guidance and are separate from the theory.",
   "sources": [
    {
     "title": "The Right Age to Potty Train (HealthyChildren.org, AAP)",
@@ -7606,7 +7608,7 @@
   "whatToDo": [
    {
     "when": "Before conception or at the first visit",
-    "action": "Ask whether your family background or local programme suggests a carrier panel."
+    "action": "Ask whether your family background or local program suggests a carrier panel."
    },
    {
     "when": "Before 10 weeks",
@@ -7619,7 +7621,7 @@
   ],
   "seeClinicianIf": "Raise it early if you or your partner have a family history of an inherited condition, a relative with a genetic disease, or parents who are blood relatives.",
   "evidence": "guideline",
-  "evidenceNote": "The NHS programme is official but covers specific conditions; broad panels are recommended by genetics societies as an option, not a universal duty. Panel choice is debated.",
+  "evidenceNote": "The NHS program is official but covers specific conditions; broad panels are recommended by genetics societies as an option, not a universal duty. Panel choice is debated.",
   "sources": [
    {
     "title": "Screening tests in pregnancy (NHS)",
@@ -7726,7 +7728,7 @@
    "unit": "pregnancyWeek",
    "value": 28
   },
-  "whatToKnow": "Gestational diabetes is high blood sugar that first appears in pregnancy and usually goes away after birth. Testing usually happens between 24 and 28 weeks, earlier for people at higher risk such as a previous case or a family history of type 2 diabetes. Management centres on food, activity and blood sugar monitoring, and medicine or insulin if needed. Dieting to lose weight is not advised in pregnancy.",
+  "whatToKnow": "Gestational diabetes is high blood sugar that first appears in pregnancy and usually goes away after birth. Testing usually happens between 24 and 28 weeks, earlier for people at higher risk such as a previous case or a family history of type 2 diabetes. Management centers on food, activity and blood sugar monitoring, and medicine or insulin if needed. Dieting to lose weight is not advised in pregnancy.",
   "whatToDo": [
    {
     "when": "24 to 28 weeks",
@@ -7966,7 +7968,7 @@
  },
  {
   "id": "group-b-strep-screening",
-  "title": "Group B strep (GBS) test and antibiotics in labour",
+  "title": "Group B strep (GBS) test and antibiotics in labor",
   "parentQuestions": [
    "Do I need a GBS swab?",
    "What if I test positive for GBS?",
@@ -7981,20 +7983,20 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "Group B strep is a common bacterium that many healthy women carry and that can pass to the baby at birth. CDC advises universal screening at 35 to 37 weeks in the US, and antibiotics during labour for carriers lower the risk of infection in the newborn. The NHS describes antibiotics through a vein during labour and about 12 hours of baby monitoring after birth for carriers. The NHS page says GBS is not routinely tested for in the UK, so policy differs between countries.",
+  "whatToKnow": "Group B strep is a common bacterium that many healthy women carry and that can pass to the baby at birth. CDC advises universal screening at 35 to 37 weeks in the US, and antibiotics during labor for carriers lower the risk of infection in the newborn. The NHS describes antibiotics through a vein during labor and about 12 hours of baby monitoring after birth for carriers. The NHS page says GBS is not routinely tested for in the UK, so policy differs between countries.",
   "whatToDo": [
    {
     "when": "35 to 37 weeks",
     "action": "If screening is used in your country, do the swab."
    },
    {
-    "when": "In labour",
-    "action": "Tell staff you carry GBS as soon as labour starts or waters break."
+    "when": "In labor",
+    "action": "Tell staff you carry GBS as soon as labor starts or waters break."
    }
   ],
-  "seeClinicianIf": "Call the maternity unit early if waters break, you have a fever in labour, or a previous baby had GBS infection.",
+  "seeClinicianIf": "Call the hospital early if waters break, you have a fever in labor, or a previous baby had GBS infection.",
   "evidence": "guideline",
-  "evidenceNote": "CDC recommends universal screening; the NHS page says it is not routinely tested for. Both agree on antibiotics during labour for carriers.",
+  "evidenceNote": "CDC recommends universal screening; the NHS page says it is not routinely tested for. Both agree on antibiotics during labor for carriers.",
   "sources": [
    {
     "title": "Group B Strep in pregnancy (CDC)",
@@ -8147,7 +8149,7 @@
   "whatToDo": [
    {
     "when": "For comfort",
-    "action": "Offer cool fluids and soft foods, avoid acidic drinks like fruit juice and hot, salty or spicy food. Paracetamol or ibuprofen can ease a sore mouth. A pharmacist can suggest mouth gels for children."
+    "action": "Offer cool fluids and soft foods, avoid acidic drinks like fruit juice and hot, salty or spicy food. Acetaminophen (Tylenol) or ibuprofen can ease a sore mouth. A pharmacist can suggest mouth gels for children."
    },
    {
     "when": "Fluids",
@@ -8411,7 +8413,7 @@
    },
    {
     "when": "If symptoms appear",
-    "action": "Call the labour ward or go to emergency care the same day."
+    "action": "Call the labor ward or go to emergency care the same day."
    }
   ],
   "seeClinicianIf": "Get urgent care for severe headache that does not ease, flashing lights or blurred vision, sudden swelling, pain under the ribs or feeling very unwell.",
@@ -8437,7 +8439,8 @@
   "related": [
    "swelling-back-pain-and-sleep",
    "routine-prenatal-visit-schedule"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "hearing-check",
@@ -8500,7 +8503,7 @@
   "whatToDo": [
    {
     "when": "Concern",
-    "action": "See your GP; ask for a hearing test if concerns last."
+    "action": "See your doctor; ask for a hearing test if concerns last."
    },
    {
     "when": "School",
@@ -8596,11 +8599,11 @@
   "whatToDo": [
    {
     "when": "Pregnancy",
-    "action": "Ask that your hepatitis B test result is in your records and shared with the maternity unit."
+    "action": "Ask that your hepatitis B test result is in your records and shared with the hospital."
    },
    {
     "when": "Before birth",
-    "action": "Ask the maternity unit which schedule it follows and talk it through with the pediatrician; if you skip the birth dose, ask when the series will start."
+    "action": "Ask the hospital which schedule it follows and talk it through with the pediatrician; if you skip the birth dose, ask when the series will start."
    },
    {
     "when": "At birth",
@@ -8609,7 +8612,7 @@
   ],
   "seeClinicianIf": "Tell the pediatrician if the baby did not get the dose in hospital so it can be given at the first visit.",
   "evidence": "contested",
-  "evidenceNote": "The official bodies now differ: WHO and AAP recommend the dose for all newborns, while the US CDC (December 2025) recommends individual decisions when the mother tests negative. Both pages were opened on 2026-11-14. Nothing changes for babies of positive or unknown-status mothers. Which schedule applies depends on the country; Kazakhstan's calendar is covered in its own topic.",
+  "evidenceNote": "The official bodies now differ: WHO and AAP recommend the dose for all newborns, while the US CDC (December 2025) recommends individual decisions when the mother tests negative. Both pages were opened on 2026-11-14. Nothing changes for babies of positive or unknown-status mothers. Which schedule applies depends on the country;",
   "sources": [
    {
     "title": "HealthyChildren.org (AAP): Hepatitis B vaccine, what you need to know (updated 5 December 2025)",
@@ -8940,11 +8943,11 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "The NHS says only 1 in 20 babies arrives on the due date and suggests packing at least 3 weeks before. The list covers documents, loose clothes, nightwear, nursing bras, maternity pads, toiletries, snacks, a water bottle, phone charger, a car seat for the trip home, and baby clothes, nappies and a blanket. ACOG adds keeping the bag in a handy place, planning child care and pets, and having a car seat installed properly. Packing is practical rather than clinical: your hospital may have its own list.",
+  "whatToKnow": "The NHS says only 1 in 20 babies arrives on the due date and suggests packing at least 3 weeks before. The list covers documents, loose clothes, nightwear, nursing bras, maternity pads, toiletries, snacks, a water bottle, phone charger, a car seat for the trip home, and baby clothes, diapers and a blanket. ACOG adds keeping the bag in a handy place, planning child care and pets, and having a car seat installed properly. Packing is practical rather than clinical: your hospital may have its own list.",
   "whatToDo": [
    {
     "when": "By 32 to 34 weeks",
-    "action": "Ask the maternity unit for its own list of what to bring and what it supplies."
+    "action": "Ask the hospital for its own list of what to bring and what it supplies."
    },
    {
     "when": "By 36 weeks",
@@ -9006,7 +9009,7 @@
    "unit": "month",
    "value": 0
   },
-  "whatToKnow": "WHO recommends that healthy mothers and babies stay in the facility at least 24 hours after birth, with postnatal contacts on day 1, day 3, days 7 to 14 and at 6 weeks. WHO says discharge is acceptable once the mother's bleeding is controlled, neither has signs of infection or other disease, and the baby is breastfeeding well.",
+  "whatToKnow": "WHO recommends that healthy mothers and babies stay in the facility at least 24 hours after birth, with postpartum contacts on day 1, day 3, days 7 to 14 and at 6 weeks. WHO says discharge is acceptable once the mother's bleeding is controlled, neither has signs of infection or other disease, and the baby is breastfeeding well.",
   "whatToDo": [
    {
     "when": "Before discharge",
@@ -9014,7 +9017,7 @@
    },
    {
     "when": "Day of discharge",
-    "action": "Ask when the first postnatal contact will happen and who to call."
+    "action": "Ask when the first postpartum contact will happen and who to call."
    }
   ],
   "seeClinicianIf": "Ask to stay longer if feeding is not going well, the baby looks yellow, or you feel unwell.",
@@ -9065,7 +9068,7 @@
     "action": "Ask your midwife whether to wake for feeds."
    }
   ],
-  "seeClinicianIf": "Seek help for refusing feeds, very few wet nappies, extreme sleepiness, or weight loss.",
+  "seeClinicianIf": "Seek help for refusing feeds, very few wet diapers, extreme sleepiness, or weight loss.",
   "evidence": "guideline",
   "evidenceNote": "Numbers are rough guides; the pattern varies.",
   "sources": [
@@ -9191,7 +9194,7 @@
  },
  {
   "id": "induction-at-39-weeks-arrive-trial",
-  "title": "Induction of labour and the ARRIVE trial",
+  "title": "Induction of labor and the ARRIVE trial",
   "parentQuestions": [
    "Should I be induced at 39 weeks?",
    "When is induction offered?",
@@ -9206,7 +9209,7 @@
    "unit": "pregnancyWeek",
    "value": 42
   },
-  "whatToKnow": "The ARRIVE trial in the US randomised 6,106 low-risk first-time mothers to induction at 39 weeks or waiting. The main composite outcome did not differ significantly (4.3 versus 5.4 percent), but caesarean delivery was lower with induction (18.6 versus 22.2 percent). The NHS offers induction by 41 weeks and a membrane sweep from 39 weeks, and notes induced labour is often more painful and more likely to need forceps or ventouse.",
+  "whatToKnow": "The ARRIVE trial in the US randomised 6,106 low-risk first-time mothers to induction at 39 weeks or waiting. The main composite outcome did not differ significantly (4.3 versus 5.4 percent), but caesarean delivery was lower with induction (18.6 versus 22.2 percent). The NHS offers induction by 41 weeks and a membrane sweep from 39 weeks, and notes induced labor is often more painful and more likely to need forceps or ventouse.",
   "whatToDo": [
    {
     "when": "From 39 weeks",
@@ -9266,7 +9269,7 @@
    },
    {
     "when": "Compressions",
-    "action": "Baby: encircle the chest with both hands and use thumbs on the centre of the chest. Child: heel of one hand in the centre of the chest."
+    "action": "Baby: encircle the chest with both hands and use thumbs on the center of the chest. Child: heel of one hand in the center of the chest."
    },
    {
     "when": "Course",
@@ -9448,7 +9451,7 @@
   ],
   "seeClinicianIf": "Call a doctor if a child with a high temperature gets worse or has any red flag from the fever topic, or if an infection like measles is suspected (NHS says call the surgery first and keep home for at least 4 days from the start of the rash).",
   "evidence": "guideline",
-  "evidenceNote": "These are NHS rules for England, which refers to government health protection guidance. We did not find an opened Kazakhstan or CDC exclusion page, so local rules may differ.",
+  "evidenceNote": "These are NHS rules for England, which refers to government health protection guidance.",
   "sources": [
    {
     "title": "NHS: Is my child too ill for school?",
@@ -9719,7 +9722,7 @@
    "unit": "pregnancyWeek",
    "value": 42
   },
-  "whatToKnow": "The latent phase can take many hours or even days and is usually the longest part of labor. NHS and NICE advise staying at home if all is well: eat lightly, drink when thirsty, sleep if it starts at night, stay upright and gently active in the day, and use a bath, shower or breathing exercises; the NHS says paracetamol is safe in labor. WHO also recommends oral fluids and food for low-risk women. Being sent home before labor is established is common and not a sign something is wrong.",
+  "whatToKnow": "The latent phase can take many hours or even days and is usually the longest part of labor. NHS and NICE advise staying at home if all is well: eat lightly, drink when thirsty, sleep if it starts at night, stay upright and gently active in the day, and use a bath, shower or breathing exercises; the NHS says acetaminophen (Tylenol) is safe in labor. WHO also recommends oral fluids and food for low-risk women. Being sent home before labor is established is common and not a sign something is wrong.",
   "whatToDo": [
    {
     "when": "Late pregnancy",
@@ -9958,7 +9961,7 @@
   "whatToDo": [
    {
     "when": "Before 30 weeks",
-    "action": "Decide together who will be the companion and tell the maternity unit; ask about rules and costs."
+    "action": "Decide together who will be the companion and tell the hospital; ask about rules and costs."
    },
    {
     "when": "From 34 weeks",
@@ -10014,7 +10017,7 @@
    "unit": "pregnancyWeek",
    "value": 42
   },
-  "whatToKnow": "Cochrane (4 trials, 2497 women) found antenatal digital perineal massage lowers the chance of trauma needing stitches and of episiotomy, mostly in women without a previous vaginal birth. It lowered perineal pain at 3 months in women who had given birth before. It did not clearly change first or second degree tears, severe tears, or instrumental births. The NHS says it is done in the last few weeks of pregnancy and that the most benefit was seen in women who did it every day.",
+  "whatToKnow": "Cochrane (4 trials, 2497 women) found prenatal digital perineal massage lowers the chance of trauma needing stitches and of episiotomy, mostly in women without a previous vaginal birth. It lowered perineal pain at 3 months in women who had given birth before. It did not clearly change first or second degree tears, severe tears, or instrumental births. The NHS says it is done in the last few weeks of pregnancy and that the most benefit was seen in women who did it every day.",
   "whatToDo": [
    {
     "when": "In the last few weeks (often taught from about 34 to 35 weeks)",
@@ -10243,7 +10246,7 @@
    "unit": "pregnancyWeek",
    "value": 42
   },
-  "whatToKnow": "About 60 percent of people with waters breaking at term start labor within 24 hours (NICE). Without fluid there is a small rise in infection risk for the baby, and NICE gives serious early infection as about 1 percent versus 0.5 percent with intact membranes. NHS and NICE advise calling the unit, noting the colour and smell, using a pad rather than a tampon, checking temperature every 4 hours while awake, and being offered induction if labor has not started by about 24 hours. A positive group B strep test is a reason to be seen promptly, and NICE advises immediate induction if waters break at term in that case.",
+  "whatToKnow": "About 60 percent of people with waters breaking at term start labor within 24 hours (NICE). Without fluid there is a small rise in infection risk for the baby, and NICE gives serious early infection as about 1 percent versus 0.5 percent with intact membranes. NHS and NICE advise calling the unit, noting the color and smell, using a pad rather than a tampon, checking temperature every 4 hours while awake, and being offered induction if labor has not started by about 24 hours. A positive group B strep test is a reason to be seen promptly, and NICE advises immediate induction if waters break at term in that case.",
   "whatToDo": [
    {
     "when": "36 to 38 weeks",
@@ -10290,7 +10293,7 @@
  },
  {
   "id": "labor-when-to-call-or-go",
-  "title": "When to call or go to the maternity unit right away",
+  "title": "When to call or go to the hospital right away",
   "parentQuestions": [
    "What are the emergency signs in late pregnancy?",
    "Should I go if my baby is moving less?",
@@ -10306,7 +10309,7 @@
    "unit": "pregnancyWeek",
    "value": 42
   },
-  "whatToKnow": "Some signs mean calling the maternity unit immediately at any hour, not waiting for a contraction pattern. The NHS lists waters breaking, vaginal bleeding, less baby movement, contractions before 37 weeks, a contraction over 2 minutes, or 6 or more in 10 minutes. ACOG lists waters broken without contractions, heavy bleeding, constant severe pain with no relief between contractions, and less fetal movement. The NHS adds that smelly or coloured waters need urgent attention and a strong urge to push means calling emergency services.",
+  "whatToKnow": "Some signs mean calling the hospital immediately at any hour, not waiting for a contraction pattern. The NHS lists waters breaking, vaginal bleeding, less baby movement, contractions before 37 weeks, a contraction over 2 minutes, or 6 or more in 10 minutes. ACOG lists waters broken without contractions, heavy bleeding, constant severe pain with no relief between contractions, and less fetal movement. The NHS adds that smelly or colored waters need urgent attention and a strong urge to push means calling emergency services.",
   "whatToDo": [
    {
     "when": "From 28 weeks",
@@ -10349,7 +10352,8 @@
    "labor-waters-breaking-prom-and-gbs",
    "labor-bloody-show-and-mucus-plug",
    "labor-5-1-1-rule-and-variations"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "language-milestones",
@@ -10606,14 +10610,14 @@
   "whatToDo": [
    {
     "when": "Each day",
-    "action": "Count wet and dirty nappies and watch for swallowing."
+    "action": "Count wet and dirty diapers and watch for swallowing."
    },
    {
     "when": "If worried",
     "action": "Ask a lactation specialist before adding formula."
    }
   ],
-  "seeClinicianIf": "Seek advice if there are few wet nappies, poor weight gain, a very sleepy baby, or persistent pain.",
+  "seeClinicianIf": "Seek advice if there are few wet diapers, poor weight gain, a very sleepy baby, or persistent pain.",
   "evidence": "guideline",
   "evidenceNote": "NHS; cluster feeding is described in common terms rather than a formal definition.",
   "sources": [
@@ -10793,7 +10797,7 @@
   "title": "Meconium and the first stools",
   "parentQuestions": [
    "Why is the first poop black and sticky?",
-   "What colour changes are normal?"
+   "What color changes are normal?"
   ],
   "category": "health",
   "ageStart": {
@@ -10808,7 +10812,7 @@
   "whatToDo": [
    {
     "when": "Days 1 to 7",
-    "action": "Note colour and number of stools."
+    "action": "Note color and number of stools."
    },
    {
     "when": "After day 5",
@@ -11159,7 +11163,7 @@
    },
    {
     "when": "If you cannot keep fluids down",
-    "action": "Contact the midwife or GP the same day."
+    "action": "Contact the midwife or doctor the same day."
    }
   ],
   "seeClinicianIf": "See a clinician if you cannot keep fluids down, are losing weight, have very dark urine, or feel dizzy or faint.",
@@ -11260,7 +11264,7 @@
    },
    {
     "when": "Choose the moment",
-    "action": "Avoid bathing right after a feed or when the baby is hungry or tired. Keep the room warm and have towels and a clean nappy within reach."
+    "action": "Avoid bathing right after a feed or when the baby is hungry or tired. Keep the room warm and have towels and a clean diaper within reach."
    }
   ],
   "seeClinicianIf": "Ask the pediatrician or nurse if the skin is cracked, weeping or very dry after baths, or if the cord stump looks red, smells or oozes.",
@@ -11313,7 +11317,7 @@
   ],
   "seeClinicianIf": "Return promptly if you are called back for a repeat sample or a specialist visit.",
   "evidence": "guideline",
-  "evidenceNote": "National programmes differ in which conditions are included.",
+  "evidenceNote": "National programs differ in which conditions are included.",
   "sources": [
    {
     "title": "NHS: Newborn blood spot test",
@@ -11356,7 +11360,7 @@
   ],
   "seeClinicianIf": "Raise it if the baby does not react to loud sounds, or if there is family history of childhood deafness.",
   "evidence": "guideline",
-  "evidenceNote": "UK NHS programme described; schedules differ by country.",
+  "evidenceNote": "UK NHS program described; schedules differ by country.",
   "sources": [
    {
     "title": "NHS: Newborn hearing test",
@@ -11408,7 +11412,7 @@
     "action": "Ask whether bilirubin was checked."
    }
   ],
-  "seeClinicianIf": "Emergency care if jaundice comes with sleepiness, not feeding, floppiness, fever, no wet nappies or breathing trouble, or in a baby under 24 hours old.",
+  "seeClinicianIf": "Emergency care if jaundice comes with sleepiness, not feeding, floppiness, fever, no wet diapers or breathing trouble, or in a baby under 24 hours old.",
   "evidence": "guideline",
   "evidenceNote": "NHS guidance. Sun exposure is not a proven treatment.",
   "sources": [
@@ -11491,7 +11495,7 @@
    "unit": "month",
    "value": 3
   },
-  "whatToKnow": "NHS lists signs needing immediate help: fast or hard breathing (grunting, sucking in tummy), blue, grey or mottled skin, cold clammy skin, a rash that does not fade when pressed, a weak, high pitched or continuous cry, being hard to wake, a seizure, or no wet nappy for 12 hours. Fever of 38 C or higher under 3 months is also an urgent sign.",
+  "whatToKnow": "NHS lists signs needing immediate help: fast or hard breathing (grunting, sucking in tummy), blue, grey or mottled skin, cold clammy skin, a rash that does not fade when pressed, a weak, high pitched or continuous cry, being hard to wake, a seizure, or no wet diaper for 12 hours. Fever of 38 C or higher under 3 months is also an urgent sign.",
   "whatToDo": [
    {
     "when": "Any red flag",
@@ -11570,7 +11574,7 @@
   "title": "What newborns can see and hear",
   "parentQuestions": [
    "How well can my newborn see?",
-   "Does my baby recognise my voice?"
+   "Does my baby recognize my voice?"
   ],
   "category": "development",
   "ageStart": {
@@ -11714,18 +11718,18 @@
    "unit": "month",
    "value": 1
   },
-  "whatToKnow": "A well-fed newborn may lose up to about 8 to 10% of birth weight in the first few days, then gain; the AAP page does not say by which day birth weight should return, so ask your pediatrician. By day 5 to 7 expect at least 6 wet nappies and yellow stools.",
+  "whatToKnow": "A well-fed newborn may lose up to about 8 to 10% of birth weight in the first few days, then gain; the AAP page does not say by which day birth weight should return, so ask your pediatrician. By day 5 to 7 expect at least 6 wet diapers and yellow stools.",
   "whatToDo": [
    {
     "when": "Days 2 to 5",
-    "action": "Count wet and dirty nappies and feeds."
+    "action": "Count wet and dirty diapers and feeds."
    },
    {
     "when": "Within 48 hours of discharge",
     "action": "Have a weight check."
    }
   ],
-  "seeClinicianIf": "Call if the baby is losing steadily, is very sleepy or has few wet nappies.",
+  "seeClinicianIf": "Call if the baby is losing steadily, is very sleepy or has few wet diapers.",
   "evidence": "guideline",
   "evidenceNote": "The AAP page gives the 8 to 10% figure; some UK guidelines suggest earlier review.",
   "sources": [
@@ -11815,7 +11819,7 @@
    "unit": "year",
    "value": 8
   },
-  "whatToKnow": "NHS says night terrors are most common between about 3 and 8. During one, stay nearby and let it pass; do not wake or restrain unless unsafe. Waking the child about 15 minutes before the usual time for 2 weeks may help. See a GP if nightmares continue after 6, if terrors start after 5 or continue after 12.",
+  "whatToKnow": "NHS says night terrors are most common between about 3 and 8. During one, stay nearby and let it pass; do not wake or restrain unless unsafe. Waking the child about 15 minutes before the usual time for 2 weeks may help. See a doctor if nightmares continue after 6, if terrors start after 5 or continue after 12.",
   "whatToDo": [
    {
     "when": "Night",
@@ -12108,7 +12112,7 @@
    "unit": "year",
    "value": 7
   },
-  "whatToKnow": "Open bite means the front teeth do not meet; posterior crossbite means upper back teeth sit inside the lower ones. Prolonged pacifier or thumb sucking is a recognised cause; AAPD notes an anterior open bite from pacifier use often improves if it stops before age 3. Mouth breathing and tongue habits can contribute.",
+  "whatToKnow": "Open bite means the front teeth do not meet; posterior crossbite means upper back teeth sit inside the lower ones. Prolonged pacifier or thumb sucking is a recognized cause; AAPD notes an anterior open bite from pacifier use often improves if it stops before age 3. Mouth breathing and tongue habits can contribute.",
   "whatToDo": [
    {
     "when": "By age 3",
@@ -12194,7 +12198,7 @@
    "Will it hurt breastfeeding?",
    "When can I offer one?",
    "Does a pacifier ruin teeth?",
-   "When should my toddler stop the dummy?"
+   "When should my toddler stop the pacifier?"
   ],
   "category": "sleep",
   "ageStart": {
@@ -12205,7 +12209,7 @@
    "unit": "month",
    "value": 48
   },
-  "whatToKnow": "CDC advises offering a pacifier at naps and bedtime, and if breastfeeding you may wait until it is well established. NHS says some research suggests a dummy may lower SIDS risk. If the baby refuses, do not force it.",
+  "whatToKnow": "CDC advises offering a pacifier at naps and bedtime, and if breastfeeding you may wait until it is well established. NHS says some research suggests a pacifier may lower SIDS risk. If the baby refuses, do not force it.",
   "whatToDo": [
    {
     "when": "Once breastfeeding is going well",
@@ -12282,7 +12286,7 @@
    "unit": "pregnancyWeek",
    "value": 42
   },
-  "whatToKnow": "The NHS lists self-help (learning, breathing, movement, partner, bath, paracetamol), gas and air, pethidine or diamorphine injections, and epidural; options vary by place of birth. A Cochrane overview found epidural and inhaled analgesia effectively relieve pain but have side effects (epidural: more instrumental births; inhaled: nausea and dizziness), while most non-drug methods look safe but have unclear effectiveness. WHO recommends epidural and opioids for women who ask for pain relief, and relaxation and manual methods, depending on preferences. Detailed epidural evidence is not repeated here.",
+  "whatToKnow": "The NHS lists self-help (learning, breathing, movement, partner, bath, acetaminophen (Tylenol)), gas and air, pethidine or diamorphine injections, and epidural; options vary by place of birth. A Cochrane overview found epidural and inhaled analgesia effectively relieve pain but have side effects (epidural: more instrumental births; inhaled: nausea and dizziness), while most non-drug methods look safe but have unclear effectiveness. WHO recommends epidural and opioids for women who ask for pain relief, and relaxation and manual methods, depending on preferences. Detailed epidural evidence is not repeated here.",
   "whatToDo": [
    {
     "when": "By 30 weeks",
@@ -12301,7 +12305,7 @@
     "action": "Learn the options and talk through your preferences."
    },
    {
-    "when": "In labour",
+    "when": "In labor",
     "action": "Ask early if you want an epidural, since it takes time to set up."
    }
   ],
@@ -12362,7 +12366,7 @@
    },
    {
     "when": "Concern",
-    "action": "See a GP if low mood or anxiety lasts."
+    "action": "See a doctor if low mood or anxiety lasts."
    }
   ],
   "seeClinicianIf": "Persistent low mood, anxiety, anger you cannot control, or thoughts of self-harm.",
@@ -12622,7 +12626,7 @@
  },
  {
   "id": "paternal-postpartum-depression",
-  "title": "Fathers and partners: postnatal depression",
+  "title": "Fathers and partners: postpartum depression",
   "parentQuestions": [
    "Can dads get depression after the baby?",
    "I feel detached, is that normal?"
@@ -12644,7 +12648,7 @@
    },
    {
     "when": "If low mood lasts",
-    "action": "Speak to a GP."
+    "action": "Speak to a doctor."
    }
   ],
   "seeClinicianIf": "Seek help if low mood or anxiety persists or you have thoughts of self harm.",
@@ -12817,7 +12821,7 @@
   "whatToDo": [
    {
     "when": "0 to 12 months",
-    "action": "Play peekaboo and hide a toy under a cloth; it is fun and practises the idea that things persist."
+    "action": "Play peekaboo and hide a toy under a cloth; it is fun and practices the idea that things persist."
    },
    {
     "when": "2 to 5 years",
@@ -12927,7 +12931,7 @@
    "unit": "month",
    "value": 144
   },
-  "whatToKnow": "NHS says conjunctivitis is caused by infection or allergy and usually gets better in a couple of weeks without treatment. Eyes are red, gritty or itchy, and may water or produce sticky pus. Antibiotics are only prescribed if it is bacterial and do not work for viral or allergic types. For treatment of a child under 2 years old, NHS says a prescription from a GP is needed.",
+  "whatToKnow": "NHS says conjunctivitis is caused by infection or allergy and usually gets better in a couple of weeks without treatment. Eyes are red, gritty or itchy, and may water or produce sticky pus. Antibiotics are only prescribed if it is bacterial and do not work for viral or allergic types. For treatment of a child under 2 years old, NHS says a prescription from a doctor is needed.",
   "whatToDo": [
    {
     "when": "At home",
@@ -12942,7 +12946,7 @@
     "action": "NHS says no need to stay away unless the child feels very unwell."
    }
   ],
-  "seeClinicianIf": "NHS says see a GP for red, sticky eyes in a baby, and get an urgent appointment if the baby is under 30 days old. Get urgent advice for eye pain, sensitivity to light, changes in vision or very red eyes. Ask for help if it has not cleared within 7 days.",
+  "seeClinicianIf": "NHS says see a doctor for red, sticky eyes in a baby, and get an urgent appointment if the baby is under 30 days old. Get urgent advice for eye pain, sensitivity to light, changes in vision or very red eyes. Ask for help if it has not cleared within 7 days.",
   "evidence": "guideline",
   "evidenceNote": "NHS gives this advice. A newborn with sticky eyes is treated as urgent on the same page.",
   "sources": [
@@ -13027,12 +13031,12 @@
    },
    {
     "when": "If swallowed",
-    "action": "Call poison centre immediately; do not induce vomiting."
+    "action": "Call poison center immediately; do not induce vomiting."
    }
   ],
   "seeClinicianIf": "Any suspected ingestion.",
   "evidence": "guideline",
-  "evidenceNote": "AAP and CPSC recommend locked storage, original child-resistant containers, sealing laundry packets and keeping button batteries out of reach. AAP says do not induce vomiting. The US Poison Help number is 1-800-222-1222; Kazakhstan parents need the local poison center and emergency number instead.",
+  "evidenceNote": "AAP and CPSC recommend locked storage, original child-resistant containers, sealing laundry packets and keeping button batteries out of reach. AAP says do not induce vomiting. The US Poison Help number is 1-800-222-1222;",
   "sources": [
    {
     "title": "Childproofing Your Home for Poisons (HealthyChildren.org, AAP)",
@@ -13048,7 +13052,8 @@
   "related": [
    "home-safety-overview",
    "lead-exposure"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "poisoning-what-to-do-right-now",
@@ -13082,7 +13087,7 @@
     "action": "Do not induce vomiting, give nothing to eat or drink, and if the child vomits save some in a container. Bring the packaging to the hospital."
    }
   ],
-  "seeClinicianIf": "Call your local emergency number or go to the ER if the child is unconscious, has stopped breathing, has severe trouble breathing, has a seizure, or if you think a child has swallowed, touched or breathed in something harmful (NHS). Open the app's fixed Urgent help screen. In the US call Poison Control at 1-800-222-1222. We did not open a Kazakhstan poison line page, so the app must show a local number.",
+  "seeClinicianIf": "Call your local emergency number or go to the ER if the child is unconscious, has stopped breathing, has severe trouble breathing, has a seizure, or if you think a child has swallowed, touched or breathed in something harmful (NHS). Open the app's fixed Urgent help screen. In the US call Poison Control at 1-800-222-1222.",
   "evidence": "guideline",
   "evidenceNote": "NHS and St John Ambulance agree. The Poison Control number is taken from the opened Poison Control battery page.",
   "sources": [
@@ -13126,7 +13131,7 @@
    "unit": "month",
    "value": 12
   },
-  "whatToKnow": "NHS describes postnatal depression as common and treatable, with low mood, loss of enjoyment, hopelessness, guilt, anxiety, irritability and sleep problems. Baby blues usually go within 2 weeks, so lasting or worsening symptoms need help. The EPDS questionnaire is widely used by clinicians for screening, but a score is never a diagnosis.",
+  "whatToKnow": "NHS describes postpartum depression as common and treatable, with low mood, loss of enjoyment, hopelessness, guilt, anxiety, irritability and sleep problems. Baby blues usually go within 2 weeks, so lasting or worsening symptoms need help. The EPDS questionnaire is widely used by clinicians for screening, but a score is never a diagnosis.",
   "whatToDo": [
    {
     "when": "Early",
@@ -13134,7 +13139,7 @@
    },
    {
     "when": "At 6 to 8 weeks",
-    "action": "Use the postnatal check to raise mood."
+    "action": "Use the postpartum check to raise mood."
    }
   ],
   "seeClinicianIf": "See a clinician if symptoms last past 2 weeks, worsen, or you have thoughts of harming yourself or the baby; seek urgent help immediately.",
@@ -13178,7 +13183,7 @@
    },
    {
     "when": "6 to 8 weeks",
-    "action": "Attend the postnatal check and list concerns."
+    "action": "Attend the postpartum check and list concerns."
    }
   ],
   "seeClinicianIf": "See a clinician for leaking urine that persists, heaviness in the vagina, severe pain, heavy bleeding, fever, or wound problems.",
@@ -13242,7 +13247,8 @@
   "related": [
    "postpartum-depression-and-anxiety",
    "postpartum-warning-signs"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "postpartum-warning-signs",
@@ -13291,7 +13297,8 @@
    "postpartum-physical-recovery",
    "postpartum-depression-and-anxiety",
    "postpartum-psychosis"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "potty-training",
@@ -13420,7 +13427,7 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "Depression and anxiety can appear during pregnancy, not only after birth, and some people have them for the first time. The USPSTF found convincing evidence that counselling such as cognitive behavioural therapy prevents perinatal depression in people at higher risk, and it estimates up to 1 in 7 women are affected. The NHS suggests talking to a midwife or GP and says antenatal classes, exercise and talking can help.",
+  "whatToKnow": "Depression and anxiety can appear during pregnancy, not only after birth, and some people have them for the first time. The USPSTF found convincing evidence that counselling such as cognitive behavioral therapy prevents perinatal depression in people at higher risk, and it estimates up to 1 in 7 women are affected. The NHS suggests talking to a midwife or doctor and says prenatal classes, exercise and talking can help.",
   "whatToDo": [
    {
     "when": "Every visit",
@@ -13604,11 +13611,11 @@
  },
  {
   "id": "preterm-labour-signs",
-  "title": "Signs of preterm labour",
+  "title": "Signs of preterm labor",
   "parentQuestions": [
-   "What are the signs of preterm labour?",
+   "What are the signs of preterm labor?",
    "What should I do if my waters break early?",
-   "Can preterm labour be stopped?"
+   "Can preterm labor be stopped?"
   ],
   "category": "safety",
   "ageStart": {
@@ -13619,7 +13626,7 @@
    "unit": "pregnancyWeek",
    "value": 37
   },
-  "whatToKnow": "The NHS says labour before 37 weeks is premature, about 8 in 100 babies. Warning signs include regular tightenings, period-like pain, fluid leaking and unusual backache. Staff check the cervix, infection and the baby, and may offer steroid injections for the baby's lungs, magnesium sulphate or medicines to slow labour. Babies born early may need a neonatal unit.",
+  "whatToKnow": "The NHS says labor before 37 weeks is premature, about 8 in 100 babies. Warning signs include regular tightenings, period-like pain, fluid leaking and unusual backache. Staff check the cervix, infection and the baby, and may offer steroid injections for the baby's lungs, magnesium sulphate or medicines to slow labor. Babies born early may need a neonatal unit.",
   "whatToDo": [
    {
     "when": "Before 37 weeks",
@@ -13648,7 +13655,8 @@
   "related": [
    "braxton-hicks-vs-real-labour",
    "group-b-strep-screening"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "puberty-signs",
@@ -13677,7 +13685,7 @@
     "action": "Share supplies and a plan."
    }
   ],
-  "seeClinicianIf": "Signs before 8 or none by 15: ask the GP.",
+  "seeClinicianIf": "Signs before 8 or none by 15: ask the doctor.",
   "evidence": "guideline",
   "evidenceNote": "NHS (opened).",
   "sources": [
@@ -13871,7 +13879,7 @@
    "unit": "year",
    "value": 3
   },
-  "whatToKnow": "Many baby rashes are harmless: heat rash, eczema, nappy rash, cradle cap, viral rashes. A rash that does not fade when pressed with a glass, with fever and unwell, is an emergency. AAP says food does not cause eczema, though many children with eczema also have food allergies.",
+  "whatToKnow": "Many baby rashes are harmless: heat rash, eczema, diaper rash, cradle cap, viral rashes. A rash that does not fade when pressed with a glass, with fever and unwell, is an emergency. AAP says food does not cause eczema, though many children with eczema also have food allergies.",
   "whatToDo": [
    {
     "when": "For any rash",
@@ -13884,7 +13892,7 @@
   ],
   "seeClinicianIf": "Rash that does not fade on pressing, with fever, drowsiness or stiff neck; swelling of lips or face; rapid spread; blisters.",
   "evidence": "guideline",
-  "evidenceNote": "NHS says a rash that does not fade under a pressed glass is an emergency (call your local emergency number, 911 in the US) and can be harder to see on dark skin. AAP describes roseola and eczema as common and usually manageable. Heat rash, nappy rash and cradle cap were not covered by pages opened.",
+  "evidenceNote": "NHS says a rash that does not fade under a pressed glass is an emergency (call your local emergency number, 911 in the US) and can be harder to see on dark skin. AAP describes roseola and eczema as common and usually manageable. Heat rash, diaper rash and cradle cap were not covered by pages opened.",
   "sources": [
    {
     "title": "Roseola in Babies and Toddlers (HealthyChildren.org, AAP)",
@@ -14002,7 +14010,7 @@
    },
    {
     "when": "If it changes",
-    "action": "Call the maternity unit the same day; do not wait until morning."
+    "action": "Call the hospital the same day; do not wait until morning."
    }
   ],
   "seeClinicianIf": "Call the same day for reduced or changed movements, even if you called before.",
@@ -14023,7 +14031,8 @@
   "related": [
    "headache-and-pre-eclampsia-warning-signs",
    "routine-prenatal-visit-schedule"
-  ]
+  ],
+  "urgent": true
  },
  {
   "id": "reggio-emilia-approach",
@@ -14339,7 +14348,7 @@
     "action": "Ask for a nurse to watch the baby if you need to sleep."
    }
   ],
-  "seeClinicianIf": "Never sleep with the baby on a sofa or armchair; if you feel drowsy, ask staff to take the baby or place the baby in the cot.",
+  "seeClinicianIf": "Never sleep with the baby on a sofa or armchair; if you feel drowsy, ask staff to take the baby or place the baby in the crib.",
   "evidence": "research",
   "evidenceNote": "WHO recommends it as a standard; the best available evidence does not prove a breastfeeding benefit, so it is a guideline-led practice rather than a proven one.",
   "sources": [
@@ -14425,7 +14434,7 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "The NHS offers an RSV vaccine from 28 weeks of pregnancy in every pregnancy to protect the baby for the first 6 months, when RSV is most likely to cause serious illness. It is best given as soon as possible from 28 weeks and can be given until labour. Older adults have a separate programme.",
+  "whatToKnow": "The NHS offers an RSV vaccine from 28 weeks of pregnancy in every pregnancy to protect the baby for the first 6 months, when RSV is most likely to cause serious illness. It is best given as soon as possible from 28 weeks and can be given until labor. Older adults have a separate program.",
   "whatToDo": [
    {
     "when": "From 28 weeks",
@@ -14433,12 +14442,12 @@
    },
    {
     "when": "Before birth",
-    "action": "It can still be given up to labour if you missed the window."
+    "action": "It can still be given up to labor if you missed the window."
    }
   ],
   "seeClinicianIf": "Ask a clinician if you are unwell with fever or have had a serious allergy to vaccine ingredients.",
   "evidence": "guideline",
-  "evidenceNote": "Official UK programme; availability and the alternative of an infant antibody injection differ by country.",
+  "evidenceNote": "Official UK program; availability and the alternative of an infant antibody injection differ by country.",
   "sources": [
    {
     "title": "RSV vaccine (NHS)",
@@ -14462,7 +14471,7 @@
   "parentQuestions": [
    "What is the safest way for a baby to sleep?",
    "Back or side?",
-   "Should the cot be in our room?",
+   "Should the crib be in our room?",
    "Can I use a pillow or bumper?",
    "How should my baby sleep?",
    "Can my baby sleep on his stomach?"
@@ -14476,15 +14485,15 @@
    "unit": "month",
    "value": 12
   },
-  "whatToKnow": "For every sleep, including naps, put the baby on the back on a firm, flat mattress with nothing soft in the sleep space. Keeping the cot or bassinet in the parents' room for at least the first 6 months lowers risk. Pillows, duvets, bumpers, loose blankets, soft toys and nests or pods are not advised.",
+  "whatToKnow": "For every sleep, including naps, put the baby on the back on a firm, flat mattress with nothing soft in the sleep space. Keeping the crib or bassinet in the parents' room for at least the first 6 months lowers risk. Pillows, duvets, bumpers, loose blankets, soft toys and nests or pods are not advised.",
   "whatToDo": [
    {
     "when": "Every sleep",
-    "action": "Back to sleep, feet to the foot of the cot, firm flat mattress with fitted sheet only."
+    "action": "Back to sleep, feet to the foot of the crib, firm flat mattress with fitted sheet only."
    },
    {
     "when": "First 6 months",
-    "action": "Keep the cot in your room for all sleeps, day and night."
+    "action": "Keep the crib in your room for all sleeps, day and night."
    },
    {
     "when": "If baby rolls",
@@ -14603,7 +14612,7 @@
    "unit": "year",
    "value": 9
   },
-  "whatToKnow": "The AAP 2013 policy states that children's well-being is affected much more by their relationships with parents, the parents' sense of competence and security, and social and economic support for the family than by the gender or sexual orientation of the parents. It says scientific evidence affirms that children have similar developmental and emotional needs and receive similar parenting. The AAP supports both parents in a same-gender couple having legal rights and responsibilities, for example through second-parent or coparent adoption, and says US laws on marriage and adoption are a patchwork. Laws differ by country; we opened no Kazakhstan source, so we make no claim on legal steps there.",
+  "whatToKnow": "The AAP 2013 policy states that children's well-being is affected much more by their relationships with parents, the parents' sense of competence and security, and social and economic support for the family than by the gender or sexual orientation of the parents. It says scientific evidence affirms that children have similar developmental and emotional needs and receive similar parenting. The AAP supports both parents in a same-gender couple having legal rights and responsibilities, for example through second-parent or coparent adoption, and says US laws on marriage and adoption are a patchwork. Laws differ by country;",
   "whatToDo": [
    {
     "when": "Early on",
@@ -14703,7 +14712,7 @@
    "unit": "year",
    "value": 7
   },
-  "whatToKnow": "The AAP says readiness includes focus, impulse control, taking turns, making friends, language, early literacy, early math, pencil and movement skills and toilet use, not only letters and numbers. Children develop at different rates, so there is no single ready age. In Kazakhstan the Ministry description states that reading, writing and counting are taught from the start of grade 1 and are not required on entry.",
+  "whatToKnow": "The AAP says readiness includes focus, impulse control, taking turns, making friends, language, early literacy, early math, pencil and movement skills and toilet use, not only letters and numbers. Children develop at different rates, so there is no single ready age.",
   "whatToDo": [
    {
     "when": "Year before school",
@@ -14716,7 +14725,7 @@
   ],
   "seeClinicianIf": "Concerns about speech, hearing, vision, attention, or very delayed play and social skills should be raised with the pediatrician before school starts.",
   "evidence": "guideline",
-  "evidenceNote": "AAP parent guidance plus a 2019 Kazakhstan government explainer. Neither is a trial.",
+  "evidenceNote": "Neither is a trial.",
   "sources": [
    {
     "title": "HealthyChildren.org (AAP): Is your preschooler ready for kindergarten?",
@@ -15169,7 +15178,7 @@
    },
    {
     "when": "In the moment",
-    "action": "Put the baby on their back in the cot, step away, breathe, call someone."
+    "action": "Put the baby on their back in the crib, step away, breathe, call someone."
    }
   ],
   "seeClinicianIf": "Seek help urgently if a baby has been shaken or dropped; call the pediatrician or emergency services.",
@@ -15535,7 +15544,7 @@
    "unit": "month",
    "value": 3
   },
-  "whatToKnow": "NHS suggests sleeping when the baby sleeps, sharing the nights, asking friends or relatives to help while you nap, and a partner helping with nappies or bottles of expressed milk once breastfeeding is established.",
+  "whatToKnow": "NHS suggests sleeping when the baby sleeps, sharing the nights, asking friends or relatives to help while you nap, and a partner helping with diapers or bottles of expressed milk once breastfeeding is established.",
   "whatToDo": [
    {
     "when": "Nightly",
@@ -15680,11 +15689,11 @@
    "unit": "month",
    "value": 3
   },
-  "whatToKnow": "Common reasons for crying are hunger, a wet nappy, tiredness, wind, being too hot or cold, boredom or overstimulation. NHS suggests holding, a sling, rocking, a walk, background noise and a warm bath, and notes too much stimulation can keep a baby awake. Crying that is inconsolable or sounds different can signal illness.",
+  "whatToKnow": "Common reasons for crying are hunger, a wet diaper, tiredness, wind, being too hot or cold, boredom or overstimulation. NHS suggests holding, a sling, rocking, a walk, background noise and a warm bath, and notes too much stimulation can keep a baby awake. Crying that is inconsolable or sounds different can signal illness.",
   "whatToDo": [
    {
     "when": "When crying starts",
-    "action": "Go through hunger, nappy, wind, temperature, then comfort with holding and gentle movement."
+    "action": "Go through hunger, diaper, wind, temperature, then comfort with holding and gentle movement."
    },
    {
     "when": "Crying with a fever or not feeding",
@@ -15728,7 +15737,7 @@
   "whatToDo": [
    {
     "when": "At home",
-    "action": "Cool or soft foods, fluids, rest, and paracetamol or ibuprofen if needed (see fever-medicine-by-weight). Children should not gargle salt water per NHS."
+    "action": "Cool or soft foods, fluids, rest, and acetaminophen (Tylenol) or ibuprofen if needed (see fever-medicine-by-weight). Children should not gargle salt water per NHS."
    },
    {
     "when": "Do not give",
@@ -15739,7 +15748,7 @@
     "action": "Take antibiotics exactly as prescribed."
    }
   ],
-  "seeClinicianIf": "NHS says see a GP if a child under 5 needs help for a sore throat, it does not improve in a week, or it keeps coming back, and get urgent advice for a very high temperature or signs of dehydration. Call your local emergency number or go to the ER for trouble breathing, drooling or being unable to swallow.",
+  "seeClinicianIf": "NHS says see a doctor if a child under 5 needs help for a sore throat, it does not improve in a week, or it keeps coming back, and get urgent advice for a very high temperature or signs of dehydration. Call your local emergency number or go to the ER for trouble breathing, drooling or being unable to swallow.",
   "evidence": "guideline",
   "evidenceNote": "CDC and NHS agree that most sore throats are viral and that only a test can tell strep apart. CDC page we opened did not give school return timing.",
   "sources": [
@@ -15862,7 +15871,7 @@
   "parentQuestions": [
    "Is it normal for my baby to spit up?",
    "When is it reflux?",
-   "Should I raise the head of the cot?"
+   "Should I raise the head of the crib?"
   ],
   "category": "feeding",
   "ageStart": {
@@ -15873,7 +15882,7 @@
    "unit": "month",
    "value": 12
   },
-  "whatToKnow": "Reflux, where a baby brings up milk during or after feeds, usually starts before 8 weeks and improves by about a year. A happy baby who is gaining weight does not usually need treatment. Holding upright after feeds, burping and checking position help; do not raise the cot head and keep the baby sleeping flat on the back.",
+  "whatToKnow": "Reflux, where a baby brings up milk during or after feeds, usually starts before 8 weeks and improves by about a year. A happy baby who is gaining weight does not usually need treatment. Holding upright after feeds, burping and checking position help; do not raise the crib head and keep the baby sleeping flat on the back.",
   "whatToDo": [
    {
     "when": "During feeds",
@@ -16067,7 +16076,7 @@
     "action": "Check the product is for play or travel, not sold as a sleeper. Round padded loungers and inclined sleepers are not safe for sleep, and AAP warns old or secondhand banned products still turn up; check recalls on the CPSC site."
    },
    {
-    "when": "Stroller or pram",
+    "when": "Stroller or stroller",
     "action": "For a young baby use a fully reclining seat (NHS), a harness, working brakes and a strong frame; wait for an upright seat until baby can sit unaided."
    },
    {
@@ -16135,7 +16144,7 @@
    "unit": "year",
    "value": 9
   },
-  "whatToKnow": "NHS says about 1 in 12 young children goes through a stammering phase and about two in three eventually speak fluently. Treatment is often successful in preschool children, so early referral helps. Parents can contact the GP or health visitor for referral to a speech and language therapist.",
+  "whatToKnow": "NHS says about 1 in 12 young children goes through a stammering phase and about two in three eventually speak fluently. Treatment is often successful in preschool children, so early referral helps. Parents can contact the doctor or health visitor for referral to a speech and language therapist.",
   "whatToDo": [
    {
     "when": "Now",
@@ -16293,7 +16302,7 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "Some swelling of ankles and fingers is normal, but sudden swelling can signal pre-eclampsia. Back pain is common; ask the GP or midwife about a pregnancy physiotherapist. A pooled analysis of studies found that going to sleep on the back was linked to higher odds of late stillbirth, and left and right side looked equally safe, though the absolute risk is low and the data are observational.",
+  "whatToKnow": "Some swelling of ankles and fingers is normal, but sudden swelling can signal pre-eclampsia. Back pain is common; ask the doctor or midwife about a pregnancy physiotherapist. A pooled analysis of studies found that going to sleep on the back was linked to higher odds of late stillbirth, and left and right side looked equally safe, though the absolute risk is low and the data are observational.",
   "whatToDo": [
    {
     "when": "From the second trimester",
@@ -16873,7 +16882,7 @@
    "unit": "month",
    "value": 3
   },
-  "whatToKnow": "Tongue-tie is a short or tight band under the tongue. It often causes no problems; if it affects feeding, options include feeding help from a trained professional and a minor snip, usually without anaesthesia in young babies. An umbrella review of 15 systematic reviews found the evidence for breastfeeding benefit inconclusive and warned of overdiagnosis. Evidence on lip-tie is even weaker, and rare complications of cutting include bleeding, infection and feeding difficulty.",
+  "whatToKnow": "Tongue-tie is a short or tight band under the tongue. It often causes no problems; if it affects feeding, options include feeding help from a trained professional and a minor snip, usually without anesthesia in young babies. An umbrella review of 15 systematic reviews found the evidence for breastfeeding benefit inconclusive and warned of overdiagnosis. Evidence on lip-tie is even weaker, and rare complications of cutting include bleeding, infection and feeding difficulty.",
   "whatToDo": [
    {
     "when": "First week of feeding trouble",
@@ -17042,18 +17051,18 @@
    "unit": "pregnancyWeek",
    "value": 40
   },
-  "whatToKnow": "NHS says you can try to get pregnant again when you feel ready, after your symptoms have gone. A period may take up to 8 weeks to return, and cycles can take a few months to settle. NHS says most women who have had a miscarriage go on to have a successful pregnancy. A miscarriage can be hard emotionally; GP surgeries or pregnancy units can offer counselling and support, partners can get support too, and national charities offer helplines. NHS advises seeing a GP after 3 or more miscarriages, when tests for a treatable cause are usually offered. We opened no official page about the feelings of a rainbow baby pregnancy.",
+  "whatToKnow": "NHS says you can try to get pregnant again when you feel ready, after your symptoms have gone. A period may take up to 8 weeks to return, and cycles can take a few months to settle. NHS says most women who have had a miscarriage go on to have a successful pregnancy. A miscarriage can be hard emotionally; doctor surgeries or pregnancy units can offer counselling and support, partners can get support too, and national charities offer helplines. NHS advises seeing a doctor after 3 or more miscarriages, when tests for a treatable cause are usually offered. We opened no official page about the feelings of a rainbow baby pregnancy.",
   "whatToDo": [
    {
     "when": "Now",
-    "action": "Rest, talk with your partner, family or friends, and ask your GP or pregnancy unit about counselling."
+    "action": "Rest, talk with your partner, family or friends, and ask your doctor or pregnancy unit about counselling."
    },
    {
     "when": "When ready",
     "action": "Try again after your symptoms have gone; ask your clinician if you are unsure."
    }
   ],
-  "seeClinicianIf": "See a GP after 3 or more miscarriages. For worrying symptoms or emotional distress that does not ease, contact your clinician; for an emergency use your local emergency number.",
+  "seeClinicianIf": "See a doctor after 3 or more miscarriages. For worrying symptoms or emotional distress that does not ease, contact your clinician; for an emergency use your local emergency number.",
   "evidence": "guideline",
   "evidenceNote": "NHS page opened. It says little about anxiety in the next pregnancy.",
   "sources": [
@@ -17210,10 +17219,10 @@
    },
    {
     "when": "In the second half of pregnancy",
-    "action": "Learn the signs of preterm labour and who to call."
+    "action": "Learn the signs of preterm labor and who to call."
    }
   ],
-  "seeClinicianIf": "Ask your care team about anything that worries you and about signs of preterm labour. Postpartum depression may be more likely with multiples, so tell your team about intense sadness or anxiety.",
+  "seeClinicianIf": "Ask your care team about anything that worries you and about signs of preterm labor. Postpartum depression may be more likely with multiples, so tell your team about intense sadness or anxiety.",
   "evidence": "guideline",
   "evidenceNote": "ACOG's FAQ and NICE overview opened. We could not open the NICE recommendation chapter, so we give none of its numbers.",
   "sources": [
@@ -17254,7 +17263,7 @@
   "whatToKnow": "WHO recommends clean, dry cord care for facility births and low-mortality settings, and daily 4% chlorhexidine for home births where neonatal mortality is above 30 per 1000. Keeping the stump clean and exposed to air is the usual advice; it dries and separates by itself. A few spots of blood are normal.",
   "whatToDo": [
    {
-    "when": "Each nappy change",
+    "when": "Each diaper change",
     "action": "Keep the stump clean and dry, following your midwife's instructions."
    },
    {
@@ -17312,7 +17321,7 @@
   ],
   "seeClinicianIf": "See a clinician for pain, ballooning with urination, repeated infection, or white scarred skin at the opening.",
   "evidence": "guideline",
-  "evidenceNote": "EAU and Canadian Paediatric Society agree on not forcing retraction.",
+  "evidenceNote": "EAU and Canadian Pediatric Society agree on not forcing retraction.",
   "sources": [
    {
     "title": "EAU Guidelines on Paediatric Urology: Phimosis and other abnormalities of the penile skin",
@@ -17415,7 +17424,7 @@
   ],
   "seeClinicianIf": "High fever, seizure, allergic reaction or unusual crying after a shot: contact the clinic.",
   "evidence": "guideline",
-  "evidenceNote": "CDC schedule opened; Kazakhstan's national calendar was not opened and differs (for example BCG at birth, different timing).",
+  "evidenceNote": "CDC schedule opened;",
   "sources": [
    {
     "title": "CDC: Child immunization schedule, easy to read",
@@ -17444,7 +17453,7 @@
    "unit": "year",
    "value": 7
   },
-  "whatToKnow": "The CDC US schedule lists boosters at 4 to 6 years: DTaP dose 5, polio dose 4, MMR dose 2 and varicella dose 2, plus yearly flu vaccine. Schedules differ by country; in Kazakhstan check your clinic's national calendar.",
+  "whatToKnow": "The CDC US schedule lists boosters at 4 to 6 years: DTaP dose 5, polio dose 4, MMR dose 2 and varicella dose 2, plus yearly flu vaccine. Schedules differ by country;",
   "whatToDo": [
    {
     "when": "4 to 6 years",
@@ -17457,7 +17466,7 @@
   ],
   "seeClinicianIf": "Fever, rash or severe reaction after a vaccine.",
   "evidence": "guideline",
-  "evidenceNote": "CDC US schedule (opened). The Kazakhstan Ministry schedule was not opened.",
+  "evidenceNote": "CDC US schedule (opened).",
   "sources": [
    {
     "title": "HealthyChildren.org (AAP): Your checkup checklist, 7 years old",
@@ -17491,7 +17500,7 @@
    "unit": "pregnancyWeek",
    "value": 0
   },
-  "whatToKnow": "Live vaccines such as MMR are not given during pregnancy, so immunity needs sorting out before conception. The NHS page on MMR says it is unsuitable in pregnancy and tells you to ask your GP surgery how long to wait afterwards. NHS guidance also lists BCG, oral typhoid and yellow fever as usually delayed until after birth. Inactivated vaccines such as flu and whooping cough are given in pregnancy itself.",
+  "whatToKnow": "Live vaccines such as MMR are not given during pregnancy, so immunity needs sorting out before conception. The NHS page on MMR says it is unsuitable in pregnancy and tells you to ask your doctor surgery how long to wait afterwards. NHS guidance also lists BCG, oral typhoid and yellow fever as usually delayed until after birth. Inactivated vaccines such as flu and whooping cough are given in pregnancy itself.",
   "whatToDo": [
    {
     "when": "3 to 6 months before trying",
@@ -17799,7 +17808,7 @@
   ],
   "seeClinicianIf": "Pale child, tiredness, poor appetite, or low weight gain: ask about iron testing.",
   "evidence": "guideline",
-  "evidenceNote": "NHS opened. AAP recommends 400 IU for breastfed babies (not opened). Vitamin D drops are standard in CIS.",
+  "evidenceNote": "NHS opened. AAP recommends 400 IU for breastfed babies (not opened).",
   "sources": [
    {
     "title": "NHS: Vitamins for children",
@@ -17906,7 +17915,7 @@
     "action": "Wash hands with soap, wash soiled laundry hot, and keep the child home until 2 days without vomiting or diarrhea."
    }
   ],
-  "seeClinicianIf": "NHS says to call for urgent advice if the baby is under 12 months, the child stops feeding, a child under 5 shows dehydration such as fewer wet nappies, vomiting continues and fluid will not stay down, there is blood in the stool, diarrhea lasts over 7 days or vomiting over 2 days. Call your local emergency number or go to the ER for green vomit, vomit with blood or like coffee grounds, a stiff neck, a severe headache or tummy ache, blue or blotchy skin, severe breathing difficulty, or unusual confusion or floppiness. Open the app's Urgent help screen.",
+  "seeClinicianIf": "NHS says to call for urgent advice if the baby is under 12 months, the child stops feeding, a child under 5 shows dehydration such as fewer wet diapers, vomiting continues and fluid will not stay down, there is blood in the stool, diarrhea lasts over 7 days or vomiting over 2 days. Call your local emergency number or go to the ER for green vomit, vomit with blood or like coffee grounds, a stiff neck, a severe headache or tummy ache, blue or blotchy skin, severe breathing difficulty, or unusual confusion or floppiness. Open the app's Urgent help screen.",
   "evidence": "guideline",
   "evidenceNote": "NHS gives this home plan and lists the red flags. The page does not give a specific oral rehydration recipe or amounts, so none is given here.",
   "sources": [
@@ -18100,7 +18109,7 @@
     "action": "Keep lights dim and voices quiet so night stays for sleeping."
    }
   ],
-  "seeClinicianIf": "Contact your doctor, midwife or health visitor if baby will not wake for feeds or will not feed after repeated tries, or has too few wet diapers. NHS says to contact your doctor or local health advice line if a baby seems unwell, for example with a high temperature or not wanting to feed, and to call emergency services for a fit, blue or pale skin, breathing difficulty, or no wet nappy in 8 hours.",
+  "seeClinicianIf": "Contact your doctor, midwife or health visitor if baby will not wake for feeds or will not feed after repeated tries, or has too few wet diapers. NHS says to contact your doctor or local health advice line if a baby seems unwell, for example with a high temperature or not wanting to feed, and to call emergency services for a fit, blue or pale skin, breathing difficulty, or no wet diaper in 8 hours.",
   "evidence": "guideline",
   "evidenceNote": "AAP and NHS agree on 8 or more feeds per day. The AAP page gives the wake-and-retry advice and the gap limits; NHS pages we opened did not cover waking. The how-to-tell-enough-milk page does not say when to wake.",
   "sources": [
@@ -18252,7 +18261,7 @@
    "unit": "pregnancyWeek",
    "value": 0
   },
-  "whatToKnow": "The NHS advises aiming for a healthy weight, taking folic acid and vitamin D, stopping alcohol and smoking, and talking to a GP about any health condition or regular medicine before trying. People with diabetes, epilepsy, blood disorders or those on certain medicines may need a higher folic acid dose or a medicine change. Planning means conditions are well controlled at conception, which is when organs begin forming.",
+  "whatToKnow": "The NHS advises aiming for a healthy weight, taking folic acid and vitamin D, stopping alcohol and smoking, and talking to a doctor about any health condition or regular medicine before trying. People with diabetes, epilepsy, blood disorders or those on certain medicines may need a higher folic acid dose or a medicine change. Planning means conditions are well controlled at conception, which is when organs begin forming.",
   "whatToDo": [
    {
     "when": "3 to 6 months before trying",
@@ -18392,7 +18401,7 @@
   "whatToDo": [
    {
     "when": "If breathing symptoms keep returning",
-    "action": "Write down when they happen, what triggered them and how long they last, then book a GP visit."
+    "action": "Write down when they happen, what triggered them and how long they last, then book a doctor visit."
    },
    {
     "when": "If a diagnosed child has an attack",
@@ -18400,10 +18409,10 @@
    },
    {
     "when": "After an attack",
-    "action": "NHS says see a GP within 2 days even if recovered."
+    "action": "NHS says see a doctor within 2 days even if recovered."
    }
   ],
-  "seeClinicianIf": "NHS says call your local emergency number (911 in the US) or go to the ER if a child has an asthma attack and is getting worse at any time, is not better after the maximum reliever doses in the plan, or has no inhaler. Open the app's Urgent help screen. See a GP for any child with asthma symptoms.",
+  "seeClinicianIf": "NHS says call your local emergency number (911 in the US) or go to the ER if a child has an asthma attack and is getting worse at any time, is not better after the maximum reliever doses in the plan, or has no inhaler. Open the app's Urgent help screen. See a doctor for any child with asthma symptoms.",
   "evidence": "guideline",
   "evidenceNote": "NHS asthma page opened. It is written for all ages, and we use it for symptoms, the emergency path and action plan only.",
   "sources": [
@@ -18444,11 +18453,11 @@
    "unit": "pregnancyWeek",
    "value": 0
   },
-  "whatToKnow": "The NHS says about 1 in 7 couples may have difficulty conceiving, and more than 8 in 10 couples with a woman under 40 conceive within a year. The NHS trying-to-conceive page advises seeing a GP after a year of trying, or sooner if there is a known reason such as a health condition or past cancer treatment. Causes include ovulation problems, tubal damage, fibroids and male factors, so both partners are assessed. Specialist diagnosis of infertility traditionally uses 2 years, but help is offered earlier.",
+  "whatToKnow": "The NHS says about 1 in 7 couples may have difficulty conceiving, and more than 8 in 10 couples with a woman under 40 conceive within a year. The NHS trying-to-conceive page advises seeing a doctor after a year of trying, or sooner if there is a known reason such as a health condition or past cancer treatment. Causes include ovulation problems, tubal damage, fibroids and male factors, so both partners are assessed. Specialist diagnosis of infertility traditionally uses 2 years, but help is offered earlier.",
   "whatToDo": [
    {
     "when": "After 12 months of regular sex, or sooner with a known reason",
-    "action": "Book a GP visit as a couple."
+    "action": "Book a doctor visit as a couple."
    },
    {
     "when": "Meanwhile",

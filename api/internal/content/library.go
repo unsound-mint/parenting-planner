@@ -117,6 +117,9 @@ func ageMonths(a atlasAge) float64 {
 func agesLabel(from, to atlasAge) string {
 	n := func(v float64) string { return strings.TrimSuffix(fmt.Sprintf("%.1f", v), ".0") }
 	unit := func(a atlasAge, v float64) string {
+		if v == 0 && a.Unit != "pregnancyWeek" {
+			return "birth"
+		}
 		switch a.Unit {
 		case "pregnancyWeek":
 			return "week " + n(v) + " of pregnancy"

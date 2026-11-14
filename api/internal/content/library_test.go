@@ -125,6 +125,7 @@ func TestLibraryAgesReadNaturally(t *testing.T) {
 		{atlasAge{"pregnancyWeek", -52}, atlasAge{"pregnancyWeek", 0}, "Before pregnancy"},
 		{atlasAge{"pregnancyWeek", 24}, atlasAge{"pregnancyWeek", 28}, "Weeks 24 to 28"},
 		{atlasAge{"pregnancyWeek", 36}, atlasAge{"month", 3}, "Week 36 to 3 months"},
+		{atlasAge{"pregnancyWeek", 28}, atlasAge{"month", 0}, "Week 28 to birth"},
 		{atlasAge{"month", 0}, atlasAge{"month", 12}, "Birth to 12 months"},
 		{atlasAge{"month", 6}, atlasAge{"year", 3}, "6 months to 3 years"},
 		{atlasAge{"year", 1}, atlasAge{"year", 3}, "1 to 3 years"},
@@ -189,4 +190,17 @@ func libraryText(tp LibraryTopic) []string {
 		out = append(out, s.When, s.Action)
 	}
 	return out
+}
+
+// The library is for US families: no Kazakhstan or CIS content, US words.
+// scripts/import-atlas.py drops and rewrites these; a rerun must keep it so.
+func TestLibraryIsWrittenForUSFamilies(t *testing.T) {
+	bad := regexp.MustCompile(`\b(Kazakh\w*|CIS|Russia\w*|labour\w*|nappy|nappies|paracetamol|antenatal\w*|colour\w*|GP)\b`)
+	for _, tp := range library {
+		for _, text := range libraryText(tp) {
+			if m := bad.FindString(text); m != "" {
+				t.Errorf("%s: %q in %q", tp.ID, m, text)
+			}
+		}
+	}
 }
