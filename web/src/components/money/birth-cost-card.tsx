@@ -194,7 +194,7 @@ function Scenario({ s, scale, max }: { s: BirthCostScenario; scale: number; max:
       </div>
       <p className="mt-1.5 flex flex-wrap justify-between gap-x-3 font-mono text-caption text-muted-foreground">
         <span>
-          birth {dollars(s.birth.lowCents)} to {dollars(s.birth.highCents)} · newborn {dollars(s.newborn.lowCents)} to {dollars(s.newborn.highCents)}
+          birth {dollars(s.birth.lowCents)} to {dollars(s.birth.highCents)} · {s.newborn.highCents < s.newborn.lowCents ? "newborn included in your maximum" : `newborn ${dollars(s.newborn.lowCents)} to ${dollars(s.newborn.highCents)}`}
         </span>
         <span>{s.hitsMaximum ? "capped at your maximum" : `max ${dollars(max)}`}</span>
       </p>

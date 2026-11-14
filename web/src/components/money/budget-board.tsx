@@ -16,6 +16,18 @@ import { CountUp, GrowBar, Wipe } from "./motion";
 type Parents = { mother?: { id: string; displayName: string }; partner?: { id: string; displayName: string } };
 
 /** Reads the budget the page loaded, reloads it after every change so both parents see the same numbers. */
+/** One colour per category so the bars read apart at a glance. */
+const categoryBar: Record<BudgetCategory, string> = {
+  pregnancy_care: "bg-mom",
+  delivery: "bg-primary/80",
+  equipment: "bg-partner",
+  childcare: "bg-status-up",
+  leave: "bg-status-due",
+  food: "bg-status-ok",
+  health: "bg-primary/55",
+  other: "bg-muted-foreground/55",
+};
+
 export function BudgetBoard({
   memberId,
   initial,
@@ -196,8 +208,8 @@ export function BudgetBoard({
                       <span className="truncate text-body">{meta.label}</span>
                       <span className="font-mono text-label">{dollars(c.firstYearCents)}</span>
                     </span>
-                    <span className="mt-1.5 block h-2 rounded-full bg-muted">
-                      <GrowBar ratio={c.firstYearCents / maxCat} delay={n * 60} className="bg-primary/80" />
+                    <span className="relative mt-1.5 block h-2 overflow-hidden rounded-full bg-muted">
+                      <GrowBar ratio={c.firstYearCents / maxCat} delay={n * 60} className={categoryBar[c.category]} />
                     </span>
                   </span>
                   <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-base) ease-(--ease-out)", isOpen && "rotate-180")} />

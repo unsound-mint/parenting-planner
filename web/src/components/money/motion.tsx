@@ -47,14 +47,13 @@ function useMounted() {
   return on;
 }
 
-/** A bar that grows from its left edge to `ratio` (0 to 1) and retargets smoothly when it changes. Transform only. */
+/** A bar that fills from its left edge to `ratio` (0 to 1) once, with the money-grow keyframes. Its parent must be relative. */
 export function GrowBar({ ratio, delay = 0, className }: { ratio: number; delay?: number; className?: string }) {
-  const on = useMounted();
   return (
     <span
       aria-hidden
-      className={cn("block h-full origin-left rounded-full transition-transform duration-[400ms] ease-(--ease-out) motion-reduce:transition-none", className)}
-      style={{ transform: `scaleX(${on ? Math.max(0, Math.min(1, ratio)) : 0})`, transitionDelay: `${delay}ms` }}
+      className={cn("absolute inset-y-0 left-0 origin-left rounded-full animate-[money-grow_500ms_var(--ease-out)_both] motion-reduce:animate-none", className)}
+      style={{ width: `${Math.max(0, Math.min(1, ratio)) * 100}%`, animationDelay: `${delay}ms` }}
     />
   );
 }
