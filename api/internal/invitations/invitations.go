@@ -123,8 +123,8 @@ func Preview(ctx context.Context, pool *pgxpool.Pool, token string) (store.GetIn
 	return row, err
 }
 
-// Accept turns a pending token into a caregiver and opens a session for the
-// family. It returns the family id, the new member and the raw session token.
+// Accept turns a pending token into a caregiver and opens a session bound to
+// that caregiver. It returns the family id, the new member and the raw session token.
 func Accept(ctx context.Context, pool *pgxpool.Pool, token string, now time.Time) (uuid.UUID, store.Member, string, error) {
 	var familyID uuid.UUID
 	var cg store.Member
@@ -156,7 +156,11 @@ func Accept(ctx context.Context, pool *pgxpool.Pool, token string, now time.Time
 		if err != nil {
 			return err
 		}
-		if err := q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: inv.FamilyID, ExpiresAt: now.Add(demo.SessionTTL)}); err != nil {
+		if err := q.CreateSession(ctx, store.CreateSessionParams{
+			TokenHash: hash, FamilyID: inv.FamilyID, ExpiresAt: now.Add(demo.SessionTTL),
+			// Bound to the caregiver: they act only as themselves, never as a parent.
+			MemberID: uuid.NullUUID{UUID: cg.ID, Valid: true},
+		}); err != nil {
 			return err
 		}
 		return access.Audit(ctx, q, inv.FamilyID, cg.ID, access.ActionAccept, Entity, inv.ID.String())

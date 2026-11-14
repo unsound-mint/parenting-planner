@@ -37,14 +37,21 @@ export const stageLabel: Record<Stage, string> = {
 };
 
 /** One line under the greeting: where the family is right now. */
+// Empty in pregnancy loss support: no week, no due date, and not "Planning" either.
 export function familyContext(family: Family): string {
+  if (family.pregnancyLoss) return "";
   if (family.stage === "pregnancy" && family.gestationalWeek != null) {
     const due = family.dueDate ? ` · due ${formatShortDate(family.dueDate)}` : "";
     return `Week ${family.gestationalWeek} of pregnancy${due}`;
   }
   const child = family.children[0];
   if (child) {
-    const age = child.ageMonths < 24 ? `${child.ageMonths} months` : `${Math.floor(child.ageMonths / 12)} years`;
+    const m = child.ageMonths;
+    // Under 3 months parents count in weeks, like the plan item ("7 weeks old") does.
+    const days = Math.floor((Date.now() + (family.demoDaysAhead ?? 0) * 86_400_000 - Date.parse(`${child.birthDate}T00:00:00Z`)) / 86_400_000);
+    if (child.birthDate && days >= 7 && days < 84) return `${child.name}, ${Math.floor(days / 7)} weeks`;
+    // From 24 months it is always 2 or more years, so only months need the singular.
+    const age = m < 24 ? `${m} ${m === 1 ? "month" : "months"}` : `${Math.floor(m / 12)} years`;
     return `${child.name}, ${age}`;
   }
   return stageLabel[family.stage];
@@ -57,7 +64,7 @@ export const statusLabel: Record<PlanItemStatus, string> = {
 };
 
 /** Whole days from today (UTC) to an ISO date; negative when it has passed. */
-export function daysUntil(isoDate: string, now = new Date()): number {
+export function daysUntil(isoDate: string, now: Date): number {
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   return Math.round((new Date(isoDate).getTime() - today) / 86_400_000);
 }
@@ -81,7 +88,7 @@ export const formatDayNumber = (iso: string) => dayNumFmt.format(new Date(iso));
 export const dayKey = (iso: string) => dayKeyFmt.format(new Date(iso));
 
 /** Whole calendar days from today to an instant, in Eastern time. */
-export function daysUntilInstant(iso: string, now = new Date()): number {
+export function daysUntilInstant(iso: string, now: Date): number {
   return Math.round((Date.parse(dayKey(iso)) - Date.parse(dayKey(now.toISOString()))) / 86_400_000);
 }
 

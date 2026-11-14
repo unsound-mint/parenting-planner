@@ -17,6 +17,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -83,41 +84,143 @@ func GetAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UU
 	var out Agenda
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
-		bookings, err := ownBookings(ctx, q, familyID, viewer)
-		if err != nil {
+		var err error
+		if out, err = buildAgenda(ctx, q, familyID, viewer, now); err != nil {
 			return err
 		}
-		moods, err := q.ListMoodCheckinsVisibleToParent(ctx, store.ListMoodCheckinsVisibleToParentParams{
-			FamilyID: familyID, ViewerID: viewer, Since: now.Add(-moodWindow),
-		})
-		if err != nil {
-			return err
-		}
-		notes, err := q.ListSessionNotesVisibleToParent(ctx, store.ListSessionNotesVisibleToParentParams{
-			FamilyID: familyID, ViewerID: viewer, Since: now.Add(-noteWindow),
-		})
-		if err != nil {
-			return err
-		}
-
-		// bookings are newest first: the last future one is the next session,
-		// the first started one without a note is the note that is due.
-		for i := range bookings {
-			b := bookings[i]
-			if b.StartsAt.After(now) {
-				out.NextSession = &b
-			} else if !b.NoteWritten && out.NoteDue == nil {
-				out.NoteDue = &b
-			}
-		}
-		out.Topics = topics(viewer, moods, notes)
-
 		for _, e := range []string{entityBooking, entitySessionNote, entityMoodCheckin} {
 			if err := access.Audit(ctx, q, familyID, viewer, access.ActionRead, e, ""); err != nil {
 				return err
 			}
 		}
 		return nil
+	})
+	return out, err
+}
+
+// buildAgenda reads the parent's own data and applies their saved arrangement.
+// It does not audit: callers do, once for their own purpose.
+func buildAgenda(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, now time.Time) (Agenda, error) {
+	var out Agenda
+	bookings, err := OwnBookings(ctx, q, familyID, viewer)
+	if err != nil {
+		return out, err
+	}
+	moods, err := q.ListMoodCheckinsVisibleToParent(ctx, store.ListMoodCheckinsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: viewer, Since: now.Add(-moodWindow),
+	})
+	if err != nil {
+		return out, err
+	}
+	notes, err := q.ListSessionNotesVisibleToParent(ctx, store.ListSessionNotesVisibleToParentParams{
+		FamilyID: familyID, ViewerID: viewer, Since: now.Add(-noteWindow),
+	})
+	if err != nil {
+		return out, err
+	}
+	// bookings are newest first: the last future one is the next session,
+	// the first started one without a note is the note that is due.
+	for i := range bookings {
+		b := bookings[i]
+		if b.StartsAt.After(now) {
+			out.NextSession = &b
+		} else if !b.NoteWritten && out.NoteDue == nil {
+			out.NoteDue = &b
+		}
+	}
+	prefs, err := q.ListAgendaTopicPrefs(ctx, store.ListAgendaTopicPrefsParams{FamilyID: familyID, MemberID: viewer})
+	if err != nil {
+		return out, err
+	}
+	all := topics(viewer, moods, notes)
+	// Topics the parent chose on their own diary entries (never the entry text).
+	dt, err := q.ListDiaryAgendaTopicsVisibleToParent(ctx, store.ListDiaryAgendaTopicsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: viewer, Since: now.Add(-noteWindow),
+	})
+	if err != nil {
+		return out, err
+	}
+	for _, d := range dt {
+		if d.AgendaTopic != nil {
+			all = append(all, Topic{ID: uuid.NewSHA1(viewer, []byte("diary-"+d.ID.String())), Text: *d.AgendaTopic, AddedAt: d.WrittenAt})
+		}
+	}
+	sort.SliceStable(all, func(i, j int) bool { return all[i].AddedAt.Before(all[j].AddedAt) })
+	out.Topics = arrange(all, prefs)
+	return out, nil
+}
+
+// arrange drops the topics the parent removed and puts the ones they ordered
+// first, in their order; topics that are new since they last arranged the
+// agenda follow, oldest first.
+func arrange(all []Topic, prefs []store.AgendaTopicPref) []Topic {
+	pos := map[uuid.UUID]int{}
+	removed := map[uuid.UUID]bool{}
+	for _, p := range prefs {
+		if p.RemovedAt.Valid {
+			removed[p.TopicID] = true
+		} else if p.Position.Valid {
+			pos[p.TopicID] = int(p.Position.Int32)
+		}
+	}
+	var ordered, fresh []Topic
+	for _, t := range all { // oldest first
+		switch _, saved := pos[t.ID]; {
+		case removed[t.ID]:
+		case saved:
+			ordered = append(ordered, t)
+		default:
+			fresh = append(fresh, t)
+		}
+	}
+	sort.SliceStable(ordered, func(i, j int) bool { return pos[ordered[i].ID] < pos[ordered[j].ID] })
+	return append(ordered, fresh...)
+}
+
+// ErrUnknownTopic: an id that is not on the acting parent's current agenda.
+var ErrUnknownTopic = errors.New("unknown topic")
+
+const entityAgenda = "psychologist_agenda"
+
+// UpdateAgenda stores the parent's arrangement: topicIDs is the whole agenda in
+// the wanted order, a current topic left out is removed (and stays removed), an
+// empty list clears the agenda. It returns the agenda as it is afterwards.
+func UpdateAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, topicIDs []uuid.UUID, now time.Time) (Agenda, error) {
+	var out Agenda
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		cur, err := buildAgenda(ctx, q, familyID, viewer, now)
+		if err != nil {
+			return err
+		}
+		current := map[uuid.UUID]bool{}
+		for _, t := range cur.Topics {
+			current[t.ID] = true
+		}
+		sent := map[uuid.UUID]bool{}
+		for _, id := range topicIDs {
+			if !current[id] || sent[id] {
+				return ErrUnknownTopic
+			}
+			sent[id] = true
+		}
+		for i, id := range topicIDs {
+			if err := q.UpsertAgendaTopicPosition(ctx, store.UpsertAgendaTopicPositionParams{FamilyID: familyID, MemberID: viewer, TopicID: id, Position: pgtype.Int4{Int32: int32(i), Valid: true}}); err != nil {
+				return err
+			}
+		}
+		for _, t := range cur.Topics {
+			if !sent[t.ID] {
+				if err := q.RemoveAgendaTopic(ctx, store.RemoveAgendaTopicParams{FamilyID: familyID, MemberID: viewer, TopicID: t.ID, RemovedAt: pgtype.Timestamptz{Time: now, Valid: true}}); err != nil {
+					return err
+				}
+			}
+		}
+		if err := access.Audit(ctx, q, familyID, viewer, access.ActionUpdate, entityAgenda, ""); err != nil {
+			return err
+		}
+		out, err = buildAgenda(ctx, q, familyID, viewer, now)
+		return err
 	})
 	return out, err
 }
@@ -205,7 +308,7 @@ func Book(ctx context.Context, pool *pgxpool.Pool, familyID, actor, slotID uuid.
 		if err := access.Audit(ctx, q, familyID, actor, access.ActionCreate, entityBooking, b.ID.String()); err != nil {
 			return err
 		}
-		bookings, err := ownBookings(ctx, q, familyID, actor)
+		bookings, err := OwnBookings(ctx, q, familyID, actor)
 		if err != nil {
 			return err
 		}
@@ -226,7 +329,7 @@ func WriteNote(ctx context.Context, pool *pgxpool.Pool, familyID, actor, booking
 	var out store.SessionNote
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
-		bookings, err := ownBookings(ctx, q, familyID, actor)
+		bookings, err := OwnBookings(ctx, q, familyID, actor)
 		if err != nil {
 			return err
 		}
@@ -257,9 +360,9 @@ func WriteNote(ctx context.Context, pool *pgxpool.Pool, familyID, actor, booking
 	return out, err
 }
 
-// ownBookings lists the parent's own bookings, newest first, with providers.
+// OwnBookings lists the parent's own bookings, newest first, with providers.
 // Callers audit the read.
-func ownBookings(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID) ([]Booking, error) {
+func OwnBookings(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID) ([]Booking, error) {
 	rows, err := q.ListPsychologistBookingsVisibleToParent(ctx, store.ListPsychologistBookingsVisibleToParentParams{
 		FamilyID: familyID, ViewerID: viewer,
 	})

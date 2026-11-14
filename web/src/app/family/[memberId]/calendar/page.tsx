@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
-import { ChevronLeft, ChevronRight, CloudOff, Lock } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { ChevronLeft, ChevronRight, CloudOff, Lock, Plus } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CalendarEvent, CalendarScope } from "@/lib/api/types";
 import { countThings, daysUntilInstant, formatClock, formatShortDate, whenWords } from "@/lib/format";
 import { familyPeople, isCaregiver, type Role } from "@/lib/roles";
 import { roleAccent } from "@/lib/visuals";
 import { addDays, todayKey } from "@/lib/schedule";
+import { EventDialog } from "@/components/schedule/event-dialog";
+import { CalendarSubscribe } from "@/components/schedule/calendar-subscribe";
 import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { WeekView, type Owner } from "@/components/schedule/week-view";
 import { cn } from "@/lib/utils";
+import { familyNow } from "@/lib/clock";
 
 // The next seven days for one person, their partner or the whole family.
 // Events come from one feed (shifts, appointments, task due dates); nothing here is stored in the UI.
@@ -38,22 +42,27 @@ async function Calendar({
   const rawScope = typeof query.scope === "string" ? query.scope : "";
 
   const api = await serverApi();
-  // After serverApi(): "today" is request time, so it must come after the request is dynamic.
-  const today = todayKey();
-  const from = typeof query.from === "string" && isoDate.test(query.from) ? query.from : today;
   const path = { params: { path: { memberId } } };
   const { data: family } = await api.GET("/family");
   const people = family ? familyPeople(family) : [];
   const me = people.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !me) redirect("/family");
   if (!family || !me) notFound();
+  // After serverApi(): "today" is request time, so it must come after the request is dynamic.
+  // It is the family's demo day, not the real one ("Skip a week").
+  const now = familyNow(family);
+  const today = todayKey(now);
+  const from = typeof query.from === "string" && isoDate.test(query.from) ? query.from : today;
 
   const caregiver = isCaregiver(me.role);
   const scope: CalendarScope = caregiver ? "mine" : scopes.find((s) => s === rawScope) ?? "family";
-  const [events, shifts] = await Promise.all([
+  const [events, shifts, feed] = await Promise.all([
     api.GET("/members/{memberId}/calendar-events", {
       params: { ...path.params, query: { scope, from, to: addDays(from, 6) } },
     }),
     api.GET("/members/{memberId}/shifts", path),
+    api.GET("/members/{memberId}/calendar-feed", path),
   ]);
 
   // Not built yet, or not shared with this person: the nav hides it, so a direct visit gets the same.
@@ -65,13 +74,16 @@ async function Calendar({
   );
   const items = events.data?.items ?? [];
   const agreed = (shifts.data?.items ?? []).filter((s) => s.status === "agreed");
+  const guests = people
+    .filter((p) => p.id !== memberId && (!isCaregiver(p.role) || family.caregivers.find((c) => c.id === p.id)?.permissions.includes("schedule")))
+    .map((p) => ({ id: p.id, name: p.displayName }));
   const hrefFor = (s: CalendarScope) => `/family/${memberId}/calendar?scope=${s}${from === today ? "" : `&from=${from}`}`;
   const weekHref = (f: string) => `/family/${memberId}/calendar?scope=${scope}${f === today ? "" : `&from=${f}`}`;
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame>
       <header>
-        <h1 className="max-w-2xl text-headline text-balance">{headline(items, from === today, caregiver)}</h1>
+        <h1 className="max-w-2xl text-headline text-balance">{headline(items, from === today, caregiver, now)}</h1>
         {caregiver ? (
           <p className="mt-2 text-label font-normal text-muted-foreground">Your shifts only</p>
         ) : (
@@ -82,6 +94,17 @@ async function Calendar({
       <div className="flex flex-wrap items-center gap-3">
         {!caregiver && <ScopeTabs active={scope} hrefFor={hrefFor} />}
         <span className="flex-1" />
+        {!caregiver && (
+          <EventDialog
+            memberId={memberId}
+            guests={guests}
+            today={today}
+            triggerClassName="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 text-label font-medium text-primary-foreground outline-none transition-colors duration-150 hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9"
+          >
+            <Plus aria-hidden className="size-4" />
+            Add event
+          </EventDialog>
+        )}
         <div className="flex items-center gap-1">
           <WeekLink href={weekHref(addDays(from, -7))} label="Previous week" icon={ChevronLeft} />
           <span className="min-w-36 text-center font-mono text-label">
@@ -101,40 +124,45 @@ async function Calendar({
       </div>
 
       {events.data ? (
-        <WeekView from={from} today={today} events={items} owners={owners} />
+        <WeekView from={from} today={today} events={items} owners={owners} edit={caregiver ? undefined : { memberId, guests }} />
       ) : (
         <Unavailable />
       )}
 
-      {agreed.length > 0 && (
-        <section aria-labelledby="agreed-title" className="flex flex-col gap-3">
-          <div>
-            <h2 id="agreed-title" className="text-title">
-              Agreed, starts when the baby is home
-            </h2>
-            <p className="text-label font-normal text-muted-foreground">These move into the week above on the day you switch.</p>
-          </div>
-          <ul className="grid max-w-3xl gap-3">
-            {agreed.map((s) => (
-              <li key={s.id}>
-                <ShiftCard shift={s} owner={owners[s.memberId]} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </main>
+      {/* Under the week, side by side when there is room: the agreed shifts and the subscribe card. */}
+      <PageGrid className="empty:hidden">
+        {agreed.length > 0 && (
+          <section aria-labelledby="agreed-title" className="flex min-w-0 flex-col gap-3">
+            <div>
+              <h2 id="agreed-title" className="text-title">
+                Agreed, starts when the baby is home
+              </h2>
+              <p className="text-label font-normal text-muted-foreground">These move into the week above on the day you switch.</p>
+            </div>
+            <ul className="grid gap-3">
+              {agreed.map((s) => (
+                <li key={s.id}>
+                  <ShiftCard shift={s} owner={owners[s.memberId]} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {feed.data && <CalendarSubscribe memberId={memberId} initial={feed.data} canChooseScope={!caregiver} />}
+      </PageGrid>
+    </PageFrame>
   );
 }
 
 /** One status sentence: the next thing, or how full the week is. */
-function headline(events: CalendarEvent[], thisWeek: boolean, caregiver: boolean): string {
+function headline(events: CalendarEvent[], thisWeek: boolean, caregiver: boolean, nowDate: Date): string {
   if (events.length === 0) return caregiver ? "No shifts this week." : "Nothing is scheduled this week.";
   if (!thisWeek) return `${countThings(events.length)} on this week.`;
-  const now = Date.now();
+  const now = nowDate.getTime();
   const next = events.find((e) => Date.parse(e.endsAt ?? e.startsAt) >= now || e.allDay);
   if (!next) return `${countThings(events.length)} this week, all done so far.`;
-  const when = whenWords(daysUntilInstant(next.startsAt));
+  const when = whenWords(daysUntilInstant(next.startsAt, nowDate));
   const at = next.allDay ? "" : ` at ${formatClock(next.startsAt)}`;
   return `Next: ${next.title}, ${when}${at}.`;
 }

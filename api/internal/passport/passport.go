@@ -67,85 +67,93 @@ func (p Person) IsChild() bool { return p.ChildID != uuid.Nil }
 func Get(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, today time.Time) ([]Person, error) {
 	var people []Person
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
-		q := store.New(tx)
-		members, err := q.ListMembers(ctx, familyID)
-		if err != nil {
-			return err
-		}
-		children, err := q.ListChildren(ctx, familyID)
-		if err != nil {
-			return err
-		}
-		labs, err := q.ListPassportLabsVisibleToParent(ctx, store.ListPassportLabsVisibleToParentParams{FamilyID: familyID, ViewerID: viewer})
-		if err != nil {
-			return err
-		}
-		allergies, err := q.ListAllergiesVisibleToParent(ctx, store.ListAllergiesVisibleToParentParams{FamilyID: familyID, ViewerID: viewer})
-		if err != nil {
-			return err
-		}
-		given, err := q.ListImmunizations(ctx, familyID)
-		if err != nil {
-			return err
-		}
-		scheduled, err := q.ListScheduledDoses(ctx, familyID)
-		if err != nil {
-			return err
-		}
-		growth, err := q.ListGrowthMeasurements(ctx, familyID)
-		if err != nil {
-			return err
-		}
-		team, err := q.ListCareTeam(ctx, familyID)
-		if err != nil {
-			return err
-		}
-
-		people = assemble(viewer, members, children, today)
-		at := index(people)
-		var motherID uuid.UUID
-		for _, m := range members {
-			if m.Role == "mother" {
-				motherID = m.ID
-			}
-		}
-		for _, l := range labs {
-			if i, ok := at[subject(l.SubjectMemberID, l.SubjectChildID)]; ok {
-				people[i].Labs = append(people[i].Labs, l)
-			}
-		}
-		for _, a := range allergies {
-			if i, ok := at[subject(a.SubjectMemberID, a.SubjectChildID)]; ok {
-				people[i].Allergies = append(people[i].Allergies, a)
-			}
-		}
-		for _, g := range growth {
-			if i, ok := at[g.ChildID]; ok {
-				people[i].Growth = append(people[i].Growth, g)
-			}
-		}
-		addVaccines(people, at, given, scheduled, today)
-		for _, c := range team {
-			for _, id := range careTeamSubjects(c, motherID, children) {
-				i, ok := at[id]
-				if !ok {
-					continue
-				}
-				// Mental health care is the parent's own business: the
-				// other parent does not see who their psychologist is.
-				if c.Role == "psychologist" && !people[i].IsChild() && !people[i].IsViewer {
-					continue
-				}
-				people[i].CareTeam = append(people[i].CareTeam, c)
-			}
-		}
-
-		if err := access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityLabResult, ""); err != nil {
-			return err
-		}
-		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityAllergy, "")
+		var err error
+		people, err = Read(ctx, store.New(tx), familyID, viewer, today)
+		return err
 	})
 	return people, err
+}
+
+// Read is Get inside the caller's transaction, audit rows included. The data
+// export uses it so the whole export is one transaction.
+func Read(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, today time.Time) ([]Person, error) {
+	var people []Person
+	members, err := q.ListMembers(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	children, err := q.ListChildren(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	labs, err := q.ListPassportLabsVisibleToParent(ctx, store.ListPassportLabsVisibleToParentParams{FamilyID: familyID, ViewerID: viewer})
+	if err != nil {
+		return nil, err
+	}
+	allergies, err := q.ListAllergiesVisibleToParent(ctx, store.ListAllergiesVisibleToParentParams{FamilyID: familyID, ViewerID: viewer})
+	if err != nil {
+		return nil, err
+	}
+	given, err := q.ListImmunizations(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	scheduled, err := q.ListScheduledDoses(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	growth, err := q.ListGrowthMeasurements(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	team, err := q.ListCareTeam(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+
+	people = assemble(viewer, members, children, today)
+	at := index(people)
+	var motherID uuid.UUID
+	for _, m := range members {
+		if m.Role == "mother" {
+			motherID = m.ID
+		}
+	}
+	for _, l := range labs {
+		if i, ok := at[subject(l.SubjectMemberID, l.SubjectChildID)]; ok {
+			people[i].Labs = append(people[i].Labs, l)
+		}
+	}
+	for _, a := range allergies {
+		if i, ok := at[subject(a.SubjectMemberID, a.SubjectChildID)]; ok {
+			people[i].Allergies = append(people[i].Allergies, a)
+		}
+	}
+	for _, g := range growth {
+		if i, ok := at[g.ChildID]; ok {
+			people[i].Growth = append(people[i].Growth, g)
+		}
+	}
+	addVaccines(people, at, given, scheduled, today)
+	for _, c := range team {
+		for _, id := range careTeamSubjects(c, motherID, children) {
+			i, ok := at[id]
+			if !ok {
+				continue
+			}
+			// Mental health care is the parent's own business: the
+			// other parent does not see who their psychologist is.
+			if c.Role == "psychologist" && !people[i].IsChild() && !people[i].IsViewer {
+				continue
+			}
+			people[i].CareTeam = append(people[i].CareTeam, c)
+		}
+	}
+
+	if err := access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityLabResult, ""); err != nil {
+		return nil, err
+	}
+	return people, access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityAllergy, "")
 }
 
 func assemble(viewer uuid.UUID, members []store.Member, children []store.Child, today time.Time) []Person {
