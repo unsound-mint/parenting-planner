@@ -1,12 +1,15 @@
+"use client";
+
 import { daysUntilInstant } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 const WINDOW = 14;
 
 // The days left, drawn: one dot per day for the next two weeks, today on the
 // left, the session day as the filled ring. Text repeats it for screen readers.
 export function SessionCountdown({ startsAt, className }: { startsAt: string; className?: string }) {
-  const days = Math.max(0, daysUntilInstant(startsAt));
+  const days = Math.max(0, daysUntilInstant(startsAt, useFamilyNow()));
   const at = Math.min(days, WINDOW);
   return (
     <div className={cn("flex flex-col gap-3", className)}>

@@ -87,7 +87,7 @@ func (s *Server) CreateLabResult(ctx context.Context, req CreateLabResultRequest
 	l, err := health.LogLabValue(ctx, s.pool, familyID, req.MemberId, s.today(ctx), health.NewLabValue{
 		Subject: health.Subject{ChildID: b.ChildId}, Name: b.Name, Unit: b.Unit, Value: float64(b.Value),
 		RefLow: optFloat64(b.RefLow), RefHigh: optFloat64(b.RefHigh), TakenOn: b.TakenOn.Time,
-		Visibility: access.Visibility(b.Visibility),
+		Visibility: access.Visibility(b.Visibility), Now: s.now(ctx),
 	})
 	switch {
 	case errors.Is(err, health.ErrNoChild):

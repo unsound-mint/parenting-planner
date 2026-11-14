@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { VisibilityChip, visibilityShort } from "@/components/passport/visibility-chip";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // Calls with the health insurer are sensitive records: the author picks who sees
 // each one and it starts private. care_team is left out of the picker because it
@@ -34,18 +35,19 @@ export function byFollowUp(calls: InsuranceCall[]): InsuranceCall[] {
 }
 
 /** The status sentence for the tab: the next follow-up, or what to do first. */
-export function insuranceHeadline(calls: InsuranceCall[], selfId: string): string {
+export function insuranceHeadline(calls: InsuranceCall[], selfId: string, now: Date): string {
   const next = byFollowUp(calls.filter((c) => c.authorId === selfId)).find((c) => c.followUpOn);
-  if (next?.followUpOn) return daysUntil(next.followUpOn) < 0 ? `Your follow-up with ${next.insurer} is late.` : `Follow up with ${next.insurer} by ${formatShortDate(next.followUpOn)}.`;
+  if (next?.followUpOn) return daysUntil(next.followUpOn, now) < 0 ? `Your follow-up with ${next.insurer} is late.` : `Follow up with ${next.insurer} by ${formatShortDate(next.followUpOn)}.`;
   return calls.length === 0 ? "Log your first call with the insurer. Keep the reference number." : "No follow-ups waiting. Log the next call when you make it.";
 }
 
-function followTone(on: string): DueTone {
-  const d = daysUntil(on);
+function followTone(on: string, now: Date): DueTone {
+  const d = daysUntil(on, now);
   return d < 0 ? "late" : d <= 3 ? "due" : "up";
 }
 
 export function InsuranceLog({ calls, people, selfId, onCreated }: { calls: InsuranceCall[]; people: Person[]; selfId: string; onCreated: (call: InsuranceCall) => void }) {
+  const now = useFamilyNow();
   const [open, setOpen] = useState(calls.length === 0);
   const ordered = byFollowUp(calls);
   return (
@@ -76,7 +78,7 @@ export function InsuranceLog({ calls, people, selfId, onCreated }: { calls: Insu
 
       <section aria-labelledby="calls-title" className={cn("min-w-0", !open && "lg:col-span-2")}>
         <h2 id="calls-title" className="text-title">
-          <span className="hidden print:inline">Insurance calls, printed {formatLongDate(todayKey())}</span>
+          <span className="hidden print:inline">Insurance calls, printed {formatLongDate(todayKey(now))}</span>
           <span className="print:hidden">Calls by follow-up date</span>
         </h2>
         {ordered.length === 0 ? (
@@ -94,9 +96,10 @@ export function InsuranceLog({ calls, people, selfId, onCreated }: { calls: Insu
 }
 
 function CallRow({ call, author }: { call: InsuranceCall; author?: Person }) {
+  const now = useFamilyNow();
   const Icon = insuranceTopicIcon[call.topic];
   const [copied, setCopied] = useState(false);
-  const tone = call.followUpOn ? followTone(call.followUpOn) : undefined;
+  const tone = call.followUpOn ? followTone(call.followUpOn, now) : undefined;
   return (
     <li className="flex gap-3 py-4 print:break-inside-avoid">
       <span aria-hidden className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground print:hidden">
@@ -138,7 +141,7 @@ function CallRow({ call, author }: { call: InsuranceCall; author?: Person }) {
             <span className={cn("inline-flex h-6 items-center gap-1 rounded-full px-2 print:bg-transparent print:px-0", toneClass[tone])}>
               <CalendarClock aria-hidden className="size-3.5" />
               <span>
-                Follow up <span className="font-mono">{formatShortDate(call.followUpOn)}</span>, {daysLeftWords(daysUntil(call.followUpOn))}
+                Follow up <span className="font-mono">{formatShortDate(call.followUpOn)}</span>, {daysLeftWords(daysUntil(call.followUpOn, now))}
               </span>
             </span>
           )}
@@ -149,6 +152,7 @@ function CallRow({ call, author }: { call: InsuranceCall; author?: Person }) {
 }
 
 function CallForm({ lastInsurer, selfId, onCreated }: { lastInsurer?: string; selfId: string; onCreated: (call: InsuranceCall) => void }) {
+  const today = todayKey(useFamilyNow());
   const [insurer, setInsurer] = useState(lastInsurer ?? "");
   const [rep, setRep] = useState("");
   const [ref, setRef] = useState("");
@@ -198,7 +202,7 @@ function CallForm({ lastInsurer, selfId, onCreated }: { lastInsurer?: string; se
         <Input id="call-ref" value={ref} onChange={(e) => setRef(e.target.value)} maxLength={40} className="h-11 font-mono md:h-9" />
       </Field>
       <Field id="call-follow" label="Follow-up date, optional">
-        <Input id="call-follow" type="date" min={todayKey()} value={followUpOn} onChange={(e) => setFollowUpOn(e.target.value)} className="h-11 font-mono md:h-9" />
+        <Input id="call-follow" type="date" min={today} value={followUpOn} onChange={(e) => setFollowUpOn(e.target.value)} className="h-11 font-mono md:h-9" />
       </Field>
       <fieldset className="sm:col-span-2">
         <legend className="mb-1.5 text-label font-medium">What it was about</legend>

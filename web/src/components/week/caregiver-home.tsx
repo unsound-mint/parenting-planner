@@ -1,6 +1,7 @@
 import { Baby, CalendarHeart, Lock, type LucideIcon } from "lucide-react";
 import type { Caregiver, Family, Guide, PregnancyWeek, Today } from "@/lib/api/types";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { familyContext } from "@/lib/format";
 import { roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -31,17 +32,19 @@ export function CaregiverHome({
       : `Hello, ${caregiver.displayName}.`;
 
   return (
-    <main className="flex min-w-0 max-w-3xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="gap-8">
       <header>
         <h1 className="text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground">
-          {roleLabel[caregiver.role]} view · {familyContext(family)}
+          {[`${roleLabel[caregiver.role]} view`, familyContext(family)].filter(Boolean).join(" · ")}
         </p>
       </header>
 
-      <CaregiverTodaySlot today={today} names={names} />
-      <WeekCardSlot card={card} />
-      <GuidesSlot guides={guides} />
+      <PageGrid cols={3}>
+        <CaregiverTodaySlot today={today} names={names} />
+        <WeekCardSlot card={card} />
+        <GuidesSlot guides={guides} />
+      </PageGrid>
 
       <section aria-labelledby="sees" className="grid gap-3 sm:grid-cols-2">
         <h2 id="sees" className="sr-only">
@@ -64,7 +67,7 @@ export function CaregiverHome({
           text="Parents' health records, mood check-ins and diaries. They are never shown in this view."
         />
       </section>
-    </main>
+    </PageFrame>
   );
 }
 

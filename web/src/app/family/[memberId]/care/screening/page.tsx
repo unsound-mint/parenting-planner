@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { Screening } from "@/components/wellbeing/screening";
+import { PageFrame } from "@/components/shell/page";
 import { BackToCare, Unavailable, WellbeingFallback } from "@/components/wellbeing/chrome";
 
 // Mood questionnaires (EPDS, PHQ-9). Screening, never a diagnosis. Parents only.
@@ -18,13 +19,16 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: questionnaires }, { data: past }] = await Promise.all([
+  const [{ data: questionnaires }, { data: past }, { data: drafts }, { data: family }] = await Promise.all([
     api.GET("/members/{memberId}/screening-questionnaires", path),
     api.GET("/members/{memberId}/mood-screenings", path),
+    api.GET("/members/{memberId}/mood-screening-drafts", path),
+    api.GET("/family"),
   ]);
+  const partner = family?.parents.find((p) => p.id !== memberId);
 
   return (
-    <main className="flex-1 px-4 pt-4 pb-16 md:px-8">
+    <PageFrame className="block pt-4">
       <BackToCare memberId={memberId} />
       {!questionnaires ? (
         <Unavailable title="The questionnaires are not loading" />
@@ -33,8 +37,10 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
           memberId={memberId}
           questionnaires={questionnaires.items}
           past={(past?.items ?? []).filter((r) => r.authorId === memberId)}
+          drafts={drafts?.items ?? []}
+          partner={partner ? { id: partner.id, name: partner.displayName } : undefined}
         />
       )}
-    </main>
+    </PageFrame>
   );
 }

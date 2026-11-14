@@ -5,6 +5,9 @@ import { CaregiverToday } from "./caregiver-today";
 import { GuideList } from "./guide-list";
 import { StageControl } from "./stage-control";
 import { WeekCard } from "./week-card";
+import { LossSupport } from "@/components/loss/loss-support";
+import { PREGNANCY_LOSS_ENABLED } from "@/lib/features";
+import { inLossSupport } from "@/lib/loss";
 
 // Each piece of the home that depends on a newer endpoint is its own slot: the
 // page starts the request, the slot waits for it and renders nothing when the
@@ -69,6 +72,7 @@ async function GuidesLoader({ guides, plan }: { guides: Pending<{ items: Guide[]
 // The stage chip waits for the stage content endpoint (a preview mock counts): stage
 // editing (updateFamily) and stage filtering (listGuides) are the same backend
 // issue (#213), and a PATCH cannot be probed without changing data.
+// Parents only. In pregnancy loss support the chip gives way to the support card.
 export function StageSlot({ guides, memberId, family }: { guides: Pending<{ items: Guide[] }>; memberId: string; family: Family }) {
   return (
     <Suspense fallback={null}>
@@ -77,6 +81,7 @@ export function StageSlot({ guides, memberId, family }: { guides: Pending<{ item
   );
 }
 async function StageLoader({ guides, memberId, family }: { guides: Pending<{ items: Guide[] }>; memberId: string; family: Family }) {
+  if (inLossSupport(family)) return <LossSupport memberId={memberId} />;
   if (!(await guides)) return null;
-  return <StageControl memberId={memberId} stage={family.stage} dueDate={family.dueDate} hasChild={family.children.length > 0} />;
+  return <StageControl memberId={memberId} stage={family.stage} dueDate={family.dueDate} hasChild={family.children.length > 0} lossEntry={PREGNANCY_LOSS_ENABLED} />;
 }

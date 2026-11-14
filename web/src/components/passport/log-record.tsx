@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Logged } from "./summary";
+import { todayKey } from "@/lib/schedule";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 type VaccineKey = components["schemas"]["VaccineKey"];
 type ScreeningKind = components["schemas"]["ScreeningKind"];
@@ -26,7 +28,6 @@ const kinds: { id: Kind; label: string }[] = [
 ];
 
 const field = "h-11 w-full min-w-0 rounded-lg border border-input bg-card px-3 text-body outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:h-9 md:text-label";
-const today = () => new Date().toLocaleDateString("en-CA");
 
 export type LogPrefill = { vaccine?: VaccineKey; nonce: number };
 
@@ -53,6 +54,7 @@ export function LogRecord({
   const open = person.vaccines.find((v) => v.status !== "done");
   const [vaccine, setVaccine] = useState<VaccineKey>(prefill.vaccine ?? (open && vaccineKey(open.name)) ?? "tdap");
   const [screening, setScreening] = useState<ScreeningKind>(person.kind === "child" ? "vision_screen" : "glucose_screen");
+  const today = todayKey(useFamilyNow());
   const [date, setDate] = useState(today);
   const [visibility, setVisibility] = useState<Visibility>("private");
   const [dose, setDose] = useState("");
@@ -177,7 +179,7 @@ export function LogRecord({
           </>
         )}
         <Field label={kind === "vaccine" ? "Given on" : "Done on"}>
-          <Input type="date" className={field} value={date} max={today()} onChange={(e) => setDate(e.target.value)} required />
+          <Input type="date" className={field} value={date} max={today} onChange={(e) => setDate(e.target.value)} required />
         </Field>
         {sensitive && (
           <Field label="Who can see it">

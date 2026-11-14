@@ -15,6 +15,7 @@ import type { NoteParts } from "@/lib/week";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { StatusPill } from "./status-pill";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // The plan as one focus card plus a quieter list. Each item explains itself
 // in place: "Why?" opens under the item and adds only what the item does not
@@ -30,6 +31,7 @@ export function PlanBoard({
   note,
   noteLocked,
   talkHref,
+  quietWhenEmpty,
 }: {
   items: PlanItem[];
   memberId: string;
@@ -37,6 +39,8 @@ export function PlanBoard({
   noteLocked?: boolean;
   /** Where "Talk to someone" leads when the parent's check-ins show a pattern; shown on mental health items. */
   talkHref?: string;
+  /** Pregnancy loss support: an empty plan shows no "nothing needs you" card; the support card already says what to do. */
+  quietWhenEmpty?: boolean;
 }) {
   const focus = items.find((i) => i.status !== "upcoming") ?? items[0];
   const [openId, setOpenId] = useState<string | null>(null);
@@ -62,6 +66,7 @@ export function PlanBoard({
   if (!focus) {
     return (
       <div className="mt-8 flex min-w-0 flex-col gap-2">
+        {!quietWhenEmpty && (
         <div className="mb-4 flex max-w-2xl items-center gap-4 rounded-2xl border border-border bg-card p-6">
           <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-ok-soft text-status-ok">
             <CheckCircle2 className="size-6" aria-hidden />
@@ -71,6 +76,7 @@ export function PlanBoard({
             <p className="text-label text-muted-foreground">We check again when your family&apos;s data or the week changes.</p>
           </div>
         </div>
+        )}
         {(loose.length > 0 || noteLocked) && <ul className="flex flex-col gap-2">{extras}</ul>}
       </div>
     );
@@ -157,7 +163,8 @@ function FocusCard({
   const router = useRouter();
   const [booked, setBooked] = useState(false);
   const [pending, startTransition] = useTransition();
-  const days = item.dueBy ? daysUntil(item.dueBy) : undefined;
+  const now = useFamilyNow();
+  const days = item.dueBy ? daysUntil(item.dueBy, now) : undefined;
   const progress = booked ? "booked" : item.progress;
 
   function markBooked() {
