@@ -1,14 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Bell, CalendarDays, ChevronRight, FlaskConical, ListChecks, Lock, MessageCircleQuestion, NotebookPen, Rss, Smile, Baby, Stethoscope, UserPlus, type LucideIcon } from "lucide-react";
-import type { CalendarFeed, Caregiver, CaregiverPermission, Family, NotificationList, Parent } from "@/lib/api/types";
+import type { CalendarFeed, Caregiver, Family, NotificationList, Parent } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { roleIcon, roleLabel } from "@/lib/visuals";
 import { syncNote } from "@/lib/schedule";
-import { PermissionRow } from "@/components/people/permission-row";
-
-const allPermissions: CaregiverPermission[] = ["care_log", "baby_passport", "schedule", "family_plan", "pregnancy_updates"];
+import { CaregiverPermissions } from "./caregiver-permissions";
 
 export function Card({ title, icon: Icon, children, id }: { title: string; icon: LucideIcon; children: ReactNode; id?: string }) {
   return (
@@ -47,31 +45,21 @@ export function PartnerCard({ partner }: { partner: Parent }) {
             <span className="text-label font-medium">{text}</span>
           </li>
         ))}
-        <li className="flex min-h-12 items-center gap-3 border-t border-border py-2">
-          <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Lock className="size-4.5" />
-          </span>
-          <span className="text-label font-medium">Private items stay private</span>
-        </li>
       </ul>
-      <p className="text-caption text-muted-foreground">You choose per item when you add it: Only you, or Family.</p>
+      <p className="text-caption text-muted-foreground">Anything you mark Only me stays yours. You choose per item when you add it.</p>
     </Card>
   );
 }
 
-/** One caregiver with every permission the API can grant, on or off. */
+/** One caregiver with every permission the API can grant, as switches that save at once. */
 export function CaregiverCard({ memberId, caregiver }: { memberId: string; caregiver: Caregiver }) {
   const Icon = roleIcon[caregiver.role];
   return (
     <Card title={caregiver.displayName} icon={Icon} id={`person-${caregiver.id}`}>
       <p className="-mt-1 text-label font-normal text-muted-foreground">{roleLabel[caregiver.role]}</p>
-      <div className="flex flex-col">
-        {allPermissions.map((p) => (
-          <PermissionRow key={p} permission={p} on={caregiver.permissions.includes(p)} idPrefix={`${caregiver.id}`} />
-        ))}
-      </div>
+      <CaregiverPermissions memberId={memberId} caregiverId={caregiver.id} initial={caregiver.permissions} />
       <Link href={`/family/${memberId}/people`} className={linkClass}>
-        Change in People
+        Remove access in People
         <ChevronRight aria-hidden className="size-4" />
       </Link>
     </Card>
