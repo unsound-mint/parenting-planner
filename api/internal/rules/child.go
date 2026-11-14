@@ -35,7 +35,7 @@ var childRules = []Rule{
 	{
 		ID:       "infant-2-month-vaccines",
 		Title:    "Book the 2-month vaccines",
-		Detail:   "At 2 months babies get their first doses of DTaP, polio (IPV), Hib, pneumococcal (PCV) and rotavirus vaccines. Book the visit with your pediatrician.",
+		Detail:   "Guidelines schedule the first DTaP, polio, Hib, pneumococcal and rotavirus vaccines at 2 months. Book the well visit with your pediatrician, who will go over the schedule.",
 		Category: Vaccine,
 		Audience: ForBoth,
 		Source:   srcCDCChildNotes,
@@ -48,9 +48,9 @@ var childRules = []Rule{
 				}
 				by := c.BirthDate.AddDate(0, 2, 0)
 				if f.Today.Before(by) {
-					return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("%s is %d weeks old and the first vaccines are due at 2 months.", c.Name, days/7)}, true
+					return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("Because guidelines schedule the first vaccines at 2 months, and %s is %d weeks old. Your pediatrician can book the visit.", c.Name, days/7)}, true
 				}
-				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("%s is %d months old and no 2-month vaccines are on record.", c.Name, age)}, true
+				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because guidelines schedule the first vaccines at 2 months, and %s is %d months old with none on record. Your pediatrician can go over the schedule.", c.Name, age)}, true
 			}
 			return Result{}, false
 		},
@@ -58,7 +58,7 @@ var childRules = []Rule{
 	{
 		ID:       "preschool-boosters",
 		Title:    "Vaccine boosters for ages 4 to 6",
-		Detail:   "Between 4 and 6 years, children get booster doses of DTaP, polio (IPV), MMR and chickenpox (varicella). Ask your pediatrician at the next well visit.",
+		Detail:   "Guidelines list booster doses of DTaP, polio, MMR and chickenpox between 4 and 6 years. Ask your pediatrician at the next well visit.",
 		Category: Vaccine,
 		Audience: ForBoth,
 		Source:   srcCDCChildNotes,
@@ -78,7 +78,7 @@ var childRules = []Rule{
 					continue
 				}
 				by := c.BirthDate.AddDate(7, 0, -1)
-				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("%s is %d and these doses are not on record yet: %s.", c.Name, age/12, strings.Join(missing, ", "))}, true
+				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because guidelines list boosters between 4 and 6 years, and %s is %d with these not on record yet: %s. Your pediatrician can check the record.", c.Name, age/12, strings.Join(missing, ", "))}, true
 			}
 			return Result{}, false
 		},
@@ -86,7 +86,7 @@ var childRules = []Rule{
 	{
 		ID:       "vision-screen",
 		Title:    "Vision check between ages 3 and 5",
-		Detail:   "Every child should have their vision checked at least once between 3 and 5 years, to find amblyopia (lazy eye) or its risk factors early. Ask your pediatrician at the next well visit.",
+		Detail:   "Guidelines suggest a vision check at least once between 3 and 5 years, to find lazy eye or its risk factors early. Ask your pediatrician at the next well visit.",
 		Category: Screening,
 		Audience: ForBoth,
 		Source:   srcUSPSTFVision,
@@ -100,7 +100,7 @@ var childRules = []Rule{
 					continue
 				}
 				by := c.BirthDate.AddDate(6, 0, -1)
-				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("%s is %d and no vision screening is on file.", c.Name, age/12)}, true
+				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest a vision check between 3 and 5 years, and %s is %d with none on file. Your pediatrician can do or arrange it.", c.Name, age/12)}, true
 			}
 			return Result{}, false
 		},
