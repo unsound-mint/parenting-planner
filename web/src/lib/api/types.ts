@@ -178,6 +178,7 @@ export type StoryInvitation = S["StoryInvitation"];
 
 export type LoadMap = S["LoadMap"];
 export type LoadMapArea = S["LoadMapArea"];
+export type LoadMapItem = S["LoadMapItem"];
 export type LoadMapAreaKey = S["LoadMapAreaKey"];
 export type LoadMapShare = S["LoadMapShare"];
 export type LoadMapUnit = S["LoadMapUnit"];
