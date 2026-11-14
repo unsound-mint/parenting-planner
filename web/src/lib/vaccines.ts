@@ -20,12 +20,6 @@ export const vaccineName: Record<S["VaccineKey"], string> = {
   rotavirus: "Rotavirus",
 };
 
-export const screeningName: Record<S["ScreeningKind"], string> = {
-  glucose_screen: "Glucose screening",
-  gbs: "GBS test",
-  vision_screen: "Vision screening",
-};
-
 /** The key behind a passport vaccine name, when it is one of the keys the API accepts. */
 export function vaccineKey(name: string): S["VaccineKey"] | undefined {
   const n = name.toLowerCase();

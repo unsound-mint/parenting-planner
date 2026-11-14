@@ -1,7 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Avatar } from "@/components/joy/partner-chip";
+import { api } from "@/lib/api/client";
 import type { Person } from "@/lib/roles";
 import { roleLabel } from "@/lib/visuals";
 
@@ -11,6 +14,31 @@ import { roleLabel } from "@/lib/visuals";
  * with their colour and role, so the choice reads as people, not a dropdown.
  */
 export function TakerPicker({ takers, others = [], memberId, label, disabled, onPick }: { takers: Person[]; others?: Person[]; memberId: string; label: string; disabled?: boolean; onPick: (to: Person) => void }) {
+  const router = useRouter();
+  const [enabling, setEnabling] = useState<string | null>(null);
+
+  // A grandparent or nanny without the shared to-do list cannot take tasks. Turning it on
+  // here (the same switch as on the Privacy page) and offering in one step saves a detour.
+  async function enableAndOffer(p: Person) {
+    setEnabling(p.id);
+    // Read their current list first so turning this one on keeps everything else they have.
+    const fam = await api.GET("/family");
+    const current = fam.data?.caregivers.find((c) => c.id === p.id)?.permissions ?? [];
+    const { error } = fam.error
+      ? fam
+      : await api.PATCH("/members/{memberId}/caregivers/{caregiverId}", {
+          params: { path: { memberId, caregiverId: p.id } },
+          body: { permissions: [...current.filter((x) => x !== "family_plan"), "family_plan"] },
+        });
+    setEnabling(null);
+    if (error) {
+      toast.error(error.message ?? "Could not turn on the shared to-do list. Nothing changed.");
+      return;
+    }
+    router.refresh();
+    onPick(p);
+  }
+
   return (
     <div role="group" aria-label={label} className="flex flex-col gap-2">
       <p className="text-label font-medium text-ink-2">{label}</p>
@@ -36,12 +64,15 @@ export function TakerPicker({ takers, others = [], memberId, label, disabled, on
           {others.map((p) => (
             <li key={p.id} className="flex flex-wrap items-center gap-x-2">
               <Avatar person={p} size="sm" className="opacity-60" />
-              <span>
-                {p.displayName} can take tasks once the shared to-do list is on.{" "}
-                <Link href={`/family/${memberId}/settings`} className="text-ink underline decoration-line-2 underline-offset-3 hover:decoration-ink">
-                  Open sharing settings
-                </Link>
-              </span>
+              <span className="min-w-0 flex-1">{p.displayName} does not see the shared to-do list yet.</span>
+              <button
+                type="button"
+                disabled={disabled || enabling !== null}
+                onClick={() => enableAndOffer(p)}
+                className="press min-h-9 rounded-full px-2 text-ink underline decoration-line-2 underline-offset-3 hover:decoration-ink disabled:opacity-50"
+              >
+                {enabling === p.id ? "Turning it on…" : `Share it and offer to ${p.displayName}`}
+              </button>
             </li>
           ))}
         </ul>

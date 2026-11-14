@@ -210,3 +210,36 @@ func publish(ctx context.Context, q *store.Queries, familyID, actor, invitationI
 	}
 	return live.Publish(ctx, q, familyID, live.Event{Kind: live.Invitation, EntityID: invitationID.String(), Actor: actor, Audience: parents}, now)
 }
+
+// UpdatePermissions replaces what an accepted caregiver may see. The invitation keeps the
+// same list so the People screen and the privacy screen never disagree.
+func UpdatePermissions(ctx context.Context, pool *pgxpool.Pool, familyID, parentID, caregiverID uuid.UUID, permissions []string, now time.Time) (store.Member, error) {
+	var m store.Member
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		var err error
+		m, err = q.UpdateCaregiverPermissions(ctx, store.UpdateCaregiverPermissionsParams{FamilyID: familyID, ID: caregiverID, Permissions: permissions})
+		if err != nil {
+			return err
+		}
+		if err := q.UpdateInvitationPermissionsForMember(ctx, store.UpdateInvitationPermissionsForMemberParams{FamilyID: familyID, MemberID: uuid.NullUUID{UUID: caregiverID, Valid: true}, Permissions: permissions}); err != nil {
+			return err
+		}
+		// Demo caregivers are seeded without an invitation: log the person instead.
+		entity, id := Entity, ""
+		inv, err := q.GetInvitationForMember(ctx, store.GetInvitationForMemberParams{FamilyID: familyID, MemberID: uuid.NullUUID{UUID: caregiverID, Valid: true}})
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			entity, id = "caregiver", caregiverID.String()
+		case err != nil:
+			return err
+		default:
+			id = inv.ID.String()
+		}
+		if err := access.Audit(ctx, q, familyID, parentID, access.ActionUpdate, entity, id); err != nil {
+			return err
+		}
+		return publish(ctx, q, familyID, parentID, uuid.MustParse(id), now)
+	})
+	return m, err
+}
