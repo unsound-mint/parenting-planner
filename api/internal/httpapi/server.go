@@ -156,6 +156,11 @@ var (
 	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
 	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
 	errNoPlanItem        = Error{Code: "not_found", Message: "this item is not on this parent's plan"}
+
+	errNoVoiceNote       = Error{Code: "not_found", Message: "no such voice note"}
+	errVoiceNoteType     = Error{Code: "invalid_request", Message: "record as audio/webm, audio/mp4 or audio/ogg"}
+	errVoiceNoteEmpty    = Error{Code: "invalid_request", Message: "the recording is empty"}
+	errVoiceNoteTooLarge = Error{Code: "too_large", Message: "a voice note can be at most 1 MB"}
 )
 
 // errKind tells a handler which typed error response to return.
