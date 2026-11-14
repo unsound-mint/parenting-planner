@@ -26,9 +26,6 @@ func childChecklist(ctx context.Context, q *store.Queries, family, child uuid.UU
 		return 0, nil, err
 	}
 	age, items := Checklist((rules.ChildFacts{BirthDate: c.BirthDate}).AgeMonths(today))
-	if age == 0 {
-		return 0, nil, ErrNotFound
-	}
 	return age, items, nil
 }
 

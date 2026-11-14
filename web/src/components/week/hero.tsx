@@ -3,7 +3,7 @@ import type { Family, PregnancyWeek, StageNow } from "@/lib/api/types";
 import { SizeIllustration, StageMascot } from "@/components/illustrations";
 import { SoftCard } from "@/components/joy/soft-card";
 import { SourceLine } from "@/components/joy/source-line";
-import { formatShortDate, stageLabel } from "@/lib/format";
+import { formatShortDate, givenName, stageLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ARC_H, ARC_W, GrowthArc, arcPoint } from "./growth-arc";
 import { babyBubble, developmentTopic, lengthLabel, warmLine, weekFraction, weightLabel } from "./this-week";
@@ -153,7 +153,7 @@ export function StageHero({ family, now, stageNow }: { family: Family; now: Date
 
 function defaultHeadline(family: Family) {
   const child = family.children[0];
-  if (child) return `Here is ${child.name}'s week.`;
+  if (child) return givenName(child) ? `Here is ${givenName(child)}'s week.` : "Here is your week.";
   if (family.stage === "planning" || family.stage === "trying") return "Getting ready together.";
   return "Here is your week.";
 }
@@ -192,7 +192,7 @@ export function CaregiverHero({ family, name, card, context, now }: { family: Fa
       </div>
     </div>
   );
-  const headline = family.stage === "pregnancy" ? "The baby is on the way." : child ? `Here is ${child.name}'s care.` : "Here is the family's week.";
+  const headline = family.stage === "pregnancy" ? "The baby is on the way." : child ? `Here is ${givenName(child) ? `${givenName(child)}'s` : "your baby's"} care.` : "Here is the family's week.";
   return (
     <Frame art={art}>
       <When pill={family.stage === "pregnancy" && family.gestationalWeek ? `Week ${family.gestationalWeek}` : stageLabel[family.stage]} now={now} />

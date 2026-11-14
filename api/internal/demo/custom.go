@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -49,8 +50,11 @@ var childStages = map[string][2]int{
 // for it. It returns the family id and the raw session token for the cookie.
 func StartCustom(ctx context.Context, pool *pgxpool.Pool, d Details, today time.Time) (uuid.UUID, string, error) {
 	d.MotherName, d.PartnerName, d.ChildName = strings.TrimSpace(d.MotherName), strings.TrimSpace(d.PartnerName), strings.TrimSpace(d.ChildName)
-	if d.MotherName == "" || d.PartnerName == "" {
+	if !hasLetter(d.MotherName) || !hasLetter(d.PartnerName) {
 		return uuid.Nil, "", fmt.Errorf("%w: both parents need a name", ErrBadDetails)
+	}
+	if d.ChildName != "" && !hasLetter(d.ChildName) {
+		d.ChildName = "" // a "-" is not a name; the child is then unnamed
 	}
 	due, birth, err := d.dates(today)
 	if err != nil {
@@ -69,6 +73,8 @@ func StartCustom(ctx context.Context, pool *pgxpool.Pool, d Details, today time.
 			_, s.err = q.CreateMember(ctx, m) // no birth date: it was not asked
 		}
 		if birth != nil {
+			// The web reads "Baby" as "not named" and says "your baby" in
+			// prose (givenName in web/src/lib/format.ts).
 			name := d.ChildName
 			if name == "" {
 				name = "Baby"
@@ -121,4 +127,10 @@ func completedMonths(from, to time.Time) int {
 		m--
 	}
 	return max(m, 0)
+}
+
+// hasLetter is false for a name like "-" or "...", which reads as a blank on
+// every screen that shows it.
+func hasLetter(s string) bool {
+	return strings.IndexFunc(s, unicode.IsLetter) >= 0
 }
