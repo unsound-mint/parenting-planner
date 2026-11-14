@@ -166,7 +166,10 @@ export function StoryReader({
         >
           <ChevronLeft aria-hidden className="size-4.5" /> Back
         </button>
-        <ol className="flex flex-wrap items-center justify-center gap-1.5" aria-label={`Page ${index + 1} of ${all.length}`}>
+        <p className="font-mono text-caption text-muted-foreground sm:hidden">
+          {index + 1} / {all.length}
+        </p>
+        <ol className="hidden items-center justify-center gap-1.5 sm:flex" aria-label={`Page ${index + 1} of ${all.length}`}>
           {all.map((_, i) => (
             <li key={i}>
               <button
@@ -213,7 +216,7 @@ export function StoryReader({
               )}
             >
               {visibility === "partner" ? <Users aria-hidden className="size-4" /> : <Lock aria-hidden className="size-4" />}
-              {visibility === "partner" ? `Shared with ${partnerName ?? "your partner"}` : "Only you · share"}
+              {visibility === "partner" ? `Shared with ${partnerName ?? "your partner"}` : `Only you. Share with ${partnerName ?? "your partner"}`}
             </button>
             <button type="button" disabled={pending} onClick={remove} className="press flex h-11 items-center gap-2 rounded-full px-3 text-label text-muted-foreground">
               <Trash2 aria-hidden className="size-4" /> Delete
