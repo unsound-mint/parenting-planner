@@ -219,4 +219,15 @@ export type ChildcareOptionInput = S["ChildcareOptionInput"];
 export type ChildcareOptionList = S["ChildcareOptionList"];
 export type ChildcareStatus = S["ChildcareStatus"];
 export type ChildcareKind = S["ChildcareKind"];
+
+// Money pack
+export type Budget = S["Budget"];
+export type BudgetItem = S["BudgetItem"];
+export type BudgetItemInput = S["BudgetItemInput"];
+export type BudgetSuggestion = S["BudgetSuggestion"];
+export type BudgetCategory = S["BudgetCategory"];
+export type BudgetPayer = S["BudgetPayer"];
+export type BirthCostPlan = S["BirthCostPlan"];
+export type BirthCostInput = S["BirthCostInput"];
+export type BirthCostScenario = S["BirthCostScenario"];
 export type GrowthMeasurementInput = S["GrowthMeasurementInput"];

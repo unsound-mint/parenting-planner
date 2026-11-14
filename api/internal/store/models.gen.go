@@ -80,6 +80,16 @@ type BabyNameLike struct {
 	CreatedAt time.Time
 }
 
+type BirthCostPlan struct {
+	FamilyID            uuid.UUID
+	DeductibleCents     int64
+	OutOfPocketMaxCents int64
+	CoinsurancePercent  int16
+	AlreadyPaidCents    int64
+	UpdatedBy           uuid.NullUUID
+	UpdatedAt           time.Time
+}
+
 type BirthPlan struct {
 	FamilyID        uuid.UUID
 	HospitalName    string
@@ -99,6 +109,18 @@ type BookingRequest struct {
 	Status        string
 	Note          *string
 	CreatedAt     time.Time
+}
+
+type BudgetItem struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	Category    string
+	Name        string
+	AmountCents int64
+	Cadence     string
+	Payer       string
+	CreatedBy   uuid.NullUUID
+	CreatedAt   time.Time
 }
 
 type CalendarEvent struct {

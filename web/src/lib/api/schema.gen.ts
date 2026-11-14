@@ -3294,6 +3294,139 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/budget": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The family's shared baby budget with totals and starter suggestions
+         * @description Mother and partner see and edit the same budget. A grandparent or nanny
+         *     gets 404. Totals are computed on read: a monthly item counts twelve
+         *     times in the first-year total. suggestions are starter lines (with a
+         *     typical amount) that are not yet in the budget, matched by name.
+         */
+        get: operations["getBudget"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/budget-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a line to the shared budget
+         * @description Mother and partner; a grandparent or nanny gets 404.
+         */
+        post: operations["createBudgetItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/budget-items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                itemId: components["parameters"]["BudgetItemId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change a budget line
+         * @description Mother and partner; either may edit a line the other added. An item of another family is 404.
+         */
+        put: operations["updateBudgetItem"];
+        post?: never;
+        /** Remove a budget line */
+        delete: operations["deleteBudgetItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/birth-cost-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Birth cost estimate from the family's health plan numbers (US)
+         * @description Mother and partner; caregivers get 404. input is absent until a parent
+         *     saves their plan; the estimate is then computed with typical numbers
+         *     from the sources. Always an estimate: actual charges depend on coverage
+         *     and clinical circumstances.
+         */
+        get: operations["getBirthCostPlan"];
+        /** Save the deductible, out-of-pocket maximum and coinsurance */
+        put: operations["updateBirthCostPlan"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/leave-plan": {
         parameters: {
             query?: never;
@@ -7246,6 +7379,127 @@ export interface components {
             parents: components["schemas"]["ParentLeave"][];
         };
         /** @enum {string} */
+        BudgetCategory: "pregnancy_care" | "delivery" | "equipment" | "childcare" | "leave" | "food" | "health" | "other";
+        /**
+         * @description once is a single cost; monthly repeats and counts twelve times in the first-year total.
+         * @enum {string}
+         */
+        BudgetCadence: "once" | "monthly";
+        /** @enum {string} */
+        BudgetPayer: "mother" | "partner" | "shared";
+        BudgetItemInput: {
+            category: components["schemas"]["BudgetCategory"];
+            name: string;
+            /**
+             * Format: int64
+             * @description US cents.
+             */
+            amountCents: number;
+            cadence: components["schemas"]["BudgetCadence"];
+            payer: components["schemas"]["BudgetPayer"];
+        };
+        BudgetItem: components["schemas"]["BudgetItemInput"] & {
+            /** Format: uuid */
+            id: string;
+        };
+        BudgetTotal: {
+            /** Format: int64 */
+            oneTimeCents: number;
+            /** Format: int64 */
+            monthlyCents: number;
+            /**
+             * Format: int64
+             * @description oneTime plus twelve months.
+             */
+            firstYearCents: number;
+        };
+        BudgetCategoryTotal: components["schemas"]["BudgetTotal"] & {
+            category: components["schemas"]["BudgetCategory"];
+        };
+        BudgetPayerTotal: components["schemas"]["BudgetTotal"] & {
+            payer: components["schemas"]["BudgetPayer"];
+        };
+        /** @description A starter line the family may add. The amount is a rough starting point, not advice. */
+        BudgetSuggestion: {
+            category: components["schemas"]["BudgetCategory"];
+            name: string;
+            /** Format: int64 */
+            amountCents: number;
+            cadence: components["schemas"]["BudgetCadence"];
+            payer: components["schemas"]["BudgetPayer"];
+            source?: components["schemas"]["Source"];
+        };
+        Budget: {
+            /** @description Oldest first. */
+            items: components["schemas"]["BudgetItem"][];
+            total: components["schemas"]["BudgetTotal"];
+            /** @description Only categories that have items, biggest first-year total first. */
+            byCategory: components["schemas"]["BudgetCategoryTotal"][];
+            /** @description Mother, partner, shared; always all three. */
+            byPayer: components["schemas"]["BudgetPayerTotal"][];
+            suggestions: components["schemas"]["BudgetSuggestion"][];
+        };
+        BirthCostInput: {
+            /** Format: int64 */
+            deductibleCents: number;
+            /** Format: int64 */
+            outOfPocketMaxCents: number;
+            /** @description The share you pay after the deductible. */
+            coinsurancePercent: number;
+            /**
+             * Format: int64
+             * @description Already spent this plan year; counts toward the deductible and the out-of-pocket maximum.
+             */
+            alreadyPaidCents: number;
+        };
+        BirthCostRange: {
+            /** Format: int64 */
+            lowCents: number;
+            /** Format: int64 */
+            highCents: number;
+        };
+        BirthCostScenario: {
+            /** @enum {string} */
+            kind: "vaginal" | "cesarean";
+            /**
+             * Format: int64
+             * @description What the source reports insurers and patients together paid, on average, for the birth stay and the newborn.
+             */
+            typicalBilledCents: number;
+            /** @description Your estimated share for the birth. */
+            birth: components["schemas"]["BirthCostRange"];
+            /** @description Your estimated share for the newborn's first months. */
+            newborn: components["schemas"]["BirthCostRange"];
+            total: components["schemas"]["BirthCostRange"];
+            /** @description True when the high end reaches the out-of-pocket maximum, so it cannot go higher this plan year. */
+            hitsMaximum: boolean;
+        };
+        BirthCostPlan: {
+            input?: components["schemas"]["BirthCostInput"];
+            /** @description Fixed wording that says this is an estimate. The web shows it loudly. */
+            estimateNote: string;
+            /** @description Empty until a parent saves their plan numbers. Vaginal, then cesarean. */
+            scenarios: components["schemas"]["BirthCostScenario"][];
+            /** @description What people with employer coverage actually paid out of pocket on average, for comparison. */
+            referenceOutOfPocket?: {
+                /** Format: int64 */
+                vaginalCents: number;
+                /** Format: int64 */
+                cesareanCents: number;
+                /** Format: int64 */
+                newbornCents: number;
+            };
+            /** @description Bills a family usually sees, so none is a surprise. Names only, no amounts. */
+            billingLines: string[];
+            /** @description Questions to ask the insurer and the hospital. */
+            questions: string[];
+            enrollment: {
+                summary: string;
+                source: components["schemas"]["Source"];
+            };
+            sources: components["schemas"]["Source"][];
+        };
+        /** @enum {string} */
         InsuranceCallTopic: "coverage" | "claim" | "prior_authorization" | "add_baby" | "billing" | "other";
         InsuranceCallInput: {
             /** Format: date-time */
@@ -7878,6 +8132,7 @@ export interface components {
         InvitationToken: string;
         LessonId: string;
         BabyNameId: string;
+        BudgetItemId: string;
         RoundId: string;
         /** @description The secret from a calendar subscription link. */
         FeedToken: string;
@@ -16199,6 +16454,339 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getBudget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Budget"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createBudgetItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetItemInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateBudgetItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                itemId: components["parameters"]["BudgetItemId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetItemInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteBudgetItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                itemId: components["parameters"]["BudgetItemId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getBirthCostPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthCostPlan"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateBirthCostPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BirthCostInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BirthCostPlan"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

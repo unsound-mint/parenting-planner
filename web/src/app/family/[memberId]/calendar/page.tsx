@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft, ChevronRight, CloudOff, Lock, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, CloudOff, Lock, Plus, Wallet } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CalendarEvent, CalendarScope } from "@/lib/api/types";
 import { countThings, daysUntilInstant, formatClock, formatShortDate, whenWords } from "@/lib/format";
@@ -94,6 +94,15 @@ async function Calendar({
       <div className="flex flex-wrap items-center gap-3">
         {!caregiver && <ScopeTabs active={scope} hrefFor={hrefFor} />}
         <span className="flex-1" />
+        {!caregiver && (
+          <Link
+            href={`/family/${memberId}/money`}
+            className="press inline-flex min-h-11 items-center gap-2 rounded-full border border-line-2 px-4 text-label text-ink-2 transition-colors duration-(--duration-fast) hover:bg-muted md:min-h-9"
+          >
+            <Wallet aria-hidden className="size-4" />
+            Money and childcare
+          </Link>
+        )}
         {!caregiver && (
           <EventDialog
             memberId={memberId}
