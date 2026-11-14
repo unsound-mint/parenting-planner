@@ -11,17 +11,23 @@ jobs:
   deploy:
     # Off until the server key, DNS and Caddy are set up (repo variable DEPLOY_ENABLED=true).
     if: vars.DEPLOY_ENABLED == 'true'
-    runs-on: ubuntu-latest
+    # GitHub-hosted minutes are unavailable (billing), so deploy runs on the team laptop runner too.
+    runs-on: [self-hosted, laptop]
     steps:
       - name: Deploy to musicroombot
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        # Self-hosted: never touch the laptop's own ~/.ssh. The key and known_hosts live in a
+        # temp dir for this job only and are removed even if the deploy fails.
         run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          dir="$(mktemp -d "$RUNNER_TEMP/deploy-ssh.XXXXXX")"
+          trap 'rm -rf "$dir"' EXIT
+          umask 077
+          printf '%s\n' "$SSH_KEY" > "$dir/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$dir/known_hosts"
           # The server key is restricted to deploy/deploy.sh; the command here is ignored.
-          ssh denis@46.62.161.228 deploy
+          ssh -F /dev/null -i "$dir/key" -o IdentitiesOnly=yes -o UserKnownHostsFile="$dir/known_hosts" \
+            -o StrictHostKeyChecking=yes -o BatchMode=yes denis@46.62.161.228 deploy
       - name: Smoke test
         run: curl -fsS -o /dev/null https://parenting.unsoundmint.com/ && curl -fsS -o /dev/null https://parenting.unsoundmint.com/api/healthz
