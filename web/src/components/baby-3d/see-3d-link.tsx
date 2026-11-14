@@ -18,7 +18,7 @@ export function See3DLink({ memberId, week, className }: { memberId: string; wee
       onPointerEnter={warm}
       onFocus={warm}
       className={cn(
-        "inline-flex h-11 items-center gap-2 rounded-full bg-card/90 px-4 text-label font-semibold text-[#A04828] shadow-[0_1px_0_#EDE3D3] transition-[transform,background-color] duration-150 ease-out hover:bg-card active:scale-[0.97]",
+        "press inline-flex h-11 items-center gap-2 rounded-full border border-line bg-card/90 px-4 text-label font-semibold text-me transition-colors duration-(--duration-fast) hover:bg-card",
         className,
       )}
     >

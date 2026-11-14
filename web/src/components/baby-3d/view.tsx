@@ -8,6 +8,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PregnancyGrowth, PregnancyGrowthWeek } from "@/lib/api/types";
 import { SizeIllustration } from "@/components/illustrations";
 import { cn } from "@/lib/utils";
+import { SourceLine } from "@/components/joy/source-line";
+import { Rise } from "@/components/joy/rise";
+import { duration, ease } from "@/components/joy/motion";
 import { AREA_ICON, AREA_LABEL } from "./areas";
 import "./baby-3d.css";
 
@@ -31,6 +34,12 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
   const data = nearest(byWeek, week);
   const stage = useRef<HTMLDivElement>(null);
   const paused = usePaused(stage);
+  // The acting parent's accent (terracotta or teal) also colours the selected dot.
+  const [accent, setAccent] = useState<{ me: string; mid: string } | null>(null);
+  useEffect(() => {
+    const css = stage.current && getComputedStyle(stage.current);
+    if (css) setAccent({ me: css.getPropertyValue("--me").trim(), mid: css.getPropertyValue("--me-mid").trim() });
+  }, []);
   const listId = useId();
 
   const go = useCallback((w: number) => {
@@ -57,15 +66,17 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
 
   return (
     <>
-    <h1 className="text-headline text-balance">
-      Week {data.week}: about the size of <span className="text-[#A04828]">{size.comparison}</span>
-    </h1>
+    <Rise as="header" i={0}>
+      <h1 className="text-headline text-balance">
+        Week {data.week}: about the size of <span className="text-me">{size.comparison}</span>
+      </h1>
+    </Rise>
     <div className="grid min-w-0 gap-6 @5xl:grid-cols-[minmax(0,1fr)_minmax(320px,26rem)] @7xl:grid-cols-[minmax(0,1fr)_28rem]">
-      <section aria-label="Your baby in 3D" className="flex min-w-0 flex-col gap-4">
+      <Rise as="section" i={1} aria-label="Your baby in 3D" className="flex min-w-0 flex-col gap-4">
         <div
           ref={stage}
           className="relative isolate h-[min(64vh,760px)] min-h-[340px] overflow-hidden rounded-3xl max-sm:h-[380px]"
-          style={{ background: "radial-gradient(120% 90% at 50% 38%, #FFF8EE 0%, #FCEBD5 52%, #F8DDB8 100%)" }}
+          style={{ background: "radial-gradient(120% 90% at 50% 38%, var(--card) 0%, var(--sun) 52%, var(--sun-2) 100%)" }}
         >
           {/* The canvas is decoration for screen readers; the same facts are in the list. */}
           <div aria-hidden className="absolute inset-0">
@@ -79,6 +90,7 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
                 onSelect={select}
                 reducedMotion={reduced}
                 paused={paused}
+                accent={accent}
               />
             </Fallback>
           </div>
@@ -105,9 +117,9 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
         <p className="sr-only" aria-live="polite">
           {`Week ${data.week}. About ${size.lengthCm} cm ${heel ? "head to heel" : "long"}, about the size of ${size.comparison}. ${data.hotspots.length} new ${data.hotspots.length === 1 ? "thing" : "things"} this week, listed below.`}
         </p>
-      </section>
+      </Rise>
 
-      <section aria-labelledby={`${listId}-title`} className="flex min-w-0 flex-col gap-4 @5xl:pt-2">
+      <Rise as="section" i={2} aria-labelledby={`${listId}-title`} className="flex min-w-0 flex-col gap-4 @5xl:pt-2">
         <h2 id={`${listId}-title`} className="text-title">
           New in week {data.week}
         </h2>
@@ -118,7 +130,7 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            transition={{ duration: duration.base, ease: ease.out }}
           >
             {data.hotspots.map((h, i) => {
               const Icon = AREA_ICON[h.area];
@@ -130,11 +142,11 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
                     aria-pressed={on}
                     onClick={() => setSelected(on ? null : i)}
                     className={cn(
-                      "flex min-h-11 w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition-[background-color,border-color,transform] duration-150 ease-out active:scale-[0.99]",
-                      on ? "border-[#E8A07C] bg-[#FAE3D5]" : "border-border bg-card hover:border-[#E3D6C2]",
+                      "press flex min-h-11 w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition-[background-color,border-color] duration-(--duration-fast) ease-(--ease-out)",
+                      on ? "border-me-mid bg-me-soft" : "border-line bg-card hover:border-line-2",
                     )}
                   >
-                    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full", on ? "bg-[#A04828] text-white" : "bg-[#FCEBD5] text-[#A04828]")}>
+                    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full", on ? "bg-me text-white" : "bg-sun text-me")}>
                       <Icon className="size-4" aria-hidden />
                     </span>
                     <span className="min-w-0">
@@ -147,19 +159,9 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
             })}
           </motion.ol>
         </AnimatePresence>
-        <p className="font-mono text-caption text-muted-foreground">
-          {sources.map((s, i) => (
-            <span key={s.url}>
-              {i > 0 && " · "}
-              <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-dotted underline-offset-2 hover:text-foreground">
-                {s.title.replace(/, week-by-week guide to pregnancy$/, "")}
-              </a>
-            </span>
-          ))}
-          {sources[0] && ` · checked ${sources[0].checkedAt}`}
-        </p>
+        <SourceLine sources={sources} />
         <p className="text-caption text-muted-foreground">Every baby grows at their own pace. The model is a friendly picture, not a scan.</p>
-      </section>
+      </Rise>
     </div>
     </>
   );
@@ -193,11 +195,11 @@ function Scrubber({ week, current, onChange, comparison }: { week: number; curre
           {Array.from({ length: MAX - MIN + 1 }, (_, i) => MIN + i).map((w) => (
             <span
               key={w}
-              className={cn("absolute top-0 w-px -translate-x-1/2", w % 4 === 0 ? "h-2 bg-[#C9B79E]" : "h-1 bg-[#E3D6C2]")}
+              className={cn("absolute top-0 w-px -translate-x-1/2", w % 4 === 0 ? "h-2 bg-muted-foreground/40" : "h-1 bg-line-2")}
               style={{ left: `${pct(w)}%` }}
             />
           ))}
-          <span className="absolute -top-[1.05rem] size-2 -translate-x-1/2 rounded-full bg-[#A04828]" style={{ left: `${pct(current)}%` }} />
+          <span className="absolute -top-[1.05rem] size-2 -translate-x-1/2 rounded-full bg-me" style={{ left: `${pct(current)}%` }} />
         </div>
         <div aria-hidden className="pointer-events-none absolute inset-x-[9px] bottom-0 flex text-caption text-muted-foreground">
           {TRIMESTERS.map((t) => (
@@ -215,7 +217,7 @@ function Scrubber({ week, current, onChange, comparison }: { week: number; curre
         type="button"
         onClick={() => onChange(current)}
         disabled={week === current}
-        className="hidden h-11 shrink-0 items-center rounded-full border border-border bg-card px-4 text-label transition-[opacity,transform] duration-150 ease-out active:scale-[0.97] disabled:opacity-40 sm:inline-flex"
+        className="press hidden h-11 shrink-0 items-center rounded-full border border-line bg-card px-4 text-label transition-opacity duration-(--duration-fast) disabled:opacity-40 sm:inline-flex"
       >
         Now, week {current}
       </button>
@@ -230,7 +232,7 @@ function StepButton({ label, disabled, onClick, children }: { label: string; dis
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-card transition-[opacity,transform] duration-150 ease-out hover:border-[#E3D6C2] active:scale-[0.94] disabled:opacity-40"
+      className="press flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-card transition-[opacity,border-color] duration-(--duration-fast) hover:border-line-2 disabled:opacity-40"
     >
       {children}
     </button>

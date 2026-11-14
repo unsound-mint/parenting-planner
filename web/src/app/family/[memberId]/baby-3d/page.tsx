@@ -34,7 +34,7 @@ async function Baby3D({ params, searchParams }: { params: Promise<{ memberId: st
 
   return (
     <PageFrame className="gap-4">
-      <header>
+      <nav aria-label="Back">
         <Link
           href={home}
           className="-ml-2 inline-flex h-11 w-fit items-center gap-1.5 rounded-full px-2 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground"
@@ -42,7 +42,7 @@ async function Baby3D({ params, searchParams }: { params: Promise<{ memberId: st
           <ArrowLeft className="size-4" aria-hidden />
           This week
         </Link>
-      </header>
+      </nav>
       <Baby3DView growth={growth} initialWeek={week} />
     </PageFrame>
   );
@@ -53,7 +53,7 @@ function Baby3DFallback() {
     <PageFrame aria-busy>
       <div className="h-11" />
       <div className="h-9 w-72 rounded-lg bg-muted" />
-      <div className="h-[min(64vh,760px)] min-h-[340px] rounded-3xl bg-[#FCEBD5]" />
+      <div className="h-[min(64vh,760px)] min-h-[340px] rounded-3xl bg-sun" />
     </PageFrame>
   );
 }

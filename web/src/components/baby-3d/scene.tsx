@@ -22,6 +22,8 @@ export type SceneProps = {
   onSelect: (i: number | null) => void;
   reducedMotion: boolean;
   paused: boolean;
+  /** The acting parent's accent for the selected dot (CSS colors). */
+  accent: { me: string; mid: string } | null;
 };
 
 const SKIN = "#FBD5BE";
@@ -52,7 +54,7 @@ export default function BabyScene(props: SceneProps) {
   );
 }
 
-function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reducedMotion, paused }: SceneProps) {
+function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reducedMotion, paused, accent }: SceneProps) {
   const { invalidate, camera, size: viewport, clock } = useThree();
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const group = useRef<THREE.Group>(null);
@@ -68,7 +70,7 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
   const lastTouch = useRef(-10);
   const rig = useRef<{ dir: THREE.Vector3 | null; target: THREE.Vector3; dist: number; active: boolean }>({
     dir: null,
-    target: new THREE.Vector3(),
+    target: new THREE.Vector3(0, -0.12, 0),
     dist: 4.6,
     active: true,
   });
@@ -99,6 +101,12 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
     [],
   );
   const halo = useMemo(() => haloTexture(), []);
+  useEffect(() => {
+    if (!accent?.me) return;
+    mat.dotOn.color.set(accent.me);
+    mat.dotOn.emissive.set(accent.me);
+    invalidate();
+  }, [accent, mat, invalidate]);
   useEffect(
     () => () => {
       Object.values(geo).forEach((g) => g.dispose());
@@ -128,7 +136,8 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       r.target.set(...toWorld(a.pos, last.center, last.k)).multiplyScalar(0.55);
     } else {
       r.dir = null;
-      r.target.set(0, 0, 0);
+      // Aim a little low so the baby sits above the size label in the corner.
+      r.target.set(0, -0.12, 0);
     }
     r.active = true;
     invalidate();
@@ -196,7 +205,9 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
     const c = controls.current;
     const r = rig.current;
     if (c && r.active) {
-      const dist = selected != null ? 2.4 + 1.4 * cur.scale : 2.6 + 2.2 * cur.scale;
+      // Step back on narrow canvases (phones) so the baby stays clear of the size label.
+      const narrow = Math.max(1, 1.25 / (viewport.width / viewport.height));
+      const dist = (selected != null ? 2.4 + 1.4 * cur.scale : 2.6 + 2.2 * cur.scale) * narrow;
       const e = reducedMotion ? 1 : 1 - Math.exp(-dt * 3.2);
       c.target.lerp(r.target, e);
       const offset = camera.position.clone().sub(c.target);
@@ -272,7 +283,7 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
           >
             <mesh geometry={geo.dot} material={selected === i ? mat.dotOn : mat.dot} scale={0.05} />
             <sprite scale={0.36}>
-              <spriteMaterial map={halo} color={selected === i ? "#E8A07C" : "#F4CD6A"} transparent depthWrite={false} opacity={1} />
+              <spriteMaterial map={halo} color={selected === i ? accent?.mid || "#E8A07C" : "#F4CD6A"} transparent depthWrite={false} opacity={1} />
             </sprite>
           </group>
           <mesh
