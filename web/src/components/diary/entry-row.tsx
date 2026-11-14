@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUpRight, HeartHandshake, ListPlus, Lock, NotebookPen, X } from "lucide-react";
+import { ArrowUpRight, HeartHandshake, ListPlus, Lock, NotebookPen, Star, X } from "lucide-react";
 import type { DiaryEntry, Visibility } from "@/lib/api/types";
 import { formatDayNumber, formatMonth, formatWeekday } from "@/lib/format";
 import { MoodFace, MOODS, type Mood } from "@/components/joy/mood-face";
@@ -85,8 +85,14 @@ export function EntryRow({
       )}
 
       <div className="min-w-0">
-        <p className="font-mono text-caption text-muted-foreground">
+        <p className="flex flex-wrap items-center gap-2 font-mono text-caption text-muted-foreground">
           <time dateTime={entry.writtenAt}>{entryDay(entry.writtenAt)}</time>
+          {entry.first && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-butter/60 px-2 py-0.5 font-sans font-semibold text-ink">
+              <Star className="size-3 fill-current" aria-hidden />
+              A first
+            </span>
+          )}
         </p>
         <p className="mt-1 text-title font-normal whitespace-pre-line text-ink [font-variation-settings:'SOFT'_50]">{entry.body}</p>
       </div>

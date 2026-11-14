@@ -66,8 +66,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       <Rise as="header" i={0}>
         <h1 className="text-headline md:text-[2.75rem] md:leading-[1.1]">Your journal</h1>
         <p className="mt-2 max-w-prose text-body text-ink-2">
-          Private by default. You choose, one entry at a time, what {partner?.name ?? "anyone else"}
-          {psychologist ? ` or ${shortName(psychologist.name)}` : ""} sees.
+          Keep the moments, and what you want to raise{psychologist ? ` with ${shortName(psychologist.name)}` : ""}. Private by default: you choose, one entry at a time,
+          what {partner?.name ?? "anyone else"} sees.
         </p>
       </Rise>
 

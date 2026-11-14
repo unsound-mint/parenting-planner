@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { DiaryEntry, Visibility } from "@/lib/api/types";
@@ -14,8 +14,11 @@ import { cn } from "@/lib/utils";
 import { Audience, type Partner } from "./audience";
 
 /**
- * The journal's front door: a face, a line, save. Private by default; the
- * author can widen one entry to the partner here or later on the entry.
+ * The journal's front door: a face, a line, save. It is for keeping moments
+ * and gathering what to raise with the psychologist, not a mood treatment, so
+ * the copy never promises that writing helps. Private by default; the author
+ * can widen one entry to the partner here or later on the entry. "First!"
+ * marks a first (first kick, first smile) for the family's story.
  * Starter chips sit under the line while it is empty, so a blank page always
  * has a way in. There is no voice input: the diary API stores text only, and
  * browser dictation would send private words to a third party.
@@ -39,6 +42,7 @@ export function Composer({
   const [mood, setMood] = useState<Mood | null>(null);
   const [body, setBody] = useState("");
   const [visibility, setVisibility] = useState<Visibility>("private");
+  const [first, setFirst] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const field = useRef<HTMLTextAreaElement>(null);
@@ -62,7 +66,7 @@ export function Composer({
     startTransition(async () => {
       const { data, error } = await api.POST("/members/{memberId}/diary-entries", {
         params: { path: { memberId } },
-        body: { body: body.trim(), visibility, ...(mood ? { mood } : {}) },
+        body: { body: body.trim(), visibility, first, ...(mood ? { mood } : {}) },
       });
       if (error || !data) {
         toast.error("Could not save your entry. It is still here, try again.");
@@ -72,6 +76,7 @@ export function Composer({
       setBody("");
       setMood(null);
       setVisibility("private");
+      setFirst(false);
       setSaved(visibility === "private" ? "Saved, just for you." : `Saved. ${partner?.name ?? "Your partner"} can read it.`);
       clearTimeout(savedTimer.current);
       savedTimer.current = setTimeout(() => setSaved(null), 2400);
@@ -154,6 +159,21 @@ export function Composer({
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Audience value={visibility} onChange={setVisibility} partner={partner} />
+        <button
+          type="button"
+          aria-pressed={first}
+          onClick={() => setFirst((f) => !f)}
+          title="Mark it as a first: first kick, first smile, first night home"
+          className={cn(
+            "press inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 text-label outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+            first ? "bg-butter font-semibold text-ink" : "bg-card/70 text-ink-2 hover:bg-card",
+          )}
+        >
+          <motion.span animate={first ? { rotate: [0, -18, 0], scale: [1, 1.25, 1] } : { rotate: 0, scale: 1 }} transition={spring.playful} className="inline-flex">
+            <Star className={cn("size-4", first && "fill-current")} aria-hidden />
+          </motion.span>
+          First!
+        </button>
         <span className="flex-1" />
         <AnimatePresence mode="popLayout" initial={false}>
           {saved ? (
