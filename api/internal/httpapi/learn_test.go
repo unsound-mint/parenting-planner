@@ -57,7 +57,7 @@ func TestLearningPathsShowBothParentsProgressAtWeek25(t *testing.T) {
 	mom, dad := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
 	var list httpapi.LearningPathList
 	c.Get(memberPath(mom.Id)+"/learning-paths", http.StatusOK, &list)
-	if list.Week == nil || *list.Week != 25 || list.Stage != httpapi.StagePregnancy || len(list.Items) != 8 {
+	if list.Week == nil || *list.Week != 25 || list.Stage != httpapi.StagePregnancy || len(list.Items) < 8 {
 		t.Fatalf("week %v, stage %s, %d paths", list.Week, list.Stage, len(list.Items))
 	}
 	p := findPath(t, list, "your-pregnancy")
@@ -276,7 +276,8 @@ func TestLearningForOtherStages(t *testing.T) {
 			}
 		}
 	}
-	if list.Week != nil || strings.Join(ids, ",") != "feeding,first-weeks,couple,money-leave,mental-health" {
+	// Paths from later *_paths.json files follow the core ones.
+	if list.Week != nil || !strings.HasPrefix(strings.Join(ids, ","), "feeding,first-weeks,couple,money-leave,mental-health") {
 		t.Errorf("newborn paths = %v, week %v", ids, list.Week)
 	}
 	var card httpapi.Together
@@ -287,7 +288,7 @@ func TestLearningForOtherStages(t *testing.T) {
 
 	planning := testutil.Parent(t, c.StartDemo("planning"), httpapi.ParentRoleMother)
 	c.Get(memberPath(planning.Id)+"/learning-paths", http.StatusOK, &list)
-	if len(list.Items) != 3 {
+	if len(list.Items) < 3 || list.Items[0].Id != "couple" || list.Items[1].Id != "money-leave" || list.Items[2].Id != "mental-health" {
 		t.Errorf("planning gets couple, money and mental health paths, got %d", len(list.Items))
 	}
 }

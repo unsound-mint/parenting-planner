@@ -1,7 +1,7 @@
 package content
 
 import (
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -9,16 +9,18 @@ import (
 	"time"
 )
 
-// learn_paths.json is the learning catalog: 8 paths, 32 lessons and their
-// quizzes. Lesson bodies are our own plain-language writing from the cited
+// Every *_paths.json file is part of the learning catalog, read in file name
+// order: learn_paths.json holds 8 paths, 32 lessons and their quizzes. Adding a
+// file in the same shape (its own sources map, paths with stages) adds paths
+// without code changes; path and lesson ids must stay unique across files. Lesson bodies are our own plain-language writing from the cited
 // page; every source was opened on its checkedAt date and numbers were checked
 // against the page text. The labor lesson cites NICHD only: the MedlinePlus
 // labor page is A.D.A.M. content that forbids derivative works.
 // talk_prompts.json is the couple and journal prompt pool by pregnancy week.
 // The prompts make no health claims, so they cite nothing.
 //
-//go:embed learn_paths.json
-var learnPathsJSON []byte
+//go:embed *_paths.json
+var learnPathFiles embed.FS
 
 //go:embed talk_prompts.json
 var talkPromptsJSON []byte
@@ -136,6 +138,40 @@ func init() {
 const choiceIDs = "abcdefgh"
 
 func loadLearn() ([]LearnPath, []TalkPrompt) {
+	files, err := learnPathFiles.ReadDir(".")
+	if err != nil {
+		panic(err)
+	}
+	var paths []LearnPath
+	seen := map[string]string{}
+	for _, file := range files {
+		data, err := learnPathFiles.ReadFile(file.Name())
+		if err != nil {
+			panic(err)
+		}
+		for _, p := range loadPathFile(file.Name(), data) {
+			for _, id := range append([]string{"path " + p.ID}, lessonKeys(p)...) {
+				if prev, dup := seen[id]; dup {
+					panic(fmt.Sprintf("%s: %s is already in %s", file.Name(), id, prev))
+				}
+				seen[id] = file.Name()
+			}
+			paths = append(paths, p)
+		}
+	}
+	return paths, loadTalkPrompts()
+}
+
+func lessonKeys(p LearnPath) []string {
+	out := make([]string, 0, len(p.Lessons))
+	for _, l := range p.Lessons {
+		out = append(out, "lesson "+l.ID)
+	}
+	return out
+}
+
+// loadPathFile parses one catalog file; each file carries its own sources.
+func loadPathFile(name string, data []byte) []LearnPath {
 	var f struct {
 		Sources map[string]struct {
 			Title     string `json:"title"`
@@ -168,17 +204,17 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 			} `json:"lessons"`
 		} `json:"paths"`
 	}
-	if err := json.Unmarshal(learnPathsJSON, &f); err != nil {
-		panic(fmt.Sprintf("learn_paths.json: %v", err))
+	if err := json.Unmarshal(data, &f); err != nil {
+		panic(fmt.Sprintf("%s: %v", name, err))
 	}
 	source := func(id string) Source {
 		s, ok := f.Sources[id]
 		if !ok {
-			panic("learn_paths.json: unknown source " + id)
+			panic(name + ": unknown source " + id)
 		}
 		at, err := time.Parse("2006-01-02", s.CheckedAt)
 		if err != nil {
-			panic("learn_paths.json: bad date for " + id)
+			panic(name + ": bad date for " + id)
 		}
 		return Source{Title: s.Title, URL: s.URL, CheckedAt: at}
 	}
@@ -211,7 +247,7 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 					}
 				}
 				if question.CorrectChoiceID == "" {
-					panic("learn_paths.json: no right answer for " + question.ID)
+					panic(name + ": no right answer for " + question.ID)
 				}
 				lesson.Quiz = append(lesson.Quiz, question)
 			}
@@ -219,7 +255,10 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 		}
 		paths = append(paths, lp)
 	}
+	return paths
+}
 
+func loadTalkPrompts() []TalkPrompt {
 	var t struct {
 		Prompts []struct {
 			ID    string `json:"id"`
@@ -238,7 +277,7 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 			prompts = append(prompts, TalkPrompt{ID: p.ID, Text: p.Text, WeekFrom: p.Weeks[0], WeekTo: p.Weeks[1]})
 		}
 	}
-	return paths, prompts
+	return prompts
 }
 
 // LearnPathsFor returns the paths offered in the family's stage, in catalog
