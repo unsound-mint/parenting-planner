@@ -89,8 +89,8 @@ export interface paths {
          *     it (parents, children, caregivers, health records, check-ins, notes,
          *     bookings, sessions and the audit log) and clears the pp_session
          *     cookie. Other families are untouched. The old cookie gets 401
-         *     afterwards. Nothing is kept: the demo database has no backups of
-         *     family data.
+         *     afterwards. Nothing is soft-deleted. Backups: see "Deletion and
+         *     backups" in docs/data-model.md.
          */
         delete: operations["deleteFamily"];
         options?: never;
@@ -4424,15 +4424,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     createDemoTimeSkip: {
@@ -4788,15 +4779,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
