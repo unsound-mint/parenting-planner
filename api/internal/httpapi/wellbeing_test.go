@@ -98,17 +98,3 @@ func TestLowMoodChangesThePlan(t *testing.T) {
 		t.Fatal("three low check-ins must add the low-mood item to the partner's plan")
 	}
 }
-
-// Replaced by Sofia's diary tests from #202.
-func TestDiaryIsNotImplementedYet(t *testing.T) {
-	c := testutil.New(t)
-	fam := c.StartDemo("pregnancy")
-	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
-	for _, call := range []stubCall{
-		{"POST", m + "/diary-entries", map[string]any{"body": "Scared about the birth.", "visibility": "private", "agendaTopic": "Birth anxiety"}},
-		{"GET", m + "/diary-entries", nil},
-		{"PATCH", m + "/diary-entries/00000000-0000-4000-8000-000000000001", map[string]any{"visibility": "private", "agendaTopic": ""}},
-	} {
-		call.expectNotImplemented(t, c)
-	}
-}

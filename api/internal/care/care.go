@@ -132,7 +132,21 @@ func buildAgenda(ctx context.Context, q *store.Queries, familyID, viewer uuid.UU
 	if err != nil {
 		return out, err
 	}
-	out.Topics = arrange(topics(viewer, moods, notes), prefs)
+	all := topics(viewer, moods, notes)
+	// Topics the parent chose on their own diary entries (never the entry text).
+	dt, err := q.ListDiaryAgendaTopicsVisibleToParent(ctx, store.ListDiaryAgendaTopicsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: viewer, Since: now.Add(-noteWindow),
+	})
+	if err != nil {
+		return out, err
+	}
+	for _, d := range dt {
+		if d.AgendaTopic != nil {
+			all = append(all, Topic{ID: uuid.NewSHA1(viewer, []byte("diary-"+d.ID.String())), Text: *d.AgendaTopic, AddedAt: d.WrittenAt})
+		}
+	}
+	sort.SliceStable(all, func(i, j int) bool { return all[i].AddedAt.Before(all[j].AddedAt) })
+	out.Topics = arrange(all, prefs)
 	return out, nil
 }
 
