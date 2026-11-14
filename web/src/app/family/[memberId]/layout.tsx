@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense, ViewTransition } from "react";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
@@ -45,7 +45,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   if (boundTo && boundTo !== memberId) redirect(`/family/${boundTo}`);
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
-  if (!person) notFound();
+  // An address from another family (an old tab after the visitor started a new demo
+  // or their own family) opens the current family instead of a 404.
+  if (!person) redirect("/family");
   // The Plan entry shows only once tasks work: the API answers 501 until then.
   const hasPlan = !isCaregiver(person.role) && (await api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } })).response.ok;
 
