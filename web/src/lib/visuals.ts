@@ -45,7 +45,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { AllergyCertainty, HospitalBag, CareRole, PlanCategory, PlanItemStatus, ProviderType, Tier, Visibility } from "@/lib/api/types";
+import type { AllergyCertainty, CareRole, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, Stage, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -80,6 +80,18 @@ export const stageIcon: Record<string, LucideIcon> = {
   toddler: Footprints,
   preschool: Blocks,
   "school-age": Backpack,
+};
+
+/** The family's stage (API value) to icon; same pictures as the journey nodes. */
+export const stageValueIcon: Record<Stage, LucideIcon> = {
+  planning: Sprout,
+  trying: Sprout,
+  pregnancy: HeartPulse,
+  postpartum: Baby,
+  infant: Milk,
+  toddler: Footprints,
+  preschool: Blocks,
+  school_age: Backpack,
 };
 
 export const visibilityIcon: Record<Visibility, LucideIcon> = {
