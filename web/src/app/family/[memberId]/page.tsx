@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
+import { AiPlan } from "@/components/week/ai-plan";
 import { PlanBoard } from "@/components/week/plan-board";
 import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
@@ -56,6 +57,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
         <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
         <PlanBoard items={plan.items} memberId={memberId} />
+        <AiPlan memberId={memberId} />
       </section>
 
       <aside className="flex flex-col gap-6 xl:pt-1">

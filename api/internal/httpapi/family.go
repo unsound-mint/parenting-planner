@@ -46,6 +46,7 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 			out.GestationalWeek = &w
 		}
 	}
+	// Caregivers are not stored yet: the seed and a table come with the backend half of #1.
 	for _, m := range members {
 		out.Parents = append(out.Parents, Parent{Id: m.ID, Role: ParentRole(m.Role), DisplayName: m.DisplayName})
 	}
