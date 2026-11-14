@@ -13,6 +13,8 @@ func TestEncodeFeed(t *testing.T) {
 	file := EncodeFeed([]Event{
 		{ID: "stable", Title: title, StartsAt: now, AllDay: true},
 		{ID: "excluded", Kind: "psychologist_session", StartsAt: now},
+		{ID: "private-visit", Kind: "provider_visit", Visibility: "private", Title: "Visit with Hidden Therapy", StartsAt: now},
+		{ID: "shared-visit", Kind: "provider_visit", Visibility: "family", Title: "Visit with Named Therapy", StartsAt: now},
 	}, now)
 	for _, line := range strings.Split(file, "\r\n") {
 		if len(line) > 75 || !utf8.ValidString(line) {
@@ -27,5 +29,11 @@ func TestEncodeFeed(t *testing.T) {
 	}
 	if strings.Contains(file, "excluded") {
 		t.Fatal("psychologist session leaked")
+	}
+	if strings.Contains(file, "private-visit") || strings.Contains(file, "Hidden") {
+		t.Fatal("private provider visit leaked")
+	}
+	if !strings.Contains(file, "UID:shared-visit") || strings.Contains(file, "Named Therapy") {
+		t.Fatal("shared provider visit should be in the feed with a neutral title")
 	}
 }
