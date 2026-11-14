@@ -230,7 +230,7 @@ var guides = []Guide{
 		Minutes: 1, Stages: st("pregnancy"), Weeks: weeks(25, 36), Audience: motherOnly, Source: srcCDCTdapPreg},
 	{ID: "preg-partner-vaccines", Kind: Article, Title: "Update your own vaccines", Summary: "Do it at least 2 weeks before you meet the baby.",
 		Steps:   st("Get Tdap if you have not had a booster as a teen or adult.", "Get a flu shot each season.", "Do both at least 2 weeks before meeting the baby."),
-		Minutes: 1, Stages: st("pregnancy"), Weeks: weeks(26, 40), Audience: partnerOnly, Source: srcCDCFamilyVacc},
+		Minutes: 1, Stages: st("pregnancy"), Weeks: weeks(24, 40), Audience: partnerOnly, Source: srcCDCFamilyVacc},
 	{ID: "preg-rsv", Kind: Article, Title: "Ask about the RSV vaccine", Summary: "One dose in weeks 32 to 36, in season.",
 		Steps:   st("In September to January, ask for one RSV dose between weeks 32 and 36.", "It is not given after 36 weeks 6 days."),
 		Minutes: 1, Stages: st("pregnancy"), Weeks: weeks(30, 36), Audience: motherOnly, Source: srcCDCRSV},
