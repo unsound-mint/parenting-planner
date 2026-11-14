@@ -7,9 +7,11 @@ package demo
 
 import (
 	"context"
+	_ "embed"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -208,7 +210,100 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.mood(marcus, "private", 2, 2, 2, 4, "")
 	s.mood(marcus, "private", 4, 2, 2, 5, "")
 	s.moodScreening(aisha, "private", rules.EPDS, 14, []int{1, 1, 1, 1, 0, 1, 0, 0, 0, 0})
-	return s.done()
+	fam, err := s.done()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
+	return fam, nil
+}
+
+// handoffTone is three seconds of a generated 440 Hz tone (Ogg Opus), standing
+// in for a recording. No real voice.
+//
+//go:embed handoff-tone.ogg
+var handoffTone []byte
+
+// seedBabyCare gives Leo yesterday's feeds, sleeps and diapers, and an accepted
+// handoff from Aisha to the grandmother with a voice note, so the Baby screen
+// has something to show. Everything is yesterday, never later than now. The
+// voice note is inserted with its handoff, so the unattached-note cleanup
+// leaves it alone.
+func seedBabyCare(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus uuid.UUID, today time.Time) error {
+	day := today.AddDate(0, 0, -1)
+	at := func(h, m int) time.Time { return day.Add(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute) }
+	span := func(h, m, mins int) pgtype.Timestamptz {
+		return pgtype.Timestamptz{Time: at(h, m).Add(time.Duration(mins) * time.Minute), Valid: true}
+	}
+	method := func(v string) *string { return &v }
+	ml := func(v int16) pgtype.Int2 { return pgtype.Int2{Int16: v, Valid: true} }
+	helpers, err := careHelpers(ctx, q, fam)
+	if err != nil {
+		return err
+	}
+	linda := helpers["grandparent"]
+	entries := []store.CreateCareLogEntryParams{
+		{Kind: "feed", StartedAt: at(5, 40), EndedAt: span(5, 40, 20), FeedMethod: method("breast_left"), AuthorMemberID: aisha},
+		{Kind: "diaper", StartedAt: at(6, 5), Diaper: method("both"), AuthorMemberID: aisha},
+		{Kind: "sleep", StartedAt: at(6, 30), EndedAt: span(6, 30, 95), AuthorMemberID: aisha},
+		{Kind: "feed", StartedAt: at(8, 20), EndedAt: span(8, 20, 18), FeedMethod: method("breast_right"), AuthorMemberID: aisha},
+		{Kind: "diaper", StartedAt: at(8, 45), Diaper: method("wet"), AuthorMemberID: aisha},
+		{Kind: "sleep", StartedAt: at(9, 10), EndedAt: span(9, 10, 80), AuthorMemberID: aisha},
+		{Kind: "feed", StartedAt: at(11, 30), FeedMethod: method("bottle_breast_milk"), AmountMl: ml(90), AuthorMemberID: marcus},
+		{Kind: "diaper", StartedAt: at(11, 55), Diaper: method("dirty"), AuthorMemberID: marcus},
+		{Kind: "sleep", StartedAt: at(12, 15), EndedAt: span(12, 15, 110), AuthorMemberID: aisha},
+		{Kind: "feed", StartedAt: at(14, 10), FeedMethod: method("bottle_breast_milk"), AmountMl: ml(90), AuthorMemberID: aisha},
+		{Kind: "sleep", StartedAt: at(14, 40), EndedAt: span(14, 40, 25), AuthorMemberID: aisha},
+		{Kind: "feed", StartedAt: at(17, 15), FeedMethod: method("bottle_formula"), AmountMl: ml(100), AuthorMemberID: linda},
+		{Kind: "diaper", StartedAt: at(17, 40), Diaper: method("wet"), AuthorMemberID: linda},
+		{Kind: "sleep", StartedAt: at(18, 0), EndedAt: span(18, 0, 60), AuthorMemberID: linda},
+		{Kind: "feed", StartedAt: at(20, 30), EndedAt: span(20, 30, 25), FeedMethod: method("breast_left"), AuthorMemberID: aisha},
+		{Kind: "diaper", StartedAt: at(21, 0), Diaper: method("both"), AuthorMemberID: aisha},
+		{Kind: "sleep", StartedAt: at(21, 15), EndedAt: span(21, 15, 150), AuthorMemberID: aisha},
+	}
+	for _, e := range entries {
+		e.FamilyID, e.ChildID = fam, leo
+		if _, err := q.CreateCareLogEntry(ctx, e); err != nil {
+			return err
+		}
+	}
+	note := "Fed at 14:10, 90 ml. Napped 14:40 to 15:05. Diaper cream is on the changing table."
+	h, err := q.CreateHandoff(ctx, store.CreateHandoffParams{
+		FamilyID: fam, FromMemberID: aisha, ToMemberID: linda, Note: &note, CreatedAt: at(15, 0),
+	})
+	if err != nil {
+		return err
+	}
+	if _, err := q.AcceptHandoff(ctx, store.AcceptHandoffParams{ID: h.ID, AcceptedAt: pgtype.Timestamptz{Time: at(15, 4), Valid: true}}); err != nil {
+		return err
+	}
+	dur := pgtype.Int4{Int32: 3, Valid: true}
+	vn, err := q.CreateVoiceNote(ctx, store.CreateVoiceNoteParams{
+		FamilyID: fam, UploaderMemberID: aisha, ContentType: "audio/ogg;codecs=opus", SizeBytes: int32(len(handoffTone)),
+		DurationSeconds: dur, Audio: handoffTone, CreatedAt: at(14, 58),
+	})
+	if err != nil {
+		return err
+	}
+	_, err = q.AttachVoiceNoteToHandoff(ctx, store.AttachVoiceNoteToHandoffParams{
+		HandoffID: uuid.NullUUID{UUID: h.ID, Valid: true}, VoiceNoteID: vn.ID, FamilyID: fam, UploaderID: aisha,
+	})
+	return err
+}
+
+// careHelpers maps a caregiver's role to their member id.
+func careHelpers(ctx context.Context, q *store.Queries, fam uuid.UUID) (map[string]uuid.UUID, error) {
+	ms, err := q.ListCaregivers(ctx, fam)
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]uuid.UUID{}
+	for _, m := range ms {
+		out[m.Role] = m.ID
+	}
+	return out, nil
 }
 
 // Rachel (mother) and Tom (partner) with Ava, who turned 4 last month.
