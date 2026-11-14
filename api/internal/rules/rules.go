@@ -121,6 +121,7 @@ func All() []Rule {
 	rs = append(rs, postpartumRules...)
 	rs = append(rs, childRules...)
 	rs = append(rs, wellbeingRules...)
+	rs = append(rs, childcareRules...)
 	return append(rs, screeningRules...)
 }
 
