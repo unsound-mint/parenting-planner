@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CloudOff, Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
@@ -36,6 +36,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/screening-questionnaires", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !parent) redirect("/family");
   if (!family || !parent) notFound();
 
   return (
