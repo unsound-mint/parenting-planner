@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
+import { FertilityLinkCard } from "@/components/fertility/fertility-link-card";
+import { inPlanningJournal } from "@/lib/fertility";
 import { familyNow } from "@/lib/clock";
 import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
@@ -94,6 +96,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
         {passport.data && <CareTeamCard memberId={memberId} team={team} />}
         {recovery.response.ok && me.role === "mother" && <RecoveryCard memberId={memberId} />}
         {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
+        {inPlanningJournal(fam) && <FertilityLinkCard memberId={memberId} />}
         {providers.data && <FindHelpCard memberId={memberId} picks={picks} requests={requests.data?.items ?? []} now={now} />}
       </Rise>
     </PageFrame>

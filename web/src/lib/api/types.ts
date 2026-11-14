@@ -234,6 +234,17 @@ export type SupplyCategory = S["SupplyCategory"];
 export type ShoppingItem = S["ShoppingItem"];
 export type SizeSuggestion = S["SizeSuggestion"];
 export type SafetyEntry = S["SafetyEntry"];
+
+// Fertility journal, preparation checklist and journey preferences.
+export type FertilityEntry = S["FertilityEntry"];
+export type FertilityEntryInput = S["FertilityEntryInput"];
+export type FertilityKind = S["FertilityKind"];
+export type FertilityOverview = S["FertilityOverview"];
+export type FertilityVisibility = S["FertilityVisibility"];
+export type PreconceptionChecklist = S["PreconceptionChecklist"];
+export type PreconceptionItem = S["PreconceptionItem"];
+export type PreconceptionGroup = S["PreconceptionGroup"];
+export type JourneySettings = S["JourneySettings"];
 export type ChildcareOption = S["ChildcareOption"];
 export type ChildcareOptionInput = S["ChildcareOptionInput"];
 export type ChildcareOptionList = S["ChildcareOptionList"];
