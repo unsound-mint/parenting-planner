@@ -1,5 +1,5 @@
 import { mock } from "../registry";
-import { couple } from "../timeline";
+import { couple, olderStage } from "../timeline";
 
 // Preview data for the care log, handoffs and the baby card. Times are relative
 // to now so "last fed 95 minutes ago" always reads right. Writes are echoed, not
@@ -104,8 +104,29 @@ export const babyMocks = {
     durationSeconds: ctx.query.durationSeconds ? Number(ctx.query.durationSeconds) : undefined,
     createdAt: new Date().toISOString(),
   })),
-  ...mock("/members/{memberId}/children/{childId}/passport", "get", (ctx) => ({
-    child: { id: ctx.path.childId, name: "Leo", birthDate: "2026-09-26", ageMonths: 1 },
+  ...mock("/members/{memberId}/children/{childId}/passport", "get", async (ctx) => {
+    const family = await ctx.family();
+    const child = family.children.find((c) => c.id === ctx.path.childId);
+    // The newborn card below is the pregnancy family's baby. Any family with a
+    // real child shows that child, and the preschool one gets its own pediatrician.
+    if (child && olderStage(family) === "child") {
+      const { partner } = couple(family);
+      return {
+        child,
+        limitedView: false,
+        pediatrician: { id: "00000000-0000-4000-8000-0000000000d2", name: "Dr. Nadia Rahman", role: "pediatrician" as const, clinic: "Foothills Children's Clinic", phone: "(720) 555-0147" },
+        allergies: [],
+        emergencyContacts: [{ name: partner.displayName, relation: "Parent", phone: "(555) 010-3377" }],
+        medicalHistory: [],
+      };
+    }
+    return newbornPassport(ctx.path.childId);
+  }),
+};
+
+function newbornPassport(childId: string) {
+  return {
+    child: { id: childId, name: "Leo", birthDate: "2026-09-26", ageMonths: 1 },
     limitedView: false,
     pediatrician: { id: "00000000-0000-4000-8000-0000000000d1", name: "Dr. Owen Park", role: "pediatrician" as const, clinic: "Riverside Pediatrics", phone: "(555) 010-2244" },
     allergies: [
@@ -118,5 +139,5 @@ export const babyMocks = {
       { id: "00000000-0000-4000-8000-0000000000b1", name: "HepB", dose: "Dose 1 of 3", status: "done" as const, givenOn: "2026-09-27", visibility: "family" as const },
       { id: "00000000-0000-4000-8000-0000000000b2", name: "HepB", dose: "Dose 2 of 3", status: "due" as const, dueOn: "2026-11-10", visibility: "family" as const },
     ],
-  })),
-};
+  };
+}

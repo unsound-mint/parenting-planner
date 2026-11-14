@@ -1,6 +1,7 @@
 import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { CHECKED, isoAt } from "./dates";
+import { olderStage } from "../timeline";
 
 const tdap = {
   title: "CDC: Vaccinating Pregnant Patients (pertussis)",
@@ -34,6 +35,8 @@ export const weeklyPlanMocks = {
     // This note is about week 25. In pregnancy loss support answer like the rule
     // fallback, which the AI plan card does not draw.
     if (inLossSupport(family)) return { memberId: ctx.path.memberId, generatedAt: isoAt(0, 6), fallback: true, intro: "", sections: [] };
+    // The note below is about week 25. Other stages answer like the rule fallback, which the AI plan card does not draw.
+    if (olderStage(family)) return { memberId: ctx.path.memberId, generatedAt: isoAt(0, 6), fallback: true, intro: "", sections: [] };
     const partner = family.parents.find((p) => p.id === ctx.path.memberId)?.role === "partner";
     return {
       memberId: ctx.path.memberId,
