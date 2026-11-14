@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { ArrowRight, CalendarCheck, Check, CheckCircle2, CircleAlert, X } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { Shift, ShiftSuggestion, SimulatorAnswerResult, SimulatorQuestion, SimulatorRound } from "@/lib/api/types";
-import { formatShortDate } from "@/lib/format";
 import { skillIcon, skillLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import { ShiftCard } from "@/components/schedule/shift-card";
 import { SkillBars } from "@/components/simulator/skill-bars";
 import { StartRoundButton } from "@/components/simulator/start-round-button";
 import { PageFrame } from "@/components/shell/page";
+import { SourceLink } from "@/components/joy/source-line";
 
 // Plays one round: a question, a tap, feedback at once, then the next. The
 // last screen scores the round and offers the one commit action.
@@ -200,12 +200,8 @@ function QuestionCard({
             </p>
             <p className="text-body">{given.explanation}</p>
             {given.source && (
-              <p className="font-mono text-caption text-muted-foreground">
-                Source:{" "}
-                <a href={given.source.url} target="_blank" rel="noreferrer" className="underline underline-offset-2">
-                  {given.source.title}
-                </a>
-                , checked {formatShortDate(given.source.checkedAt)}
+              <p className="text-caption">
+                <SourceLink source={given.source} />
               </p>
             )}
             <div>
