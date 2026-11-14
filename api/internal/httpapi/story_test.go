@@ -77,8 +77,8 @@ func TestStoryOfAPregnancyAtWeek25(t *testing.T) {
 	if v := moments(s, httpapi.StoryMomentKindAppointment); len(v) != 1 || v[0].PeopleIds[0] != mom.Id {
 		t.Errorf("visits = %+v, want the past OB visit by Emily", v)
 	}
-	// Learning together: the names both like, lessons read, the talk they had.
-	if n := moments(s, httpapi.StoryMomentKindNamesLiked); len(n) != 1 || n[0].Title != "You both like Ada, June and Theo" || len(n[0].PeopleIds) != 2 {
+	// Learning together: the names both like (the names quest seed adds Hazel), lessons read, the talk they had.
+	if n := moments(s, httpapi.StoryMomentKindNamesLiked); len(n) != 1 || n[0].Title != "You both like Ada, June, Theo and Hazel" || len(n[0].PeopleIds) != 2 {
 		t.Errorf("names = %+v", n)
 	}
 	if len(moments(s, httpapi.StoryMomentKindLessonRead)) == 0 || len(moments(s, httpapi.StoryMomentKindCoupleTalk)) != 1 {
