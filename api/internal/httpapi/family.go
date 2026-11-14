@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
+	"github.com/unsound-mint/parenting-planner/api/internal/upgrade"
 )
 
 func (s *Server) GetFamily(ctx context.Context, _ GetFamilyRequestObject) (GetFamilyResponseObject, error) {
@@ -47,6 +48,19 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		}
 	}
 	// Caregivers are not stored yet: the seed and a table come with the backend half of #1.
+
+	// There is no billing, so every family stays on free; an upgrade intent
+	// only shows as "upgrade requested".
+	tier := TierFree
+	out.Tier = &tier
+	intent, ok, err := upgrade.Current(ctx, s.q, id)
+	if err != nil {
+		return Family{}, err
+	}
+	if ok {
+		req := upgradeIntentOut(intent)
+		out.UpgradeRequest = &req
+	}
 	for _, m := range members {
 		out.Parents = append(out.Parents, Parent{Id: m.ID, Role: ParentRole(m.Role), DisplayName: m.DisplayName})
 	}

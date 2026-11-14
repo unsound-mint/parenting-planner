@@ -93,3 +93,9 @@ type Session struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
+
+type UpgradeIntent struct {
+	FamilyID    uuid.UUID
+	Tier        string
+	RequestedAt time.Time
+}
