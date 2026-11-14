@@ -23,7 +23,7 @@ export type Guest = { id: string; name: string; /** A parent sees every family e
 // and only a health visit starts private and neutral (issue 99, 38): the owner has to widen it.
 const kindForm: Record<StoredKind, { label: string; placeholder: string; where: string | null; range: boolean; privateByDefault: boolean }> = {
   appointment: { label: "Visit", placeholder: "Prenatal checkup", where: "Clinic or address", range: true, privateByDefault: true },
-  class: { label: "Class", placeholder: "Childbirth class", where: "Where it takes place", range: true, privateByDefault: false },
+  class: { label: "Class name", placeholder: "Childbirth class", where: "Where it takes place", range: true, privateByDefault: false },
   reminder: { label: "Remind me to", placeholder: "Pack the hospital bag", where: null, range: false, privateByDefault: true },
   other: { label: "Event", placeholder: "Lunch with the grandparents", where: "Where", range: true, privateByDefault: false },
 };
