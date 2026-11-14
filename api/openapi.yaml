@@ -74,7 +74,7 @@ paths:
     get:
       operationId: getFamily
       tags: [family]
-      summary: The family of the current session, with parents and children
+      summary: The family of the current session, with parents, caregivers and children
       responses:
         "200":
           description: OK
@@ -792,7 +792,7 @@ components:
 
     Family:
       type: object
-      required: [id, template, stage, parents, children]
+      required: [id, template, stage, parents, caregivers, children]
       properties:
         id:
           type: string
@@ -816,6 +816,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Parent"
+        caregivers:
+          type: array
+          description: |
+            Other people who help with the child and can be opened as their own
+            view (the demo role switcher). Empty when the family has none.
+          items:
+            $ref: "#/components/schemas/Caregiver"
         children:
           type: array
           items:
@@ -830,6 +837,30 @@ components:
           format: uuid
         role:
           $ref: "#/components/schemas/ParentRole"
+        displayName:
+          type: string
+
+    CaregiverRole:
+      type: string
+      description: |
+        What each person may see. mother and partner see everything their own
+        data and the sharing rules allow. A grandparent or nanny sees the baby's
+        care: the child's schedule, feeding, sleep, visits and milestones, and
+        what the parents chose to share for the family. They never see a
+        parent's health data (labs, mood check-ins, diary, session notes) and
+        cannot create or change those records.
+      enum: [grandparent, nanny]
+
+    Caregiver:
+      type: object
+      required: [id, role, displayName]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Used in /family/{id} on the web side, like a parent id.
+        role:
+          $ref: "#/components/schemas/CaregiverRole"
         displayName:
           type: string
 

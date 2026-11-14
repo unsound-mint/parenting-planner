@@ -44,7 +44,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The family of the current session, with parents and children */
+        /** The family of the current session, with parents, caregivers and children */
         get: operations["getFamily"];
         put?: never;
         post?: never;
@@ -421,12 +421,36 @@ export interface components {
             tier?: components["schemas"]["Tier"];
             upgradeRequest?: components["schemas"]["UpgradeIntent"];
             parents: components["schemas"]["Parent"][];
+            /**
+             * @description Other people who help with the child and can be opened as their own
+             *     view (the demo role switcher). Empty when the family has none.
+             */
+            caregivers: components["schemas"]["Caregiver"][];
             children: components["schemas"]["Child"][];
         };
         Parent: {
             /** Format: uuid */
             id: string;
             role: components["schemas"]["ParentRole"];
+            displayName: string;
+        };
+        /**
+         * @description What each person may see. mother and partner see everything their own
+         *     data and the sharing rules allow. A grandparent or nanny sees the baby's
+         *     care: the child's schedule, feeding, sleep, visits and milestones, and
+         *     what the parents chose to share for the family. They never see a
+         *     parent's health data (labs, mood check-ins, diary, session notes) and
+         *     cannot create or change those records.
+         * @enum {string}
+         */
+        CaregiverRole: "grandparent" | "nanny";
+        Caregiver: {
+            /**
+             * Format: uuid
+             * @description Used in /family/{id} on the web side, like a parent id.
+             */
+            id: string;
+            role: components["schemas"]["CaregiverRole"];
             displayName: string;
         };
         Child: {
