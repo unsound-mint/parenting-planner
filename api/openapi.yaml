@@ -18,6 +18,8 @@ tags:
   - name: family
   - name: plan
   - name: wellbeing
+  - name: recovery
+  - name: supplies
   - name: directory
   - name: passport
   - name: health
@@ -7326,6 +7328,544 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/recovery-checkins:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createRecoveryCheckin
+      tags: [recovery]
+      summary: The mother logs how she is recovering after the birth
+      description: |
+        Only the mother, and only once a baby is on record (409 no_child before that).
+        The partner gets 403: the tracker is the birth parent's own. Visibility is
+        required; the UI sends private. The check-in is private to her unless she
+        shares it with the partner (private or partner here; the server never widens
+        it). A grandparent or nanny gets 404 and never reads any check-in.
+
+        urgent is computed from bleeding and the ticked warning signs (rules.RecoveryUrgent,
+        source CDC Hear Her). When true the UI shows the fixed Urgent help screen link, never
+        generated text. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryCheckinInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoveryCheckin"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listRecoveryCheckins
+      tags: [recovery]
+      summary: Recovery check-ins from the last 30 days that the acting parent may see
+      description: |
+        Her own plus the ones the mother shared with the partner. Newest first. A caregiver
+        gets 404. Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoveryCheckinList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/recovery-checkins/{checkinId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: checkinId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateRecoveryCheckin
+      tags: [recovery]
+      summary: The author shares or unshares one check-in
+      description: |
+        Only the author can change who may read a check-in. Any other id, including the
+        partner's shared check-in, is 404. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecoveryCheckinUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoveryCheckin"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/recovery-guidance:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getRecoveryGuidance
+      tags: [recovery]
+      summary: Fourth-trimester guidance and the postnatal check window
+      description: |
+        For a family with a baby. The text depends only on the days since the birth, not on
+        anything the mother logged. Every point is backed by sources (ACOG, NHS, CDC) with
+        the date they were checked. Both parents may read it; a caregiver gets 404. 409
+        no_child when no baby is on record yet.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecoveryGuidance"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/preferences:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getMemberPreferences
+      tags: [family]
+      summary: The acting parent's own settings
+      description: |
+        Per parent. essentialsOnly is the "Essentials only" mode: a parent who finds
+        tracking every nap and diaper stressful hides detailed tracking (care log details
+        and charts) and keeps the essentials (next feed estimate, medicines, appointments).
+        Screens that show detailed tracking must read it and respect it. Caregivers get 404.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberPreferences"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updateMemberPreferences
+      tags: [family]
+      summary: Change the acting parent's own settings
+      description: |
+        The parent changes only their own setting.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberPreferences"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberPreferences"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/supplies:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getSupplies
+      tags: [supplies]
+      summary: What the family has at home, the shopping list and a size suggestion
+      description: |
+        Parents, and a grandparent or nanny with the care_log permission (others get 403).
+        Each item carries a status and, for diapers, wipes and formula, an estimate of how
+        many days are left, worked out from the care log of the last 7 days. The estimate
+        needs at least 3 logged events; otherwise daysLeft is absent. It is labelled as an
+        estimate in the UI. sizes is absent when no child is on record.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplies"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/supply-items:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createSupplyItem
+      tags: [supplies]
+      summary: A parent adds something the family keeps at home
+      description: |
+        Parents only; a caregiver gets 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplyItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupplyItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/supply-items/{itemId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateSupplyItem
+      tags: [supplies]
+      summary: A parent changes the amount or details of an item
+      description: |
+        The whole editable state is sent. Parents only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplyItemUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupplyItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteSupplyItem
+      tags: [supplies]
+      summary: A parent removes an item
+      description: |
+        Parents only. Its open shopping rows stay as plain names.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/shopping-items:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createShoppingItem
+      tags: [supplies]
+      summary: Add something to the shared shopping list
+      description: |
+        Parents, and a caregiver with the care_log permission. supplyItemId links the row to
+        an item; adding a second open row for the same item returns the existing one.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShoppingItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/shopping-items/{itemId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateShoppingItem
+      tags: [supplies]
+      summary: Tick or untick a shopping list row
+      description: |
+        Parents, and a caregiver with the care_log permission. Ticking a row linked to an
+        item with a restockQuantity adds that quantity to the item once; unticking takes
+        it back. A caregiver's tick is audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShoppingItemUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShoppingItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteShoppingItem
+      tags: [supplies]
+      summary: Remove a row from the shopping list
+      description: |
+        Parents only.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MemberId:
@@ -12301,3 +12841,350 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Portrait"
+
+    RecoveryBleeding:
+      type: string
+      enum: [none, spotting, light, moderate, heavy]
+
+    RecoveryWound:
+      type: string
+      description: How a perineal tear, stitches or a cesarean scar feels. not_applicable when there is none.
+      enum: [not_applicable, healing_well, sore, red_or_leaking]
+
+    RecoveryBreasts:
+      type: string
+      enum: [comfortable, full, sore, not_applicable]
+
+    RecoveryPelvicFloor:
+      type: string
+      enum: [fine, leaking, heaviness, painful]
+
+    RecoveryWarningSign:
+      type: string
+      description: Each is on CDC's urgent maternal warning sign list.
+      enum: [heavy_bleeding, fever, severe_headache, chest_pain, trouble_breathing, leg_swelling_pain, self_harm_thoughts]
+
+    RecoveryShareChoice:
+      type: string
+      description: Who may read a recovery check-in. Never wider than the partner.
+      enum: [private, partner]
+
+    RecoveryCheckinInput:
+      type: object
+      required: [visibility, bleeding, pain, wound, breasts, pelvicFloor, sleepHours]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/RecoveryShareChoice"
+        bleeding:
+          $ref: "#/components/schemas/RecoveryBleeding"
+        pain:
+          type: integer
+          minimum: 0
+          maximum: 10
+        wound:
+          $ref: "#/components/schemas/RecoveryWound"
+        breasts:
+          $ref: "#/components/schemas/RecoveryBreasts"
+        pelvicFloor:
+          $ref: "#/components/schemas/RecoveryPelvicFloor"
+        sleepHours:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 24
+        mood:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Same 1 to 5 scale as mood check-ins. Optional.
+        warningSigns:
+          type: array
+          maxItems: 7
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/RecoveryWarningSign"
+        note:
+          type: string
+          maxLength: 1000
+
+    RecoveryCheckinUpdate:
+      type: object
+      required: [visibility]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/RecoveryShareChoice"
+
+    RecoveryCheckin:
+      type: object
+      required: [id, authorId, recordedAt, visibility, bleeding, pain, wound, breasts, pelvicFloor, sleepHours, warningSigns, urgent]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        recordedAt:
+          type: string
+          format: date-time
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        bleeding:
+          $ref: "#/components/schemas/RecoveryBleeding"
+        pain:
+          type: integer
+        wound:
+          $ref: "#/components/schemas/RecoveryWound"
+        breasts:
+          $ref: "#/components/schemas/RecoveryBreasts"
+        pelvicFloor:
+          $ref: "#/components/schemas/RecoveryPelvicFloor"
+        sleepHours:
+          type: number
+          format: float
+        mood:
+          type: integer
+        warningSigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecoveryWarningSign"
+        note:
+          type: string
+        urgent:
+          type: boolean
+          description: True when a warning sign is ticked or bleeding is heavy. The UI then links to the fixed Urgent help screen.
+
+    RecoveryCheckinList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/RecoveryCheckin"
+
+    RecoveryGuidance:
+      type: object
+      required: [phase, headline, points, daysSinceBirth, postnatalCheck, sources]
+      properties:
+        phase:
+          type: string
+          enum: [first_weeks, settling_in, checkup_window, later]
+        headline:
+          type: string
+        points:
+          type: array
+          items:
+            type: string
+        daysSinceBirth:
+          type: integer
+        postnatalCheck:
+          type: object
+          description: The 6 to 8 week check (NHS) and the 12-week outer limit (ACOG).
+          required: [opensOn, closesOn, latestOn, status]
+          properties:
+            opensOn:
+              type: string
+              format: date
+            closesOn:
+              type: string
+              format: date
+            latestOn:
+              type: string
+              format: date
+            status:
+              type: string
+              enum: [upcoming, open, overdue]
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    MemberPreferences:
+      type: object
+      required: [essentialsOnly]
+      properties:
+        essentialsOnly:
+          type: boolean
+
+    SupplyCategory:
+      type: string
+      enum: [diapers, wipes, formula, medicine, clothing, other]
+
+    SupplyStatus:
+      type: string
+      description: empty = none left; running_low = at or under the item's lowAt, or about 3 days or fewer left by the estimate.
+      enum: [stocked, running_low, empty]
+
+    SupplyItemInput:
+      type: object
+      required: [name, category, quantity]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        category:
+          $ref: "#/components/schemas/SupplyCategory"
+        quantity:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        unit:
+          type: string
+          maxLength: 20
+          description: Defaults to pcs.
+        lowAt:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        perUse:
+          type: integer
+          minimum: 1
+          maximum: 20
+          description: Units one logged event uses (1 diaper per change, say 3 wipes). Defaults to 1.
+        size:
+          type: string
+          maxLength: 20
+        expiresOn:
+          type: string
+          format: date
+
+    SupplyItemUpdate:
+      allOf:
+        - $ref: "#/components/schemas/SupplyItemInput"
+
+    SupplyItem:
+      type: object
+      required: [id, name, category, quantity, unit, lowAt, perUse, status, onShoppingList]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          $ref: "#/components/schemas/SupplyCategory"
+        quantity:
+          type: integer
+        unit:
+          type: string
+        lowAt:
+          type: integer
+        perUse:
+          type: integer
+        size:
+          type: string
+        expiresOn:
+          type: string
+          format: date
+        status:
+          $ref: "#/components/schemas/SupplyStatus"
+        daysLeft:
+          type: integer
+          description: Estimate in whole days from the care log of the last 7 days. Absent when it cannot be estimated.
+        usagePerDay:
+          type: number
+          format: float
+          description: Estimated units used per day. Absent with daysLeft.
+        onShoppingList:
+          type: boolean
+
+    ShoppingItemInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        supplyItemId:
+          type: string
+          format: uuid
+        restockQuantity:
+          type: integer
+          minimum: 1
+          maximum: 100000
+
+    ShoppingItemUpdate:
+      type: object
+      required: [done]
+      properties:
+        done:
+          type: boolean
+
+    ShoppingItem:
+      type: object
+      required: [id, name, done, addedById]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        supplyItemId:
+          type: string
+          format: uuid
+        restockQuantity:
+          type: integer
+        done:
+          type: boolean
+        addedById:
+          type: string
+          format: uuid
+        doneById:
+          type: string
+          format: uuid
+        doneAt:
+          type: string
+          format: date-time
+
+    SizeSuggestion:
+      type: object
+      required: [childId, childName, ageMonths, clothing, diaper, basis, note]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        childName:
+          type: string
+        ageMonths:
+          type: integer
+        weightKg:
+          type: number
+          format: float
+          description: The latest growth measurement in kilograms, when there is one.
+        weightLb:
+          type: number
+          format: float
+          description: The same weight in pounds. Show this first.
+        clothing:
+          type: string
+          description: For example "3-6 months".
+        diaper:
+          type: string
+          description: For example "Size 2".
+        basis:
+          type: string
+          enum: [age, weight]
+        note:
+          type: string
+          description: Always says the sizes are approximate and brands differ.
+
+    Supplies:
+      type: object
+      required: [items, shopping]
+      properties:
+        items:
+          type: array
+          description: Out and low items first, then the rest by when they were added.
+          items:
+            $ref: "#/components/schemas/SupplyItem"
+        shopping:
+          type: array
+          description: Open rows first, then rows ticked in the last 3 days.
+          items:
+            $ref: "#/components/schemas/ShoppingItem"
+        sizes:
+          $ref: "#/components/schemas/SizeSuggestion"
