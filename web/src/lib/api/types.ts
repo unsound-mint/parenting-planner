@@ -181,3 +181,4 @@ export type ChildcareOptionInput = S["ChildcareOptionInput"];
 export type ChildcareOptionList = S["ChildcareOptionList"];
 export type ChildcareStatus = S["ChildcareStatus"];
 export type ChildcareKind = S["ChildcareKind"];
+export type GrowthMeasurementInput = S["GrowthMeasurementInput"];
