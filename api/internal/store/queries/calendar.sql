@@ -48,3 +48,6 @@ WHERE e.family_id = $1 AND e.id = $2 ORDER BY a.member_id;
 -- name: ClearCalendarEventAttendees :exec
 DELETE FROM calendar_event_attendees a USING calendar_events e
 WHERE e.family_id = $1 AND e.id = $2 AND a.event_id = e.id;
+
+-- name: DeleteOwnedCalendarEvent :execrows
+DELETE FROM calendar_events WHERE family_id = $1 AND owner_member_id = $2 AND id = $3;

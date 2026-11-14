@@ -254,10 +254,14 @@ func TestTaskDeadlinesAppearInTheCalendarAndToday(t *testing.T) {
 	}
 }
 
-// Replace with the reference tests when UpdateCalendarEvent lands.
-func TestUpdateCalendarEventIsNotImplementedYet(t *testing.T) {
+func TestDeleteCalendarEventIsOwnerOnly(t *testing.T) {
 	c := testutil.New(t)
-	fam := c.StartDemo("pregnancy")
-	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
-	stubCall{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}}.expectNotImplemented(t, c)
+	p := newbornFamily(c, t)
+	base := calBase(p.mom)
+	var e httpapi.CalendarEvent
+	c.Post(base, event("Class", "family", time.Hour, p.nanny.Id), http.StatusCreated, &e)
+	c.Delete(calBase(p.partner)+"/"+e.Id, http.StatusNotFound, nil)
+	c.Delete("/api/members/"+p.nanny.Id.String()+"/calendar-events/"+e.Id, http.StatusForbidden, nil)
+	c.Delete(base+"/"+e.Id, http.StatusNoContent, nil)
+	c.Delete(base+"/"+e.Id, http.StatusNotFound, nil)
 }

@@ -2707,8 +2707,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
+    delete:
+      operationId: deleteCalendarEvent
+      tags: [calendar]
+      summary: The owner deletes an appointment, class or reminder
+      description: |
+        Same access as updateCalendarEvent: only the acting parent who owns a
+        stored event; the partner gets 404, a grandparent or nanny 403. Notes
+        and questions attached to the event are deleted with it. Sends a live
+        update of kind calendar_event to everyone who could see the event.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:

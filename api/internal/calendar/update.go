@@ -100,3 +100,33 @@ func Update(ctx context.Context, pool *pgxpool.Pool, family, owner, id uuid.UUID
 	})
 	return out, err
 }
+
+// Delete removes an event its owner created. Attendees, notes and questions go
+// with it by foreign key. The audience is read first: it is gone afterwards.
+func Delete(ctx context.Context, pool *pgxpool.Pool, family, owner, id uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		e, err := q.LockOwnedCalendarEventVisibleToParent(ctx, store.LockOwnedCalendarEventVisibleToParentParams{FamilyID: family, OwnerMemberID: owner, ID: id})
+		if err != nil {
+			return err
+		}
+		attendees, err := q.CalendarEventAttendees(ctx, store.CalendarEventAttendeesParams{FamilyID: family, ID: id})
+		if err != nil {
+			return err
+		}
+		if _, err := q.DeleteOwnedCalendarEvent(ctx, store.DeleteOwnedCalendarEventParams{FamilyID: family, OwnerMemberID: owner, ID: id}); err != nil {
+			return err
+		}
+		if err := access.Audit(ctx, q, family, owner, access.ActionDelete, entity, id.String()); err != nil {
+			return err
+		}
+		audience := []uuid.UUID{owner}
+		if e.Visibility == "family" {
+			audience, err = live.ParentsAnd(ctx, q, family, attendees...)
+			if err != nil {
+				return err
+			}
+		}
+		return live.Publish(ctx, q, family, live.Event{Kind: live.CalendarEvent, EntityID: id.String(), Actor: owner, Audience: audience}, now)
+	})
+}

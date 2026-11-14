@@ -1430,7 +1430,14 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * The owner deletes an appointment, class or reminder
+         * @description Same access as updateCalendarEvent: only the acting parent who owns a
+         *     stored event; the partner gets 404, a grandparent or nanny 403. Notes
+         *     and questions attached to the event are deleted with it. Sends a live
+         *     update of kind calendar_event to everyone who could see the event.
+         */
+        delete: operations["deleteCalendarEvent"];
         options?: never;
         head?: never;
         /**
@@ -9500,6 +9507,63 @@ export interface operations {
             };
         };
     };
+    deleteCalendarEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                eventId: components["parameters"]["EventId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     updateCalendarEvent: {
         parameters: {
             query?: never;
@@ -9563,15 +9627,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

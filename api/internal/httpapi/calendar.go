@@ -158,3 +158,25 @@ func (s *Server) UpdateCalendarEvent(ctx context.Context, req UpdateCalendarEven
 	}
 	return UpdateCalendarEvent200JSONResponse(calendarEventOut(out)), nil
 }
+
+func (s *Server) DeleteCalendarEvent(ctx context.Context, req DeleteCalendarEventRequestObject) (DeleteCalendarEventResponseObject, error) {
+	family, actor, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return DeleteCalendarEvent401JSONResponse(errNoSession), nil
+	case kind != errNone:
+		return DeleteCalendarEvent404JSONResponse(errNoMember), nil
+	case !isParentRole(actor.Role):
+		return DeleteCalendarEvent403JSONResponse(errForbidden), nil
+	}
+	err = calendar.Delete(ctx, s.pool, family, actor.ID, req.EventId, s.now(ctx))
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return DeleteCalendarEvent404JSONResponse(errNoCalendarEvent), nil
+	case err != nil:
+		return nil, err
+	}
+	return DeleteCalendarEvent204Response{}, nil
+}

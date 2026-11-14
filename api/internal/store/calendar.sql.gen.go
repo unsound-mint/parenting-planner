@@ -122,6 +122,24 @@ func (q *Queries) CreateCalendarEvent(ctx context.Context, arg CreateCalendarEve
 	return i, err
 }
 
+const deleteOwnedCalendarEvent = `-- name: DeleteOwnedCalendarEvent :execrows
+DELETE FROM calendar_events WHERE family_id = $1 AND owner_member_id = $2 AND id = $3
+`
+
+type DeleteOwnedCalendarEventParams struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	ID            uuid.UUID
+}
+
+func (q *Queries) DeleteOwnedCalendarEvent(ctx context.Context, arg DeleteOwnedCalendarEventParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOwnedCalendarEvent, arg.FamilyID, arg.OwnerMemberID, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const listCalendarEventsVisibleToParent = `-- name: ListCalendarEventsVisibleToParent :many
 SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at, e.neutral_title,
        COALESCE((SELECT array_agg(a.member_id) FROM calendar_event_attendees a WHERE a.event_id = e.id), '{}')::uuid[] AS attendee_ids
