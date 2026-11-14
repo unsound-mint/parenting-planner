@@ -107,6 +107,7 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	}); err != nil {
 		return uuid.Nil, err
 	}
+
 	// Emily's last week: two low, short-sleep days just before today, so one
 	// more low check-in completes the three-day pattern (demo-script step 4).
 	// Jake has no check-ins (demo-script step 2).
@@ -132,6 +133,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		}
 	}
 	if err := seedObVisits(ctx, q, fam.ID, mom.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedPsychologist(ctx, q, fam.ID, mom.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil
@@ -172,4 +176,43 @@ func seedObVisits(ctx context.Context, q *store.Queries, familyID, momID uuid.UU
 		}
 	}
 	return nil
+}
+
+// seedPsychologist opens slots with the demo psychologist on weekdays at 10:00
+// and 15:00 Eastern (15:00 and 20:00 UTC) for the session's whole lifetime,
+// and gives the mother a session two days ago with no note yet, so the care
+// screen asks for one and the note changes her plan.
+func seedPsychologist(ctx context.Context, q *store.Queries, familyID, motherID uuid.UUID, today time.Time) error {
+	p, err := q.GetDemoPsychologist(ctx)
+	if err != nil {
+		return err
+	}
+	slot := func(day time.Time, hourUTC int) store.CreatePsychologistSlotParams {
+		return store.CreatePsychologistSlotParams{
+			FamilyID: familyID, PsychologistID: p.ID, DurationMinutes: 50,
+			StartsAt: time.Date(day.Year(), day.Month(), day.Day(), hourUTC, 0, 0, 0, time.UTC),
+		}
+	}
+	days := int(SessionTTL/(24*time.Hour)) + 5
+	for i := 0; i <= days; i++ {
+		d := today.AddDate(0, 0, i)
+		if d.Weekday() == time.Saturday || d.Weekday() == time.Sunday {
+			continue
+		}
+		for _, h := range []int{15, 20} {
+			if _, err := q.CreatePsychologistSlot(ctx, slot(d, h)); err != nil {
+				return err
+			}
+		}
+	}
+	past := slot(today.AddDate(0, 0, -2), 15)
+	pastID, err := q.CreatePsychologistSlot(ctx, past)
+	if err != nil {
+		return err
+	}
+	// The slot is in the past, so book it as of the day before it started.
+	_, err = q.CreatePsychologistBooking(ctx, store.CreatePsychologistBookingParams{
+		OwnerMemberID: motherID, SlotID: pastID, FamilyID: familyID, Now: past.StartsAt.Add(-24 * time.Hour),
+	})
+	return err
 }

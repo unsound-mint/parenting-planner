@@ -107,6 +107,12 @@ var (
 	errNoAppointment         = Error{Code: "not_found", Message: "no such appointment"}
 	errNoQuestion            = Error{Code: "not_found", Message: "no such question"}
 	errNoUpcomingAppointment = Error{Code: "no_upcoming_appointment", Message: "add an appointment first"}
+
+	errNoBooking         = Error{Code: "not_found", Message: "no such session for this parent"}
+	errSlotTaken         = Error{Code: "slot_taken", Message: "this time is no longer open"}
+	errSessionNotStarted = Error{Code: "session_not_started", Message: "you can write a note once the session has started"}
+	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
+	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
 )
 
 // errKind tells a handler which typed error response to return.
