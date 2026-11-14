@@ -1,22 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-import type { HospitalBag, Task } from "@/lib/api/types";
+import type { HospitalBag, InsuranceCall, LeavePlan, Task } from "@/lib/api/types";
 import { countThings } from "@/lib/format";
 import type { Person } from "@/lib/roles";
 import { byKind, isOffered, openFirst } from "@/lib/tasks";
-import { bagIcon, paperworkIcon, planIcon } from "@/lib/visuals";
+import { bagIcon, insuranceIcon, leaveIcon, paperworkIcon, planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { HospitalBags } from "./hospital-bags";
+import { InsuranceLog, insuranceHeadline } from "./insurance-log";
+import { LeavePlanner, leaveHeadline } from "./leave-planner";
 import { PaperworkTimeline } from "./paperwork-timeline";
 import { TaskRow, type TaskCtx } from "./task-row";
+import { SuggestionRow, WeekHeading, hasWeeklyCard, unplannedSuggestions, weekGroups } from "./week-groups";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
-type Tab = "task" | "paperwork" | "hospital_bag";
+type Tab = "task" | "paperwork" | "hospital_bag" | "leave" | "insurance";
 
 // One screen for every owned checklist: the shared plan, US paperwork and the
 // hospital bags are all Task rows told apart by kind. Changes go to the API and
@@ -26,15 +31,37 @@ export function PlanScreen({
   people,
   offerTargets,
   selfId,
+  leave: initialLeave,
+  calls: initialCalls,
+  dueOn,
+  trackWeeks = false,
+  weekTasks = [],
 }: {
   initial: Task[];
   people: Person[];
   offerTargets: Person[];
   selfId: string;
+  /** Left out while the leave endpoints are not available: the tab is hidden. */
+  leave?: LeavePlan;
+  calls?: InsuranceCall[];
+  dueOn?: string;
+  /** Group the shared plan by week: a pregnancy with a due date, not in loss support. */
+  trackWeeks?: boolean;
+  /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
+  weekTasks?: string[];
 }) {
+  const now = useFamilyNow();
   const [tasks, setTasks] = useState(initial);
+  const [leave, setLeave] = useState(initialLeave);
+  const [calls, setCalls] = useState(initialCalls);
+  const [focusTask, setFocusTask] = useState<string>();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("task");
+
+  // A leave deadline sends you to its task: bring it into view once the tab has rendered.
+  useEffect(() => {
+    if (focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [tab, focusTask]);
 
   const replace = (t: Task) => setTasks((all) => all.map((x) => (x.id === t.id ? t : x)));
 
@@ -106,6 +133,9 @@ export function PlanScreen({
     ...(paperwork.length ? [{ id: "paperwork" as const, label: "Paperwork", icon: paperworkIcon, open: paperwork.filter((t) => !t.done).length }] : []),
     ...(bags.length ? [{ id: "hospital_bag" as const, label: "Hospital bag", icon: bagIcon.mother, open: bags.filter((t) => !t.done).length }] : []),
   ];
+  const myLeave = leave?.parents.find((p) => p.memberId === selfId);
+  if (leave) tabs.push({ id: "leave", label: "Leave", icon: leaveIcon, open: myLeave?.deadlines.length ?? 0 });
+  if (calls) tabs.push({ id: "insurance", label: "Insurance calls", icon: insuranceIcon, open: calls.filter((c) => c.authorId === selfId && c.followUpOn).length });
   const active = tabs.some((t) => t.id === tab) ? tab : "task";
 
   // The headline belongs to the open tab: it only counts that tab's tasks, so it never
@@ -116,21 +146,25 @@ export function PlanScreen({
   const other = people.find((p) => p.id !== selfId && offersToMe.some((t) => t.assigneeId === p.id));
 
   const headline =
-    offersToMe.length > 0
+    active === "leave" && leave
+      ? leaveHeadline(leave, selfId, now)
+      : active === "insurance" && calls
+        ? insuranceHeadline(calls, selfId, now)
+        : offersToMe.length > 0
       ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
       : mine.length > 0
         ? active === "hospital_bag"
-          ? `${countThings(mine.length)} still to pack for you. Next: ${mine[0].title}.`
-          : `${countThings(mine.length)} ${mine.length === 1 ? "is" : "are"} yours here. Next: ${mine[0].title}.`
+          ? `${countThings(mine.length)} still to pack for you.`
+          : `${countThings(mine.length)} ${mine.length === 1 ? "is" : "are"} yours here.`
         : active === "hospital_bag"
           ? "Your bags are packed."
           : "Nothing is waiting on you here.";
   return (
-    <main className="flex min-w-0 max-w-5xl flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
-      <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
+    <PageFrame>
+      <h1 className="max-w-2xl text-headline text-balance print:hidden">{headline}</h1>
 
       {tabs.length > 1 && (
-        <div role="tablist" aria-label="Plan sections" className="flex gap-1 overflow-x-auto rounded-2xl bg-muted p-1 md:w-fit md:rounded-full">
+        <div role="tablist" aria-label="Plan sections" className="print:hidden flex gap-1 overflow-x-auto rounded-2xl bg-muted p-1 md:w-fit md:rounded-full">
           {tabs.map((t) => {
             const on = t.id === active;
             return (
@@ -141,7 +175,10 @@ export function PlanScreen({
                 id={`tab-${t.id}`}
                 aria-selected={on}
                 aria-controls={`panel-${t.id}`}
-                onClick={() => setTab(t.id)}
+                onClick={() => {
+                  setFocusTask(undefined);
+                  setTab(t.id);
+                }}
                 className={cn(
                   "flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 sm:px-3 text-label font-medium whitespace-nowrap outline-none transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9 md:flex-none md:rounded-full md:px-4",
                   on ? "bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)]" : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
@@ -157,21 +194,62 @@ export function PlanScreen({
       )}
 
       <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`} className="min-w-0">
-        {active === "task" && <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} onAdd={(title, dueOn) => add(title, { dueOn })} />}
-        {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} />}
+        {active === "task" && (
+          <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} now={now} weekOf={trackWeeks ? dueOn : undefined} suggestions={weekTasks} onAdd={(title, dueOn) => add(title, { dueOn })} />
+        )}
+        {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />}
+        {active === "leave" && leave && (
+          <LeavePlanner
+            initial={leave}
+            people={people}
+            selfId={selfId}
+            dueOn={dueOn}
+            onChange={setLeave}
+            onOpenTask={(id) => {
+              setFocusTask(id);
+              setTab("paperwork");
+            }}
+          />
+        )}
+        {active === "insurance" && calls && <InsuranceLog calls={calls} people={people} selfId={selfId} onCreated={(c) => setCalls((all) => [...(all ?? []), c])} />}
         {active === "hospital_bag" && <HospitalBags tasks={bags} ctx={ctx} onAdd={(title, bag) => add(title, { kind: "hospital_bag", bag })} />}
       </div>
-    </main>
+    </PageFrame>
   );
 }
 
-function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: TaskCtx; offersToMe: Task[]; onAdd: (title: string, dueOn?: string) => Promise<boolean> }) {
+// Open tasks are grouped by the week they fall due (week-groups.tsx), each fact
+// once: an offer waiting for your answer is only in its own group. Without a due
+// date to count from, the open tasks are one flat list.
+function SharedPlan({
+  tasks,
+  ctx,
+  offersToMe,
+  now,
+  weekOf,
+  suggestions,
+  onAdd,
+}: {
+  tasks: Task[];
+  ctx: TaskCtx;
+  offersToMe: Task[];
+  now: Date;
+  /** The due date to count weeks from; left out when the plan is not grouped by week. */
+  weekOf?: string;
+  /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
+  suggestions: string[];
+  onAdd: (title: string, dueOn?: string) => Promise<boolean>;
+}) {
+  const [adding, setAdding] = useState<string>();
   const waiting = tasks.filter((t) => offersToMe.some((o) => o.id === t.id));
   const rest = openFirst(tasks.filter((t) => !waiting.includes(t)));
   const open = rest.filter((t) => !t.done);
   const done = rest.filter((t) => t.done);
+  const groups = weekOf ? weekGroups(open, weekOf, now) : undefined;
+  const cards = weekOf && hasWeeklyCard(weekOf, now) ? unplannedSuggestions(suggestions, tasks) : [];
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    // Cells side by side on wide screens in time order: waiting, this week, next week, and so on; done last.
+    <PageGrid cols={3}>
       {waiting.length > 0 && (
         <section aria-labelledby="waiting-title">
           <h2 id="waiting-title" className="text-title">
@@ -184,21 +262,52 @@ function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: Tas
           </ul>
         </section>
       )}
-      <section aria-labelledby="open-title">
-        <h2 id="open-title" className="text-title">
-          Open
-        </h2>
-        {open.length === 0 ? (
-          <p className="mt-2 text-body text-muted-foreground">Nothing open. Add the next thing below.</p>
-        ) : (
-          <ul className="mt-1 divide-y divide-border">
-            {open.map((t) => (
-              <TaskRow key={t.id} task={t} ctx={ctx} />
-            ))}
-          </ul>
-        )}
-        <AddTask onAdd={onAdd} />
-      </section>
+      {groups ? (
+        groups.map((g) => (
+          <section key={g.key} aria-labelledby={`${g.key}-title`}>
+            <WeekHeading group={g} id={`${g.key}-title`} />
+            {g.tasks.length > 0 || (g.current && cards.length > 0) ? (
+              <ul className="mt-1 divide-y divide-border">
+                {g.tasks.map((t) => (
+                  <TaskRow key={t.id} task={t} ctx={ctx} />
+                ))}
+                {g.current &&
+                  cards.map((s) => (
+                    <SuggestionRow
+                      key={s}
+                      title={s.replace(/\.$/, "")}
+                      busy={adding === s}
+                      onAdd={async () => {
+                        setAdding(s);
+                        await onAdd(s.replace(/\.$/, ""), g.endOfWeek);
+                        setAdding(undefined);
+                      }}
+                    />
+                  ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-body text-muted-foreground">Nothing due this week. Add the next thing below.</p>
+            )}
+            {g.current && <AddTask onAdd={onAdd} />}
+          </section>
+        ))
+      ) : (
+        <section aria-labelledby="open-title">
+          <h2 id="open-title" className="text-title">
+            Open
+          </h2>
+          {open.length === 0 ? (
+            <p className="mt-2 text-body text-muted-foreground">Nothing open. Add the next thing below.</p>
+          ) : (
+            <ul className="mt-1 divide-y divide-border">
+              {open.map((t) => (
+                <TaskRow key={t.id} task={t} ctx={ctx} />
+              ))}
+            </ul>
+          )}
+          <AddTask onAdd={onAdd} />
+        </section>
+      )}
       {done.length > 0 && (
         <section aria-labelledby="done-title">
           <h2 id="done-title" className="text-title text-muted-foreground">
@@ -211,7 +320,7 @@ function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: Tas
           </ul>
         </section>
       )}
-    </div>
+    </PageGrid>
   );
 }
 

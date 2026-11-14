@@ -17,7 +17,23 @@ type carePeople struct {
 	nanny        httpapi.Caregiver
 }
 
+// newbornFamily starts a newborn demo and clears its seeded care log and
+// handoffs so each test builds its own. TestNewbornDemoHasADayOfCare covers the seed.
 func newbornFamily(c *testutil.Client, t *testing.T) carePeople {
+	p := seededNewbornFamily(c, t)
+	for _, q := range []string{
+		`DELETE FROM voice_notes WHERE family_id = $1`,
+		`DELETE FROM handoffs WHERE family_id = $1`,
+		`DELETE FROM care_log_entries WHERE family_id = $1`,
+	} {
+		if _, err := c.Pool.Exec(t.Context(), q, p.fam.Id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return p
+}
+
+func seededNewbornFamily(c *testutil.Client, t *testing.T) carePeople {
 	fam := c.StartDemo("newborn")
 	p := carePeople{fam: fam, mom: testutil.Parent(t, fam, httpapi.ParentRoleMother), partner: testutil.Parent(t, fam, httpapi.ParentRolePartner)}
 	for _, cg := range fam.Caregivers {
@@ -176,4 +192,94 @@ func TestPendingHandoffsListFirstAndFamilyScope(t *testing.T) {
 	other := newbornFamily(c, t) // the client now holds another family's session
 	c.Post(handoffs(other.nanny.Id)+"/"+second.Id.String()+"/accept", nil, http.StatusNotFound, nil)
 	c.Get(careLog(p.mom.Id), http.StatusNotFound, nil)
+}
+
+func TestNewbornDemoHasADayOfCare(t *testing.T) {
+	c := testutil.New(t)
+	p := seededNewbornFamily(c, t)
+	var log httpapi.CareLogList
+	c.Get(careLog(p.mom.Id), http.StatusOK, &log)
+	if len(log.Items) < 10 || log.Latest.LastFeed == nil || log.Latest.LastSleep == nil || log.Latest.LastDiaper == nil {
+		t.Errorf("the newborn needs a day of entries: %d items, latest %+v", len(log.Items), log.Latest)
+	}
+	for _, e := range log.Items {
+		if e.StartedAt.After(testutil.Now) {
+			t.Errorf("seeded entry in the future: %+v", e)
+		}
+	}
+	if log.Latest.OnDuty == nil || log.Latest.OnDuty.MemberId != p.grandma.Id {
+		t.Errorf("the grandmother accepted the seeded handoff: %+v", log.Latest.OnDuty)
+	}
+	var l httpapi.HandoffList
+	c.Get(handoffs(p.mom.Id), http.StatusOK, &l)
+	if len(l.Items) != 1 || l.Items[0].Status != httpapi.HandoffStatusAccepted || l.Items[0].VoiceNote == nil {
+		t.Fatalf("one accepted handoff with a voice note: %+v", l.Items)
+	}
+	// The recording plays for the grandmother, and the cleanup never touches it.
+	code, _ := c.Raw(http.MethodGet, "/api/members/"+p.grandma.Id.String()+"/voice-notes/"+l.Items[0].VoiceNote.Id.String(), "", nil)
+	if code != http.StatusOK {
+		t.Errorf("grandmother plays the seeded note: status %d", code)
+	}
+}
+
+// created_at comes from the family's demo clock: after "skip ahead a week" a new
+// handoff must still be listed, and the pending check must agree with the list.
+func TestHandoffUsesTheDemoClock(t *testing.T) {
+	c := testutil.New(t)
+	p := newbornFamily(c, t)
+	c.Post("/api/family/demo-time-skips", nil, http.StatusOK, nil)
+	var h httpapi.Handoff
+	c.Post(handoffs(p.mom.Id), map[string]any{"toMemberId": p.nanny.Id}, http.StatusCreated, &h)
+	if want := testutil.Now.AddDate(0, 0, 7); h.CreatedAt.Sub(want).Abs() > time.Second {
+		t.Errorf("createdAt = %v, want the demo clock %v", h.CreatedAt, want)
+	}
+	var l httpapi.HandoffList
+	c.Get(handoffs(p.mom.Id), http.StatusOK, &l)
+	if len(l.Items) != 1 || l.Items[0].Id != h.Id {
+		t.Errorf("a new handoff must be listed after a skip: %+v", l.Items)
+	}
+}
+
+func TestHandoffVoiceNote(t *testing.T) {
+	c := testutil.New(t)
+	p := newbornFamily(c, t)
+	notePath := func(viewer uuid.UUID, id uuid.UUID) string {
+		return "/api/members/" + viewer.String() + "/voice-notes/" + id.String()
+	}
+	_, n := uploadVoiceNote(t, c, voiceNotesPath(p.mom), "audio/webm", []byte("fed at two"))
+
+	// Someone else's, or unknown, note: 409 and nothing is created.
+	c.Post(handoffs(p.partner.Id), map[string]any{"toMemberId": p.nanny.Id, "voiceNoteId": n.Id}, http.StatusConflict, nil)
+	c.Post(handoffs(p.mom.Id), map[string]any{"toMemberId": p.nanny.Id, "voiceNoteId": uuid.New()}, http.StatusConflict, nil)
+	var l httpapi.HandoffList
+	c.Get(handoffs(p.mom.Id), http.StatusOK, &l)
+	if len(l.Items) != 0 {
+		t.Fatalf("a failed attach must roll back the handoff: %+v", l.Items)
+	}
+
+	var h httpapi.Handoff
+	c.Post(handoffs(p.mom.Id), map[string]any{"toMemberId": p.nanny.Id, "voiceNoteId": n.Id}, http.StatusCreated, &h)
+	if h.VoiceNote == nil || h.VoiceNote.Id != n.Id || h.VoiceNote.SizeBytes != len("fed at two") {
+		t.Fatalf("handoff.voiceNote = %+v", h.VoiceNote)
+	}
+	c.Get(handoffs(p.nanny.Id), http.StatusOK, &l)
+	if len(l.Items) != 1 || l.Items[0].VoiceNote == nil || l.Items[0].VoiceNote.Id != n.Id {
+		t.Errorf("list must carry the voice note: %+v", l.Items)
+	}
+	// A note attaches once.
+	c.Post(handoffs(p.mom.Id), map[string]any{"toMemberId": p.partner.Id, "voiceNoteId": n.Id}, http.StatusConflict, nil)
+
+	// Who may play it: the sender, a parent, the receiver. Not the other caregiver.
+	for who, id := range map[string]uuid.UUID{"sender": p.mom.Id, "partner": p.partner.Id, "receiver": p.nanny.Id} {
+		if code, _ := c.Raw(http.MethodGet, notePath(id, n.Id), "", nil); code != http.StatusOK {
+			t.Errorf("%s plays the note: status %d", who, code)
+		}
+	}
+	if code, _ := c.Raw(http.MethodGet, notePath(p.grandma.Id, n.Id), "", nil); code != http.StatusNotFound {
+		t.Errorf("a caregiver outside the handoff must get 404, got %d", code)
+	}
+	// The receiver's playback is audited.
+	if got := c.AuditCount(p.fam.Id, "read", "voice_note"); got != 3 {
+		t.Errorf("read audit rows = %d, want 3", got)
+	}
 }

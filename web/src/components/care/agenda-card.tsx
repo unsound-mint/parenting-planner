@@ -1,22 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
 import { GripVertical, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { api, isPreviewMock } from "@/lib/api/client";
 import type { AgendaTopic } from "@/lib/api/types";
 import { careIcon } from "@/lib/visuals";
+import { isLocalTopic, localTopics, rememberMockEntry, useMockDiary } from "@/lib/mock/diary-store";
 
 // Topics for the next session, as the parent chose them. Topics only: private
-// text never reaches the agenda. The contract has no endpoint to change the
-// agenda yet, so reordering and removing only shape this view, not the stored list.
-export function AgendaCard({ topics }: { topics: AgendaTopic[] }) {
+// text never reaches the agenda. Every reorder and removal is saved as the full
+// list of kept ids in order (PUT psychologist-agenda); a failed save puts the
+// last saved list back.
+export function AgendaCard({ memberId, topics }: { memberId: string; topics: AgendaTopic[] }) {
+  // While the diary is a mock the server agenda cannot know about new entries, so their topics come from the browser.
+  const remembered = useMockDiary(memberId);
+  const all = [...localTopics(topics, remembered), ...topics];
+  return <Agenda key={all.map((t) => t.id).join()} memberId={memberId} topics={all} />;
+}
+
+function Agenda({ memberId, topics }: { memberId: string; topics: AgendaTopic[] }) {
+  const remembered = useMockDiary(memberId);
+  const router = useRouter();
   const [items, setItems] = useState(topics);
-  const Agenda = careIcon.agenda;
+  const latest = useRef(items);
+  const saved = useRef(topics);
+  const update = (next: AgendaTopic[]) => {
+    latest.current = next;
+    setItems(next);
+  };
+  // Drag fires many reorder events; save once when the drop settles, and skip a save when nothing moved.
+  async function save(next = latest.current) {
+    if (next.length === saved.current.length && next.every((t, i) => t.id === saved.current[i].id)) return;
+    // Topics from mocked diary entries live in the browser: removing one clears it there and the API never gets its id.
+    for (const t of saved.current.filter((t) => isLocalTopic(t.id) && !next.some((n) => n.id === t.id))) {
+      const entry = remembered.find((e) => e.id === t.diaryEntryId);
+      if (entry) rememberMockEntry(memberId, { ...entry, agendaTopic: undefined });
+    }
+    const ids = next.filter((t) => !isLocalTopic(t.id)).map((t) => t.id);
+    const before = saved.current.filter((t) => !isLocalTopic(t.id)).map((t) => t.id);
+    if (ids.length === before.length && ids.every((id, i) => id === before[i])) {
+      saved.current = next;
+      return;
+    }
+    const { data, error, response } = await api.PUT("/members/{memberId}/psychologist-agenda", {
+      params: { path: { memberId } },
+      body: { topicIds: ids },
+    });
+    if (error || !data) {
+      toast.error("Could not save your agenda. Please try again.");
+      update(saved.current);
+      return;
+    }
+    saved.current = next;
+    // The headline counts topics on the server; a mock stored nothing, so a refresh would bring the old list back.
+    if (!isPreviewMock(response)) router.refresh();
+  }
+  const AgendaIcon = careIcon.agenda;
   return (
     <section aria-labelledby="agenda-title" className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-          <Agenda className="size-4.5" aria-hidden />
+          <AgendaIcon className="size-4.5" aria-hidden />
         </span>
         <h2 id="agenda-title" className="flex-1 text-title">
           Your agenda
@@ -29,9 +76,25 @@ export function AgendaCard({ topics }: { topics: AgendaTopic[] }) {
       {items.length === 0 ? (
         <p className="mt-4 text-label text-muted-foreground">Nothing yet. Topics you add for your psychologist show up here.</p>
       ) : (
-        <Reorder.Group axis="y" values={items} onReorder={setItems} className="mt-4 flex flex-col gap-2">
+        <Reorder.Group axis="y" values={items} onReorder={update} className="mt-4 flex flex-col gap-2">
           {items.map((t, i) => (
-            <Topic key={t.id} topic={t} index={i} count={items.length} onMove={(to) => move(items, setItems, i, to)} onRemove={() => setItems(items.filter((x) => x.id !== t.id))} />
+            <Topic
+              key={t.id}
+              topic={t}
+              index={i}
+              count={items.length}
+              onDrop={() => save()}
+              onMove={(to) => {
+                const next = move(items, i, to);
+                update(next);
+                void save(next);
+              }}
+              onRemove={() => {
+                const next = items.filter((x) => x.id !== t.id);
+                update(next);
+                void save(next);
+              }}
+            />
           ))}
         </Reorder.Group>
       )}
@@ -39,20 +102,21 @@ export function AgendaCard({ topics }: { topics: AgendaTopic[] }) {
   );
 }
 
-function move(items: AgendaTopic[], set: (v: AgendaTopic[]) => void, from: number, to: number) {
-  if (to < 0 || to >= items.length) return;
+function move(items: AgendaTopic[], from: number, to: number): AgendaTopic[] {
+  if (to < 0 || to >= items.length) return items;
   const next = [...items];
   next.splice(to, 0, next.splice(from, 1)[0]);
-  set(next);
+  return next;
 }
 
-function Topic({ topic, index, count, onMove, onRemove }: { topic: AgendaTopic; index: number; count: number; onMove: (to: number) => void; onRemove: () => void }) {
+function Topic({ topic, index, count, onMove, onRemove, onDrop }: { topic: AgendaTopic; index: number; count: number; onMove: (to: number) => void; onRemove: () => void; onDrop: () => void }) {
   const controls = useDragControls();
   return (
     <Reorder.Item
       value={topic}
       dragListener={false}
       dragControls={controls}
+      onDragEnd={onDrop}
       className="flex min-h-11 items-center gap-2 rounded-xl border border-border bg-background py-1 pr-1 pl-1 select-none"
       whileDrag={{ scale: 1.02, boxShadow: "0 8px 24px rgb(0 0 0 / 0.12)" }}
     >
@@ -84,4 +148,11 @@ function Topic({ topic, index, count, onMove, onRemove }: { topic: AgendaTopic; 
       </button>
     </Reorder.Item>
   );
+}
+
+/** Care headline while a session still has to be picked: counts the topics, including the ones the diary mock holds in the browser. */
+export function TopicsReadyHeadline({ memberId, topics, fallback }: { memberId: string; topics: AgendaTopic[]; fallback: string }) {
+  const count = topics.length + localTopics(topics, useMockDiary(memberId)).length;
+  if (count === 0) return fallback;
+  return `${count} ${count === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 }

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Plans" };
 // only adds the family's current plan and an earlier upgrade request.
 export default function PricingPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-16 md:px-8">
+    <main className="mx-auto w-full max-w-page flex-1 px-4 pt-6 pb-16 md:px-8">
       <header className="flex items-center justify-between">
         <Link
           href="/family"
@@ -53,7 +53,7 @@ async function Plans() {
 
 function Cards() {
   return (
-    <div className="grid gap-4 md:grid-cols-3 md:gap-5" aria-busy>
+    <div className="grid gap-4 md:grid-cols-3 md:gap-6" aria-busy>
       {[0, 1, 2].map((i) => (
         <div key={i} className="h-96 animate-pulse rounded-2xl bg-muted" />
       ))}

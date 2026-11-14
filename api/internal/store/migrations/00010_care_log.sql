@@ -36,5 +36,11 @@ CREATE TABLE handoffs (
 );
 CREATE INDEX handoffs_family_created_idx ON handoffs (family_id, created_at DESC);
 
+-- A voice note belongs to at most one handoff. SET NULL: a deleted handoff's note
+-- becomes unattached and the 24-hour cleanup removes it.
+ALTER TABLE voice_notes ADD CONSTRAINT voice_notes_handoff_fk
+    FOREIGN KEY (handoff_id) REFERENCES handoffs(id) ON DELETE SET NULL;
+
 -- +goose Down
+ALTER TABLE voice_notes DROP CONSTRAINT voice_notes_handoff_fk;
 DROP TABLE handoffs, care_log_entries;

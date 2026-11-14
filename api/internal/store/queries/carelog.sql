@@ -11,8 +11,22 @@ ORDER BY started_at DESC, created_at DESC;
 -- name: LatestCareLogEntry :one
 SELECT * FROM care_log_entries WHERE family_id = $1 AND kind = $2 ORDER BY started_at DESC, created_at DESC LIMIT 1;
 
+-- created_at comes from the caller (the family's demo clock), not the database
+-- default: ListHandoffs filters on it with the same clock.
 -- name: CreateHandoff :one
-INSERT INTO handoffs (family_id, from_member_id, to_member_id, note, shift_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;
+INSERT INTO handoffs (family_id, from_member_id, to_member_id, note, shift_id, created_at)
+VALUES (@family_id, @from_member_id, @to_member_id, @note, @shift_id, @created_at) RETURNING *;
+
+-- Attaches the uploader's own unattached note. Zero rows: someone else's, already
+-- attached, or gone.
+-- name: AttachVoiceNoteToHandoff :execrows
+UPDATE voice_notes SET handoff_id = @handoff_id
+WHERE id = @voice_note_id AND family_id = @family_id AND uploader_member_id = @uploader_id AND handoff_id IS NULL;
+
+-- Metadata only, never the audio.
+-- name: ListHandoffVoiceNotes :many
+SELECT id, handoff_id, content_type, size_bytes, duration_seconds, created_at FROM voice_notes
+WHERE family_id = @family_id AND handoff_id = ANY(@handoff_ids::uuid[]);
 
 -- name: ListHandoffs :many
 SELECT * FROM handoffs

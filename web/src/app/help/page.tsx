@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
+import { FlaskConical, HeartHandshake, MessageSquare, Phone, Siren, TriangleAlert, type LucideIcon } from "lucide-react";
+import { BackLink, BackLinkFallback } from "@/components/help/back-link";
+import { CareTeam } from "@/components/help/care-team";
 import { PRODUCT_NAME } from "@/lib/product";
 
 // Crisis and urgent-symptom screen. Rules, do not relax them:
-// - Fixed text, the same for everyone. Never AI-generated, never read from the API or a cookie.
+// - Fixed text, the same for everyone. Never AI-generated. The hotlines and
+//   warning signs are never read from the API or a cookie; only the care team
+//   island below them reads the family's records, and it renders nothing when
+//   that fails.
 // - Never animated: no Motion, no CSS transitions (docs/design.md, "Motion and delight").
-// - Static server component, prerendered at build time.
-// - Wording is owned by Dayana (#182). Numbers and sources were verified on Nov 14 2026;
-//   re-check them before changing anything here.
+// - A full page, never a dialog, so no stray tap or Escape can close it.
+// - Static server component, prerendered at build time. The service worker
+//   (app/sw.js/route.ts) keeps a copy so it opens offline.
+// - Wording is owned by Dayana (#182). Every number and claim below was read on
+//   the cited page on 2026-11-14; re-check them before changing anything here.
+//   The HRSA hotline page refuses automated readers, so the hotline's details
+//   are checked on the PSI page that lists it.
 export const metadata: Metadata = {
   title: "Help now",
 };
 
-const CHECKED = "checked Nov 14 2026";
+const CHECKED = "checked 2026-11-14";
 
 const WARNING_SIGNS = [
   "Headache that won't go away or gets worse over time",
@@ -32,12 +42,61 @@ const WARNING_SIGNS = [
   "Overwhelming tiredness",
 ];
 
+type Line = {
+  id: string;
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  note?: string;
+  /** Shown on the buttons. */
+  display: string;
+  /** Digits for tel: and sms:. */
+  dial: string;
+  text: boolean;
+  source: { href: string; label: string };
+};
+
+const LINES: Line[] = [
+  {
+    id: "lifeline",
+    icon: HeartHandshake,
+    title: "Thoughts of harming yourself or your baby",
+    body: "988 Suicide & Crisis Lifeline. Call or text 988, any time, day or night.",
+    display: "988",
+    dial: "988",
+    text: true,
+    source: { href: "https://988lifeline.org/", label: "988lifeline.org" },
+  },
+  {
+    id: "maternal",
+    icon: MessageSquare,
+    title: "National Maternal Mental Health Hotline",
+    body: "1-833-TLC-MAMA. Call or text, 24/7, free and confidential, in English and Spanish.",
+    note: "This is not an emergency line. If you are in danger, call 911.",
+    display: "1-833-852-6262",
+    dial: "18338526262",
+    text: true,
+    source: { href: "https://www.postpartum.net/get-help/", label: "postpartum.net/get-help" },
+  },
+  {
+    id: "poison",
+    icon: FlaskConical,
+    title: "Poison Control",
+    body: "Open 24/7, free and confidential.",
+    note: "If the person collapses, has a seizure, has trouble breathing or can't be woken up, call 911 now.",
+    display: "1-800-222-1222",
+    dial: "18002221222",
+    text: false,
+    source: { href: "https://www.poison.org/contact-us", label: "poison.org" },
+  },
+];
+
 const actionClass =
-  "inline-flex min-h-14 items-center justify-center rounded-lg border border-border bg-background px-5 text-lg font-semibold text-foreground underline-offset-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  "inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-body font-semibold whitespace-nowrap text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 function Source({ href, label }: { href: string; label: string }) {
   return (
-    <p className="font-mono text-sm text-muted-foreground">
+    <p className="font-mono text-caption text-muted-foreground">
       Source:{" "}
       <a href={href} className="underline underline-offset-4">
         {label}
@@ -47,128 +106,106 @@ function Source({ href, label }: { href: string; label: string }) {
   );
 }
 
+function LineCard({ line }: { line: Line }) {
+  const Icon = line.icon;
+  return (
+    <section aria-labelledby={line.id} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
+      <div className="flex items-start gap-3">
+        <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
+          <Icon className="size-5" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <h2 id={line.id} className="text-title font-semibold">
+            {line.title}
+          </h2>
+          <p className="text-body">{line.body}</p>
+          {line.note && <p className="text-label text-muted-foreground">{line.note}</p>}
+        </div>
+      </div>
+      <div className="mt-auto flex flex-wrap gap-3">
+        <a href={`tel:${line.dial}`} className={actionClass}>
+          <Phone aria-hidden className="size-4" />
+          Call <span className="font-mono">{line.display}</span>
+        </a>
+        {line.text && (
+          <a href={`sms:${line.dial}`} className={actionClass}>
+            <MessageSquare aria-hidden className="size-4" />
+            Text <span className="font-mono">{line.display}</span>
+          </a>
+        )}
+      </div>
+      <Source {...line.source} />
+    </section>
+  );
+}
+
 export default function HelpPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-5 py-6 sm:py-10">
-      <header className="flex items-center justify-between gap-4 text-sm">
-        <Link
-          href="/family"
-          className="inline-flex min-h-11 items-center underline underline-offset-4"
-        >
-          Back
-        </Link>
-        <span className="text-muted-foreground">{PRODUCT_NAME}</span>
+    <main className="flex w-full flex-1 flex-col gap-6 px-5 py-6 sm:px-8 sm:py-8 xl:px-12">
+      <header className="flex items-center justify-between gap-4">
+        <Suspense fallback={<BackLinkFallback />}>
+          <BackLink />
+        </Suspense>
+        <span className="text-label text-muted-foreground">{PRODUCT_NAME}</span>
       </header>
 
       <h1 className="sr-only">Help now</h1>
 
       <section
         aria-labelledby="emergency"
-        className="flex flex-col gap-4 rounded-xl border-2 border-urgent p-5 sm:p-6"
+        className="flex flex-col gap-4 rounded-xl border-2 border-urgent p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between"
       >
-        <h2
-          id="emergency"
-          className="text-3xl font-bold tracking-tight text-urgent sm:text-4xl"
-        >
-          In danger right now? Call 911.
-        </h2>
+        <div className="flex items-center gap-4">
+          <span aria-hidden className="hidden size-14 shrink-0 items-center justify-center rounded-full bg-urgent text-background sm:flex">
+            <Siren className="size-7" />
+          </span>
+          <h2 id="emergency" className="text-headline font-bold text-urgent">
+            In danger right now? Call 911.
+          </h2>
+        </div>
         <a
           href="tel:911"
-          className="inline-flex min-h-20 items-center justify-center rounded-lg bg-urgent px-6 font-mono text-4xl font-bold text-background underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+          className="inline-flex min-h-20 items-center justify-center gap-3 rounded-lg bg-urgent px-8 text-display font-bold text-background hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground lg:min-w-80"
         >
-          Call 911
+          <Phone aria-hidden className="size-8" />
+          Call <span className="font-mono">911</span>
         </a>
       </section>
 
-      <section
-        aria-labelledby="crisis"
-        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5"
-      >
-        <h2 id="crisis" className="text-xl font-semibold">
-          Thoughts of harming yourself or your baby
-        </h2>
-        <p>
-          988 Suicide &amp; Crisis Lifeline. Call or text 988, any time, day or
-          night.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <a href="tel:988" className={actionClass}>
-            Call <span className="ml-2 font-mono">988</span>
-          </a>
-          <a href="sms:988" className={actionClass}>
-            Text <span className="ml-2 font-mono">988</span>
-          </a>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {LINES.map((line) => (
+          <LineCard key={line.id} line={line} />
+        ))}
+      </div>
+
+      <Suspense fallback={null}>
+        <CareTeam />
+      </Suspense>
+
+      <section aria-labelledby="signs" className="flex flex-col gap-3 rounded-xl border border-urgent/40 p-5">
+        <div className="flex items-start gap-3">
+          <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-urgent/10 text-urgent">
+            <TriangleAlert className="size-5" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <h2 id="signs" className="text-title font-semibold text-urgent">
+              Get medical care right away if you have any of these
+            </h2>
+            <p className="text-label text-muted-foreground">This applies during pregnancy and in the year after birth.</p>
+          </div>
         </div>
-        <Source href="https://988lifeline.org/" label="988lifeline.org" />
-      </section>
-
-      <section
-        aria-labelledby="maternal"
-        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5"
-      >
-        <h2 id="maternal" className="text-xl font-semibold">
-          National Maternal Mental Health Hotline
-        </h2>
-        <p>
-          <span className="font-mono">1-833-TLC-MAMA (1-833-852-6262)</span>.
-          Call or text, 24/7, free and confidential, in English and Spanish.
-        </p>
-        <p className="text-muted-foreground">
-          This is not an emergency line. If you are in danger, call 911.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <a href="tel:18338526262" className={actionClass}>
-            Call <span className="ml-2 font-mono">1-833-852-6262</span>
-          </a>
-          <a href="sms:18338526262" className={actionClass}>
-            Text <span className="ml-2 font-mono">1-833-852-6262</span>
-          </a>
-        </div>
-        <Source
-          href="https://mchb.hrsa.gov/national-maternal-mental-health-hotline"
-          label="mchb.hrsa.gov"
-        />
-      </section>
-
-      <section
-        aria-labelledby="poison"
-        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5"
-      >
-        <h2 id="poison" className="text-xl font-semibold">
-          Poison Control
-        </h2>
-        <p>Open 24/7.</p>
-        <a href="tel:18002221222" className={actionClass}>
-          Call <span className="ml-2 font-mono">1-800-222-1222</span>
-        </a>
-      </section>
-
-      <section
-        aria-labelledby="signs"
-        className="flex flex-col gap-3 rounded-xl border border-urgent/40 p-5"
-      >
-        <h2 id="signs" className="text-xl font-semibold text-urgent">
-          Get medical care right away if you have any of these
-        </h2>
-        <p className="text-muted-foreground">
-          This applies during pregnancy and in the year after birth.
-        </p>
-        <ul className="flex flex-col divide-y divide-border">
+        <ul className="grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3">
           {WARNING_SIGNS.map((sign) => (
-            <li key={sign} className="py-2.5">
+            <li key={sign} className="flex items-start gap-3 border-b border-border py-2.5 text-body">
+              <span aria-hidden className="mt-2.5 size-1.5 shrink-0 rounded-full bg-urgent" />
               {sign}
             </li>
           ))}
         </ul>
-        <Source
-          href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html"
-          label="CDC Hear Her campaign"
-        />
+        <Source href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html" label="CDC Hear Her campaign" />
       </section>
 
-      <p className="pt-2 text-sm text-muted-foreground">
-        This page is the same for everyone. It is never written by AI.
-      </p>
+      <p className="text-label text-muted-foreground">This page is the same for everyone. It is never written by AI.</p>
     </main>
   );
 }
