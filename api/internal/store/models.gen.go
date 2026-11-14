@@ -90,6 +90,7 @@ type Child struct {
 
 type EmergencyContact struct {
 	ID        uuid.UUID
+	Seq       pgtype.Int8
 	FamilyID  uuid.UUID
 	Name      string
 	Relation  string

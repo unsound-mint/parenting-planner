@@ -12,7 +12,7 @@ import (
 )
 
 const createEmergencyContact = `-- name: CreateEmergencyContact :one
-INSERT INTO emergency_contacts (family_id, name, relation, phone) VALUES ($1, $2, $3, $4) RETURNING id, family_id, name, relation, phone, created_at
+INSERT INTO emergency_contacts (family_id, name, relation, phone) VALUES ($1, $2, $3, $4) RETURNING id, seq, family_id, name, relation, phone, created_at
 `
 
 type CreateEmergencyContactParams struct {
@@ -32,6 +32,7 @@ func (q *Queries) CreateEmergencyContact(ctx context.Context, arg CreateEmergenc
 	var i EmergencyContact
 	err := row.Scan(
 		&i.ID,
+		&i.Seq,
 		&i.FamilyID,
 		&i.Name,
 		&i.Relation,
@@ -42,7 +43,7 @@ func (q *Queries) CreateEmergencyContact(ctx context.Context, arg CreateEmergenc
 }
 
 const listEmergencyContacts = `-- name: ListEmergencyContacts :many
-SELECT id, family_id, name, relation, phone, created_at FROM emergency_contacts WHERE family_id = $1 ORDER BY created_at, id
+SELECT id, seq, family_id, name, relation, phone, created_at FROM emergency_contacts WHERE family_id = $1 ORDER BY seq
 `
 
 func (q *Queries) ListEmergencyContacts(ctx context.Context, familyID uuid.UUID) ([]EmergencyContact, error) {
@@ -56,6 +57,7 @@ func (q *Queries) ListEmergencyContacts(ctx context.Context, familyID uuid.UUID)
 		var i EmergencyContact
 		if err := rows.Scan(
 			&i.ID,
+			&i.Seq,
 			&i.FamilyID,
 			&i.Name,
 			&i.Relation,
