@@ -115,6 +115,11 @@
    "title": "Bogdan, Turliuc, Candel (2022) Transition to Parenthood and Marital Satisfaction: A Meta-Analysis, Frontiers in Psychology",
    "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2022.901362/full",
    "checkedAt": "2026-11-14"
+  },
+  "fda-fish": {
+   "title": "FDA and EPA: Advice about Eating Fish",
+   "url": "https://www.fda.gov/food/consumers/advice-about-eating-fish",
+   "checkedAt": "2026-11-14"
   }
  },
  "paths": [
@@ -179,17 +184,18 @@
      "audience": "both",
      "readingMinutes": 1,
      "source": "nichd-healthy",
-     "body": "A lot of pregnancy advice is about small daily choices, and it is easier when both of you share them. Fish is still on the menu: the FDA guidance quoted by NICHD allows up to 12 ounces a week of low-mercury fish such as salmon, canned light tuna and shrimp, with albacore tuna kept to 6 ounces. Raw fish, undercooked meat, deli meat and unpasteurized cheese are best skipped, so check the label on soft cheeses. Caffeine is something to limit rather than cut entirely; ask your provider what amount suits you. Alcohol, tobacco and drugs are the clear no. NICHD links all three to problems for the baby. If quitting is hard, your provider can help, and that goes for the partner too, since second-hand smoke counts. Shared habits are kinder: if one of you stops drinking for nine months, the other joining in makes it feel like a team project.",
+     "body": "A lot of pregnancy advice is about small daily choices, and it is easier when both of you share them. Fish is still on the menu. The FDA and EPA advise 2 to 3 servings a week of best-choice fish such as salmon, canned light tuna and shrimp, where a serving is 4 ounces. Albacore tuna is a good choice: keep it to 1 serving a week. Raw fish, undercooked meat, deli meat and unpasteurized cheese are best skipped, so check the label on soft cheeses. Caffeine is something to limit rather than cut entirely; ask your provider what amount suits you. Alcohol, tobacco and drugs are the clear no. NICHD links all three to problems for the baby. If quitting is hard, your provider can help, and that goes for the partner too, since second-hand smoke counts. Shared habits are kinder: if one of you stops drinking for nine months, the other joining in makes it feel like a team project.",
      "quiz": [
       {
-       "question": "How much low-mercury fish a week does the FDA guidance quoted by NICHD allow?",
+       "question": "How much best-choice fish, like salmon or shrimp, do the FDA and EPA advise a week?",
        "options": [
         "None",
-        "Up to 12 ounces",
+        "2 to 3 servings of 4 ounces",
         "Up to 3 pounds"
        ],
-       "answer": "Up to 12 ounces",
-       "why": "Low-mercury fish like salmon and shrimp is fine up to 12 ounces a week."
+       "answer": "2 to 3 servings of 4 ounces",
+       "why": "Best choices are fine at 2 to 3 servings a week; albacore, a good choice, at 1.",
+       "source": "fda-fish"
       },
       {
        "question": "Which of these is best avoided in pregnancy?",
@@ -211,7 +217,10 @@
        "why": "NICHD names second-hand smoke among the exposures that can harm the fetus."
       }
      ],
-     "talkTonight": "Which habit could we change together for the next months, so nobody does it alone?"
+     "talkTonight": "Which habit could we change together for the next months, so nobody does it alone?",
+     "extraSources": [
+      "fda-fish"
+     ]
     },
     {
      "id": "first-movements",
@@ -949,7 +958,12 @@
        "why": "Small rituals are easier to keep than big plans."
       }
      ],
-     "talkTonight": "What would we miss most about us right now? Let's name it so we protect it."
+     "talkTonight": "What would we miss most about us right now? Let's name it so we protect it.",
+     "stages": [
+      "pregnancy",
+      "postpartum",
+      "infant"
+     ]
     }
    ],
    "stages": [
