@@ -43,7 +43,12 @@ services:
     ports: ["127.0.0.1:8792:8080"]
 
   web:
-    build: ../web
+    build:
+      context: ../web
+      args:
+        # Preview mocks fill endpoints that still return 501. On until the backend
+        # lands; set PREVIEW_MOCKS=0 in deploy/.env to turn them off.
+        NEXT_PUBLIC_PREVIEW_MOCKS: ${PREVIEW_MOCKS:-1}
     restart: unless-stopped
     depends_on: [api]
     environment:
