@@ -112,6 +112,7 @@ export type ScreeningChoice = S["ScreeningChoice"];
 export type ScreeningInstrument = S["ScreeningInstrument"];
 export type ScreeningBand = S["ScreeningBand"];
 export type MoodScreeningResult = S["MoodScreeningResult"];
+export type MoodScreeningDraft = S["MoodScreeningDraft"];
 export type LeavePlan = S["LeavePlan"];
 export type ParentLeave = S["ParentLeave"];
 export type LeavePlanInput = S["LeavePlanInput"];
