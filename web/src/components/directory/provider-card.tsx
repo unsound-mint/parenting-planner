@@ -1,12 +1,9 @@
-import { CalendarClock, DollarSign, Languages, MapPin } from "lucide-react";
+import { Activity, CalendarClock, DollarSign, Languages, MapPin } from "lucide-react";
 import type { Provider } from "@/lib/api/types";
 import { daysUntil, formatShortDate } from "@/lib/format";
 import { providerTypeIcon, providerTypeLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { BookButton } from "./book-button";
-
-// The availability bar spans the next four weeks: fuller means sooner.
-const WINDOW_DAYS = 28;
 
 export function whenLabel(isoDate: string): string {
   const d = daysUntil(isoDate);
@@ -25,86 +22,110 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+function Chip({ icon: Icon, children, label, strong }: { icon: React.ElementType; children: React.ReactNode; label: string; strong?: boolean }) {
+  return (
+    <li
+      className={cn(
+        "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-label",
+        strong ? "bg-status-up-soft font-semibold text-status-up" : "bg-muted text-foreground",
+      )}
+    >
+      <span className="sr-only">{label}: </span>
+      <Icon className="size-4 shrink-0" aria-hidden />
+      {children}
+    </li>
+  );
+}
+
+// Price, soonest slot and languages as chips: the three things a parent
+// compares first. The request state lives on the card, not in a second list.
 export function ProviderCard({
   provider,
   memberId,
   requested,
-  soonest,
+  featured,
+  reason,
 }: {
   provider: Provider;
   memberId: string;
   requested: boolean;
-  soonest?: boolean;
+  /** Large card for a recommendation; the compact row otherwise. */
+  featured?: boolean;
+  /** Set only when a check-in pattern is the reason. */
+  reason?: string;
 }) {
   const TypeIcon = providerTypeIcon[provider.type];
-  const days = Math.max(0, daysUntil(provider.nextAvailable));
-  const fill = Math.max(0.06, 1 - Math.min(days, WINDOW_DAYS) / WINDOW_DAYS);
+  const feature = !!featured;
+  const slot = (
+    <>
+      <span className="font-mono">{formatShortDate(provider.nextAvailable)}</span>
+      <span className="font-normal opacity-80">{whenLabel(provider.nextAvailable)}</span>
+    </>
+  );
+  const chips = (
+    <ul className="flex flex-wrap gap-2">
+      <Chip icon={CalendarClock} label="Soonest" strong>
+        {slot}
+      </Chip>
+      <Chip icon={DollarSign} label="Price per session">
+        <span className="font-mono">{provider.priceUsd}</span>
+        <span className="text-muted-foreground">a session</span>
+      </Chip>
+      <Chip icon={Languages} label="Languages">
+        {provider.languages.join(", ")}
+      </Chip>
+      {feature && (
+        <Chip icon={MapPin} label="Location">
+          {provider.city}, <span className="font-mono">{provider.state}</span>
+        </Chip>
+      )}
+    </ul>
+  );
+
+  const head = (
+    <div className="flex items-center gap-3">
+      <span aria-hidden className={cn("flex shrink-0 items-center justify-center rounded-full bg-secondary font-semibold text-secondary-foreground", feature ? "size-12 text-title" : "size-10 text-label")}>
+        {initials(provider.name)}
+      </span>
+      <div className="min-w-0 flex-1">
+        <h3 className="text-title">{provider.name}</h3>
+        <p className="mt-0.5 flex items-center gap-1.5 text-label text-muted-foreground">
+          <TypeIcon className="size-4 shrink-0" aria-hidden />
+          {providerTypeLabel[provider.type].one}
+          {!feature && (
+            <span>
+              · {provider.city}, <span className="font-mono">{provider.state}</span>
+            </span>
+          )}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (!feature) {
+    return (
+      <li className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-4">
+        <div className="md:w-72 md:shrink-0">{head}</div>
+        <div className="md:flex-1">{chips}</div>
+        <div className="md:shrink-0">
+          <BookButton memberId={memberId} providerId={provider.id} providerName={provider.name} requested={requested} compact />
+        </div>
+      </li>
+    );
+  }
 
   return (
-    <li
-      className={cn(
-        "flex flex-col gap-4 rounded-2xl border bg-card p-5",
-        soonest ? "border-primary ring-1 ring-primary/30" : "border-border",
+    <li className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
+      {reason && (
+        <p className="flex items-center gap-1.5 text-label font-semibold text-primary">
+          <Activity className="size-4" aria-hidden />
+          {reason}
+        </p>
       )}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-title font-semibold text-secondary-foreground"
-        >
-          {initials(provider.name)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-title">{provider.name}</h3>
-          <p className="mt-0.5 flex items-center gap-1.5 text-label text-muted-foreground">
-            <TypeIcon className="size-4 shrink-0" aria-hidden />
-            {providerTypeLabel[provider.type].one}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-md border border-border bg-muted px-2 py-0.5 text-caption font-medium text-muted-foreground">
-          Demo provider
-        </span>
-      </div>
-
+      {head}
       <p className="text-body">{provider.summary}</p>
-
-      <div>
-        <div className="flex items-baseline justify-between gap-3">
-          <span className="flex items-center gap-1.5 text-label">
-            <CalendarClock className="size-4 text-status-up" aria-hidden />
-            <span className="font-mono">{formatShortDate(provider.nextAvailable)}</span>
-            <span className="text-muted-foreground">{whenLabel(provider.nextAvailable)}</span>
-          </span>
-          {soonest && <span className="text-caption font-semibold text-primary">Soonest</span>}
-        </div>
-        <div aria-hidden className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="h-full origin-left rounded-full bg-status-up" style={{ transform: `scaleX(${fill})`, width: "100%" }} />
-        </div>
-      </div>
-
-      <dl className="flex flex-wrap gap-x-4 gap-y-1 text-label text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <dt className="sr-only">Location</dt>
-          <MapPin className="size-4" aria-hidden />
-          <dd>
-            {provider.city}, <span className="font-mono">{provider.state}</span>
-          </dd>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <dt className="sr-only">Languages</dt>
-          <Languages className="size-4" aria-hidden />
-          <dd>{provider.languages.join(", ")}</dd>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <dt className="sr-only">Price per session</dt>
-          <DollarSign className="size-4" aria-hidden />
-          <dd>
-            <span className="font-mono">{provider.priceUsd}</span> a session
-          </dd>
-        </div>
-      </dl>
-
-      <div className="mt-auto">
+      {chips}
+      <div className="mt-auto pt-1">
         <BookButton memberId={memberId} providerId={provider.id} providerName={provider.name} requested={requested} />
       </div>
     </li>

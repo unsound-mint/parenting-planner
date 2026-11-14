@@ -14,7 +14,7 @@ import (
 )
 
 const createCareTeamMember = `-- name: CreateCareTeamMember :one
-INSERT INTO care_team (family_id, role, name, phone, address) VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, role, name, phone, address
+INSERT INTO care_team (family_id, role, name, phone, address) VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, role, name, phone, address, clinic, subject_member_id, subject_child_id
 `
 
 type CreateCareTeamMemberParams struct {
@@ -41,6 +41,49 @@ func (q *Queries) CreateCareTeamMember(ctx context.Context, arg CreateCareTeamMe
 		&i.Name,
 		&i.Phone,
 		&i.Address,
+		&i.Clinic,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+	)
+	return i, err
+}
+
+const createCareTeamMemberFor = `-- name: CreateCareTeamMemberFor :one
+INSERT INTO care_team (family_id, role, name, clinic, phone, subject_member_id, subject_child_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, family_id, role, name, phone, address, clinic, subject_member_id, subject_child_id
+`
+
+type CreateCareTeamMemberForParams struct {
+	FamilyID        uuid.UUID
+	Role            string
+	Name            string
+	Clinic          *string
+	Phone           *string
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+}
+
+func (q *Queries) CreateCareTeamMemberFor(ctx context.Context, arg CreateCareTeamMemberForParams) (CareTeam, error) {
+	row := q.db.QueryRow(ctx, createCareTeamMemberFor,
+		arg.FamilyID,
+		arg.Role,
+		arg.Name,
+		arg.Clinic,
+		arg.Phone,
+		arg.SubjectMemberID,
+		arg.SubjectChildID,
+	)
+	var i CareTeam
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Role,
+		&i.Name,
+		&i.Phone,
+		&i.Address,
+		&i.Clinic,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
 	)
 	return i, err
 }
@@ -169,6 +212,23 @@ func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	return i, err
 }
 
+const getFamilyForUpdate = `-- name: GetFamilyForUpdate :one
+SELECT id, template, stage, due_date, created_at FROM families WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family, error) {
+	row := q.db.QueryRow(ctx, getFamilyForUpdate, id)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getMember = `-- name: GetMember :one
 SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at FROM members WHERE id = $1 AND family_id = $2 AND role IN ('mother','partner')
 `
@@ -219,7 +279,7 @@ func (q *Queries) GetPerson(ctx context.Context, arg GetPersonParams) (Member, e
 }
 
 const listCareTeam = `-- name: ListCareTeam :many
-SELECT id, family_id, role, name, phone, address FROM care_team WHERE family_id = $1 ORDER BY role, name
+SELECT id, family_id, role, name, phone, address, clinic, subject_member_id, subject_child_id FROM care_team WHERE family_id = $1 ORDER BY role, name
 `
 
 func (q *Queries) ListCareTeam(ctx context.Context, familyID uuid.UUID) ([]CareTeam, error) {
@@ -238,6 +298,9 @@ func (q *Queries) ListCareTeam(ctx context.Context, familyID uuid.UUID) ([]CareT
 			&i.Name,
 			&i.Phone,
 			&i.Address,
+			&i.Clinic,
+			&i.SubjectMemberID,
+			&i.SubjectChildID,
 		); err != nil {
 			return nil, err
 		}
@@ -356,4 +419,27 @@ type RevokeCaregiverParams struct {
 func (q *Queries) RevokeCaregiver(ctx context.Context, arg RevokeCaregiverParams) error {
 	_, err := q.db.Exec(ctx, revokeCaregiver, arg.ID, arg.FamilyID, arg.RevokedAt)
 	return err
+}
+
+const updateFamilyStage = `-- name: UpdateFamilyStage :one
+UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING id, template, stage, due_date, created_at
+`
+
+type UpdateFamilyStageParams struct {
+	ID      uuid.UUID
+	Stage   string
+	DueDate *time.Time
+}
+
+func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStageParams) (Family, error) {
+	row := q.db.QueryRow(ctx, updateFamilyStage, arg.ID, arg.Stage, arg.DueDate)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+	)
+	return i, err
 }
