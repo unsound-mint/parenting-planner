@@ -100,8 +100,9 @@ func TestBirthCostPlanIsAnEstimate(t *testing.T) {
 
 	var p httpapi.BirthCostPlan
 	c.Get(mom+"/birth-cost-plan", http.StatusOK, &p)
-	if p.Input != nil || len(p.Scenarios) != 0 || p.EstimateNote == "" || len(p.Sources) == 0 {
-		t.Fatalf("fresh plan: %+v", p)
+	// The demo seeds a typical plan so the screen opens with a range, never blank.
+	if p.Input == nil || p.Input.DeductibleCents != 300000 || len(p.Scenarios) != 2 || p.EstimateNote == "" || len(p.Sources) == 0 {
+		t.Fatalf("seeded plan: %+v", p)
 	}
 	c.Put(dad+"/birth-cost-plan", map[string]any{"deductibleCents": 300000, "outOfPocketMaxCents": 800000, "coinsurancePercent": 20, "alreadyPaidCents": 0}, http.StatusOK, &p)
 	if len(p.Scenarios) != 2 || p.Scenarios[0].Kind != "vaginal" || p.Scenarios[1].Kind != "cesarean" {
