@@ -46,8 +46,9 @@ At a blended $300 to $600 a year, $100M ARR needs roughly 170k to 400k paying fa
 
 The backlog lives in GitHub issues; Dayana sets it. The milestone "Hackathon MVP (22h)" is the demo scope:
 
-- Tier 1 (`hackathon:must`, P0) must work end to end on the live site. Never cut T1.2, T1.6, T1.8, T1.9, T1.10. Checkpoint: all of Tier 1 working by hour 14.
-- Tier 2 (`hackathon:demo-grade`, P1) starts only after Tier 1 works. Cut order if behind: T2.12, T2.11, T2.4, T2.3, T2.9, T2.10, T2.2, T2.1, T2.8; keep T2.5 to T2.7 longest.
+- Tier 1 (`hackathon:must`, P0) must work end to end on the live site: T1.1 to T1.15 and G1 to G12. Never cut T1.2, T1.6, T1.8, T1.9, T1.10. Checkpoint: all of Tier 1 working by hour 14.
+- Payments (#25, T2.8: paywall and Stripe test checkout) is P0 and never cut. The FAQ says a pricing page alone is not enough.
+- The rest of Tier 2 (`hackathon:demo-grade`, P1) starts only after Tier 1 works. If we fall behind, cut in reverse order of `docs/demo-script.md`: what the demo shows last goes first.
 
 Later milestones (Phase 0 to 4) are the roadmap after the hackathon, not demo scope. The vision above is where the product goes; the milestone is what we build now. When they differ, the milestone wins for the demo.
 
