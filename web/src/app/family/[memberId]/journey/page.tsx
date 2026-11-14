@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
-import { ComingUp } from "@/components/journey/coming-up";
-import { JourneyTimeline } from "@/components/journey/journey-timeline";
-import { journeyHeadline } from "@/components/journey/stages";
+import { formatShortDate } from "@/lib/format";
+import { NextWeeks } from "@/components/journey/next-weeks";
+import { PathStrip } from "@/components/journey/path-strip";
+import { journeyHeadline, laneWindow } from "@/components/journey/stages";
 
-// "Journey": the path from planning to age 9 and where this family is now,
-// placed from the stage, week and child age in the database.
+// "Journey": the coming weeks with this parent's next steps on them, from the
+// rules engine, and the whole path from planning to age 9 as small context.
 export default function JourneyPage({ params }: PageProps<"/family/[memberId]/journey">) {
   return (
     <Suspense fallback={<JourneyFallback />}>
@@ -23,16 +24,36 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/plan", { params: { path: { memberId } } }),
   ]);
   if (!family || !plan || !family.parents.some((p) => p.id === memberId)) notFound();
-  const { headline, support } = journeyHeadline(family);
+  const lane = laneWindow(family, plan.items);
+  const { headline, support } = journeyHeadline(family, lane);
 
   return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
-      <h1 className="max-w-2xl text-[26px] leading-tight font-semibold tracking-[-0.02em] text-balance">{headline}</h1>
-      {support && <p className="mt-1.5 text-sm text-muted-foreground">{support}</p>}
-      <div className="mt-8 max-w-5xl">
-        <JourneyTimeline family={family} />
-      </div>
-      <ComingUp items={plan.items} weekHref={`/family/${memberId}`} />
+    <main className="flex min-w-0 max-w-5xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
+      <header className="flex flex-col gap-4">
+        <PathStrip family={family} />
+        <div>
+          <h1 className="text-headline text-balance">{headline}</h1>
+          {support && <p className="mt-2 text-label font-normal text-muted-foreground">{support}</p>}
+        </div>
+      </header>
+
+      <NextWeeks lane={lane} items={lane.inWindow} weekHref={`/family/${memberId}`} />
+
+      {lane.later.length > 0 && (
+        <section aria-labelledby="later">
+          <h2 id="later" className="text-title">
+            Later
+          </h2>
+          <ul className="mt-3 flex flex-col gap-1">
+            {lane.later.map((i) => (
+              <li key={i.ruleId} className="text-body">
+                {i.title}
+                <span className="ml-2 text-caption text-muted-foreground">{i.dueBy ? `by ${formatShortDate(i.dueBy)}` : "no set date"}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }
@@ -40,9 +61,9 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
 function JourneyFallback() {
   return (
     <main className="px-4 pt-6 md:px-8" aria-busy>
-      <div className="h-8 w-2/3 max-w-xl animate-pulse rounded-lg bg-muted" />
-      <div className="mt-3 h-4 w-1/3 animate-pulse rounded bg-muted" />
-      <div className="mt-8 h-40 max-w-5xl animate-pulse rounded-2xl bg-muted" />
+      <div className="h-6 w-2/3 max-w-xl animate-pulse rounded-full bg-muted" />
+      <div className="mt-6 h-9 w-1/2 animate-pulse rounded-lg bg-muted" />
+      <div className="mt-8 h-56 max-w-5xl animate-pulse rounded-2xl bg-muted" />
     </main>
   );
 }

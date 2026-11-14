@@ -43,16 +43,16 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   return (
     <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 lg:grid-cols-[minmax(0,1fr)_340px]">
       <section aria-labelledby="week-headline" className="min-w-0">
-        <h1 id="week-headline" className="max-w-2xl text-[26px] leading-tight font-semibold tracking-[-0.02em] text-balance">
+        <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
         </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
+        <p className="mt-2 text-label font-normal text-muted-foreground">
           {familyContext(family)} · built from your family&apos;s data and current guidelines
         </p>
         <PlanBoard items={plan.items} />
       </section>
 
-      <aside className="flex flex-col gap-4 lg:pt-1">
+      <aside className="flex flex-col gap-6 lg:pt-1">
         <SleepChart checkins={own} />
         <MoodCheckinCard memberId={memberId} partnerName={partner?.displayName} />
       </aside>
