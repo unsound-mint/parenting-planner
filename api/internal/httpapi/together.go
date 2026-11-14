@@ -76,7 +76,11 @@ func (s *Server) CreateCoupleTalk(ctx context.Context, req CreateCoupleTalkReque
 	if err != nil {
 		return nil, err
 	}
-	t, err := together.Talk(ctx, s.pool, familyID, req.MemberId, st, req.Body.PromptId, s.now(ctx))
+	_, _, other, _, err := s.learnCouple(ctx, familyID, req.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	t, err := together.Talk(ctx, s.pool, familyID, req.MemberId, other.ID, st, req.Body.PromptId, s.now(ctx))
 	switch {
 	case errors.Is(err, together.ErrUnknownPrompt):
 		return CreateCoupleTalk404JSONResponse(errUnknownPrompt), nil

@@ -29,7 +29,7 @@ type Item struct {
 func WeekItemID(week int) string { return fmt.Sprintf("week-%d", week) }
 
 // Items returns the catalog entries of a kind, in catalog order: week number
-// for cards, catalog order for guides. Practice questions and checklist items
+// for cards, catalog order for guides. Checklist items
 // are not in this package yet, so they return none.
 func Items(kind ItemKind) []Item {
 	out := []Item{}
@@ -47,6 +47,10 @@ func Items(kind ItemKind) []Item {
 		for _, g := range guides {
 			src := g.Source
 			out = append(out, Item{Kind: kind, ID: g.ID, Title: g.Title, Body: g.Summary, Source: &src})
+		}
+	case ItemSimulatorQuestion:
+		for _, question := range PracticeQuestions() {
+			out = append(out, Item{Kind: kind, ID: question.ID, Title: question.Skill, Body: question.Prompt, Source: question.Source})
 		}
 	}
 	return out

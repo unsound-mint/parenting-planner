@@ -290,6 +290,9 @@ func loadTalkPrompts() []TalkPrompt {
 	return prompts
 }
 
+// AllLearnPaths returns every path with all its lessons, whatever the stage.
+func AllLearnPaths() []LearnPath { return slices.Clone(learnPaths) }
+
 // LearnPathsFor returns the paths offered in the family's stage, in catalog
 // order, each with only the lessons offered in that stage.
 func LearnPathsFor(s State) []LearnPath {

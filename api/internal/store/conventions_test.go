@@ -82,3 +82,22 @@ func TestSensitiveReadsMirrorAccessRules(t *testing.T) {
 		}
 	}
 }
+
+// friends.sql is one of the two places that read across families (analytics is
+// the other). It may name only the friend tables, families (to create a demo's
+// synthetic friends) and members (for parents' first names), so a friend can
+// never reach a diary, mood, health record or anything else of a family.
+func TestFriendQueriesNameOnlyFriendTables(t *testing.T) {
+	allowed := map[string]bool{"friend_codes": true, "friend_connections": true, "friend_updates": true, "friend_reactions": true, "families": true, "members": true}
+	// Comments name tables in prose; only the SQL counts.
+	sql := regexp.MustCompile(`(?m)--.*$`).ReplaceAllString(readDir(t, "queries/friends.sql")["queries/friends.sql"], "")
+	for _, m := range regexp.MustCompile(`(?im)(?:\b(?:FROM|JOIN|INTO|USING)|^UPDATE)\s+(\w+)`).FindAllStringSubmatch(sql, -1) {
+		if !allowed[strings.ToLower(m[1])] {
+			t.Errorf("friends.sql names table %s", m[1])
+		}
+	}
+	// members is read only for first names, and only of parents.
+	if strings.Count(sql, "FROM members m") != 1 || !strings.Contains(sql, "m.role IN ('mother','partner')") {
+		t.Error("friends.sql reads members other than parents' first names")
+	}
+}
