@@ -5,8 +5,8 @@ import { providerTypeIcon, providerTypeLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { BookButton } from "./book-button";
 
-export function whenLabel(isoDate: string): string {
-  const d = daysUntil(isoDate);
+export function whenLabel(isoDate: string, now: Date): string {
+  const d = daysUntil(isoDate, now);
   if (d <= 0) return "today";
   if (d === 1) return "tomorrow";
   return `in ${d} days`;
@@ -45,6 +45,7 @@ export function ProviderCard({
   requested,
   featured,
   reason,
+  now,
 }: {
   provider: Provider;
   memberId: string;
@@ -53,13 +54,15 @@ export function ProviderCard({
   featured?: boolean;
   /** Set only when a check-in pattern is the reason. */
   reason?: string;
+  /** The family's "now" (lib/clock.ts). */
+  now: Date;
 }) {
   const TypeIcon = providerTypeIcon[provider.type];
   const feature = !!featured;
   const slot = (
     <>
       <span className="font-mono">{formatShortDate(provider.nextAvailable)}</span>
-      <span className="font-normal opacity-80">{whenLabel(provider.nextAvailable)}</span>
+      <span className="font-normal opacity-80">{whenLabel(provider.nextAvailable, now)}</span>
     </>
   );
   const chips = (

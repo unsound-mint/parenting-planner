@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, CalendarCheck, CalendarDays, Ellipsis, HeartHandshake, IdCard, Route, Search, Target, UsersRound, type LucideIcon } from "lucide-react";
+import { Baby, CalendarCheck, CalendarDays, Ellipsis, GraduationCap, HeartHandshake, IdCard, Route, Search, ShieldCheck, Target, UsersRound, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,9 @@ const items: Item[] = [
   { href: "/directory", screen: "directory", label: "Find help", icon: Search, group: "care" },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "more" },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more" },
+  { href: "/learn", screen: "learn", label: "Learn", icon: GraduationCap, group: "more" },
   { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
+  { href: "/settings", screen: "settings", label: "Privacy", icon: ShieldCheck, group: "more" },
 ];
 const GROUPS: Group[] = ["daily", "care", "more"];
 

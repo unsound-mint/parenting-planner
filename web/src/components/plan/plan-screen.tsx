@@ -12,11 +12,14 @@ import { bagIcon, insuranceIcon, leaveIcon, paperworkIcon, planIcon } from "@/li
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
 import { HospitalBags } from "./hospital-bags";
 import { InsuranceLog, insuranceHeadline } from "./insurance-log";
 import { LeavePlanner, leaveHeadline } from "./leave-planner";
 import { PaperworkTimeline } from "./paperwork-timeline";
 import { TaskRow, type TaskCtx } from "./task-row";
+import { WeekTracker } from "./week-tracker";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 type Tab = "task" | "paperwork" | "hospital_bag" | "leave" | "insurance";
 
@@ -31,6 +34,8 @@ export function PlanScreen({
   leave: initialLeave,
   calls: initialCalls,
   dueOn,
+  trackWeeks = false,
+  weekTasks = [],
 }: {
   initial: Task[];
   people: Person[];
@@ -40,7 +45,12 @@ export function PlanScreen({
   leave?: LeavePlan;
   calls?: InsuranceCall[];
   dueOn?: string;
+  /** Show the week tracker: a pregnancy with a due date, not in loss support. */
+  trackWeeks?: boolean;
+  /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
+  weekTasks?: string[];
 }) {
+  const now = useFamilyNow();
   const [tasks, setTasks] = useState(initial);
   const [leave, setLeave] = useState(initialLeave);
   const [calls, setCalls] = useState(initialCalls);
@@ -48,9 +58,9 @@ export function PlanScreen({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("task");
 
-  // A leave deadline sends you to its paperwork task: bring it into view once the tab has rendered.
+  // A leave deadline or a tracker item sends you to its task: bring it into view once the tab has rendered.
   useEffect(() => {
-    if (tab === "paperwork" && focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [tab, focusTask]);
 
   const replace = (t: Task) => setTasks((all) => all.map((x) => (x.id === t.id ? t : x)));
@@ -137,9 +147,9 @@ export function PlanScreen({
 
   const headline =
     active === "leave" && leave
-      ? leaveHeadline(leave, selfId)
+      ? leaveHeadline(leave, selfId, now)
       : active === "insurance" && calls
-        ? insuranceHeadline(calls, selfId)
+        ? insuranceHeadline(calls, selfId, now)
         : offersToMe.length > 0
       ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
       : mine.length > 0
@@ -150,7 +160,7 @@ export function PlanScreen({
           ? "Your bags are packed."
           : "Nothing is waiting on you here.";
   return (
-    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame>
       <h1 className="max-w-2xl text-headline text-balance print:hidden">{headline}</h1>
 
       {tabs.length > 1 && (
@@ -183,6 +193,24 @@ export function PlanScreen({
         </div>
       )}
 
+      {trackWeeks && dueOn && (active === "task" || active === "paperwork") && (
+        <WeekTracker
+          tasks={[...plan, ...paperwork]}
+          people={people}
+          dueOn={dueOn}
+          now={now}
+          suggestions={weekTasks}
+          onOpen={(t) => {
+            if (t.kind === active) document.getElementById(`task-${t.id}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+            else {
+              setFocusTask(t.id);
+              setTab(t.kind as Tab);
+            }
+          }}
+          onAdd={(title, due) => add(title, { dueOn: due })}
+        />
+      )}
+
       <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`} className="min-w-0">
         {active === "task" && <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} onAdd={(title, dueOn) => add(title, { dueOn })} />}
         {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />}
@@ -202,7 +230,7 @@ export function PlanScreen({
         {active === "insurance" && calls && <InsuranceLog calls={calls} people={people} selfId={selfId} onCreated={(c) => setCalls((all) => [...(all ?? []), c])} />}
         {active === "hospital_bag" && <HospitalBags tasks={bags} ctx={ctx} onAdd={(title, bag) => add(title, { kind: "hospital_bag", bag })} />}
       </div>
-    </main>
+    </PageFrame>
   );
 }
 
@@ -212,34 +240,37 @@ function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: Tas
   const open = rest.filter((t) => !t.done);
   const done = rest.filter((t) => t.done);
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      {waiting.length > 0 && (
-        <section aria-labelledby="waiting-title">
-          <h2 id="waiting-title" className="text-title">
-            Waiting for your answer
-          </h2>
-          <ul className="mt-1 divide-y divide-border">
-            {waiting.map((t) => (
-              <TaskRow key={t.id} task={t} ctx={ctx} />
-            ))}
-          </ul>
-        </section>
-      )}
-      <section aria-labelledby="open-title">
-        <h2 id="open-title" className="text-title">
-          Open
-        </h2>
-        {open.length === 0 ? (
-          <p className="mt-2 text-body text-muted-foreground">Nothing open. Add the next thing below.</p>
-        ) : (
-          <ul className="mt-1 divide-y divide-border">
-            {open.map((t) => (
-              <TaskRow key={t.id} task={t} ctx={ctx} />
-            ))}
-          </ul>
+    // Two columns: what is still open on the left, what is done on the right.
+    <PageGrid>
+      <Stack>
+        {waiting.length > 0 && (
+          <section aria-labelledby="waiting-title">
+            <h2 id="waiting-title" className="text-title">
+              Waiting for your answer
+            </h2>
+            <ul className="mt-1 divide-y divide-border">
+              {waiting.map((t) => (
+                <TaskRow key={t.id} task={t} ctx={ctx} />
+              ))}
+            </ul>
+          </section>
         )}
-        <AddTask onAdd={onAdd} />
-      </section>
+        <section aria-labelledby="open-title">
+          <h2 id="open-title" className="text-title">
+            Open
+          </h2>
+          {open.length === 0 ? (
+            <p className="mt-2 text-body text-muted-foreground">Nothing open. Add the next thing below.</p>
+          ) : (
+            <ul className="mt-1 divide-y divide-border">
+              {open.map((t) => (
+                <TaskRow key={t.id} task={t} ctx={ctx} />
+              ))}
+            </ul>
+          )}
+          <AddTask onAdd={onAdd} />
+        </section>
+      </Stack>
       {done.length > 0 && (
         <section aria-labelledby="done-title">
           <h2 id="done-title" className="text-title text-muted-foreground">
@@ -252,7 +283,7 @@ function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: Tas
           </ul>
         </section>
       )}
-    </div>
+    </PageGrid>
   );
 }
 

@@ -8,12 +8,14 @@ import { daysUntil, formatShortDate } from "@/lib/format";
 import { categoryIcon, statusBar, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import type { Lane } from "./stages";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // The next few weeks as lanes: each plan item is a bar from today to its due
 // date, so the parent sees what to do and how much time is left at a glance.
 // The window and ticks come from stages.ts (laneWindow); all dates are data.
 export function NextWeeks({ lane, items, weekHref }: { lane: Lane; items: PlanItem[]; weekHref: string }) {
-  const at = (iso: string) => Math.min(1, Math.max(0, daysUntil(iso) / lane.days));
+  const now = useFamilyNow();
+  const at = (iso: string) => Math.min(1, Math.max(0, daysUntil(iso, now) / lane.days));
   const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
 
   return (
@@ -61,7 +63,7 @@ export function NextWeeks({ lane, items, weekHref }: { lane: Lane; items: PlanIt
         <ol className="relative flex flex-col gap-4 pt-3">
           {items.map((item, i) => {
             const Icon = categoryIcon[item.category];
-            const days = item.dueBy ? daysUntil(item.dueBy) : undefined;
+            const days = item.dueBy ? daysUntil(item.dueBy, now) : undefined;
             const end = item.dueBy ? at(item.dueBy) : 1;
             return (
               <li key={item.ruleId} className="grid items-center gap-x-4 gap-y-2 md:grid-cols-[38%_1fr]">

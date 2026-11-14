@@ -9,6 +9,7 @@ import { api } from "@/lib/api/client";
 import type { MoodScreeningResult, ScreeningBand, ScreeningQuestionnaire } from "@/lib/api/types";
 import { formatDayNumber, formatMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { helpHref } from "@/components/shell/urgent-help-link";
 import { Button } from "@/components/ui/button";
 
 // Fixed wording per band. The API sends its own fixed message too (never
@@ -29,7 +30,8 @@ export function Screening({ memberId, questionnaires, past }: { memberId: string
   const [history, setHistory] = useState(past);
 
   return (
-    <div className="mt-2 flex max-w-2xl flex-col gap-6">
+    // The list of questionnaires uses the width; a questionnaire in progress keeps a reading measure.
+    <div className={cn("mt-2 flex flex-col gap-6", step.kind !== "pick" && "max-w-2xl")}>
       {step.kind === "pick" && <Pick questionnaires={questionnaires} history={history} onStart={(q) => setStep({ kind: "intro", q })} />}
       {step.kind === "intro" && <Intro q={step.q} onBack={() => setStep({ kind: "pick" })} onStart={() => setStep({ kind: "ask", q: step.q })} />}
       {step.kind === "ask" && (
@@ -60,7 +62,7 @@ function Pick({ questionnaires, history, onStart }: { questionnaires: ScreeningQ
         </h1>
         <p className="mt-2 text-label font-normal text-muted-foreground">A short questionnaire. It points out when to talk to someone. It is not a diagnosis.</p>
       </div>
-      <ul className="flex flex-col gap-3">
+      <ul className="grid gap-3 @4xl:grid-cols-2">
         {sorted.map((q) => {
           const last = history.find((h) => h.instrument === q.instrument);
           const view = last && bandView[last.band];
@@ -136,7 +138,7 @@ function Ask({ memberId, q, onExit, onDone }: { memberId: string; q: ScreeningQu
       }
       // Fixed crisis screen, not generated text. The result is already saved.
       if (data.urgent) {
-        router.push("/help");
+        router.push(helpHref(memberId));
         return;
       }
       onDone(data);
@@ -247,7 +249,7 @@ function Result({ memberId, q, r, onAgain }: { memberId: string; q: ScreeningQue
         </Button>
       </div>
       <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
-        A screening is not a diagnosis. If you ever feel unsafe, <Link href="/help" className="underline underline-offset-2">get urgent help now</Link>.
+        A screening is not a diagnosis. If you ever feel unsafe, <a href={helpHref(memberId)} className="underline underline-offset-2">get urgent help now</a>.
       </p>
       <p className="mt-2 font-mono text-caption text-muted-foreground">
         Source:{" "}

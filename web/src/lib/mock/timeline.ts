@@ -1,6 +1,7 @@
 import type { CalendarEvent, Family, Parent } from "@/lib/api/types";
 import { dayKey, formatClock } from "@/lib/format";
 import { addDays, todayKey } from "@/lib/schedule";
+import { mockNow } from "@/lib/clock";
 import { uid } from "./fixtures/dates";
 
 // One demo timeline for every preview mock. A fixture that mentions the prenatal
@@ -36,7 +37,7 @@ export function easternAt(day: string, hhmm: string): string {
 }
 
 /** Eastern calendar day n days from today. */
-export const dayOf = (n: number) => addDays(todayKey(), n);
+export const dayOf = (n: number) => addDays(todayKey(mockNow()), n);
 /** UTC instant for an Eastern clock time n days from today. */
 export const at = (n: number, hhmm: string) => easternAt(dayOf(n), hhmm);
 
@@ -77,6 +78,15 @@ export const tdap = { motherDueDay: 14, partnerDueDay: 21 };
 export const careTeam = {
   obstetrician: { name: "Dr. Maya Reyes", clinic: CLINIC, phone: "555-0142" },
   psychologist: { id: "7c0f3b8e-5d2a-4e61-9a43-2b8f6d1c0e57", name: "Dr. Maya Ellison (demo)", credentials: "PhD, licensed clinical psychologist", focus: "Perinatal and postpartum mental health", clinic: "Harbor Counseling" },
+};
+
+/** Where the family plans to give birth. The real seed has no hospital yet. travelMinutes is the usual drive from home. */
+export const birthHospital = {
+  name: "St. Anne's Birth Center",
+  address: "1200 Harbor Road, Oakland, CA 94607",
+  phone: "555-0188",
+  deskPhone: "555-0190",
+  travelMinutes: 22,
 };
 
 /** A previous visit that already happened, for questions carried over. */

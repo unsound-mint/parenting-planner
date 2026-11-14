@@ -1,5 +1,6 @@
 import type { Middleware } from "openapi-fetch";
 import type { paths } from "@/lib/api/schema.gen";
+import { setMockDaysAhead } from "@/lib/clock";
 import type { Family } from "@/lib/api/types";
 
 // Preview mocks: while a backend endpoint still answers 501 Not Implemented,
@@ -70,14 +71,21 @@ export function mockMiddleware(table: MockTable): Middleware {
       const entry = table[`${request.method} ${schemaPath}`];
       if (!entry) return undefined;
       const body = bodies.get(request);
+      const family = async () => {
+        const res = await fetch(new URL("/api/family", request.url), { headers: { cookie: request.headers.get("cookie") ?? "" }, cache: "no-store" });
+        return (await res.json()) as Family;
+      };
+      // Fixtures build dates from today; follow the family's demo clock.
+      try {
+        setMockDaysAhead((await family()).demoDaysAhead ?? 0);
+      } catch {
+        setMockDaysAhead(0);
+      }
       const data = await entry.build({
         path: (params.path ?? {}) as Record<string, string>,
         query: Object.fromEntries(Object.entries(params.query ?? {}).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])),
         body: body as never,
-        family: async () => {
-          const res = await fetch(new URL("/api/family", request.url), { headers: { cookie: request.headers.get("cookie") ?? "" }, cache: "no-store" });
-          return (await res.json()) as Family;
-        },
+        family,
       });
       if (entry.status === 204) return new Response(null, { status: 204 });
       return new Response(JSON.stringify(data), {
