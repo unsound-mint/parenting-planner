@@ -20,6 +20,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/offers"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
 
 const SessionTTL = 30 * 24 * time.Hour
@@ -52,7 +53,7 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 // start runs a seed and opens a session for its family in one transaction.
 // Demo templates and families from a visitor's own details both go through it.
 func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Time) (uuid.UUID, string, error) {
-	token, hash, err := newToken()
+	token, hash, err := NewToken()
 	if err != nil {
 		return uuid.Nil, "", err
 	}
@@ -72,6 +73,20 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 		return q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: id, ExpiresAt: time.Now().Add(SessionTTL)})
 	})
 	return familyID, token, err
+}
+
+// seedCaregivers adds the two helpers every demo family has: a grandmother and
+// a nanny. They see the baby's care, never a parent's health data.
+func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) error {
+	for _, c := range []store.CreateCaregiverParams{
+		{FamilyID: familyID, Role: "grandparent", DisplayName: "Linda", Permissions: []string{"care_log", "baby_passport", "schedule", "pregnancy_updates"}},
+		{FamilyID: familyID, Role: "nanny", DisplayName: "Maria", Permissions: []string{"care_log", "baby_passport", "schedule"}},
+	} {
+		if _, err := q.CreateCaregiver(ctx, c); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // SkipDays is how far one "Skip ahead a week" moves a family's demo clock.
@@ -104,7 +119,7 @@ func HashToken(token string) []byte {
 	return h[:]
 }
 
-func newToken() (string, []byte, error) {
+func NewToken() (string, []byte, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", nil, err
@@ -182,6 +197,24 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	if err := seedPregnancyPassport(ctx, q, fam.ID, mom.ID, partner.ID, today, week); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedAppointments(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedPlanTasks(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil
@@ -305,6 +338,58 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 		a.FamilyID = familyID
 		if _, err := q.CreateAllergy(ctx, a); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// seedAppointments gives the mother a past and an upcoming OB visit (Jake comes to the
+// next one) with questions: one left unanswered at the past visit, so it carries over.
+func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID, today time.Time) error {
+	visit := func(title string, days int) (uuid.UUID, error) {
+		e, err := q.CreateCalendarEvent(ctx, store.CreateCalendarEventParams{
+			FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", Kind: "appointment", Title: title,
+			StartsAt: today.AddDate(0, 0, days).Add(10 * time.Hour),
+		})
+		if err != nil {
+			return uuid.Nil, err
+		}
+		if days > 0 {
+			err = q.AddCalendarEventAttendee(ctx, store.AddCalendarEventAttendeeParams{EventID: e.ID, MemberID: partner})
+		}
+		return e.ID, err
+	}
+	past, err := visit("OB visit with Dr. Shah", -14)
+	if err != nil {
+		return err
+	}
+	next, err := visit("OB visit with Dr. Shah", 9)
+	if err != nil {
+		return err
+	}
+	for _, aq := range []struct {
+		event      uuid.UUID
+		text, vis  string
+		answeredAt *time.Time
+	}{
+		{past, "Is the back pain normal at this stage?", "partner", nil},
+		{past, "When do we sign up for the birth class?", "family", ptr(today.AddDate(0, 0, -14).Add(11 * time.Hour))},
+		{next, "When should I schedule the glucose screening?", "private", nil},
+		{next, "Which vaccines does Jake need before the birth?", "family", nil},
+	} {
+		created, err := q.CreateAppointmentQuestion(ctx, store.CreateAppointmentQuestionParams{
+			FamilyID: familyID, OwnerMemberID: mom, Visibility: aq.vis, AskedForEventID: aq.event, Body: aq.text,
+		})
+		if err != nil {
+			return err
+		}
+		if aq.answeredAt != nil {
+			if _, err := q.AnswerAppointmentQuestionVisibleToParent(ctx, store.AnswerAppointmentQuestionVisibleToParentParams{
+				ID: created.ID, FamilyID: familyID, ViewerID: mom, Answered: true, Answer: ptr("At the next visit, the clinic will hand out the schedule."),
+				AnsweredAt: pgtype.Timestamptz{Time: *aq.answeredAt, Valid: true},
+			}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

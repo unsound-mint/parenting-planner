@@ -38,6 +38,12 @@ type Client struct {
 
 func New(t *testing.T) *Client {
 	t.Helper()
+	return NewWithConfig(t, httpapi.Config{})
+}
+
+// NewWithConfig is New with a custom server config; Now defaults to the fixed clock.
+func NewWithConfig(t *testing.T, cfg httpapi.Config) *Client {
+	t.Helper()
 	dbURL := os.Getenv("TEST_DATABASE_URL")
 	if dbURL == "" {
 		t.Skip("TEST_DATABASE_URL not set; run `make test`")
@@ -47,7 +53,10 @@ func New(t *testing.T) *Client {
 		t.Fatal(err)
 	}
 	t.Cleanup(pool.Close)
-	h, err := httpapi.New(pool, httpapi.Config{Now: func() time.Time { return Now }})
+	if cfg.Now == nil {
+		cfg.Now = func() time.Time { return Now }
+	}
+	h, err := httpapi.New(pool, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,6 +115,26 @@ func (c *Client) Delete(path string, wantStatus int, out any) {
 func (c *Client) PostWithHeaders(path string, headers map[string]string, body any, wantStatus int, out any) {
 	c.t.Helper()
 	c.doWithHeaders(http.MethodPost, path, headers, body, wantStatus, out)
+}
+
+// Stream opens a server-sent-events endpoint and returns the open response; the
+// caller reads resp.Body and cancels ctx to end the stream.
+func (c *Client) Stream(ctx context.Context, path string, wantStatus int) *http.Response {
+	c.t.Helper()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.base+path, nil)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	res, err := c.http.Do(req)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	if res.StatusCode != wantStatus {
+		raw, _ := io.ReadAll(res.Body)
+		res.Body.Close()
+		c.t.Fatalf("GET %s: status %d, want %d; body: %s", path, res.StatusCode, wantStatus, raw)
+	}
+	return res
 }
 
 func (c *Client) do(method, path string, body any, wantStatus int, out any) {

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
 import { PageFrame } from "@/components/shell/page";
@@ -26,6 +26,8 @@ async function Hospital({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/tasks", { params: { path: { memberId }, query: { kind: "hospital_bag" } } }),
   ]);
   const self = family && familyPeople(family).find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !self) redirect("/family");
   if (!family || !self || isCaregiver(self.role) || !plan) notFound();
   const other = family.parents.find((p) => p.id !== memberId);
 

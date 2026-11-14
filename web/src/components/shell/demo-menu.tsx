@@ -17,11 +17,12 @@ export function DemoMenu({ memberId, daysAhead, planLabel, upgrade }: { memberId
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
         className={cn(
-          "order-4 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-status-due-soft px-3.5 text-label font-medium text-status-due outline-none transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden",
+          "press order-4 ml-auto inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full bg-status-due-soft px-2.5 text-label font-medium text-status-due outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden",
         )}
+        aria-label="Demo data"
+        title="Demo data"
       >
-        <FlaskConical aria-hidden className="size-4" />
-        Demo data
+        <FlaskConical aria-hidden className="size-4.5" />
         {daysAhead > 0 && <span className="font-mono text-caption">+{daysAhead}d</span>}
       </Dialog.Trigger>
       <Dialog.Portal>

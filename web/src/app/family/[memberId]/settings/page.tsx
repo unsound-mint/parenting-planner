@@ -31,6 +31,8 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
   const { data: family, response } = await api.GET("/family");
   if (response.status === 401) redirect("/");
   const me = family && familyPeople(family).find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !me) redirect("/family");
   if (!family || !me) notFound();
   const caregiver = isCaregiver(me.role);
 

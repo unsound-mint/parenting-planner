@@ -28,6 +28,8 @@ tags:
   - name: tasks
   - name: calendar
   - name: simulator
+  - name: learn
+  - name: together
   - name: shifts
   - name: carelog
   - name: live
@@ -170,6 +172,7 @@ paths:
         cookie. Other families are untouched. The old cookie gets 401
         afterwards. Nothing is soft-deleted. Backups: see "Deletion and
         backups" in docs/data-model.md.
+        Only a parent's session may do this; a caregiver's session gets 403.
       responses:
         "204":
           description: Deleted; the session cookie is cleared.
@@ -178,6 +181,12 @@ paths:
               schema:
                 type: string
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -195,7 +204,7 @@ paths:
         timeline) uses the shifted day, from the same stored data. Only this
         family moves; other demo families keep the real date. Starting a new
         demo creates a new family at real time, which is the reset. The UI
-        must label the shifted date as demo time.
+        must label the shifted date as demo time. A caregiver's session gets 403.
       responses:
         "200":
           description: The family as of its new demo date.
@@ -204,6 +213,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Family"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -225,6 +240,7 @@ paths:
         There are no payments. This stores which tier the family asked for and
         when; it shows as "upgrade requested" on the family. Either parent of the
         session's family may send it. A second request replaces the first.
+        A caregiver's session gets 403.
       requestBody:
         required: true
         content:
@@ -245,6 +261,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -745,12 +767,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/booking-requests:
     parameters:
@@ -801,12 +817,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     get:
       operationId: listBookingRequests
       tags: [directory]
@@ -827,12 +837,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -1597,6 +1601,57 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/now:
+    get:
+      operationId: getStageNow
+      tags: [content]
+      summary: The stage hero line, a sourced "what is happening now" for planning, newborn, baby, toddler, preschool and school age
+      description: |
+        The hero line for every stage except pregnancy (pregnancy has the
+        baby size in getPregnancyWeek). Computed from the family's stored
+        stage and, after birth, the youngest child's birth date and the demo
+        clock: weeks of life 1 to 12, then each month to 11 months, each
+        month from 12 to 24, then half-years to 5 years and years to 9
+        (a child older than 9 keeps the last entry). Planning and trying
+        families get a "preparing together" line.
+
+        Milestones are written as what most children do by an age, never as
+        a standard, and `note` always says children vary and sends worries to
+        the pediatrician (planning: to the doctor). `sources` are the pages
+        the text paraphrases, each with the date it was checked; the first
+        is the page to link.
+
+        Any member of the family may read it: it is general reference
+        content and carries no health record. 409 `pregnant` when the stage
+        is pregnancy, 409 `no_child` after birth with no child on record.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StageNow"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
           content:
             application/json:
               schema:
@@ -2792,6 +2847,368 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/learning-paths:
+    get:
+      operationId: listLearningPaths
+      tags: [learn]
+      summary: Learning paths with lessons, quizzes and both parents' progress
+      description: |
+        Both parents only; a grandparent or nanny gets 404. The paths come from the embedded content catalog
+        (api/internal/content), filtered by the family's stage. Each lesson
+        has a best-read window in gestational weeks (weekFrom to weekTo) and
+        opens four weeks before it (unlocksAtWeek), so a couple can read a
+        month ahead. After birth and before pregnancy every lesson of the
+        stage's paths is open and timing is now.
+
+        Reading state and quiz answers of both parents are included: a parent
+        sees the other parent's reading progress (both parents only, never
+        caregivers). A quiz question reveals the right choice, the
+        explanation and the other parent's choice only once the acting
+        parent has answered it; before that the other parent's answer shows
+        only that they answered.
+
+        Week and timing follow the family's demo clock. Families without a
+        path for their stage get an empty list.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningPathList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/lesson-reads/{lessonId}:
+    put:
+      operationId: updateLessonRead
+      tags: [learn]
+      summary: Start or finish a lesson for the acting parent
+      description: |
+        Both parents only; a grandparent or nanny gets 404. The first call sets startedAt. finished true sets
+        finishedAt (kept on later calls); finished false clears it again, so
+        "mark as unread" works. Reopening a finished lesson to read it again
+        needs no call: send finished false only to take the finish back. 404 unknown_lesson for a lesson that is not
+        in the family's paths, 409 lesson_locked before unlocksAtWeek.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/LessonId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonReadInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonRead"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/quiz-answers:
+    post:
+      operationId: createQuizAnswer
+      tags: [learn]
+      summary: Answer one quiz question of a lesson
+      description: |
+        Both parents only; a grandparent or nanny gets 404. One answer per parent per question, so a couple can
+        compare; 409 already_answered for a second one, 409 lesson_locked
+        before the lesson opens. 404 for a question not in the family's
+        paths, 400 for a choice that is not in the question. No scores, streaks or badges: the result is only whether
+        this answer was right, why, and what the other parent chose.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizAnswerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/together:
+    get:
+      operationId: getTogether
+      tags: [together]
+      summary: The "Tonight, together" card for the acting parent
+      description: |
+        Both parents only; a grandparent or nanny gets 404. nudge is the other parent's latest learning activity
+        from the last seven days (a finished lesson, then a quiz answer, then
+        a name they added), worded relative to the family's demo clock;
+        absent when there is none. prompts are this week's couple talk
+        prompts in a fixed order, prompts not yet talked about first; the
+        client shows the first and "Another question" moves to the next. A
+        prompt comes from the prompt pool by week range or from the talk
+        prompt of a lesson that is open now.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Together"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/couple-talks:
+    post:
+      operationId: createCoupleTalk
+      tags: [together]
+      summary: Mark a talk prompt as talked about, for the couple
+      description: |
+        Both parents only; a grandparent or nanny gets 404. One shared record per family and prompt: either parent
+        can mark it and both see it. Marking it again keeps the first record
+        and returns it. 404 unknown_prompt for an id that is not one of the
+        family's prompts.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoupleTalkInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoupleTalk"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/baby-names:
+    get:
+      operationId: listBabyNames
+      tags: [together]
+      summary: The couple's shared baby name list
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Names both parents like first, then newest first.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyNameList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      operationId: createBabyName
+      tags: [together]
+      summary: Add a name to the shared list
+      description: |
+        Both parents only; a grandparent or nanny gets 404. The parent who adds a name likes it. 409 name_exists
+        when the list already has it (case-insensitive).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BabyNameInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyName"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/baby-names/{nameId}/like:
+    put:
+      operationId: likeBabyName
+      tags: [together]
+      summary: The acting parent likes a name
+      description: Both parents only; a grandparent or nanny gets 404. Idempotent. 404 for a name of another family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/BabyNameId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyName"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      operationId: unlikeBabyName
+      tags: [together]
+      summary: The acting parent takes back their like
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Idempotent. A name nobody likes stays on the list until
+        it is liked again; it sorts last.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/BabyNameId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyName"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -4646,7 +5063,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Every catalog item of the kind, with this family's edits applied and
         edited set on the ones changed here. Ordered as the catalog is (week
@@ -4671,6 +5088,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4707,7 +5130,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Only title and body change; the Source and checked date stay the
         catalog's, so health content keeps its citation. Every screen that
@@ -4734,6 +5157,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4776,7 +5205,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Returns the catalog version. 404 for an unknown slug.
       responses:
@@ -4787,6 +5216,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ContentItem"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4816,7 +5251,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Newest first, with click counts.
       responses:
@@ -4827,6 +5262,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/PartnerOfferList"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4848,7 +5289,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Shows up in listPartnerOffers for matching stages and roles when active.
       requestBody:
@@ -4876,6 +5317,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
           content:
@@ -4896,7 +5343,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         404 for an offer not in this family.
       requestBody:
@@ -4919,6 +5366,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4948,7 +5401,8 @@ paths:
         free text, and nothing from health tables (mood check-ins, diary,
         labs, vaccines, screenings, session notes, insurance calls, care log
         contents). Every family is synthetic demo data. Not linked from the
-        family screens; any session can open it. 401 without a session.
+        family screens; any parent's session can open it. 401 without a
+        session, 403 for a caregiver's session.
 
         Counts per day for the last `days` days (UTC), from audit_log and row
         counts of non-health tables.
@@ -4975,6 +5429,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -5165,6 +5625,22 @@ components:
         minLength: 16
         maxLength: 128
 
+    LessonId:
+      name: lessonId
+      in: path
+      required: true
+      schema:
+        type: string
+        maxLength: 80
+
+    BabyNameId:
+      name: nameId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     RoundId:
       name: roundId
       in: path
@@ -5302,6 +5778,15 @@ components:
             Days this family's demo clock has been skipped ahead of the real
             date (createDemoTimeSkip). Absent or 0 means real time; anything else must be
             shown as demo time.
+        sessionMemberId:
+          type: string
+          format: uuid
+          description: |
+            Set when the session belongs to one person: a caregiver who accepted
+            an invitation. That session acts only as this member (other ids are
+            404) and cannot manage the family (skip demo time, upgrade, delete,
+            demo admin: 403). Absent for a demo session, which acts as either
+            parent.
         stage:
           $ref: "#/components/schemas/Stage"
         dueDate:
@@ -5576,6 +6061,35 @@ components:
           description: The rule plan item this point comes from, when it has one.
         source:
           $ref: "#/components/schemas/Source"
+
+    StageNow:
+      type: object
+      required: [stage, period, headline, detail, playIdea, note, sources]
+      properties:
+        stage:
+          $ref: "#/components/schemas/JourneyStage"
+        period:
+          type: string
+          description: The age or phase this line covers, for a label ("Week 8 of life", "18 months", "Planning").
+          example: Week 8 of life
+        headline:
+          type: string
+          description: One warm sentence about what is happening now.
+        detail:
+          type: string
+          description: What most children do by this age, or what to prepare. Never a diagnosis.
+        playIdea:
+          type: string
+          description: One simple play or bonding idea for this period.
+        note:
+          type: string
+          description: Children vary; talk to the pediatrician (or doctor) about worries. Show it with the milestone.
+        sources:
+          type: array
+          description: Pages the text paraphrases, each opened on its checked date. The first is the page to link.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Source"
 
     Source:
       type: object
@@ -6619,15 +7133,41 @@ components:
 
     BabySize:
       type: object
-      required: [comparison, lengthCm, weightG]
+      description: |
+        Baby size for one week, with the sources for the length, the weight and
+        the week's `development` text. Not a diagnosis; babies vary.
+      required: [comparison, lengthCm, lengthMeasure, sources]
       properties:
         comparison:
           type: string
+          description: A friendly size picture, not a measurement.
           example: a pineapple
         lengthCm:
           type: number
+        lengthMeasure:
+          type: string
+          description: |
+            How lengthCm is measured. It changes at week 20, so do not chart the jump as growth.
+            embryo = length of the embryo (weeks 4 to 6, the source does not say how),
+            crown-rump = head to bottom, crown-heel = head to heel.
+          enum: [embryo, crown-rump, crown-heel]
         weightG:
           type: number
+          description: Median estimated fetal weight. Absent before week 14, where no source gives one.
+        weightRangeG:
+          type: array
+          description: 10th and 90th percentile of the weight, in grams. Present with weightG.
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+        sources:
+          type: array
+          description: |
+            Sources for the size and for the week's `development` text:
+            the NHS week page, plus the WHO fetal growth charts when weightG is present.
+          items:
+            $ref: "#/components/schemas/Source"
 
     PregnancyWeek:
       type: object
@@ -6642,7 +7182,7 @@ components:
           $ref: "#/components/schemas/BabySize"
         development:
           type: string
-          description: What is developing this week, in plain words. Present only when sourced.
+          description: What is developing this week, in plain words. Cited by the sources in size.sources.
         whyItMatters:
           type: string
           description: Why this week matters for the parents, never a diagnosis.
@@ -7405,6 +7945,364 @@ components:
         roundCompleted:
           type: boolean
           description: True when this was the last unanswered question; fetch the round for the result.
+
+    LessonTiming:
+      type: string
+      description: |
+        now = the lesson's best-read window covers this week (always now
+        outside pregnancy); upcoming = before the window (locked until
+        unlocksAtWeek, open after); past = the window is behind you.
+      enum: [upcoming, now, past]
+
+    LearningPathList:
+      type: object
+      required: [stage, items]
+      properties:
+        stage:
+          $ref: "#/components/schemas/Stage"
+        week:
+          type: integer
+          description: The family's completed gestational week on the demo clock. Absent outside pregnancy.
+          example: 25
+        items:
+          type: array
+          description: In catalog order. Empty when no path fits the stage.
+          items:
+            $ref: "#/components/schemas/LearningPath"
+
+    LearningPath:
+      type: object
+      required: [id, title, why, lessons, progress]
+      properties:
+        id:
+          type: string
+          description: Stable slug from the content catalog.
+          example: birth
+        title:
+          type: string
+          example: Birth
+        why:
+          type: string
+          description: One sentence on why the path matters.
+        lessons:
+          type: array
+          description: In reading order.
+          items:
+            $ref: "#/components/schemas/Lesson"
+        progress:
+          type: array
+          description: One row per parent (mother and partner), acting parent first.
+          items:
+            $ref: "#/components/schemas/PathProgress"
+
+    PathProgress:
+      type: object
+      required: [memberId, started, finished]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        started:
+          type: integer
+          description: Lessons started and not finished.
+        finished:
+          type: integer
+
+    Lesson:
+      type: object
+      description: |
+        A short read in a learning path. Field names follow Guide; a lesson is
+        not a Guide because it belongs to a path and carries reading state
+        and a quiz for each parent.
+      required: [id, pathId, title, body, minutes, audience, locked, timing, source, extraSources, urgentHelpLink, reads, quiz]
+      properties:
+        id:
+          type: string
+          description: Stable slug from the content catalog.
+          example: pain-relief
+        pathId:
+          type: string
+          example: birth
+        title:
+          type: string
+        body:
+          type: array
+          description: Paragraphs, plain text.
+          items:
+            type: string
+        minutes:
+          type: integer
+          description: Reading time.
+        weekFrom:
+          type: integer
+          description: First gestational week of the best-read window. Absent outside pregnancy.
+          example: 28
+        weekTo:
+          type: integer
+          example: 36
+        audience:
+          type: array
+          description: Who it is written for. Both parents see every lesson; a partner-only lesson is labeled, not hidden.
+          items:
+            $ref: "#/components/schemas/GuideAudience"
+        locked:
+          type: boolean
+          description: True before unlocksAtWeek. A locked lesson cannot be started.
+        unlocksAtWeek:
+          type: integer
+          description: weekFrom minus four, at least 4. Absent outside pregnancy.
+          example: 24
+        timing:
+          $ref: "#/components/schemas/LessonTiming"
+        source:
+          $ref: "#/components/schemas/Source"
+        extraSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+        talkPrompt:
+          type: string
+          description: A question for the couple to talk about after reading.
+        talkedAt:
+          type: string
+          format: date-time
+          description: When either parent marked this lesson's talk prompt (prompt id `lesson:<lessonId>`) as talked about. Absent until then.
+        urgentHelpLink:
+          type: boolean
+          description: True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there.
+        reads:
+          type: array
+          description: Reading state of each parent who opened it, acting parent first.
+          items:
+            $ref: "#/components/schemas/LessonRead"
+        quiz:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+
+    LessonRead:
+      type: object
+      required: [memberId, lessonId, startedAt]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        lessonId:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+
+    LessonReadInput:
+      type: object
+      required: [finished]
+      properties:
+        finished:
+          type: boolean
+
+    QuizQuestion:
+      type: object
+      required: [id, lessonId, prompt, choices, answers]
+      properties:
+        id:
+          type: string
+          description: Stable, lessonId plus the position (pain-relief-q1).
+          example: pain-relief-q1
+        lessonId:
+          type: string
+        prompt:
+          type: string
+        choices:
+          type: array
+          description: Choice ids are a, b, c in the catalog's order.
+          items:
+            $ref: "#/components/schemas/SimulatorChoice"
+        answers:
+          type: array
+          description: |
+            One per parent who answered, acting parent first. The other
+            parent's choiceId and correct are absent until the acting parent
+            has answered too.
+          items:
+            $ref: "#/components/schemas/QuizAnswer"
+        correctChoiceId:
+          type: string
+          description: Present once the acting parent has answered.
+        explanation:
+          type: string
+          description: Why, in plain words, cited to the lesson's source. Present once the acting parent has answered.
+
+    QuizAnswer:
+      type: object
+      required: [memberId, answeredAt]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        choiceId:
+          type: string
+        correct:
+          type: boolean
+        answeredAt:
+          type: string
+          format: date-time
+
+    QuizAnswerInput:
+      type: object
+      required: [questionId, choiceId]
+      properties:
+        questionId:
+          type: string
+          maxLength: 80
+        choiceId:
+          type: string
+          maxLength: 8
+
+    QuizResult:
+      type: object
+      required: [questionId, choiceId, correct, correctChoiceId, explanation, source]
+      properties:
+        questionId:
+          type: string
+        choiceId:
+          type: string
+        correct:
+          type: boolean
+        correctChoiceId:
+          type: string
+        explanation:
+          type: string
+        source:
+          $ref: "#/components/schemas/Source"
+        partnerAnswer:
+          $ref: "#/components/schemas/QuizAnswer"
+
+    PartnerNudgeKind:
+      type: string
+      enum: [lesson_finished, quiz_answered, name_added]
+
+    PartnerNudge:
+      type: object
+      required: [memberId, kind, at, text]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+          description: The other parent, who did it.
+        kind:
+          $ref: "#/components/schemas/PartnerNudgeKind"
+        at:
+          type: string
+          format: date-time
+        lessonId:
+          type: string
+          description: For lesson_finished and quiz_answered.
+        name:
+          type: string
+          description: For name_added.
+        text:
+          type: string
+          description: Ready to show, relative to the demo clock.
+          example: 'Jake finished "Pain relief: the options" yesterday. Ask him what surprised him.'
+
+    TalkPrompt:
+      type: object
+      required: [id, text]
+      properties:
+        id:
+          type: string
+          description: A prompt pool id (p07) or lesson:<lessonId> for a lesson's talk prompt.
+          example: p07
+        text:
+          type: string
+        lessonId:
+          type: string
+          description: The lesson it comes from, when it is a lesson's prompt.
+        talkedAt:
+          type: string
+          format: date-time
+        talkedBy:
+          type: string
+          format: uuid
+          description: The parent who marked it.
+
+    Together:
+      type: object
+      required: [prompts]
+      properties:
+        nudge:
+          $ref: "#/components/schemas/PartnerNudge"
+        prompts:
+          type: array
+          items:
+            $ref: "#/components/schemas/TalkPrompt"
+
+    CoupleTalkInput:
+      type: object
+      required: [promptId]
+      properties:
+        promptId:
+          type: string
+          maxLength: 80
+
+    CoupleTalk:
+      type: object
+      required: [promptId, talkedBy, talkedAt]
+      properties:
+        promptId:
+          type: string
+        talkedBy:
+          type: string
+          format: uuid
+        talkedAt:
+          type: string
+          format: date-time
+
+    BabyNameInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+
+    BabyName:
+      type: object
+      required: [id, name, addedBy, likedBy, bothLike, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: June
+        addedBy:
+          type: string
+          format: uuid
+        likedBy:
+          type: array
+          items:
+            type: string
+            format: uuid
+        bothLike:
+          type: boolean
+          description: True when both parents like it.
+        createdAt:
+          type: string
+          format: date-time
+
+    BabyNameList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BabyName"
 
     Weekday:
       type: string
