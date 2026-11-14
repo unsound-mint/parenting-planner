@@ -1,0 +1,62 @@
+/* Global, prefixed (CSS modules do not work with this repo's turbopack rule).
+   The reader shows one page at a time; print shows every page, one per sheet,
+   and nothing else of the app. */
+
+.pp-story-print {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: letter landscape;
+    margin: 0.5in;
+  }
+  body:has(.pp-story-print) * {
+    visibility: hidden;
+  }
+  body:has(.pp-story-print) .pp-story-print,
+  body:has(.pp-story-print) .pp-story-print * {
+    visibility: visible;
+  }
+  .pp-story-print {
+    display: block;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    color: #2b2620;
+    font-family: var(--font-heading);
+  }
+  .pp-story-print-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0.5in;
+    height: 7in;
+    break-after: page;
+  }
+  .pp-story-print-page:last-child {
+    break-after: auto;
+  }
+  .pp-story-print-page > :first-child {
+    border-radius: 24px;
+  }
+  .pp-story-print-text {
+    font-size: 24pt;
+    line-height: 1.35;
+  }
+  .pp-story-print-title {
+    font-size: 36pt;
+    line-height: 1.1;
+    margin: 0.1in 0;
+  }
+  .pp-story-print-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  /* Print is still: no bob, no blink. */
+  .pp-story-print * {
+    animation: none !important;
+  }
+}

@@ -18,6 +18,7 @@ import { VoicePlayer } from "@/components/baby/voice-player";
 import { previewMocksEnabled } from "@/lib/mock/registry";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { PageFrame } from "@/components/shell/page";
+import { StorybookCard } from "@/components/storybook/storybook-card";
 import { PortraitFlipbook } from "@/components/portrait";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
@@ -177,6 +178,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
             </section>
           )
         )}
+        {!caregiver && <StorybookCard memberId={memberId} childName={child.name.split(" ")[0]} />}
         {!caregiver && (
           <Link href={`/family/${memberId}/baby/supplies`} className="press lift flex min-h-16 items-center gap-3 rounded-2xl border border-border bg-card p-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
