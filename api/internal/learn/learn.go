@@ -60,6 +60,8 @@ type LessonView struct {
 	State content.LessonState
 	Reads []Read
 	Quiz  []QuestionView
+	// TalkedAt is when either parent marked the lesson's talk prompt as talked about.
+	TalkedAt *time.Time
 }
 
 type Progress struct {
@@ -84,6 +86,14 @@ func Paths(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, c Couple
 	answerRows, err := q.ListQuizAnswers(ctx, familyID)
 	if err != nil {
 		return nil, err
+	}
+	talkRows, err := q.ListCoupleTalks(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	talked := map[string]time.Time{}
+	for _, t := range talkRows {
+		talked[t.PromptID] = t.TalkedAt
 	}
 	reads := map[uuid.UUID]map[string]Read{}
 	for _, r := range readRows {
@@ -113,6 +123,9 @@ func Paths(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, c Couple
 		}
 		for _, l := range p.Lessons {
 			lv := LessonView{Lesson: l, State: l.StateOf(st), Reads: []Read{}, Quiz: make([]QuestionView, 0, len(l.Quiz))}
+			if at, ok := talked[content.LessonPromptPrefix+l.ID]; ok && l.TalkPrompt != "" {
+				lv.TalkedAt = &at
+			}
 			for i, m := range people {
 				if r, ok := reads[m][l.ID]; ok {
 					lv.Reads = append(lv.Reads, r)
@@ -229,7 +242,7 @@ func AnswerQuestion(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID,
 		}
 		out = Result{
 			Answer: answerOut(a, question), QuestionID: question.ID, CorrectChoiceID: question.CorrectChoiceID,
-			Explanation: question.Explanation, Source: lesson.Source,
+			Explanation: question.Explanation, Source: question.Source,
 		}
 		if c.Other == uuid.Nil {
 			return nil
