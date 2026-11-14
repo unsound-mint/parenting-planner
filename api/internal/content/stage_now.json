@@ -1,0 +1,650 @@
+{
+ "notes": {
+  "child": "Every child grows at their own pace. If you are not seeing something, mention it to your pediatrician.",
+  "planning": "Your doctor can tell you what fits your own health."
+ },
+ "sources": {
+  "cdc-2m": {
+   "title": "CDC: Milestones by 2 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/2-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-4m": {
+   "title": "CDC: Milestones by 4 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/4-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-6m": {
+   "title": "CDC: Milestones by 6 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/6-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-9m": {
+   "title": "CDC: Milestones by 9 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/9-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-1y": {
+   "title": "CDC: Milestones by 1 Year (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/1-year.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-15m": {
+   "title": "CDC: Milestones by 15 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/15-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-18m": {
+   "title": "CDC: Milestones by 18 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/18-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-2y": {
+   "title": "CDC: Milestones by 2 Years (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/2-years.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-30m": {
+   "title": "CDC: Milestones by 30 Months (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/30-months.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-3y": {
+   "title": "CDC: Milestones by 3 Years (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/3-years.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-4y": {
+   "title": "CDC: Milestones by 4 Years (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/4-years.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-5y": {
+   "title": "CDC: Milestones by 5 Years (Learn the Signs. Act Early.)",
+   "url": "https://www.cdc.gov/act-early/milestones/5-years.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-pp-6-8": {
+   "title": "CDC: Positive Parenting Tips, Middle Childhood (6-8 years of age), 2015 fact sheet",
+   "url": "https://stacks.cdc.gov/view/cdc/155268/cdc_155268_DS1.pdf",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-pp-9-11": {
+   "title": "CDC: Positive Parenting Tips, Middle Childhood (9-11 years of age), 2015 fact sheet",
+   "url": "https://stacks.cdc.gov/view/cdc/155269/cdc_155269_DS1.pdf",
+   "checkedAt": "2026-11-14"
+  },
+  "hc-1m": {
+   "title": "HealthyChildren.org (AAP): Developmental Milestones at 1 Month Old",
+   "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Developmental-Milestones-1-Month.aspx",
+   "checkedAt": "2026-11-14"
+  },
+  "hc-move": {
+   "title": "HealthyChildren.org (AAP): Movement Milestones, Birth to 3 Months",
+   "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Movement-Birth-to-Three-Months.aspx",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-planning": {
+   "title": "CDC: Planning for Pregnancy",
+   "url": "https://www.cdc.gov/pregnancy/about/index.html",
+   "checkedAt": "2026-11-14"
+  },
+  "whg-preconception": {
+   "title": "Office on Women's Health: Preconception health",
+   "url": "https://womenshealth.gov/pregnancy/you-get-pregnant/preconception-health",
+   "checkedAt": "2026-11-14"
+  },
+  "nichd-preconception": {
+   "title": "NICHD: Pre-Pregnancy Care and Prenatal Care",
+   "url": "https://www.nichd.nih.gov/health/topics/factsheets/preconceptioncare",
+   "checkedAt": "2026-11-14"
+  }
+ },
+ "weeks": [
+  {
+   "headline": "Week 1: your baby is already learning your face and voice.",
+   "detail": "Hearing is fully mature at birth, and newborns see best about 8 to 12 inches away, close to your face during a feed.",
+   "playIdea": "Hold your baby where they can see your face and talk to them as you go.",
+   "sources": [
+    "hc-1m"
+   ],
+   "week": 1
+  },
+  {
+   "headline": "Week 2: jerky arms and tight little fists are normal.",
+   "detail": "Newborns make jerky arm movements and may keep their hands in fists, and they may turn toward voices they know.",
+   "playIdea": "Talk or sing softly while you change and dress your baby.",
+   "sources": [
+    "hc-1m",
+    "cdc-2m"
+   ],
+   "week": 2
+  },
+  {
+   "headline": "Week 3: faces and bold patterns hold their attention.",
+   "detail": "Babies this age favor human faces and high-contrast patterns over other things to look at.",
+   "playIdea": "Show a high-contrast card or mobile while your baby is awake, and keep it off the sleep surface.",
+   "sources": [
+    "hc-1m"
+   ],
+   "week": 3
+  },
+  {
+   "headline": "Week 4: head lifting is starting.",
+   "detail": "Many babies lift their head from side to side on their tummy by now, though it still drops back without support.",
+   "playIdea": "Try a few minutes of tummy time while your baby is awake and you are right there.",
+   "sources": [
+    "hc-1m",
+    "cdc-2m"
+   ],
+   "week": 4
+  },
+  {
+   "headline": "Week 5: your baby is getting to know you.",
+   "detail": "Most babies by 2 months calm down when spoken to or picked up, and look at your face.",
+   "playIdea": "Talk, read or sing to your baby for a few minutes at a time.",
+   "sources": [
+    "cdc-2m"
+   ],
+   "week": 5
+  },
+  {
+   "headline": "Week 6: a first real smile may appear.",
+   "detail": "A real smile often shows up around six weeks, and most babies by 2 months smile when you talk or smile at them.",
+   "playIdea": "Smile, talk, then pause and see whether your baby answers.",
+   "sources": [
+    "hc-move",
+    "cdc-2m"
+   ],
+   "week": 6
+  },
+  {
+   "headline": "Week 7: sounds other than crying are coming.",
+   "detail": "Most babies by 2 months make sounds other than crying and react to loud sounds.",
+   "playIdea": "Copy your baby's sounds and see how long you can take turns.",
+   "sources": [
+    "cdc-2m"
+   ],
+   "week": 7
+  },
+  {
+   "headline": "Week 8: your baby watches you move.",
+   "detail": "Most babies by 2 months watch you as you move, look at a toy for several seconds and hold their head up on their tummy.",
+   "playIdea": "Hold a rattle off to one side of your baby's head and see if their eyes follow.",
+   "sources": [
+    "cdc-2m"
+   ],
+   "week": 8
+  },
+  {
+   "headline": "Week 9: arms and legs are getting busier.",
+   "detail": "Most babies by 2 months move both arms and both legs and open their hands briefly.",
+   "playIdea": "Put a baby-safe mirror near your baby and talk about what they see.",
+   "sources": [
+    "cdc-2m"
+   ],
+   "week": 9
+  },
+  {
+   "headline": "Week 10: hands are opening up.",
+   "detail": "Over these weeks hands open and close more and kicks get stronger, and some babies swipe at things nearby.",
+   "playIdea": "Sing while you gently move your baby's arms and legs.",
+   "sources": [
+    "hc-move",
+    "cdc-4m"
+   ],
+   "week": 10
+  },
+  {
+   "headline": "Week 11: the first coos are on their way.",
+   "detail": "Most babies by 4 months coo with sounds like \"oooo\" and \"aahh\" and make sounds back when you talk to them.",
+   "playIdea": "Talk to your baby, then wait and leave room for an answer.",
+   "sources": [
+    "cdc-4m"
+   ],
+   "week": 11
+  },
+  {
+   "headline": "Week 12: a smile just for you.",
+   "detail": "Most babies by 4 months smile on their own to get your attention and look at their hands with interest.",
+   "playIdea": "Play peek-a-boo and watch for signs that your baby is enjoying it.",
+   "sources": [
+    "cdc-4m"
+   ],
+   "week": 12
+  }
+ ],
+ "ranges": [
+  {
+   "headline": "3 months: your baby is finding their hands.",
+   "detail": "Hands open and close, kicks get stronger and some babies roll from tummy to back around now.",
+   "playIdea": "Lay your baby on their back and slowly move a bright toy side to side and up and down.",
+   "sources": [
+    "hc-move",
+    "cdc-4m"
+   ],
+   "fromMonths": 3,
+   "toMonths": 3,
+   "stage": "first_year",
+   "period": "3 months"
+  },
+  {
+   "headline": "4 months: coos, chuckles and reaching.",
+   "detail": "Most babies by 4 months coo, make sounds back when you talk, hold their head steady when you hold them and bring their hands to their mouth.",
+   "playIdea": "Give your baby safe toys to reach for, kick at and explore.",
+   "sources": [
+    "cdc-4m"
+   ],
+   "fromMonths": 4,
+   "toMonths": 4,
+   "stage": "first_year",
+   "period": "4 months"
+  },
+  {
+   "headline": "5 months: getting ready to roll.",
+   "detail": "Most babies push up onto their forearms by 4 months, and by 6 months most roll from tummy to back and push up with straight arms.",
+   "playIdea": "Place a toy just out of reach during tummy time to encourage rolling.",
+   "sources": [
+    "cdc-4m",
+    "cdc-6m"
+   ],
+   "fromMonths": 5,
+   "toMonths": 5,
+   "stage": "first_year",
+   "period": "5 months"
+  },
+  {
+   "headline": "6 months: laughs, squeals and raspberries.",
+   "detail": "Most babies by 6 months know familiar people, laugh, take turns making sounds with you and roll from tummy to back.",
+   "playIdea": "Smile when your baby smiles and copy the sounds they make.",
+   "sources": [
+    "cdc-6m"
+   ],
+   "fromMonths": 6,
+   "toMonths": 6,
+   "stage": "first_year",
+   "period": "6 months"
+  },
+  {
+   "headline": "7 months: sitting with a little help.",
+   "detail": "Most babies by 6 months lean on their hands to sit, and by 9 months most sit without support.",
+   "playIdea": "Hold your baby upright and offer toys to help them balance.",
+   "sources": [
+    "cdc-6m",
+    "cdc-9m"
+   ],
+   "fromMonths": 7,
+   "toMonths": 7,
+   "stage": "first_year",
+   "period": "7 months"
+  },
+  {
+   "headline": "8 months: a lot of new sounds.",
+   "detail": "Most babies by 9 months make many different sounds like \"mamamama\" and \"bababababa\", and may be shy or clingy around strangers.",
+   "playIdea": "Repeat your baby's sounds and say simple words that use them.",
+   "sources": [
+    "cdc-9m"
+   ],
+   "fromMonths": 8,
+   "toMonths": 8,
+   "stage": "first_year",
+   "period": "8 months"
+  },
+  {
+   "headline": "9 months: peek-a-boo is the best joke.",
+   "detail": "Most babies by 9 months smile or laugh at peek-a-boo, sit without support and look for things that dropped out of sight.",
+   "playIdea": "Dump blocks out of a container together and take turns.",
+   "sources": [
+    "cdc-9m"
+   ],
+   "fromMonths": 9,
+   "toMonths": 9,
+   "stage": "first_year",
+   "period": "9 months"
+  },
+  {
+   "headline": "10 months: pulling up is close.",
+   "detail": "Most babies start to pull up to stand and walk holding on to furniture by 1 year.",
+   "playIdea": "Put your baby close to things they can safely pull up on.",
+   "sources": [
+    "cdc-9m",
+    "cdc-1y"
+   ],
+   "fromMonths": 10,
+   "toMonths": 10,
+   "stage": "first_year",
+   "period": "10 months"
+  },
+  {
+   "headline": "11 months: a wave and a first word are near.",
+   "detail": "Most babies by 1 year wave bye-bye, call a parent mama or dada or another special name, and pause when you say no.",
+   "playIdea": "Teach a bye-bye wave and talk or sing about what you are doing.",
+   "sources": [
+    "cdc-1y",
+    "cdc-9m"
+   ],
+   "fromMonths": 11,
+   "toMonths": 11,
+   "stage": "first_year",
+   "period": "11 months"
+  },
+  {
+   "headline": "12 months: first steps are close.",
+   "detail": "Most children by 1 year pull up to stand, walk while holding on to furniture and play games like pat-a-cake.",
+   "playIdea": "Let your child push an empty box or a push toy to practice walking.",
+   "sources": [
+    "cdc-1y"
+   ],
+   "fromMonths": 12,
+   "toMonths": 12,
+   "stage": "toddler",
+   "period": "12 months"
+  },
+  {
+   "headline": "13 months: words are taking shape.",
+   "detail": "Most children by 1 year call a parent mama or dada or a special name, and by 15 months they try one or two more words.",
+   "playIdea": "Build on what they try to say, like answering \"ba\" with \"ball\".",
+   "sources": [
+    "cdc-1y",
+    "cdc-15m"
+   ],
+   "fromMonths": 13,
+   "toMonths": 13,
+   "stage": "toddler",
+   "period": "13 months"
+  },
+  {
+   "headline": "14 months: pointing to share and ask.",
+   "detail": "Most children by 15 months point to ask for something or to get help, and show you an object they like.",
+   "playIdea": "Tell your child the name of each thing they point to.",
+   "sources": [
+    "cdc-15m"
+   ],
+   "fromMonths": 14,
+   "toMonths": 14,
+   "stage": "toddler",
+   "period": "14 months"
+  },
+  {
+   "headline": "15 months: a few steps on their own.",
+   "detail": "Most children by 15 months take a few steps on their own, clap when excited and stack at least two small blocks.",
+   "playIdea": "Blow bubbles and let your child pop them.",
+   "sources": [
+    "cdc-15m"
+   ],
+   "fromMonths": 15,
+   "toMonths": 15,
+   "stage": "toddler",
+   "period": "15 months"
+  },
+  {
+   "headline": "16 months: copycat time.",
+   "detail": "Most children by 15 months copy other children at play, and by 18 months they copy you doing chores like sweeping.",
+   "playIdea": "Find a small job your child can help with, like wiping the table.",
+   "sources": [
+    "cdc-15m",
+    "cdc-18m"
+   ],
+   "fromMonths": 16,
+   "toMonths": 16,
+   "stage": "toddler",
+   "period": "16 months"
+  },
+  {
+   "headline": "17 months: walking on their own.",
+   "detail": "Most children by 18 months walk without holding on, scribble and climb on and off a couch or chair without help.",
+   "playIdea": "Roll a ball back and forth together.",
+   "sources": [
+    "cdc-18m"
+   ],
+   "fromMonths": 17,
+   "toMonths": 17,
+   "stage": "toddler",
+   "period": "17 months"
+  },
+  {
+   "headline": "18 months: \"look what I found!\"",
+   "detail": "Most children by 18 months point to show you something interesting, try three or more words and follow one-step directions like \"Give it to me\".",
+   "playIdea": "Hand over a spoon and a stuffed animal for some pretend feeding.",
+   "sources": [
+    "cdc-18m"
+   ],
+   "fromMonths": 18,
+   "toMonths": 18,
+   "stage": "toddler",
+   "period": "18 months"
+  },
+  {
+   "headline": "19 months: more independence at the table.",
+   "detail": "Most children by 18 months feed themselves with their fingers, try a spoon and drink from a cup without a lid, with a few spills.",
+   "playIdea": "Let your child practice with a spoon and an open cup.",
+   "sources": [
+    "cdc-18m"
+   ],
+   "fromMonths": 19,
+   "toMonths": 19,
+   "stage": "toddler",
+   "period": "19 months"
+  },
+  {
+   "headline": "20 months: pretend play grows.",
+   "detail": "Most children by 18 months play with toys in a simple way, like pushing a toy car, and by 2 years they use more than one toy at a time.",
+   "playIdea": "Read a book together and name body parts as you go.",
+   "sources": [
+    "cdc-18m",
+    "cdc-2y"
+   ],
+   "fromMonths": 20,
+   "toMonths": 20,
+   "stage": "toddler",
+   "period": "20 months"
+  },
+  {
+   "headline": "21 months: two words together are near.",
+   "detail": "Most children by 2 years say at least two words together, like \"more milk\".",
+   "playIdea": "Get down at eye level and add a word to whatever your child says.",
+   "sources": [
+    "cdc-2y",
+    "cdc-18m"
+   ],
+   "fromMonths": 21,
+   "toMonths": 21,
+   "stage": "toddler",
+   "period": "21 months"
+  },
+  {
+   "headline": "22 months: kicking and running.",
+   "detail": "Most children by 2 years kick a ball, run and walk up a few stairs with or without help.",
+   "playIdea": "Give your child balls to kick, roll and throw.",
+   "sources": [
+    "cdc-2y"
+   ],
+   "fromMonths": 22,
+   "toMonths": 22,
+   "stage": "toddler",
+   "period": "22 months"
+  },
+  {
+   "headline": "23 months: gestures say a lot.",
+   "detail": "Most children by 2 years use more gestures than waving and pointing, like blowing a kiss or nodding yes.",
+   "playIdea": "Sing a song that names body parts and see if your child joins in.",
+   "sources": [
+    "cdc-2y"
+   ],
+   "fromMonths": 23,
+   "toMonths": 23,
+   "stage": "toddler",
+   "period": "23 months"
+  },
+  {
+   "headline": "2 years: your child notices how you feel.",
+   "detail": "Most children by 2 years notice when others are upset, look at your face to see how to react and eat with a spoon.",
+   "playIdea": "Try a simple puzzle of shapes, colors or animals together.",
+   "sources": [
+    "cdc-2y"
+   ],
+   "fromMonths": 24,
+   "toMonths": 24,
+   "stage": "toddler",
+   "period": "2 years"
+  },
+  {
+   "headline": "Two and growing: running, kicking and talking.",
+   "detail": "Most children by 2 years run, kick a ball, point to two body parts when asked and say two words together.",
+   "playIdea": "Play \"ready, set, go\" outside.",
+   "sources": [
+    "cdc-2y",
+    "cdc-30m"
+   ],
+   "fromMonths": 25,
+   "toMonths": 29,
+   "stage": "toddler",
+   "period": "2 years"
+  },
+  {
+   "headline": "Two and a half: \"look at me!\"",
+   "detail": "Most children by 30 months say about 50 words, jump with both feet off the ground and follow two-step directions like \"put the toy down and close the door\".",
+   "playIdea": "Play follow the leader.",
+   "sources": [
+    "cdc-30m"
+   ],
+   "fromMonths": 30,
+   "toMonths": 35,
+   "stage": "toddler",
+   "period": "2.5 years"
+  },
+  {
+   "headline": "3 years: real conversations.",
+   "detail": "Most children by 3 years talk with you for at least two back-and-forth exchanges, ask who, what, where or why questions and draw a circle when you show them how.",
+   "playIdea": "Read together and ask what is happening in the picture.",
+   "sources": [
+    "cdc-3y"
+   ],
+   "fromMonths": 36,
+   "toMonths": 41,
+   "stage": "preschool",
+   "period": "3 years"
+  },
+  {
+   "headline": "Three and a half: stories and make-believe.",
+   "detail": "Children this age are heading toward the 4 year milestones, when most say sentences of four or more words and pretend to be someone else in play.",
+   "playIdea": "Count simple things together, like fingers, toys or bananas.",
+   "sources": [
+    "cdc-4y",
+    "cdc-3y"
+   ],
+   "fromMonths": 42,
+   "toMonths": 47,
+   "stage": "preschool",
+   "period": "3.5 years"
+  },
+  {
+   "headline": "4 years: a storyteller.",
+   "detail": "Most children by 4 years say sentences with four or more words, talk about something that happened in their day, name a few colors and catch a large ball most of the time.",
+   "playIdea": "Play freeze dance to their favorite songs.",
+   "sources": [
+    "cdc-4y"
+   ],
+   "fromMonths": 48,
+   "toMonths": 53,
+   "stage": "preschool",
+   "period": "4 years"
+  },
+  {
+   "headline": "Four and a half: nearly five.",
+   "detail": "Children this age are heading toward the 5 year milestones, when most count to 10, take turns in games and hop on one foot.",
+   "playIdea": "Play a rhyming game.",
+   "sources": [
+    "cdc-5y",
+    "cdc-4y"
+   ],
+   "fromMonths": 54,
+   "toMonths": 59,
+   "stage": "preschool",
+   "period": "4.5 years"
+  },
+  {
+   "headline": "5 years: rules, rhymes and counting.",
+   "detail": "Most children by 5 years follow rules or take turns in games, tell a story with at least two events, count to 10 and hop on one foot.",
+   "playIdea": "Play a rhyming game, or ask for a made-up story.",
+   "sources": [
+    "cdc-5y"
+   ],
+   "fromMonths": 60,
+   "toMonths": 71,
+   "stage": "school_age",
+   "period": "5 years"
+  },
+  {
+   "headline": "6 years: friends start to matter more.",
+   "detail": "The CDC notes that children this age often want more independence and care more about friendships and being liked.",
+   "playIdea": "Ask your child to help set the table, and talk about school, friends and what they look forward to.",
+   "sources": [
+    "cdc-pp-6-8"
+   ],
+   "fromMonths": 72,
+   "toMonths": 83,
+   "stage": "school_age",
+   "period": "6 years"
+  },
+  {
+   "headline": "7 years: a growing sense of responsibility.",
+   "detail": "The CDC notes that children this age may think more about the future and show more concern for others.",
+   "playIdea": "Take turns reading to each other.",
+   "sources": [
+    "cdc-pp-6-8"
+   ],
+   "fromMonths": 84,
+   "toMonths": 95,
+   "stage": "school_age",
+   "period": "7 years"
+  },
+  {
+   "headline": "8 years: teamwork and goals.",
+   "detail": "The CDC notes that children this age may pay more attention to friendships and teamwork, and want to be accepted by friends.",
+   "playIdea": "Help your child pick a small goal of their own, and cheer on the effort.",
+   "sources": [
+    "cdc-pp-6-8"
+   ],
+   "fromMonths": 96,
+   "toMonths": 107,
+   "stage": "school_age",
+   "period": "8 years"
+  },
+  {
+   "headline": "9 years: stronger friendships, more independence.",
+   "detail": "The CDC notes that children this age often form stronger, more complex friendships, grow more independent and may notice their body changing as puberty approaches.",
+   "playIdea": "Spend time together talking about friends, what went well and what is coming up.",
+   "sources": [
+    "cdc-pp-9-11"
+   ],
+   "fromMonths": 108,
+   "toMonths": 100000,
+   "stage": "school_age",
+   "period": "9 years and up"
+  }
+ ],
+ "planning": {
+  "planning": {
+   "headline": "Getting ready together, before you try.",
+   "detail": "A visit to your doctor is the place to go over health history, medicines and vaccines. The Office on Women's Health suggests preparing at least three months ahead, and the CDC lists 400 micrograms of folic acid a day starting at least a month before pregnancy.",
+   "playIdea": "Sit down together and write one list of questions for the preconception visit.",
+   "sources": [
+    "cdc-planning",
+    "whg-preconception",
+    "nichd-preconception"
+   ],
+   "period": "Planning"
+  },
+  "trying": {
+   "headline": "While you try, keep the good habits going together.",
+   "detail": "The CDC lists daily folic acid into early pregnancy, no alcohol, smoking or drugs, and looking after your mental health. The Office on Women's Health also suggests the other partner talks with their own doctor about their health.",
+   "playIdea": "Pick one healthy habit to do side by side this week, like a walk after dinner.",
+   "sources": [
+    "cdc-planning",
+    "whg-preconception"
+   ],
+   "period": "Trying"
+  }
+ }
+}

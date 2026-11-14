@@ -5,6 +5,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
 )
@@ -15,6 +17,7 @@ func TestSimulatorRoundsScoreAndAdapt(t *testing.T) {
 	member := func(role httpapi.ParentRole) string {
 		return "/api/members/" + testutil.Parent(t, fam, role).Id.String()
 	}
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 	mother, partner := member(httpapi.ParentRoleMother), member(httpapi.ParentRolePartner)
 	var progress httpapi.SimulatorProgress
 	c.Get(mother+"/simulator", http.StatusOK, &progress)
@@ -66,6 +69,17 @@ func TestSimulatorRoundsScoreAndAdapt(t *testing.T) {
 	if !round.Completed || round.Result == nil || round.Result.Correct != 2 || round.Result.SuggestedShift == nil ||
 		!slices.Equal(round.Result.WeakSpots, []httpapi.SimulatorSkill{"warning_signs"}) {
 		t.Fatalf("finished round: %+v", round)
+	}
+	var shift httpapi.Shift
+	suggestion := round.Result.SuggestedShift
+	c.Post(shiftsPath(mom.Id), httpapi.ShiftInput{Title: suggestion.Title, Days: suggestion.Days, StartTime: suggestion.StartTime, EndTime: suggestion.EndTime, RoundId: &round.Id}, http.StatusCreated, &shift)
+	if shift.Id == uuid.Nil || shift.MemberId != mom.Id || shift.Title != suggestion.Title || shift.RoundId == nil || *shift.RoundId != round.Id {
+		t.Fatalf("committed shift: %+v", shift)
+	}
+	var shifts httpapi.ShiftList
+	c.Get(shiftsPath(mom.Id), http.StatusOK, &shifts)
+	if !slices.ContainsFunc(shifts.Items, func(item httpapi.Shift) bool { return item.Id == shift.Id }) {
+		t.Fatalf("committed shift missing from list: %+v", shifts.Items)
 	}
 	c.Get(mother+"/simulator", http.StatusOK, &progress)
 	if progress.RoundsCompleted != 1 || !slices.Equal(progress.WeakSpots, []httpapi.SimulatorSkill{"warning_signs"}) {

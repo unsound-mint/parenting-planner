@@ -62,6 +62,21 @@ type CalendarEventAttendee struct {
 	MemberID uuid.UUID
 }
 
+type CareLogEntry struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	ChildID        uuid.UUID
+	AuthorMemberID uuid.UUID
+	Kind           string
+	StartedAt      time.Time
+	EndedAt        pgtype.Timestamptz
+	FeedMethod     *string
+	AmountMl       pgtype.Int2
+	Diaper         *string
+	Note           *string
+	CreatedAt      time.Time
+}
+
 type CareTeam struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -119,6 +134,18 @@ type GrowthMeasurement struct {
 	HeightCm   float64
 }
 
+type Handoff struct {
+	ID           uuid.UUID
+	FamilyID     uuid.UUID
+	FromMemberID uuid.UUID
+	ToMemberID   uuid.UUID
+	Note         *string
+	ShiftID      uuid.NullUUID
+	Status       string
+	CreatedAt    time.Time
+	AcceptedAt   pgtype.Timestamptz
+}
+
 type Immunization struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -161,6 +188,17 @@ type LabResult struct {
 	Unit            *string
 	RefLow          *float64
 	RefHigh         *float64
+}
+
+type LiveEvent struct {
+	ID              int64
+	FamilyID        uuid.UUID
+	Kind            string
+	EntityID        *string
+	ActorMemberID   uuid.UUID
+	Audience        []uuid.UUID
+	NeedsPermission *string
+	At              time.Time
 }
 
 type Member struct {
@@ -290,6 +328,20 @@ type SessionNote struct {
 	BookingID     uuid.UUID
 	WrittenAt     time.Time
 	Text          string
+}
+
+type Shift struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	Title     string
+	Days      []string
+	StartTime string
+	EndTime   string
+	Status    string
+	StartsOn  *time.Time
+	RoundID   uuid.NullUUID
+	CreatedAt time.Time
 }
 
 type SimulatorAnswer struct {

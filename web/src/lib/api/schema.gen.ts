@@ -876,6 +876,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The stage hero line, a sourced "what is happening now" for planning, newborn, baby, toddler, preschool and school age
+         * @description The hero line for every stage except pregnancy (pregnancy has the
+         *     baby size in getPregnancyWeek). Computed from the family's stored
+         *     stage and, after birth, the youngest child's birth date and the demo
+         *     clock: weeks of life 1 to 12, then each month to 11 months, each
+         *     month from 12 to 24, then half-years to 5 years and years to 9
+         *     (a child older than 9 keeps the last entry). Planning and trying
+         *     families get a "preparing together" line.
+         *
+         *     Milestones are written as what most children do by an age, never as
+         *     a standard, and `note` always says children vary and sends worries to
+         *     the pediatrician (planning: to the doctor). `sources` are the pages
+         *     the text paraphrases, each with the date it was checked; the first
+         *     is the page to link.
+         *
+         *     Any member of the family may read it: it is general reference
+         *     content and carries no health record. 409 `pregnant` when the stage
+         *     is pregnancy, 409 `no_child` after birth with no child on record.
+         */
+        get: operations["getStageNow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/pregnancy-weeks/{week}": {
         parameters: {
             query?: never;
@@ -3039,6 +3075,24 @@ export interface components {
             ruleId?: string;
             source?: components["schemas"]["Source"];
         };
+        StageNow: {
+            stage: components["schemas"]["JourneyStage"];
+            /**
+             * @description The age or phase this line covers, for a label ("Week 8 of life", "18 months", "Planning").
+             * @example Week 8 of life
+             */
+            period: string;
+            /** @description One warm sentence about what is happening now. */
+            headline: string;
+            /** @description What most children do by this age, or what to prepare. Never a diagnosis. */
+            detail: string;
+            /** @description One simple play or bonding idea for this period. */
+            playIdea: string;
+            /** @description Children vary; talk to the pediatrician (or doctor) about worries. Show it with the milestone. */
+            note: string;
+            /** @description Pages the text paraphrases, each opened on its checked date. The first is the page to link. */
+            sources: components["schemas"]["Source"][];
+        };
         Source: {
             title: string;
             url: string;
@@ -3673,17 +3727,39 @@ export interface components {
             /** @description Most relevant first. */
             items: components["schemas"]["Guide"][];
         };
+        /**
+         * @description Baby size for one week, with the sources for the length, the weight and
+         *     the week's `development` text. Not a diagnosis; babies vary.
+         */
         BabySize: {
-            /** @example a pineapple */
+            /**
+             * @description A friendly size picture, not a measurement.
+             * @example a pineapple
+             */
             comparison: string;
             lengthCm: number;
-            weightG: number;
+            /**
+             * @description How lengthCm is measured. It changes at week 20, so do not chart the jump as growth.
+             *     embryo = length of the embryo (weeks 4 to 6, the source does not say how),
+             *     crown-rump = head to bottom, crown-heel = head to heel.
+             * @enum {string}
+             */
+            lengthMeasure: "embryo" | "crown-rump" | "crown-heel";
+            /** @description Median estimated fetal weight. Absent before week 14, where no source gives one. */
+            weightG?: number;
+            /** @description 10th and 90th percentile of the weight, in grams. Present with weightG. */
+            weightRangeG?: number[];
+            /**
+             * @description Sources for the size and for the week's `development` text:
+             *     the NHS week page, plus the WHO fetal growth charts when weightG is present.
+             */
+            sources: components["schemas"]["Source"][];
         };
         PregnancyWeek: {
             week: number;
             isCurrentWeek: boolean;
             size?: components["schemas"]["BabySize"];
-            /** @description What is developing this week, in plain words. Present only when sourced. */
+            /** @description What is developing this week, in plain words. Cited by the sources in size.sources. */
             development?: string;
             /** @description Why this week matters for the parents, never a diagnosis. */
             whyItMatters: string;
@@ -6933,6 +7009,64 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getStageNow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StageNow"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
