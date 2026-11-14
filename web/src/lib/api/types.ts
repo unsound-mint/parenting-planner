@@ -25,6 +25,9 @@ export type PsychologistBooking = S["PsychologistBooking"];
 export type PsychologistSlots = S["PsychologistSlots"];
 export type Slot = S["Slot"];
 export type SessionNote = S["SessionNote"];
+export type SessionBrief = S["SessionBrief"];
+export type SessionBriefItem = S["SessionBriefItem"];
+export type MoodSummary = S["MoodSummary"];
 export type Passport = S["Passport"];
 export type PassportPerson = S["PassportPerson"];
 export type LabResult = S["LabResult"];
@@ -178,6 +181,7 @@ export type StoryInvitation = S["StoryInvitation"];
 
 export type LoadMap = S["LoadMap"];
 export type LoadMapArea = S["LoadMapArea"];
+export type LoadMapItem = S["LoadMapItem"];
 export type LoadMapAreaKey = S["LoadMapAreaKey"];
 export type LoadMapShare = S["LoadMapShare"];
 export type LoadMapUnit = S["LoadMapUnit"];

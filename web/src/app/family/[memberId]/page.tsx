@@ -173,7 +173,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         </Rise>
         {hasReads && (
           <Rise i={1} className={cn("min-w-0 @5xl:col-start-1 @5xl:row-start-1", !togetherCard && "@5xl:col-span-2")}>
-            <ReadTogether memberId={memberId} paths={paths.items} me={parent} partner={partner} now={now} />
+            <ReadTogether memberId={memberId} paths={paths.items} me={parent} partner={partner} now={now} closedNudgeIds={together?.closedNudgeIds} />
           </Rise>
         )}
         {togetherCard && (

@@ -354,6 +354,8 @@ Overlapping PRs:
 | `psychologist_slots` | Family. No owner until booked. | n/a | Care: `GET .../psychologist-slots` |
 | `psychologist_bookings` | Owner | Always `private`, audited | Care: `POST .../psychologist-bookings`, `GET .../psychologist-agenda`; plan facts |
 | `session_notes` | Owner | Always `private`, audited | Care: `POST .../session-notes`, agenda |
+| `session_briefs` | Owner | Always `private`, audited; note and the frozen copy sealed like diary text | Care: `GET/PUT .../session-brief`, the printable brief |
+| `nudge_dismissals` | Member | Only the parent who closed the nudge | `POST .../nudge-dismissals`, `GET .../together` |
 | `invitations` (#363) | Invited by a parent. Token stored as a hash. Accepting creates a caregiver member. | n/a | `.../invitations`, `/invitations/{token}` |
 | `tasks` (#258) | Family-wide. One assignee, plus a pending assignee until accepted. | none (deliberately not private) | `.../tasks`, reassignment accept/decline |
 | `diary_entries` (#202) | Owner | `visibility` per entry | Diary, psychologist agenda |
@@ -388,7 +390,7 @@ Screens come from `docs/demo-script.md`, the pages in `web/src/app/`, and the co
 | Baby arrival | `families`, `children` | `POST .../baby-arrival` (stub) | main (tables exist) |
 | Today, live updates | reads other tables | `GET .../today`, `GET .../live` (stubs) | none needed beyond the tables they summarize |
 | Journey (`/journey`) | `families`, `children`, plan | `GET .../journey` (stub; #364 builds it) | main (no new table) |
-| Care: psychologist slots, booking, agenda, notes (`/care`) | `psychologists`, `psychologist_slots`, `psychologist_bookings`, `session_notes` (+ `diary_entries` for the agenda) | `.../psychologist-*`, `.../session-notes` | main; diary topics #202 |
+| Care: psychologist slots, booking (move, cancel), agenda, brief, notes (`/care`) | `psychologists`, `psychologist_slots`, `psychologist_bookings`, `session_briefs`, `session_notes` (+ `diary_entries` for the agenda) | `.../psychologist-*`, `.../session-brief`, `.../session-notes` | main; diary topics #202 |
 | Diary with per-entry sharing | `diary_entries` | in #202 | #202 |
 | Directory and bookings (`/directory`) | `providers`, `provider_slots`, `provider_bookings` | `GET /providers`, `.../provider-slots`, `.../provider-bookings` | #336 |
 | Health passport (`/passport`) | `lab_results`, `immunizations`, `vaccine_schedule`, `allergies`, `growth_measurements`, `care_team` | `GET .../passport` (stub on main) | #342 |

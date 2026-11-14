@@ -2,6 +2,7 @@ package httpapi_test
 
 import (
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/google/uuid"
@@ -128,4 +129,62 @@ func TestLoadMapIsForParentsOfTheFamily(t *testing.T) {
 	other := testutil.New(t)
 	other.StartDemo("pregnancy")
 	other.Get(loadMapPath(testutil.Parent(t, fam, httpapi.ParentRoleMother).Id), http.StatusNotFound, nil)
+}
+
+func TestLoadMapListsItemsTakersAndWithdraw(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+
+	var m httpapi.LoadMap
+	c.Get(loadMapPath(mom.Id), http.StatusOK, &m)
+	if len(m.Takers) == 0 || m.Takers[0] != jake.Id {
+		t.Fatalf("takers = %v, want the other parent first", m.Takers)
+	}
+	for _, id := range m.Takers {
+		if id == mom.Id {
+			t.Errorf("the acting parent is not a taker")
+		}
+	}
+	appts, _ := areaOf(m, httpapi.LoadMapAreaKeyAppointments)
+	if len(appts.Items) != 3 {
+		t.Fatalf("items = %+v", appts.Items)
+	}
+	for _, it := range appts.Items {
+		if it.Title == "" || it.AssigneeId != mom.Id {
+			t.Errorf("item = %+v", it)
+		}
+	}
+	// Only the assignee can withdraw, and only an open offer.
+	planning, _ := areaOf(m, httpapi.LoadMapAreaKeyPlanning)
+	id := planning.OfferedByMeTaskIds[0].String()
+	c.Post(tasksPath(jake.Id)+"/"+id+"/reassignment/withdraw", nil, http.StatusConflict, nil)
+	c.Post(tasksPath(mom.Id)+"/"+appts.Items[0].TaskId.String()+"/reassignment/withdraw", nil, http.StatusConflict, nil)
+	c.Post(tasksPath(mom.Id)+"/"+id+"/reassignment/withdraw", nil, http.StatusOK, nil)
+	c.Get(loadMapPath(mom.Id), http.StatusOK, &m)
+	planning, _ = areaOf(m, httpapi.LoadMapAreaKeyPlanning)
+	// The withdrawn task can be handed over again; other seeded tasks may be in that list too.
+	if len(planning.OfferedByMeTaskIds) != 0 || !slices.ContainsFunc(planning.HandoverTaskIds, func(h uuid.UUID) bool { return h.String() == id }) {
+		t.Errorf("after withdrawing, planning = %+v", planning)
+	}
+}
+
+func TestRevokeCaregiverWithoutInvitation(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	if len(fam.Caregivers) == 0 {
+		t.Skip("no caregivers in the demo family")
+	}
+	cg := fam.Caregivers[0]
+	c.Post("/api/members/"+cg.Id.String()+"/caregivers/"+cg.Id.String()+"/revoke", nil, http.StatusForbidden, nil)
+	c.Post("/api/members/"+mom.Id.String()+"/caregivers/"+uuid.New().String()+"/revoke", nil, http.StatusNotFound, nil)
+	c.Post("/api/members/"+mom.Id.String()+"/caregivers/"+cg.Id.String()+"/revoke", nil, http.StatusNoContent, nil)
+	var f httpapi.Family
+	c.Get("/api/family", http.StatusOK, &f)
+	for _, x := range f.Caregivers {
+		if x.Id == cg.Id {
+			t.Errorf("removed caregiver still listed")
+		}
+	}
 }

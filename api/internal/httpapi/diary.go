@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -10,7 +11,10 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/diary"
 )
 
-var errNoDiaryEntry = Error{Code: "not_found", Message: "no such diary entry"}
+var (
+	errNoDiaryEntry   = Error{Code: "not_found", Message: "no such diary entry"}
+	errEmptyDiaryBody = Error{Code: "invalid_request", Message: "the entry text is empty"}
+)
 
 // diaryEntryOut shows the agenda topic only on the viewer's own entries: the
 // agenda belongs to its author.
@@ -79,7 +83,15 @@ func (s *Server) UpdateDiaryEntry(ctx context.Context, req UpdateDiaryEntryReque
 		return UpdateDiaryEntry404JSONResponse(errNoMember), nil
 	}
 	b := req.Body
-	e, err := diary.Update(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, req.EntryId, access.Visibility(b.Visibility), b.AgendaTopic, b.First)
+	c := diary.Change{Visibility: access.Visibility(b.Visibility), AgendaTopic: b.AgendaTopic, First: b.First, Mood: b.Mood}
+	if b.Body != nil {
+		text := strings.TrimSpace(*b.Body)
+		if text == "" {
+			return UpdateDiaryEntry400JSONResponse(errEmptyDiaryBody), nil
+		}
+		c.Body = &text
+	}
+	e, err := diary.Update(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, req.EntryId, c)
 	if errors.Is(err, diary.ErrNoEntry) {
 		return UpdateDiaryEntry404JSONResponse(errNoDiaryEntry), nil
 	}
@@ -87,4 +99,24 @@ func (s *Server) UpdateDiaryEntry(ctx context.Context, req UpdateDiaryEntryReque
 		return nil, err
 	}
 	return UpdateDiaryEntry200JSONResponse(diaryEntryOut(e, req.MemberId)), nil
+}
+
+func (s *Server) DeleteDiaryEntry(ctx context.Context, req DeleteDiaryEntryRequestObject) (DeleteDiaryEntryResponseObject, error) {
+	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return DeleteDiaryEntry401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return DeleteDiaryEntry404JSONResponse(errNoMember), nil
+	}
+	err = diary.Delete(ctx, s.pool, familyID, req.MemberId, req.EntryId, s.now(ctx))
+	if errors.Is(err, diary.ErrNoEntry) {
+		return DeleteDiaryEntry404JSONResponse(errNoDiaryEntry), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return DeleteDiaryEntry204Response{}, nil
 }

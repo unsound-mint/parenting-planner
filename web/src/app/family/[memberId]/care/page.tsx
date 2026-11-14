@@ -37,7 +37,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, openTimes, visits, patterns, recovery] = await Promise.all([
+  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, openTimes, visits, patterns, brief, checkins, recovery] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
@@ -49,6 +49,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/provider-slots", path),
     api.GET("/members/{memberId}/provider-bookings", path),
     api.GET("/members/{memberId}/mood-patterns", path),
+    api.GET("/members/{memberId}/session-brief", path),
+    api.GET("/members/{memberId}/mood-checkins", path),
     // 200 only once a baby is on record (409 before), so the card never leads to an empty screen.
     api.GET("/members/{memberId}/recovery-guidance", path),
   ]);
@@ -91,6 +93,9 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           entries={diary.data.items}
           agenda={agenda.data}
           slots={slots.data}
+          brief={brief.data}
+          checkins={checkins.data?.items ?? []}
+          now={now.toISOString()}
         />
       )}
 
