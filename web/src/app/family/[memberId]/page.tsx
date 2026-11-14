@@ -9,6 +9,7 @@ import { MoodSleepCard } from "@/components/week/mood-sleep-card";
 import { BabyHome } from "@/components/baby/baby-home";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
 import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
+import { familyNow } from "@/lib/clock";
 
 // "This week": the acting parent's plan from the rules engine, the reason and
 // source behind each item, and a quick mood check-in. All of it is live data.
@@ -93,7 +94,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       </section>
 
       <aside aria-label="You and your visits" className="flex min-w-0 flex-col gap-6 xl:pt-1">
-        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} />
+        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} now={familyNow(family)} />
         <Suspense fallback={null}>
           <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
         </Suspense>

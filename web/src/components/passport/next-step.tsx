@@ -1,7 +1,10 @@
+"use client";
+
 import { daysUntil } from "@/lib/format";
 import { passportIcon } from "@/lib/visuals";
 import type { PassportPerson } from "@/lib/api/types";
 import type { FollowUp } from "./summary";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 function inDays(n: number): string {
   if (n === 0) return "today";
@@ -10,12 +13,12 @@ function inDays(n: number): string {
   return n > 0 ? `in ${span}` : `${span} ago`;
 }
 
-function describe(item: FollowUp, who: string): { title: string; line: string; late: boolean } {
+function describe(item: FollowUp, who: string, now: Date): { title: string; line: string; late: boolean } {
   if (item.kind === "vaccine") {
     const late = item.vaccine.status === "overdue";
     return {
       title: `${item.vaccine.name}, ${item.vaccine.dose.toLowerCase()}`,
-      line: `${late ? "Was due" : "Due"} ${inDays(daysUntil(item.vaccine.dueOn ?? ""))}. Book it at the next visit.`,
+      line: `${late ? "Was due" : "Due"} ${inDays(daysUntil(item.vaccine.dueOn ?? "", now))}. Book it at the next visit.`,
       late,
     };
   }
@@ -39,6 +42,7 @@ const icons = { vaccine: passportIcon.vaccines, lab: passportIcon.labs, allergy:
 // only place that says "due"; the vaccine and lab cards below show the same
 // items as marks, not words. The headline count is items.length.
 export function NextStep({ person, items, onLogVaccine }: { person: PassportPerson; items: FollowUp[]; onLogVaccine?: (vaccineName: string) => void }) {
+  const now = useFamilyNow();
   const who = person.isActingParent ? "your" : `${person.name}'s`;
   if (items.length === 0) {
     return (
@@ -50,7 +54,7 @@ export function NextStep({ person, items, onLogVaccine }: { person: PassportPers
       </section>
     );
   }
-  const rows = items.map((item) => ({ item, ...describe(item, who) }));
+  const rows = items.map((item) => ({ item, ...describe(item, who, now) }));
   const anyLate = rows.some((r) => r.late);
   return (
     <section

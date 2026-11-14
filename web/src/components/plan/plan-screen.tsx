@@ -17,6 +17,7 @@ import { InsuranceLog, insuranceHeadline } from "./insurance-log";
 import { LeavePlanner, leaveHeadline } from "./leave-planner";
 import { PaperworkTimeline } from "./paperwork-timeline";
 import { TaskRow, type TaskCtx } from "./task-row";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 type Tab = "task" | "paperwork" | "hospital_bag" | "leave" | "insurance";
 
@@ -41,6 +42,7 @@ export function PlanScreen({
   calls?: InsuranceCall[];
   dueOn?: string;
 }) {
+  const now = useFamilyNow();
   const [tasks, setTasks] = useState(initial);
   const [leave, setLeave] = useState(initialLeave);
   const [calls, setCalls] = useState(initialCalls);
@@ -137,9 +139,9 @@ export function PlanScreen({
 
   const headline =
     active === "leave" && leave
-      ? leaveHeadline(leave, selfId)
+      ? leaveHeadline(leave, selfId, now)
       : active === "insurance" && calls
-        ? insuranceHeadline(calls, selfId)
+        ? insuranceHeadline(calls, selfId, now)
         : offersToMe.length > 0
       ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
       : mine.length > 0

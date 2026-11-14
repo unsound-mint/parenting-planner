@@ -10,6 +10,7 @@ import { providerTypes } from "@/lib/visuals";
 import { DirectoryFilters } from "@/components/directory/directory-filters";
 import { ProviderCard, whenLabel } from "@/components/directory/provider-card";
 import { recommend, type Recommendation } from "@/components/directory/recommend";
+import { familyNow } from "@/lib/clock";
 
 // Provider directory: synthetic providers by type and state, with a booking
 // request that is saved and shown as "Requested". Filters are URL search
@@ -57,6 +58,7 @@ async function Directory({
   const pattern = patterns.data?.items[0];
   const picks = recommend(everyone, pattern, family.data?.stage);
   const filtered = !!(type || state);
+  const now = family.data ? familyNow(family.data) : new Date();
 
   // "Fits your last N check-ins" is said once above the cards when every card
   // shares it; a card carries its own reason only when the reasons differ.
@@ -74,7 +76,7 @@ async function Directory({
     <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8">
       <section aria-labelledby="directory-headline" className="min-w-0 max-w-5xl">
         <h1 id="directory-headline" className="max-w-2xl text-headline text-balance">
-          {headline(picks, pattern !== undefined, failed)}
+          {headline(picks, pattern !== undefined, failed, now)}
         </h1>
         <p className="mt-2 text-label font-normal text-muted-foreground">
           Demo providers, made up for this app. A request is saved, nothing is sent. Only you can see it.
@@ -98,7 +100,7 @@ async function Directory({
                 )}
                 <ul className={`${fitLabel ? "mt-3" : "mt-6"} grid gap-4 md:grid-cols-2 xl:grid-cols-3`}>
                   {picks.map((r) => (
-                    <ProviderCard key={r.provider.id} provider={r.provider} memberId={memberId} requested={requested.has(r.provider.id)} featured reason={cardReasons[r.provider.id]} />
+                    <ProviderCard key={r.provider.id} provider={r.provider} memberId={memberId} requested={requested.has(r.provider.id)} featured reason={cardReasons[r.provider.id]} now={now} />
                   ))}
                 </ul>
               </>
@@ -123,7 +125,7 @@ async function Directory({
               ) : (
                 <ul className="mt-4 flex flex-col gap-3">
                   {items.map((p) => (
-                    <ProviderCard key={p.id} provider={p} memberId={memberId} requested={requested.has(p.id)} />
+                    <ProviderCard key={p.id} provider={p} memberId={memberId} requested={requested.has(p.id)} now={now} />
                   ))}
                 </ul>
               )}
@@ -135,11 +137,11 @@ async function Directory({
   );
 }
 
-function headline(picks: Recommendation[], pattern: boolean, failed: boolean): string {
+function headline(picks: Recommendation[], pattern: boolean, failed: boolean, now: Date): string {
   if (failed) return "We could not load the directory.";
   if (picks.length === 0) return "Browse providers by type and state.";
   const first = [...picks].sort((a, b) => a.provider.nextAvailable.localeCompare(b.provider.nextAvailable))[0];
-  const when = whenLabel(first.provider.nextAvailable);
+  const when = whenLabel(first.provider.nextAvailable, now);
   return pattern ? `Someone to talk to, free ${when}.` : `${countWord(picks.length)} good ${picks.length === 1 ? "fit" : "fits"}, the first free ${when}.`;
 }
 

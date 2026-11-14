@@ -31,6 +31,7 @@ export function MoodSleepCard({
   checkins,
   pattern,
   talkInPlan,
+  now,
 }: {
   memberId: string;
   partnerName?: string;
@@ -38,6 +39,8 @@ export function MoodSleepCard({
   checkins: MoodCheckin[];
   pattern?: MoodPattern;
   talkInPlan: boolean;
+  /** The family's "now" (lib/clock.ts): the chart ends on the demo day. */
+  now: Date;
 }) {
   const showWeek = checkins.length >= MIN_CHECKINS || !!pattern;
   return (
@@ -46,7 +49,7 @@ export function MoodSleepCard({
       {showWeek && (
         <div className="mt-5 border-t border-border pt-5">
           {pattern && <PatternLine pattern={pattern} />}
-          <WeekChart checkins={checkins} flagged={new Set(pattern?.checkinIds ?? [])} />
+          <WeekChart now={now} checkins={checkins} flagged={new Set(pattern?.checkinIds ?? [])} />
           {pattern && !talkInPlan && (
             <>
               <p className="mt-4 text-body">{pattern.message}</p>
@@ -90,11 +93,10 @@ type Day = { key: string; checkin?: MoodCheckin };
 
 // The last seven calendar days ending today, so a missed day shows as a gap.
 // Days are UTC dates, like every date the API sends (lib/format.ts).
-function lastDays(checkins: MoodCheckin[]): Day[] {
+function lastDays(checkins: MoodCheckin[], today: Date): Day[] {
   const byDay = new Map<string, MoodCheckin>();
   // Newest first, so the first check-in of a day is its latest.
   for (const c of checkins) if (!byDay.has(c.recordedAt.slice(0, 10))) byDay.set(c.recordedAt.slice(0, 10), c);
-  const today = new Date();
   return Array.from({ length: DAYS }, (_, i) => {
     const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - (DAYS - 1 - i)));
     const key = d.toISOString().slice(0, 10);
@@ -105,8 +107,8 @@ function lastDays(checkins: MoodCheckin[]): Day[] {
 // Mood as dots joined by a line (5 at the top), sleep as bars below. Pattern
 // days sit on a soft band. Bars are plain data outside a pattern: no colour
 // judgement on a single short night.
-function WeekChart({ checkins, flagged }: { checkins: MoodCheckin[]; flagged: Set<string> }) {
-  const days = lastDays(checkins);
+function WeekChart({ checkins, flagged, now }: { checkins: MoodCheckin[]; flagged: Set<string>; now: Date }) {
+  const days = lastDays(checkins, now);
   const logged = days.filter((d) => d.checkin).map((d) => d.checkin!);
   const avg = logged.length ? logged.reduce((s, c) => s + c.sleepHours, 0) / logged.length : undefined;
   const W = 280;

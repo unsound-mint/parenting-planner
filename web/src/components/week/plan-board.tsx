@@ -15,6 +15,7 @@ import type { NoteParts } from "@/lib/week";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { StatusPill } from "./status-pill";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // The plan as one focus card plus a quieter list. Each item explains itself
 // in place: "Why?" opens under the item and adds only what the item does not
@@ -157,7 +158,8 @@ function FocusCard({
   const router = useRouter();
   const [booked, setBooked] = useState(false);
   const [pending, startTransition] = useTransition();
-  const days = item.dueBy ? daysUntil(item.dueBy) : undefined;
+  const now = useFamilyNow();
+  const days = item.dueBy ? daysUntil(item.dueBy, now) : undefined;
   const progress = booked ? "booked" : item.progress;
 
   function markBooked() {

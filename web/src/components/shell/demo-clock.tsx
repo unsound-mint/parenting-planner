@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { Plan } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { shiftedNow } from "@/lib/clock";
 
-const DAY_MS = 86_400_000;
 const dateFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 
 // Demo time: moves this family's clock a week ahead so a judge sees the plan
@@ -26,7 +26,7 @@ export function DemoClock({ memberId, daysAhead }: { memberId: string; daysAhead
         return;
       }
       const after = await readPlan(memberId);
-      const day = dateFmt.format(new Date(Date.now() + (data.demoDaysAhead ?? 0) * DAY_MS));
+      const day = dateFmt.format(shiftedNow(data.demoDaysAhead ?? 0));
       const week = data.gestationalWeek === undefined ? "" : `Week ${data.gestationalWeek} of pregnancy. `;
       toast.success(`Demo time: ${day}.`, { description: week + changes(before, after) });
       router.refresh();

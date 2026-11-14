@@ -11,6 +11,7 @@ import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
+import { FamilyClockProvider } from "@/components/shell/family-clock";
 
 // Frame for every family screen: navigation, the role switch and the urgent
 // help entry, which must stay visible on every screen (docs/design.md, rule 5).
@@ -93,7 +94,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           </div>
         </header>
         <LiveUpdates memberId={memberId} />
-        <ViewTransition>{children}</ViewTransition>
+        <FamilyClockProvider daysAhead={family.demoDaysAhead ?? 0}>
+          <ViewTransition>{children}</ViewTransition>
+        </FamilyClockProvider>
       </div>
     </div>
   );
