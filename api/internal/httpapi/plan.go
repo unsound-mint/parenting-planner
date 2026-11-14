@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/unsound-mint/parenting-planner/api/internal/notify"
 	"github.com/unsound-mint/parenting-planner/api/internal/plan"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 )
@@ -21,6 +22,10 @@ func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObje
 	}
 	items, err := plan.ForMember(ctx, s.q, familyID, req.MemberId, s.today(ctx), s.now(ctx))
 	if err != nil {
+		return nil, err
+	}
+	// Reading the plan is when plan_item_due notifications are written.
+	if err := notify.PlanItemsDue(ctx, s.pool, familyID, req.MemberId, items, s.today(ctx), s.now(ctx)); err != nil {
 		return nil, err
 	}
 	out := Plan{MemberId: req.MemberId, GeneratedAt: s.now(ctx).UTC(), Items: make([]PlanItem, 0, len(items))}
