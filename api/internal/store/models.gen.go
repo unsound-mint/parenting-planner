@@ -21,6 +21,25 @@ type AuditLog struct {
 	At            time.Time
 }
 
+type CalendarEvent struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Kind          string
+	Title         string
+	StartsAt      time.Time
+	EndsAt        pgtype.Timestamptz
+	AllDay        bool
+	Location      *string
+	CreatedAt     time.Time
+}
+
+type CalendarEventAttendee struct {
+	EventID  uuid.UUID
+	MemberID uuid.UUID
+}
+
 type CareTeam struct {
 	ID       uuid.UUID
 	FamilyID uuid.UUID
