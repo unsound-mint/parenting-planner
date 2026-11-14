@@ -52,7 +52,7 @@ export function CalendarSubscribe({ memberId, initial, canChooseScope }: { membe
   }
 
   return (
-    <section aria-labelledby="subscribe-title" className="flex min-w-0 flex-col gap-4 rounded-2xl border border-border bg-card p-4 md:p-6">
+    <section id="subscribe" aria-labelledby="subscribe-title" className="flex min-w-0 scroll-mt-6 flex-col gap-4 rounded-2xl border border-border bg-card p-4 md:p-6">
       <div className="flex items-center gap-3">
         <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
           <Rss className="size-5" />

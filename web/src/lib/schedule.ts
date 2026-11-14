@@ -74,3 +74,32 @@ export function compactRange(startClock: string, endClock?: string): string {
   const b = part(endClock);
   return a.ap === b.ap ? `${a.t}\u2013${b.t} ${b.ap}` : `${a.t} ${a.ap}\u2013${b.t} ${b.ap}`;
 }
+
+const ZONE = "America/New_York";
+const zoneParts = new Intl.DateTimeFormat("en-US", { timeZone: ZONE, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+function zoneOffsetMs(utc: number): number {
+  const p = Object.fromEntries(zoneParts.formatToParts(new Date(utc)).map((x) => [x.type, Number(x.value)]));
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute) - Math.floor(utc / 60_000) * 60_000;
+}
+
+/** An Eastern wall-clock date and time ("2026-11-20", "09:30") as an ISO instant. */
+export function easternInstant(date: string, hhmm: string): string {
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = hhmm.split(":").map(Number);
+  const wall = Date.UTC(y, mo - 1, d, h, mi);
+  let utc = wall - zoneOffsetMs(wall);
+  utc = wall - zoneOffsetMs(utc);
+  return new Date(utc).toISOString();
+}
+
+/** The Eastern time of day of an instant, "09:30", for a time input. */
+export function easternClock(iso: string): string {
+  const p = Object.fromEntries(zoneParts.formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+  return `${p.hour}:${p.minute}`;
+}
+
+/** Kinds a parent adds and edits by hand; shifts, tasks and psychologist sessions come from elsewhere. */
+export type StoredKind = "appointment" | "class" | "reminder" | "other";
+export const storedKinds: StoredKind[] = ["appointment", "class", "reminder", "other"];
+export const isStoredKind = (k: CalendarEvent["kind"]): k is StoredKind => (storedKinds as string[]).includes(k);

@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ChevronRight, CloudOff, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, CloudOff, Lock, Plus } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CalendarEvent, CalendarScope } from "@/lib/api/types";
 import { countThings, daysUntilInstant, formatClock, formatShortDate, whenWords } from "@/lib/format";
 import { familyPeople, isCaregiver, type Role } from "@/lib/roles";
 import { roleAccent } from "@/lib/visuals";
 import { addDays, todayKey } from "@/lib/schedule";
+import { EventDialog } from "@/components/schedule/event-dialog";
 import { CalendarSubscribe } from "@/components/schedule/calendar-subscribe";
 import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
@@ -71,6 +72,9 @@ async function Calendar({
   );
   const items = events.data?.items ?? [];
   const agreed = (shifts.data?.items ?? []).filter((s) => s.status === "agreed");
+  const guests = people
+    .filter((p) => p.id !== memberId && (!isCaregiver(p.role) || family.caregivers.find((c) => c.id === p.id)?.permissions.includes("schedule")))
+    .map((p) => ({ id: p.id, name: p.displayName }));
   const hrefFor = (s: CalendarScope) => `/family/${memberId}/calendar?scope=${s}${from === today ? "" : `&from=${from}`}`;
   const weekHref = (f: string) => `/family/${memberId}/calendar?scope=${scope}${f === today ? "" : `&from=${f}`}`;
 
@@ -88,6 +92,17 @@ async function Calendar({
       <div className="flex flex-wrap items-center gap-3">
         {!caregiver && <ScopeTabs active={scope} hrefFor={hrefFor} />}
         <span className="flex-1" />
+        {!caregiver && (
+          <EventDialog
+            memberId={memberId}
+            guests={guests}
+            today={today}
+            triggerClassName="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 text-label font-medium text-primary-foreground outline-none transition-colors duration-150 hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9"
+          >
+            <Plus aria-hidden className="size-4" />
+            Add event
+          </EventDialog>
+        )}
         <div className="flex items-center gap-1">
           <WeekLink href={weekHref(addDays(from, -7))} label="Previous week" icon={ChevronLeft} />
           <span className="min-w-36 text-center font-mono text-label">
@@ -107,7 +122,7 @@ async function Calendar({
       </div>
 
       {events.data ? (
-        <WeekView from={from} today={today} events={items} owners={owners} />
+        <WeekView from={from} today={today} events={items} owners={owners} edit={caregiver ? undefined : { memberId, guests }} />
       ) : (
         <Unavailable />
       )}
