@@ -33,6 +33,14 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
+type AppointmentNote struct {
+	FamilyID      uuid.UUID
+	AuthorID      uuid.UUID
+	AppointmentID uuid.UUID
+	Body          string
+	UpdatedAt     time.Time
+}
+
 type AppointmentQuestion struct {
 	ID              uuid.UUID
 	Seq             pgtype.Int8
@@ -70,6 +78,16 @@ type BabyNameLike struct {
 	FamilyID  uuid.UUID
 	MemberID  uuid.UUID
 	CreatedAt time.Time
+}
+
+type BirthPlan struct {
+	FamilyID        uuid.UUID
+	HospitalName    string
+	HospitalAddress string
+	HospitalPhone   *string
+	DeskPhone       *string
+	TravelMinutes   pgtype.Int4
+	PreferencesNote *string
 }
 
 type BookingRequest struct {
@@ -164,12 +182,16 @@ type DiaryEntry struct {
 }
 
 type Family struct {
-	ID             uuid.UUID
-	Template       string
-	Stage          string
-	DueDate        *time.Time
-	CreatedAt      time.Time
-	DemoOffsetDays int32
+	ID                        uuid.UUID
+	Template                  string
+	Stage                     string
+	DueDate                   *time.Time
+	CreatedAt                 time.Time
+	DemoOffsetDays            int32
+	PregnancyLossRecordedAt   pgtype.Timestamptz
+	PregnancyLossOccurredOn   *time.Time
+	PregnancyLossPriorStage   *string
+	PregnancyLossPriorDueDate *time.Time
 }
 
 type GrowthMeasurement struct {
@@ -279,6 +301,7 @@ type Member struct {
 	BirthDate   *time.Time
 	Permissions []string
 	RevokedAt   pgtype.Timestamptz
+	Phone       *string
 }
 
 type MoodCheckin struct {

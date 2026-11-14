@@ -89,7 +89,7 @@ func (q *Queries) CreateCareTeamMemberFor(ctx context.Context, arg CreateCareTea
 }
 
 const createCaregiver = `-- name: CreateCaregiver :one
-INSERT INTO members (family_id, role, display_name, permissions) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at
+INSERT INTO members (family_id, role, display_name, permissions) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, phone
 `
 
 type CreateCaregiverParams struct {
@@ -115,6 +115,7 @@ func (q *Queries) CreateCaregiver(ctx context.Context, arg CreateCaregiverParams
 		&i.BirthDate,
 		&i.Permissions,
 		&i.RevokedAt,
+		&i.Phone,
 	)
 	return i, err
 }
@@ -142,7 +143,7 @@ func (q *Queries) CreateChild(ctx context.Context, arg CreateChildParams) (Child
 }
 
 const createFamily = `-- name: CreateFamily :one
-INSERT INTO families (template, stage, due_date) VALUES ($1, $2, $3) RETURNING id, template, stage, due_date, created_at, demo_offset_days
+INSERT INTO families (template, stage, due_date) VALUES ($1, $2, $3) RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date
 `
 
 type CreateFamilyParams struct {
@@ -161,12 +162,16 @@ func (q *Queries) CreateFamily(ctx context.Context, arg CreateFamilyParams) (Fam
 		&i.DueDate,
 		&i.CreatedAt,
 		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
 	)
 	return i, err
 }
 
 const createMember = `-- name: CreateMember :one
-INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at
+INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, phone
 `
 
 type CreateMemberParams struct {
@@ -192,6 +197,7 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 		&i.BirthDate,
 		&i.Permissions,
 		&i.RevokedAt,
+		&i.Phone,
 	)
 	return i, err
 }
@@ -205,8 +211,41 @@ func (q *Queries) DeleteFamily(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteUnreadPregnancyNotifications = `-- name: DeleteUnreadPregnancyNotifications :execrows
+DELETE FROM notifications
+WHERE family_id = $1 AND read_at IS NULL
+  AND (kind IN ('handoff_received', 'handoff_accepted')
+       OR (kind = 'plan_item_due' AND entity_id = ANY ($2::text[])))
+`
+
+type DeleteUnreadPregnancyNotificationsParams struct {
+	FamilyID uuid.UUID
+	RuleIds  []string
+}
+
+// Turning support on drops what the family has not read yet about the pregnancy
+// and the baby: plan_item_due for the given rules, and handoffs.
+func (q *Queries) DeleteUnreadPregnancyNotifications(ctx context.Context, arg DeleteUnreadPregnancyNotificationsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUnreadPregnancyNotifications, arg.FamilyID, arg.RuleIds)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const familyInPregnancyLoss = `-- name: FamilyInPregnancyLoss :one
+SELECT (pregnancy_loss_recorded_at IS NOT NULL)::bool FROM families WHERE id = $1
+`
+
+func (q *Queries) FamilyInPregnancyLoss(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, familyInPregnancyLoss, id)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getFamily = `-- name: GetFamily :one
-SELECT id, template, stage, due_date, created_at, demo_offset_days FROM families WHERE id = $1
+SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date FROM families WHERE id = $1
 `
 
 func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
@@ -219,12 +258,16 @@ func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		&i.DueDate,
 		&i.CreatedAt,
 		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
 	)
 	return i, err
 }
 
 const getFamilyForUpdate = `-- name: GetFamilyForUpdate :one
-SELECT id, template, stage, due_date, created_at, demo_offset_days FROM families WHERE id = $1 FOR UPDATE
+SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date FROM families WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family, error) {
@@ -237,12 +280,16 @@ func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family,
 		&i.DueDate,
 		&i.CreatedAt,
 		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
 	)
 	return i, err
 }
 
 const getMember = `-- name: GetMember :one
-SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at FROM members WHERE id = $1 AND family_id = $2 AND role IN ('mother','partner')
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE id = $1 AND family_id = $2 AND role IN ('mother','partner')
 `
 
 type GetMemberParams struct {
@@ -261,12 +308,13 @@ func (q *Queries) GetMember(ctx context.Context, arg GetMemberParams) (Member, e
 		&i.BirthDate,
 		&i.Permissions,
 		&i.RevokedAt,
+		&i.Phone,
 	)
 	return i, err
 }
 
 const getPerson = `-- name: GetPerson :one
-SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at FROM members WHERE id = $1 AND family_id = $2 AND revoked_at IS NULL
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE id = $1 AND family_id = $2 AND revoked_at IS NULL
 `
 
 type GetPersonParams struct {
@@ -286,6 +334,7 @@ func (q *Queries) GetPerson(ctx context.Context, arg GetPersonParams) (Member, e
 		&i.BirthDate,
 		&i.Permissions,
 		&i.RevokedAt,
+		&i.Phone,
 	)
 	return i, err
 }
@@ -325,7 +374,7 @@ func (q *Queries) ListCareTeam(ctx context.Context, familyID uuid.UUID) ([]CareT
 }
 
 const listCaregivers = `-- name: ListCaregivers :many
-SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at FROM members WHERE family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL ORDER BY role, display_name
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL ORDER BY role, display_name
 `
 
 func (q *Queries) ListCaregivers(ctx context.Context, familyID uuid.UUID) ([]Member, error) {
@@ -345,6 +394,7 @@ func (q *Queries) ListCaregivers(ctx context.Context, familyID uuid.UUID) ([]Mem
 			&i.BirthDate,
 			&i.Permissions,
 			&i.RevokedAt,
+			&i.Phone,
 		); err != nil {
 			return nil, err
 		}
@@ -386,7 +436,7 @@ func (q *Queries) ListChildren(ctx context.Context, familyID uuid.UUID) ([]Child
 }
 
 const listMembers = `-- name: ListMembers :many
-SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at FROM members WHERE family_id = $1 AND role IN ('mother','partner') ORDER BY role
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE family_id = $1 AND role IN ('mother','partner') ORDER BY role
 `
 
 // Parents only: caregivers are members too but never parents. Use GetPerson to resolve any acting person.
@@ -407,6 +457,7 @@ func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member
 			&i.BirthDate,
 			&i.Permissions,
 			&i.RevokedAt,
+			&i.Phone,
 		); err != nil {
 			return nil, err
 		}
@@ -416,6 +467,64 @@ func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member
 		return nil, err
 	}
 	return items, nil
+}
+
+const recordPregnancyLoss = `-- name: RecordPregnancyLoss :one
+UPDATE families SET stage = 'planning', due_date = NULL,
+    pregnancy_loss_recorded_at = $1, pregnancy_loss_occurred_on = $2,
+    pregnancy_loss_prior_stage = stage, pregnancy_loss_prior_due_date = due_date
+WHERE id = $3 AND stage = 'pregnancy' RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date
+`
+
+type RecordPregnancyLossParams struct {
+	RecordedAt pgtype.Timestamptz
+	OccurredOn *time.Time
+	ID         uuid.UUID
+}
+
+// Turns support on: stage planning, no due date, the replaced values kept for an undo.
+func (q *Queries) RecordPregnancyLoss(ctx context.Context, arg RecordPregnancyLossParams) (Family, error) {
+	row := q.db.QueryRow(ctx, recordPregnancyLoss, arg.RecordedAt, arg.OccurredOn, arg.ID)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
+	)
+	return i, err
+}
+
+const restorePregnancyLoss = `-- name: RestorePregnancyLoss :one
+UPDATE families SET stage = pregnancy_loss_prior_stage, due_date = pregnancy_loss_prior_due_date,
+    pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,
+    pregnancy_loss_prior_stage = NULL, pregnancy_loss_prior_due_date = NULL
+WHERE id = $1 AND pregnancy_loss_recorded_at IS NOT NULL RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date
+`
+
+// Turns support off and restores what it replaced.
+func (q *Queries) RestorePregnancyLoss(ctx context.Context, id uuid.UUID) (Family, error) {
+	row := q.db.QueryRow(ctx, restorePregnancyLoss, id)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
+	)
+	return i, err
 }
 
 const revokeCaregiver = `-- name: RevokeCaregiver :exec
@@ -434,7 +543,7 @@ func (q *Queries) RevokeCaregiver(ctx context.Context, arg RevokeCaregiverParams
 }
 
 const skipFamilyDemoClock = `-- name: SkipFamilyDemoClock :one
-UPDATE families SET demo_offset_days = demo_offset_days + $1::int WHERE id = $2 RETURNING id, template, stage, due_date, created_at, demo_offset_days
+UPDATE families SET demo_offset_days = demo_offset_days + $1::int WHERE id = $2 RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date
 `
 
 type SkipFamilyDemoClockParams struct {
@@ -452,12 +561,19 @@ func (q *Queries) SkipFamilyDemoClock(ctx context.Context, arg SkipFamilyDemoClo
 		&i.DueDate,
 		&i.CreatedAt,
 		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
 	)
 	return i, err
 }
 
 const updateFamilyStage = `-- name: UpdateFamilyStage :one
-UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING id, template, stage, due_date, created_at, demo_offset_days
+UPDATE families SET stage = $2, due_date = $3,
+    pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,
+    pregnancy_loss_prior_stage = NULL, pregnancy_loss_prior_due_date = NULL
+WHERE id = $1 RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date
 `
 
 type UpdateFamilyStageParams struct {
@@ -466,6 +582,7 @@ type UpdateFamilyStageParams struct {
 	DueDate *time.Time
 }
 
+// A stage or due date change by the parents ends pregnancy loss support without restoring anything.
 func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStageParams) (Family, error) {
 	row := q.db.QueryRow(ctx, updateFamilyStage, arg.ID, arg.Stage, arg.DueDate)
 	var i Family
@@ -476,6 +593,10 @@ func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStagePa
 		&i.DueDate,
 		&i.CreatedAt,
 		&i.DemoOffsetDays,
+		&i.PregnancyLossRecordedAt,
+		&i.PregnancyLossOccurredOn,
+		&i.PregnancyLossPriorStage,
+		&i.PregnancyLossPriorDueDate,
 	)
 	return i, err
 }
