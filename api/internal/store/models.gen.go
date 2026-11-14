@@ -80,6 +80,16 @@ type BabyNameLike struct {
 	CreatedAt time.Time
 }
 
+type BirthPlan struct {
+	FamilyID        uuid.UUID
+	HospitalName    string
+	HospitalAddress string
+	HospitalPhone   *string
+	DeskPhone       *string
+	TravelMinutes   pgtype.Int4
+	PreferencesNote *string
+}
+
 type BookingRequest struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -215,6 +225,21 @@ type Immunization struct {
 	Dose            *string
 }
 
+type InsuranceCall struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	CalledAt        time.Time
+	Insurer         string
+	Representative  *string
+	ReferenceNumber *string
+	Topic           string
+	Summary         string
+	FollowUpOn      *time.Time
+	CreatedAt       time.Time
+}
+
 type Invitation struct {
 	ID          uuid.UUID
 	FamilyID    uuid.UUID
@@ -249,6 +274,18 @@ type LabResult struct {
 	RefHigh         *float64
 }
 
+type LeavePlan struct {
+	FamilyID          uuid.UUID
+	MemberID          uuid.UUID
+	State             string
+	EmployerEmployees int32
+	MonthsEmployed    int32
+	HoursLast12Months int32
+	StartsOn          *time.Time
+	WeeksWanted       pgtype.Int4
+	UpdatedAt         time.Time
+}
+
 type LessonRead struct {
 	FamilyID   uuid.UUID
 	MemberID   uuid.UUID
@@ -276,6 +313,7 @@ type Member struct {
 	BirthDate   *time.Time
 	Permissions []string
 	RevokedAt   pgtype.Timestamptz
+	Phone       *string
 }
 
 type MoodCheckin struct {
