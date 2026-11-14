@@ -17,7 +17,7 @@ func (s *Server) ListMoodPatterns(ctx context.Context, req ListMoodPatternsReque
 	case kind == errNotFound:
 		return ListMoodPatterns404JSONResponse(errNoMember), nil
 	}
-	patterns, err := wellbeing.ListMoodPatterns(ctx, s.pool, familyID, m, s.today(), s.cfg.Now())
+	patterns, err := wellbeing.ListMoodPatterns(ctx, s.pool, familyID, m, s.today(ctx), s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
