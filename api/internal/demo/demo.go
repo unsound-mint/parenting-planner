@@ -26,7 +26,9 @@ const Pregnancy Template = "pregnancy"
 
 var ErrUnknownTemplate = errors.New("unknown demo template")
 
-var seeds = map[Template]func(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error){
+type seedFunc func(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error)
+
+var seeds = map[Template]seedFunc{
 	Planning:  seedPlanning,
 	Pregnancy: seedPregnancy,
 	Newborn:   seedNewborn,
@@ -40,6 +42,12 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 	if !ok {
 		return uuid.Nil, "", ErrUnknownTemplate
 	}
+	return start(ctx, pool, seed, today)
+}
+
+// start runs a seed and opens a session for its family in one transaction.
+// Demo templates and families from a visitor's own details both go through it.
+func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Time) (uuid.UUID, string, error) {
 	token, hash, err := newToken()
 	if err != nil {
 		return uuid.Nil, "", err
