@@ -28,7 +28,7 @@ var postpartumRules = []Rule{
 	{
 		ID:       "postpartum-visit",
 		Title:    "Your own checkup after the birth",
-		Detail:   "Checkups after the birth are for you too, not only the baby. WHO recommends them at 2 to 3 days, at 1 to 2 weeks, and in the sixth week after birth. Book the six-week checkup with your OB or midwife.",
+		Detail:   "Checkups after the birth are for you too, not only the baby. WHO guidance suggests several in the first weeks, including one around the sixth week. Ask your OB or midwife when to book yours.",
 		Category: Visit,
 		Audience: ForMother,
 		Source:   srcWHOPostnatal,
@@ -49,11 +49,11 @@ var postpartumRules = []Rule{
 			weeks := days / 7
 			switch {
 			case days < postpartumVisitOpensDay:
-				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("%s is %d weeks old; the checkup for you is recommended in the sixth week after birth.", baby.Name, weeks)}, true
+				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("Because WHO guidance suggests a checkup for you around the sixth week after birth, and %s is %d weeks old. Your OB or midwife can book it.", baby.Name, weeks)}, true
 			case days <= postpartumVisitDueDay:
-				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("%s is %d weeks old and no checkup for you after the birth is on record.", baby.Name, weeks)}, true
+				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because WHO guidance suggests a checkup for you around the sixth week after birth, and %s is %d weeks old with none on record. Your OB or midwife can book it.", baby.Name, weeks)}, true
 			default:
-				return Result{Status: Overdue, Reason: fmt.Sprintf("%s is %d weeks old and no checkup for you after the birth is on record. If you have not had one yet, it is not too late to book it.", baby.Name, weeks)}, true
+				return Result{Status: Overdue, Reason: fmt.Sprintf("Because WHO guidance suggests a checkup for you around the sixth week after birth, and %s is %d weeks old with none on record. If you have not had one yet, it is not too late to ask your OB or midwife.", baby.Name, weeks)}, true
 			}
 		},
 	},

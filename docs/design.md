@@ -17,7 +17,7 @@ So the product is now a joyful journey for both parents, not a list of due items
 
 1. One hero per screen, at most two rows under it. The hero is the baby, the path or the composer, not a status sentence.
 2. No empty screens. Never "Nothing yet": show a starter (chips, a suggested first entry, a sample the user can take over) or a preview mock.
-3. Every health fact carries its source and checked date, in a `SourceLine`. The AI never diagnoses.
+3. Health facts may carry a quiet inline source link (`SourceLink` or `SourceLine`, never a date or a footer list). Crisis and urgent screens carry none. The AI never diagnoses.
 4. Status colours: on track (leaf), upcoming (slate), due (ochre), overdue (clay). Overdue is never red. Red (`urgent`) is only for urgent symptoms and the crisis path.
 5. Urgent help sits in the frame of every family screen. It opens a fixed screen with hotlines, never generated text, and never animates (no press, no transition, never inside `Rise`).
 6. Two parents, two accents. `me` is the acting person, `them` the other parent; each person also keeps a fixed colour (`mom`, `partner`, caregivers neutral) for avatars and ownership.
@@ -40,7 +40,7 @@ Type scale. Use only these utilities, defined in `globals.css`:
 | `text-title` | 19 / 24 | Fraunces, SOFT 100 | Card, lesson and entry titles. |
 | `text-body` | 16 / 24 | Figtree | Running text. |
 | `text-label` | 14 / 20 | Figtree 500 | Controls, chips, list secondary lines. |
-| `text-caption` | 12 / 16 | Figtree | Timestamps, axis ticks; with `font-mono` for sources and dates. |
+| `text-caption` | 12 / 16 | Figtree | Timestamps, axis ticks; with `font-mono` for values. |
 
 The `cn` helper in `lib/utils.ts` knows these as font sizes; add any new level there too.
 
@@ -86,7 +86,7 @@ All tokens live in `web/src/app/globals.css`; use them through Tailwind. Never h
 
 The family layout sets `data-acting="<role>"` on its frame, and a `:root:has([data-acting=...])` rule swaps `me` and `them`, so popovers and toasts take the accent too. Outside the family area the accent is the mother's. Text pairs were computed at WCAG AA or better (muted on paper 5.7, mom on mom-soft 4.9, partner on partner-soft 5.2, leaf on leaf-soft 5.3). There is no dark theme for now.
 
-Fonts, loaded with `next/font` in `app/layout.tsx`: Fraunces (variable, with the SOFT, WONK and opsz axes) for display, headline and title; Figtree for UI and body; JetBrains Mono for sources, dates and values.
+Fonts, loaded with `next/font` in `app/layout.tsx`: Fraunces (variable, with the SOFT, WONK and opsz axes) for display, headline and title; Figtree for UI and body; JetBrains Mono for values.
 
 ## Motion
 

@@ -168,7 +168,7 @@ func TestGuidesCarryTheirRuleAndTheirAction(t *testing.T) {
 	if tdap.RuleId == nil || *tdap.RuleId != "tdap-pregnancy" {
 		t.Errorf("preg-tdap explains the Tdap rule: %+v", tdap.RuleId)
 	}
-	if a := tdap.Action; a == nil || a.Kind != httpapi.GuideActionKindAddTask || a.Title == nil || *a.Title != "Get the Tdap vaccine" {
+	if a := tdap.Action; a == nil || a.Kind != httpapi.GuideActionKindAskAtVisit || a.Question == nil || *a.Question == "" {
 		t.Errorf("preg-tdap action = %+v", tdap.Action)
 	}
 	if g := guides["preg-warning-signs"]; g.RuleId != nil || g.Action == nil || g.Action.Kind != httpapi.GuideActionKindPractice {
