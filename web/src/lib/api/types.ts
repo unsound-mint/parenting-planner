@@ -184,6 +184,8 @@ export type ThanksSuggestion = S["ThanksSuggestion"];
 export type ThanksBasis = S["ThanksBasis"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+
+export type SafetyEntry = S["SafetyEntry"];
 export type ChildcareOption = S["ChildcareOption"];
 export type ChildcareOptionInput = S["ChildcareOptionInput"];
 export type ChildcareOptionList = S["ChildcareOptionList"];
