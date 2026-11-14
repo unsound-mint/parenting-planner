@@ -76,7 +76,7 @@ async function Calendar({
   const agreed = (shifts.data?.items ?? []).filter((s) => s.status === "agreed");
   const guests = people
     .filter((p) => p.id !== memberId && (!isCaregiver(p.role) || family.caregivers.find((c) => c.id === p.id)?.permissions.includes("schedule")))
-    .map((p) => ({ id: p.id, name: p.displayName }));
+    .map((p) => ({ id: p.id, name: p.displayName, parent: !isCaregiver(p.role) }));
   const hrefFor = (s: CalendarScope) => `/family/${memberId}/calendar?scope=${s}${from === today ? "" : `&from=${from}`}`;
   const weekHref = (f: string) => `/family/${memberId}/calendar?scope=${scope}${f === today ? "" : `&from=${f}`}`;
 
@@ -108,6 +108,8 @@ async function Calendar({
             memberId={memberId}
             guests={guests}
             today={today}
+            feedActive={!!feed.data?.active}
+            stage={family.stage}
             triggerClassName="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 text-label font-medium text-primary-foreground outline-none transition-colors duration-150 hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9"
           >
             <Plus aria-hidden className="size-4" />
@@ -133,7 +135,7 @@ async function Calendar({
       </div>
 
       {events.data ? (
-        <WeekView from={from} today={today} events={items} owners={owners} edit={caregiver ? undefined : { memberId, guests }} />
+        <WeekView from={from} today={today} events={items} owners={owners} edit={caregiver ? undefined : { memberId, guests, feedActive: !!feed.data?.active }} />
       ) : (
         <Unavailable />
       )}
