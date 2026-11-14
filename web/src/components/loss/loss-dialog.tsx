@@ -6,6 +6,7 @@ import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import { todayKey } from "@/lib/schedule";
+import { useFamilyNow } from "@/components/shell/family-clock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,7 @@ export function LossDialog({ memberId, open, onOpenChange }: { memberId: string;
   const cancel = useRef<HTMLButtonElement>(null);
   const [occurredOn, setOccurredOn] = useState("");
   const [pending, startTransition] = useTransition();
-  const today = todayKey();
+  const today = todayKey(useFamilyNow());
 
   function confirm() {
     startTransition(async () => {
