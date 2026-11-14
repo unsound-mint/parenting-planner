@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { MessageCircleQuestion } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import type { Family } from "@/lib/api/types";
 import { serverApi } from "@/lib/api/server";
@@ -90,6 +92,13 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
             {items.length > 0 ? `${countWord(items.length)} ${items.length === 1 ? "path" : "paths"} for ${forWhen(family.data)}. ` : ""}
             {them ? "A few unhurried minutes a week, side by side." : "A few unhurried minutes a week."}
           </p>
+          <Link
+            href={`/family/${memberId}/learn/questions`}
+            className="press mt-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-me-soft px-4 text-label text-me transition-colors duration-(--duration-fast) hover:bg-me-soft/70"
+          >
+            <MessageCircleQuestion className="size-4" aria-hidden />
+            Questions parents ask, and your own
+          </Link>
         </div>
         {journey && <JourneyStrip journey={journey} memberId={memberId} className="@7xl:max-w-[50rem] @7xl:flex-nowrap" />}
       </Rise>

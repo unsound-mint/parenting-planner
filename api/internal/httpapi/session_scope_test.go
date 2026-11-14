@@ -216,6 +216,7 @@ var familyWideOps = []string{
 	"deleteFamily", "createDemoTimeSkip", "createUpgradeIntent",
 	"listContentItems", "updateContentItem", "resetContentItem",
 	"listAllPartnerOffers", "createPartnerOffer", "updatePartnerOffer", "getAnalytics",
+	"listChildcareOptions", "createChildcareOption", "getChildcareOption", "updateChildcareOption", "deleteChildcareOption",
 }
 
 func TestCaregiverSessionCannotManageTheFamily(t *testing.T) {
