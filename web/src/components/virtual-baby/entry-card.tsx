@@ -23,7 +23,7 @@ export function VirtualBabyEntry({ memberId }: { memberId: string }) {
       </svg>
       <span className="min-w-0 flex-1">
         <span className="block text-caption font-semibold tracking-wider text-ink-2 uppercase">Virtual Baby</span>
-        <span className="mt-1 block text-title">Practise a newborn evening, together</span>
+        <span className="mt-1 block text-title">Practice a newborn evening, together</span>
         <span className="mt-1 block text-label font-normal text-muted-foreground">Feeds, diapers, safe sleep and crying, with a kind answer for every choice. Or try the 48-hour challenge.</span>
       </span>
       <ArrowRight className="size-5 shrink-0 text-ink-2 transition-transform duration-(--duration-fast) group-hover:translate-x-0.5" aria-hidden />

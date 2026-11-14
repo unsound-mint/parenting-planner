@@ -138,7 +138,7 @@ function StartHero({ onStart, busy, them }: { onStart: (m: VirtualBabyMode) => v
         <div className="min-w-0">
           <p className="text-caption font-semibold tracking-wider text-ink-2 uppercase">Virtual Baby</p>
           <h1 id="vb-title" className="mt-2 text-display text-balance">
-            Practise the <em className="text-me">first nights</em> before they are real
+            Practice the <em className="text-me">first nights</em> before they are real
           </h1>
           <p className="mt-3 max-w-prose text-body text-ink-2">
             Feed, change, settle and soothe a simulated newborn. Every choice gets a kind answer with its source{them ? `, and you and ${them.displayName} take turns` : ""}.
@@ -491,7 +491,7 @@ function FeedbackCard({ moment, parents, memberId, onNext, busy, last }: { momen
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SourceLine sources={[moment.feedback.source]} />
         <button type="button" onClick={onNext} disabled={busy} autoFocus className={cn(BTN, "bg-me text-white")}>
-          {last ? "See what you practised" : "Carry on"}
+          {last ? "See what you practiced" : "Carry on"}
         </button>
       </div>
     </SoftCard>
@@ -559,7 +559,7 @@ function Share({ session, parents, memberId, className }: { session: VirtualBaby
   );
 }
 
-/** "What you practised": topics with one dot per moment in the colour of who took it, then the ones worth a second look. */
+/** "What you practiced": topics with one dot per moment in the colour of who took it, then the ones worth a second look. */
 function Summary({ session, parents, memberId, justNow = false, onAgain }: { session: VirtualBabySession; parents: Parent[]; memberId: string; justNow?: boolean; onAgain?: () => void }) {
   const revisit = session.moments.filter((m) => m.feedback.fit === "another_way");
   const handled = session.moments.length;
@@ -571,7 +571,7 @@ function Summary({ session, parents, memberId, justNow = false, onAgain }: { ses
           {modeInfo[session.mode].title} · <span className="font-mono">{date}</span>
         </p>
         <h2 id="vb-summary" className={cn("mt-1", justNow ? "text-display" : "text-headline")}>
-          What you practised
+          What you practiced
         </h2>
         <p className="mt-1 text-label font-normal text-muted-foreground">
           {handled === session.momentCount ? `All ${handled} moments, together.` : `${handled} of ${session.momentCount} moments before you stopped.`}
