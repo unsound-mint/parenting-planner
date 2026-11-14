@@ -5,11 +5,13 @@ import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import type { DiaryEntry, PsychologistAgenda, PsychologistSlots, ScreeningQuestionnaire } from "@/lib/api/types";
 import { daysUntilInstant, whenWords } from "@/lib/format";
-import { AgendaCard } from "@/components/care/agenda-card";
+import { AgendaCard, TopicsReadyHeadline } from "@/components/care/agenda-card";
 import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
 import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { PageFrame, PageGrid } from "@/components/shell/page";
+import { familyNow } from "@/lib/clock";
 
 // "Care": the psychologist agenda, booking and the note after a session.
 // Links to the private journal and the mood questionnaires sit under the agenda. Everything here belongs to the acting parent only.
@@ -44,6 +46,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       slots={slots}
       entries={diary?.items.filter((e) => e.authorId === memberId)}
       questionnaires={questionnaires?.items}
+      now={familyNow(family)}
     />
   );
 }
@@ -55,21 +58,21 @@ type ViewProps = {
   slots?: PsychologistSlots;
   entries?: DiaryEntry[];
   questionnaires?: ScreeningQuestionnaire[];
+  now: Date;
 };
 
-function CareView({ memberId, name, agenda, slots, entries, questionnaires }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires, now }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
 
-  let headline = `Pick a time with your psychologist, ${name}.`;
+  let headline: React.ReactNode = <TopicsReadyHeadline memberId={memberId} topics={topics} fallback={`Pick a time with your psychologist, ${name}.`} />;
   if (noteDue) headline = `How did it go, ${name}?`;
-  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt))}.`;
-  else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
+  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt, now))}.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8">
-      <section aria-labelledby="care-headline" className="flex min-w-0 max-w-5xl flex-col gap-6">
+    <PageFrame>
+      <section aria-labelledby="care-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
@@ -83,7 +86,8 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires }: Vi
         {!agenda ? (
           <Unavailable />
         ) : (
-          <div className="flex max-w-2xl flex-col gap-3">
+          // The session step, the agenda and the wellbeing links: two across, three on the widest screens.
+          <PageGrid cols={3}>
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
@@ -93,11 +97,10 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires }: Vi
             ) : null}
             <AgendaCard memberId={memberId} topics={topics} />
             <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
-          </div>
+          </PageGrid>
         )}
       </section>
-
-    </main>
+    </PageFrame>
   );
 }
 

@@ -58,6 +58,10 @@ type Guide struct {
 	Ages     *Range // child age in months, after birth
 	Audience []Audience
 	Source   Source
+	// RuleID is the plan rule this guide explains (see actions.go); empty when no rule covers it.
+	RuleID string
+	// Action is the one thing an article ends in (see actions.go); nil for birth prep modules.
+	Action *Action
 }
 
 // Viewer is the acting person.

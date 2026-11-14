@@ -4,11 +4,14 @@ import { serverApi } from "@/lib/api/server";
 import { countWord, familyContext } from "@/lib/format";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
 import { AppointmentQuestions } from "@/components/week/appointment-questions";
+import { HospitalEntry } from "@/components/hospital/hospital-entry";
 import { PlanWithNote } from "@/components/week/plan-with-note";
 import { MoodSleepCard } from "@/components/week/mood-sleep-card";
 import { BabyHome } from "@/components/baby/baby-home";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
+import { PageFrame } from "@/components/shell/page";
 import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
+import { familyNow } from "@/lib/clock";
 
 // "This week": the acting parent's plan from the rules engine, the reason and
 // source behind each item, and a quick mood check-in. All of it is live data.
@@ -22,7 +25,8 @@ import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/toda
 // - weekly card: the baby's week only (size, development, birth prep);
 // - guides: only reading the plan does not already cover;
 // - the top bar: the week of pregnancy and the due date.
-// The DOM order is the phone order; from xl the plan and the rest sit side by side.
+// The DOM order is the phone order. From a wide content area the plan and the rest sit side by
+// side; from the widest the rest splits in two, the questions card on its own column.
 export default function WeekPage({ params }: PageProps<"/family/[memberId]">) {
   return (
     <Suspense fallback={<WeekFallback />}>
@@ -71,37 +75,48 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
 
   const needs = plan.items.filter((i) => i.status !== "upcoming").length;
   // Status only: the focus card right below names the first thing.
-  const headline =
-    needs === 0
+  const headline = family.pregnancyLoss
+    ? `We are so sorry, ${parent.displayName}. Take the time you need.`
+    : needs === 0
       ? `Nothing needs you this week, ${parent.displayName}.`
       : `${countWord(needs)} ${needs === 1 ? "thing needs" : "things need"} you this week, ${parent.displayName}.`;
   // The switch is a one-time step near the birth: last on the page, under everything that needs doing now.
   const late = family.stage === "pregnancy" && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && shifts;
 
   return (
-    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
       <section aria-labelledby="week-headline" className="min-w-0">
         <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
         </h1>
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
-        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         <div className="mt-3 empty:hidden">
           <StageSlot guides={guides} memberId={memberId} family={family} />
         </div>
-        <PlanWithNote items={plan.items} memberId={memberId} tier={family.tier} talkHref={talkHref} />
+        <PlanWithNote items={plan.items} memberId={memberId} tier={family.tier} talkHref={talkHref} quietWhenEmpty={family.pregnancyLoss != null} />
       </section>
 
-      <aside aria-label="You and your visits" className="flex min-w-0 flex-col gap-6 xl:pt-1">
-        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} />
-        <Suspense fallback={null}>
-          <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
-        </Suspense>
+      {/* At the widest: two columns. The questions card is placed first in the right one and spans
+          into the last, flexible row, so its height never opens gaps between the cards on the left. */}
+      <aside aria-label="You and your visits" className="grid min-w-0 content-start items-start gap-6 @5xl:pt-1 @7xl:grid-cols-2 @7xl:grid-rows-[repeat(4,auto)_1fr]">
+        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} now={familyNow(family)} />
+        <div className="min-w-0 empty:hidden @7xl:col-start-2 @7xl:row-span-5 @7xl:row-start-1">
+          <Suspense fallback={null}>
+            <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
+          </Suspense>
+        </div>
+        {family.stage === "pregnancy" && !family.pregnancyLoss && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && (
+          <Suspense fallback={null}>
+            <HospitalEntry memberId={memberId} />
+          </Suspense>
+        )}
         <WeekCardSlot card={card} babyOnly />
-        <GuidesSlot guides={guides} plan={plan.items} />
+        {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
+        {!family.pregnancyLoss && <GuidesSlot guides={guides} plan={plan.items} />}
         {late && <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />}
       </aside>
-    </main>
+    </PageFrame>
   );
 }
 

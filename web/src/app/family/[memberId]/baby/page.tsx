@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { BabyHome } from "@/components/baby/baby-home";
+import { ChildHome } from "@/components/child/child-home";
+import { hasOlderChild } from "@/lib/stage";
 
 // "Baby": the same care screen a nanny gets as her home, for the parents. They
 // log feeds, sleeps and diapers here and start the handoff the nanny accepts.
@@ -21,6 +23,8 @@ async function Baby({ params }: { params: Promise<{ memberId: string }> }) {
   const { data: family, response } = await api.GET("/family");
   if (response.status === 401) redirect("/");
   if (!family) notFound();
+  // Past toddler age the baby log (feeds, diapers) does not apply: show the child's own screen.
+  if (hasOlderChild(family)) return <ChildHome memberId={memberId} family={family} />;
   return <BabyHome memberId={memberId} family={family} />;
 }
 

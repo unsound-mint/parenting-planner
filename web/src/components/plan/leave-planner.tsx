@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OwnerAvatar } from "./owner";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // Leave for both parents on one narrow timeline: today to a few months after
 // birth. Segments are drawn from the API; the acting parent moves their own leave
@@ -49,16 +50,16 @@ function bounds(p: ParentLeave) {
 }
 
 /** The status sentence for the Leave tab: the acting parent's next deadline, or the next step. */
-export function leaveHeadline(plan: LeavePlan, selfId: string): string {
+export function leaveHeadline(plan: LeavePlan, selfId: string, now: Date): string {
   const me = plan.parents.find((p) => p.memberId === selfId);
   if (!me?.input) return "Answer four questions to see which leave you can take.";
   const next = me.deadlines[0];
   if (!next) return "Your leave dates are set. Drag the bar to move them.";
-  return daysUntil(next.dueOn) < 0 ? `${next.title}. It was due ${formatShortDate(next.dueOn)}.` : `${next.title} by ${formatShortDate(next.dueOn)}.`;
+  return daysUntil(next.dueOn, now) < 0 ? `${next.title}. It was due ${formatShortDate(next.dueOn)}.` : `${next.title} by ${formatShortDate(next.dueOn)}.`;
 }
 
-function toneOf(dueOn: string): DueTone {
-  const d = daysUntil(dueOn);
+function toneOf(dueOn: string, now: Date): DueTone {
+  const d = daysUntil(dueOn, now);
   return d < 0 ? "late" : d <= 14 ? "due" : "up";
 }
 
@@ -81,7 +82,8 @@ export function LeavePlanner({
   const [editingAnswers, setEditingAnswers] = useState(false);
   const seq = useRef(0);
 
-  const from = todayKey();
+  const now = useFamilyNow();
+  const from = todayKey(now);
   const last = plan.parents.flatMap((p) => p.segments.map((s) => s.endsOn)).sort().at(-1);
   const to = addDays(dueOn ?? from, POST_BIRTH_DAYS) > (last ?? "") ? addDays(dueOn ?? from, POST_BIRTH_DAYS) : addDays(last!, 14);
   const win = { from, to, days: Math.max(1, diff(from, to)) };
@@ -207,6 +209,7 @@ function ParentLane({
   onSave: (input: LeavePlanInput) => Promise<boolean>;
   onOpenTask: (taskId: string) => void;
 }) {
+  const now = useFamilyNow();
   const name = person?.displayName ?? (parent.role === "mother" ? "Mom" : "Partner");
   const b = bounds(parent);
   const [draft, setDraft] = useState<{ start: string; weeks: number } | null>(null);
@@ -338,7 +341,7 @@ function ParentLane({
                 key={d.title + d.dueOn}
                 aria-hidden
                 title={`${d.title}, ${formatShortDate(d.dueOn)}`}
-                className={cn("absolute top-0 z-30 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full ring-2 ring-card", toneDot[toneOf(d.dueOn)])}
+                className={cn("absolute top-0 z-30 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full ring-2 ring-card", toneDot[toneOf(d.dueOn, now)])}
                 style={{ left: `${pct(win, d.dueOn)}%` }}
               >
                 <Flag className="size-3 text-card" />
@@ -404,8 +407,9 @@ function Stepper({ label, value, onMinus, onPlus, unit }: { label: string; value
 }
 
 function DeadlineRow({ d, onOpen }: { d: LeaveDeadline; onOpen: (taskId: string) => void }) {
-  const days = daysUntil(d.dueOn);
-  const tone = toneOf(d.dueOn);
+  const now = useFamilyNow();
+  const days = daysUntil(d.dueOn, now);
+  const tone = toneOf(d.dueOn, now);
   const inner = (
     <>
       <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-full", toneClass[tone])}>
