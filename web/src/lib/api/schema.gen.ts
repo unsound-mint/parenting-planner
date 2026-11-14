@@ -5013,6 +5013,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/virtual-baby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The family's Virtual Baby practice sessions and stickers
+         * @description Parents only; a grandparent or nanny gets 404. Sessions belong to the
+         *     family: both parents see every session and who handled each moment.
+         *     Newest first, the active session (if any) first; at most 10. Stickers
+         *     are earned for taking part (a topic practised, both parents took a
+         *     turn, the 48 hours finished), never for which choice someone made.
+         */
+        get: operations["getVirtualBaby"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/virtual-baby-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a Virtual Baby session (one evening or the 48-hour challenge)
+         * @description Parents only. One active session per family: 409 session_active while
+         *     another is not finished. The simulated clock is not real time: the web
+         *     app runs it only while the page is open, so nothing ever arrives at
+         *     night.
+         */
+        post: operations["createVirtualBabySession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/virtual-baby-sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * End a Virtual Baby session early
+         * @description Parents only. Ending a finished session again returns it unchanged.
+         *     404 not_found for a session of another family.
+         */
+        patch: operations["updateVirtualBabySession"];
+        trace?: never;
+    };
+    "/members/{memberId}/virtual-baby-sessions/{sessionId}/moments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Respond to the baby's current moment
+         * @description Parents only. The acting parent (memberId) is recorded as the one who
+         *     handled it, so partners can take turns. seq must be the session's next
+         *     moment: 409 moment_taken if it was already handled (the other parent
+         *     was faster) or the session is finished. 400 unknown_choice for a choice
+         *     that is not offered. Returns kind feedback with its source and the
+         *     session after the answer. The last moment finishes the session.
+         */
+        post: operations["createVirtualBabyMoment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8213,6 +8306,145 @@ export interface components {
         PortraitList: {
             items: components["schemas"]["Portrait"][];
         };
+        /**
+         * @description evening = six simulated hours (18:00 to midnight), a few minutes to play;
+         *     challenge = the 48-hour challenge, two simulated days and nights played
+         *     in short sittings.
+         * @enum {string}
+         */
+        VirtualBabyMode: "evening" | "challenge";
+        /** @enum {string} */
+        VirtualBabyNeed: "hungry" | "wet" | "sleepy" | "fussy";
+        /**
+         * @description What a choice does, so the baby can react (offer a feed, change the diaper, lay her down, comfort her, wait, step away to calm down, carry her somewhere else).
+         * @enum {string}
+         */
+        VirtualBabyAction: "offer_feed" | "change_diaper" | "lay_down" | "comfort" | "wait" | "step_away" | "carry";
+        /**
+         * @description recommended = what the guideline says; another_way = the feedback
+         *     shows a safer or easier way. Never totalled into a score.
+         * @enum {string}
+         */
+        VirtualBabyFit: "recommended" | "another_way";
+        VirtualBabySessionInput: {
+            mode: components["schemas"]["VirtualBabyMode"];
+        };
+        VirtualBabySessionUpdate: {
+            /**
+             * @description End the session now.
+             * @enum {boolean}
+             */
+            finished: true;
+        };
+        VirtualBabyMomentInput: {
+            /** @description The moment being answered, VirtualBabySession.next.seq. */
+            seq: number;
+            choiceId: string;
+        };
+        VirtualBabyChoice: {
+            id: string;
+            label: string;
+            action: components["schemas"]["VirtualBabyAction"];
+        };
+        /** @description The moment the baby is waiting on. */
+        VirtualBabyPrompt: {
+            seq: number;
+            /** @description Simulated minutes since the session started. */
+            minute: number;
+            need: components["schemas"]["VirtualBabyNeed"];
+            scenarioId: string;
+            /** @example Hands to mouth */
+            title: string;
+            /** @description What the baby is doing, in one or two sentences. */
+            cue: string;
+            choices: components["schemas"]["VirtualBabyChoice"][];
+        };
+        VirtualBabyFeedback: {
+            fit: components["schemas"]["VirtualBabyFit"];
+            headline: string;
+            why: string;
+            source: components["schemas"]["Source"];
+        };
+        /** @description A moment someone handled. */
+        VirtualBabyMoment: {
+            seq: number;
+            minute: number;
+            need: components["schemas"]["VirtualBabyNeed"];
+            scenarioId: string;
+            title: string;
+            choiceId: string;
+            choiceLabel: string;
+            action: components["schemas"]["VirtualBabyAction"];
+            /**
+             * Format: uuid
+             * @description The parent who answered.
+             */
+            handledBy: string;
+            /** Format: date-time */
+            handledAt: string;
+            feedback: components["schemas"]["VirtualBabyFeedback"];
+        };
+        /**
+         * @description How a need builds up on the simulated clock: the level at minute m is
+         *     (m - since) / every, capped at 1. The web app draws it as a meter.
+         */
+        VirtualBabyNeedClock: {
+            need: components["schemas"]["VirtualBabyNeed"];
+            /** @description Simulated minute this need was last cared for. */
+            since: number;
+            /** @description Simulated minutes until it is full again. */
+            every: number;
+        };
+        /** @description One topic of the "what you practised" summary, counted per parent. */
+        VirtualBabyPractised: {
+            need: components["schemas"]["VirtualBabyNeed"];
+            byMember: components["schemas"]["VirtualBabyCount"][];
+        };
+        VirtualBabyCount: {
+            /** Format: uuid */
+            memberId: string;
+            count: number;
+        };
+        VirtualBabySession: {
+            /** Format: uuid */
+            id: string;
+            mode: components["schemas"]["VirtualBabyMode"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: uuid */
+            startedBy: string;
+            /** Format: date-time */
+            finishedAt?: string;
+            /** @description Simulated time of day the session starts at, in minutes after midnight (1080 = 18:00). */
+            startClock: number;
+            /** @description Simulated length (360 for an evening, 2880 for the challenge). */
+            lengthMinutes: number;
+            /** @description How many moments the session has in all. */
+            momentCount: number;
+            /** @description Handled moments, oldest first. */
+            moments: components["schemas"]["VirtualBabyMoment"][];
+            next?: components["schemas"]["VirtualBabyPrompt"];
+            needs: components["schemas"]["VirtualBabyNeedClock"][];
+            practised: components["schemas"]["VirtualBabyPractised"][];
+        };
+        VirtualBabySticker: {
+            /** @enum {string} */
+            id: "feeding_cues" | "fresh_diaper" | "back_to_sleep" | "calm_and_steady" | "tag_team" | "night_owl" | "forty_eight";
+            title: string;
+            /** Format: date-time */
+            earnedAt: string;
+            /** @description The parents whose moments earned it. */
+            earnedBy: string[];
+        };
+        VirtualBaby: {
+            items: components["schemas"]["VirtualBabySession"][];
+            /** @description Earned stickers, in the order they were earned. */
+            stickers: components["schemas"]["VirtualBabySticker"][];
+        };
+        VirtualBabyMomentResult: {
+            moment: components["schemas"]["VirtualBabyMoment"];
+            session: components["schemas"]["VirtualBabySession"];
+        };
         /** @enum {string} */
         RecoveryBleeding: "none" | "spotting" | "light" | "moderate" | "heavy";
         /**
@@ -8410,6 +8642,7 @@ export interface components {
          *     or permissions do not allow the action.
          */
         MemberId: string;
+        VirtualBabySessionId: string;
         CareLogEntryId: string;
         GrowthMeasurementId: string;
         PortraitId: string;
@@ -20730,6 +20963,261 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getVirtualBaby: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VirtualBaby"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createVirtualBabySession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VirtualBabySessionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VirtualBabySession"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateVirtualBabySession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                sessionId: components["parameters"]["VirtualBabySessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VirtualBabySessionUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VirtualBabySession"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createVirtualBabyMoment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                sessionId: components["parameters"]["VirtualBabySessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VirtualBabyMomentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VirtualBabyMomentResult"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

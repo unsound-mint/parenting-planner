@@ -771,6 +771,25 @@ type VaccineSchedule struct {
 	DueOn           time.Time
 }
 
+type VirtualBabyMoment struct {
+	SessionID  uuid.UUID
+	FamilyID   uuid.UUID
+	Seq        int32
+	ScenarioID string
+	ChoiceID   string
+	HandledBy  uuid.UUID
+	HandledAt  time.Time
+}
+
+type VirtualBabySession struct {
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	Mode       string
+	StartedBy  uuid.UUID
+	StartedAt  time.Time
+	FinishedAt pgtype.Timestamptz
+}
+
 type VoiceNote struct {
 	ID               uuid.UUID
 	FamilyID         uuid.UUID
