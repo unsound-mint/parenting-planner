@@ -40,7 +40,7 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 	if !ok {
 		return uuid.Nil, "", ErrUnknownTemplate
 	}
-	token, hash, err := newToken()
+	token, hash, err := NewToken()
 	if err != nil {
 		return uuid.Nil, "", err
 	}
@@ -57,13 +57,27 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 	return familyID, token, err
 }
 
+// seedCaregivers adds the two helpers every demo family has: a grandmother and
+// a nanny. They see the baby's care, never a parent's health data.
+func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) error {
+	for _, c := range []store.CreateCaregiverParams{
+		{FamilyID: familyID, Role: "grandparent", DisplayName: "Linda", Permissions: []string{"care_log", "baby_passport", "schedule", "pregnancy_updates"}},
+		{FamilyID: familyID, Role: "nanny", DisplayName: "Maria", Permissions: []string{"care_log", "baby_passport", "schedule"}},
+	} {
+		if _, err := q.CreateCaregiver(ctx, c); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // HashToken is how session tokens are stored and looked up.
 func HashToken(token string) []byte {
 	h := sha256.Sum256([]byte(token))
 	return h[:]
 }
 
-func newToken() (string, []byte, error) {
+func NewToken() (string, []byte, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", nil, err
@@ -132,6 +146,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		}
 	}
 	if err := seedPsychologist(ctx, q, fam.ID, mom.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil

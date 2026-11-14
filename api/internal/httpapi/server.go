@@ -110,6 +110,13 @@ var (
 	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
 )
 
+var (
+	errForbidden            = Error{Code: "forbidden", Message: "only a parent can do this"}
+	errNoInvitation         = Error{Code: "not_found", Message: "no such invitation"}
+	errInvitationNotPending = Error{Code: "invitation_not_pending", Message: "this invitation was already used, revoked or has expired"}
+	errInvitationNotActive  = Error{Code: "invitation_not_active", Message: "this invitation is already revoked or has expired"}
+)
+
 // errKind tells a handler which typed error response to return.
 type errKind int
 
@@ -117,6 +124,7 @@ const (
 	errNone errKind = iota
 	errUnauthorized
 	errNotFound
+	errNotParent
 )
 
 // actingMember resolves the session's family and checks that memberID is a
@@ -132,6 +140,23 @@ func (s *Server) actingMember(ctx context.Context, memberID uuid.UUID) (familyID
 	}
 	return familyID, m, errNone, err
 }
+
+// actingPerson is actingMember for endpoints that a caregiver may also call:
+// it accepts a parent or a caregiver with access, and returns the person's role
+// in m.Role. Endpoints that are parent-only check kind == errNotParent.
+func (s *Server) actingPerson(ctx context.Context, memberID uuid.UUID) (familyID uuid.UUID, m store.Member, kind errKind, err error) {
+	familyID, ok := ctx.Value(ctxKey{}).(uuid.UUID)
+	if !ok {
+		return uuid.Nil, store.Member{}, errUnauthorized, nil
+	}
+	m, err = s.q.GetPerson(ctx, store.GetPersonParams{ID: memberID, FamilyID: familyID})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return familyID, m, errNotFound, nil
+	}
+	return familyID, m, errNone, err
+}
+
+func isParentRole(role string) bool { return role == "mother" || role == "partner" }
 
 func familyFrom(ctx context.Context) (uuid.UUID, bool) {
 	id, ok := ctx.Value(ctxKey{}).(uuid.UUID)

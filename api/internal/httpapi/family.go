@@ -31,6 +31,10 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	if err != nil {
 		return Family{}, err
 	}
+	caregivers, err := s.q.ListCaregivers(ctx, id)
+	if err != nil {
+		return Family{}, err
+	}
 	children, err := s.q.ListChildren(ctx, id)
 	if err != nil {
 		return Family{}, err
@@ -47,7 +51,6 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 			out.GestationalWeek = &w
 		}
 	}
-	// Caregivers are not stored yet: the seed and a table come with the backend half of #1.
 
 	// There is no billing, so every family stays on free; an upgrade intent
 	// only shows as "upgrade requested".
@@ -64,6 +67,9 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	for _, m := range members {
 		out.Parents = append(out.Parents, Parent{Id: m.ID, Role: ParentRole(m.Role), DisplayName: m.DisplayName})
 	}
+	for _, c := range caregivers {
+		out.Caregivers = append(out.Caregivers, Caregiver{Id: c.ID, Role: CaregiverRole(c.Role), DisplayName: c.DisplayName, Permissions: permissionsOut(c.Permissions)})
+	}
 	for _, c := range children {
 		out.Children = append(out.Children, Child{Id: c.ID, Name: c.Name, BirthDate: openapi_types.Date{Time: c.BirthDate}, AgeMonths: monthsBetween(c.BirthDate, today)})
 	}
@@ -76,4 +82,12 @@ func monthsBetween(from, to time.Time) int {
 		m--
 	}
 	return max(m, 0)
+}
+
+func permissionsOut(in []string) []CaregiverPermission {
+	out := make([]CaregiverPermission, 0, len(in))
+	for _, p := range in {
+		out = append(out, CaregiverPermission(p))
+	}
+	return out
 }
