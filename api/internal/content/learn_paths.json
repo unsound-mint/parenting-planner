@@ -1,0 +1,1439 @@
+{
+ "about": "Learning paths for expecting parents, both partners. Lesson bodies are our own plain-language writing from the cited page; numbers were checked against the page text. Lessons with urgentHelpLink should link to the app's fixed Urgent help screen.",
+ "sources": {
+  "nichd-visits": {
+   "title": "NICHD: What Happens During Prenatal Visits",
+   "url": "https://www.nichd.nih.gov/health/topics/preconceptioncare/conditioninfo/prenatal-visits",
+   "checkedAt": "2026-11-14"
+  },
+  "nichd-healthy": {
+   "title": "NICHD: Healthy Pregnancy",
+   "url": "https://www.nichd.nih.gov/health/topics/preconceptioncare/conditioninfo/healthy-pregnancy",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-hearher": {
+   "title": "CDC Hear Her: Maternal Warning Signs",
+   "url": "https://www.cdc.gov/hearher/maternal-warning-signs/index.html",
+   "checkedAt": "2026-11-14"
+  },
+  "nhs-week-20": {
+   "title": "NHS Start for Life: Week 20",
+   "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-20/",
+   "checkedAt": "2026-11-14"
+  },
+  "nhs-week-23": {
+   "title": "NHS Start for Life: Week 23",
+   "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-23/",
+   "checkedAt": "2026-11-14"
+  },
+  "nichd-labor": {
+   "title": "NICHD: Start of Labor",
+   "url": "https://www.nichd.nih.gov/health/topics/labor-delivery/topicinfo/start-of-labor",
+   "checkedAt": "2026-11-14"
+  },
+  "nichd-pain": {
+   "title": "NICHD: Pain relief during labor and delivery",
+   "url": "https://www.nichd.nih.gov/health/topics/labor-delivery/topicinfo/pain-relief",
+   "checkedAt": "2026-11-14"
+  },
+  "nichd-cesarean": {
+   "title": "NICHD: Cesarean delivery",
+   "url": "https://www.nichd.nih.gov/health/topics/labor-delivery/topicinfo/c-section",
+   "checkedAt": "2026-11-14"
+  },
+  "medline-newborn": {
+   "title": "MedlinePlus: Newborn Screening",
+   "url": "https://medlineplus.gov/newbornscreening.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-hunger": {
+   "title": "CDC: Signs Your Child is Hungry or Full",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/mealtime/signs-your-child-is-hungry-or-full.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-bf-howmuch": {
+   "title": "CDC: How Much and How Often to Breastfeed",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/breastfeeding/how-much-and-how-often.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-formula-howmuch": {
+   "title": "CDC: How Much and How Often to Feed Infant Formula",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/formula-feeding/how-much-and-how-often.html",
+   "checkedAt": "2026-11-14"
+  },
+  "nichd-safesleep": {
+   "title": "NICHD Safe to Sleep: Ways to Reduce Baby's Risk",
+   "url": "https://safetosleep.nichd.nih.gov/reduce-risk/reduce",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-aht": {
+   "title": "CDC: About Abusive Head Trauma (coping with crying)",
+   "url": "https://www.cdc.gov/child-abuse-neglect/about/about-abusive-head-trauma.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-family-vacc": {
+   "title": "CDC: Vaccines for Family and Caregivers",
+   "url": "https://www.cdc.gov/vaccines-pregnancy/about/vaccines-family-caregivers.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-carseat": {
+   "title": "CDC: Child Passenger Safety, About",
+   "url": "https://www.cdc.gov/child-passenger-safety/about/index.html",
+   "checkedAt": "2026-11-14"
+  },
+  "dol-fmla28q": {
+   "title": "DOL WHD Fact Sheet 28Q: Taking Leave for Birth, Placement and Bonding under the FMLA",
+   "url": "https://www.dol.gov/agencies/whd/fact-sheets/28q-taking-leave-for-birth-placement-child",
+   "checkedAt": "2026-11-14"
+  },
+  "dol-newborns": {
+   "title": "DOL EBSA: Protections for Newborns, Adopted Children, and New Parents",
+   "url": "https://www.dol.gov/node/63379",
+   "checkedAt": "2026-11-14"
+  },
+  "hcgov-sep": {
+   "title": "HealthCare.gov: Special Enrollment Period (glossary)",
+   "url": "https://www.healthcare.gov/glossary/special-enrollment-period/",
+   "checkedAt": "2026-11-14"
+  },
+  "nimh-perinatal": {
+   "title": "NIMH: Perinatal Depression",
+   "url": "https://www.nimh.nih.gov/health/publications/perinatal-depression",
+   "checkedAt": "2026-11-14"
+  },
+  "psi-dads": {
+   "title": "Postpartum Support International: Help for Dads",
+   "url": "https://www.postpartum.net/get-help/help-for-dads/",
+   "checkedAt": "2026-11-14"
+  },
+  "psi-pmh": {
+   "title": "Postpartum Support International: Perinatal Mental Health",
+   "url": "https://postpartum.net/perinatal-mental-health/",
+   "checkedAt": "2026-11-14"
+  },
+  "frontiers-2022": {
+   "title": "Bogdan, Turliuc, Candel (2022) Transition to Parenthood and Marital Satisfaction: A Meta-Analysis, Frontiers in Psychology",
+   "url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2022.901362/full",
+   "checkedAt": "2026-11-14"
+  }
+ },
+ "paths": [
+  {
+   "id": "your-pregnancy",
+   "title": "Your pregnancy",
+   "icon": "a small seedling in a round pot",
+   "why": "Knowing the rhythm of the next months makes each visit, test and twinge less of a surprise, for both of you.",
+   "lessons": [
+    {
+     "id": "visit-rhythm",
+     "title": "The rhythm of prenatal visits",
+     "weeks": [
+      4,
+      12
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-visits",
+     "body": "Your first prenatal visit is usually one of the longest, so leave plenty of time and bring questions. The team will work out a due date from the first day of the last period and, depending on the week, an ultrasound. After that, visits follow a steady beat. Before 28 weeks they are about monthly. From 28 to 36 weeks they come every two weeks, and from 36 weeks until the birth, every week. At most visits someone checks how things are going, and once the bump shows they measure it to follow the baby's growth. Some visits add blood tests or an ultrasound. Knowing this pattern helps the two of you plan. A partner who wants to come along can book time off early, and the calendar stops being a pile of surprises. Treat each visit as a short check-in for the whole family: what is new, what is worrying you, and what you want to ask next time.",
+     "quiz": [
+      {
+       "question": "How often are prenatal visits before 28 weeks, in the usual schedule?",
+       "options": [
+        "Every week",
+        "About once a month",
+        "Every two weeks"
+       ],
+       "answer": "About once a month",
+       "why": "NICHD lists monthly visits before 28 weeks."
+      },
+      {
+       "question": "From week 36 to the birth, visits are usually...",
+       "options": [
+        "Weekly",
+        "Monthly",
+        "Only if something changes"
+       ],
+       "answer": "Weekly",
+       "why": "The schedule tightens to every week in the last stretch."
+      },
+      {
+       "question": "What is fundal height?",
+       "options": [
+        "A blood test",
+        "A measurement of the bump to follow growth",
+        "The baby's length on ultrasound"
+       ],
+       "answer": "A measurement of the bump to follow growth",
+       "why": "Once you begin to show, the abdomen is measured to check growth."
+      }
+     ],
+     "talkTonight": "Which visits does each of us want to go to together? Put two of them in the calendar tonight."
+    },
+    {
+     "id": "everyday-habits",
+     "title": "Food, coffee and everyday habits",
+     "weeks": [
+      5,
+      16
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-healthy",
+     "body": "A lot of pregnancy advice is about small daily choices, and it is easier when both of you share them. Fish is still on the menu: the FDA guidance quoted by NICHD allows up to 12 ounces a week of low-mercury fish such as salmon, canned light tuna and shrimp, with albacore tuna kept to 6 ounces. Raw fish, undercooked meat, deli meat and unpasteurized cheese are best skipped, so check the label on soft cheeses. Caffeine is something to limit rather than cut entirely; ask your provider what amount suits you. Alcohol, tobacco and drugs are the clear no. NICHD links all three to problems for the baby. If quitting is hard, your provider can help, and that goes for the partner too, since second-hand smoke counts. Shared habits are kinder: if one of you stops drinking for nine months, the other joining in makes it feel like a team project.",
+     "quiz": [
+      {
+       "question": "How much low-mercury fish a week does the FDA guidance quoted by NICHD allow?",
+       "options": [
+        "None",
+        "Up to 12 ounces",
+        "Up to 3 pounds"
+       ],
+       "answer": "Up to 12 ounces",
+       "why": "Low-mercury fish like salmon and shrimp is fine up to 12 ounces a week."
+      },
+      {
+       "question": "Which of these is best avoided in pregnancy?",
+       "options": [
+        "Pasteurized cheese",
+        "Deli meat",
+        "Cooked salmon"
+       ],
+       "answer": "Deli meat",
+       "why": "NICHD lists deli meat with raw fish, undercooked meat and unpasteurized cheese."
+      },
+      {
+       "question": "Does second-hand smoke matter in pregnancy?",
+       "options": [
+        "No, only the pregnant person's smoking counts",
+        "Yes, exposure can harm the fetus"
+       ],
+       "answer": "Yes, exposure can harm the fetus",
+       "why": "NICHD names second-hand smoke among the exposures that can harm the fetus."
+      }
+     ],
+     "talkTonight": "Which habit could we change together for the next months, so nobody does it alone?"
+    },
+    {
+     "id": "first-movements",
+     "title": "Getting to know the baby's movements",
+     "weeks": [
+      16,
+      28
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nhs-week-20",
+     "body": "Somewhere around the middle of pregnancy, many people feel the first movements. At first it is more like bubbling or fluttering than a kick, and it is easy to miss. NHS describes babies at this stage as busy: kicking, punching, turning and even sucking a thumb, which practices the reflex they will use to feed. Over the following weeks the movements get stronger, and later a partner may see the bump move or feel a kick with a hand in the right spot. What matters most is getting to know your own baby's pattern: when they tend to be busy, when they are quiet. That pattern becomes your reference. If movements ever slow down or stop, do not wait to see what happens; contact your care team right away. For now, enjoy it. Evenings on the sofa with a hand on the bump are one of the nicest parts of these months.",
+     "quiz": [
+      {
+       "question": "What do early movements often feel like?",
+       "options": [
+        "Sharp kicks",
+        "Bubbling or fluttering",
+        "Nothing at all until week 30"
+       ],
+       "answer": "Bubbling or fluttering",
+       "why": "NHS describes the first movements as a bubbling or fluttering."
+      },
+      {
+       "question": "What should you do if movements slow down or stop?",
+       "options": [
+        "Wait a few days",
+        "Contact your care team right away",
+        "Count kicks for a week first"
+       ],
+       "answer": "Contact your care team right away",
+       "why": "A change in movements is a reason to call, not to wait."
+      }
+     ],
+     "talkTonight": "When does the baby seem most active? Try a quiet ten minutes tonight with a hand on the bump.",
+     "extraSources": [
+      "cdc-hearher",
+      "nhs-week-23"
+     ]
+    },
+    {
+     "id": "warning-signs",
+     "title": "Warning signs both of you should know",
+     "weeks": [
+      18,
+      32
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-hearher",
+     "body": "Most pregnancies go smoothly, and this lesson is not meant to worry you. It is here so that if something serious happens, neither of you has to look it up in a hurry. CDC's Hear Her campaign lists signs that need medical care right away, during pregnancy and in the year after. They include a headache that will not go away or gets worse, dizziness or fainting, changes in vision, a fever of 100.4 F or higher, extreme swelling of the hands or face, trouble breathing, chest pain or a racing heart, severe belly pain that does not go away, the baby's movements slowing or stopping, vaginal bleeding or leaking fluid, severe swelling, redness or pain in a leg or arm, overwhelming tiredness, and thoughts of harming yourself or the baby. CDC also says: if something just does not feel right, talk to your provider. The partner matters here, because the person who is unwell may play it down. You both have permission to call.",
+     "quiz": [
+      {
+       "question": "At what temperature does CDC list fever as a warning sign?",
+       "options": [
+        "99.0 F",
+        "100.4 F or higher",
+        "103 F or higher"
+       ],
+       "answer": "100.4 F or higher",
+       "why": "Hear Her lists a fever of 100.4 F or higher."
+      },
+      {
+       "question": "Do the warning signs only apply during pregnancy?",
+       "options": [
+        "Yes",
+        "No, they also apply in the year after birth"
+       ],
+       "answer": "No, they also apply in the year after birth",
+       "why": "Hear Her covers pregnancy and the year after."
+      },
+      {
+       "question": "What does CDC suggest if something just does not feel right?",
+       "options": [
+        "Wait until the next visit",
+        "Talk to your provider",
+        "Search online first"
+       ],
+       "answer": "Talk to your provider",
+       "why": "You do not need to be sure it is serious to call."
+      }
+     ],
+     "talkTonight": "Save your provider's after-hours number in both phones tonight, and agree that either of you can make the call.",
+     "urgentHelpLink": true
+    }
+   ],
+   "stages": [
+    "pregnancy"
+   ]
+  },
+  {
+   "id": "birth",
+   "title": "Birth",
+   "icon": "a sunrise over a soft hill",
+   "why": "Labor is easier to face when you have talked it through before it starts, including the parts that might not go to plan.",
+   "lessons": [
+    {
+     "id": "how-labor-starts",
+     "title": "How labor starts",
+     "weeks": [
+      30,
+      38
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-labor",
+     "body": "A due date is a best guess. NICHD says that for most women labor begins somewhere between week 37 and week 42, and that unless an earlier birth is medically needed, waiting until at least 39 weeks gives mother and baby the best chance. The main sign of labor is contractions that come regularly and, over time, get stronger, last longer and come more often. False labor feels different: the contractions are weak or irregular, or they stop when you change position. Other signs can include the baby dropping lower, which can make breathing easier, a clear, pink or slightly bloody discharge called the show, a low, dull backache, cramps like period cramps, and a gush or trickle of fluid when the waters break. NICHD's guide is to let your provider know when contractions come regularly every 5 to 10 minutes for an hour. Regular, frequent contractions before 37 weeks can be a sign of preterm labor, so call your provider or go to the hospital. Ask your team early what their own rule is for when to come in, since some prefer that you wait for active labor.",
+     "quiz": [
+      {
+       "question": "When does labor usually start?",
+       "options": [
+        "Exactly on the due date",
+        "Somewhere between week 37 and week 42",
+        "Only after week 40"
+       ],
+       "answer": "Somewhere between week 37 and week 42",
+       "why": "NICHD says most labors begin between week 37 and week 42 of pregnancy."
+      },
+      {
+       "question": "Contractions have come regularly every 5 to 10 minutes for an hour. What now?",
+       "options": [
+        "Wait for the waters to break first",
+        "Let your provider know"
+       ],
+       "answer": "Let your provider know",
+       "why": "NICHD advises telling your provider when regular contractions come every 5 to 10 minutes for an hour."
+      },
+      {
+       "question": "Regular, frequent contractions start at week 33. What do you do?",
+       "options": [
+        "Wait and see if they settle by morning",
+        "Call your provider or go to the hospital"
+       ],
+       "answer": "Call your provider or go to the hospital",
+       "why": "Before 37 weeks this can be preterm labor, and NICHD says to notify a provider or go to the hospital."
+      }
+     ],
+     "talkTonight": "Who will drive, who calls the hospital, and what happens with work or pets if labor starts at 3 a.m.?"
+    },
+    {
+     "id": "pain-relief",
+     "title": "Pain relief: the options",
+     "weeks": [
+      28,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-pain",
+     "body": "How much labor hurts differs a lot from person to person and from birth to birth, and there is no prize for going without help. NICHD describes two broad routes, which many people combine. Medicines include analgesics, which dull pain without taking away all feeling, and anesthetics, which block feeling. In the US the most common choice is regional pain relief, mainly the epidural: a thin tube placed in the lower back so medicine can keep flowing while you stay awake. It usually starts working within 10 to 20 minutes. A spinal block works right away but lasts only an hour or two. Non-medicine methods include continuous support from someone you trust, breathing and relaxation, music, a TENS unit, and sterile water injections for back pain. The best time to learn the options is now, not mid-contraction. Ask your provider what is available where you plan to give birth, and write your preferences down so everyone in the room knows them.",
+     "quiz": [
+      {
+       "question": "What is the most common way to relieve labor pain in the US?",
+       "options": [
+        "General anesthesia",
+        "Regional pain relief such as an epidural",
+        "No pain relief"
+       ],
+       "answer": "Regional pain relief such as an epidural",
+       "why": "NICHD names regional analgesia as the most common in the US."
+      },
+      {
+       "question": "How soon does an epidural usually start working?",
+       "options": [
+        "Right away",
+        "About 10 to 20 minutes",
+        "About 2 hours"
+       ],
+       "answer": "About 10 to 20 minutes",
+       "why": "NICHD gives 10 to 20 minutes."
+      },
+      {
+       "question": "Which of these is a non-medicine method NICHD lists?",
+       "options": [
+        "Continuous support from someone you trust",
+        "A spinal block",
+        "Local anesthesia"
+       ],
+       "answer": "Continuous support from someone you trust",
+       "why": "Continuous labor support is on the natural methods list."
+      }
+     ],
+     "talkTonight": "What would each of us like to try first for pain, and how will the partner know when to speak up for it?"
+    },
+    {
+     "id": "cesarean",
+     "title": "If the birth becomes a cesarean",
+     "weeks": [
+      30,
+      38
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-cesarean",
+     "body": "In 2015 about a third of US births were cesareans, according to CDC data quoted by NICHD, so it is worth knowing how one goes even if you plan a vaginal birth. A cesarean is surgery: the baby is born through a cut in the belly and uterus, which is then closed with stitches that dissolve. NICHD lists common reasons: labor that is not progressing, a baby who needs to be born quickly, a baby lying feet first or sideways, twins or more, problems with the placenta, some infections, or the parent's own health. Pain relief is usually an epidural or spinal block, which numbs the lower body; general anesthesia, where you are asleep, is often used for emergency cesareans. Ask your hospital now about who can be with you. The hospital stay is often longer than after a vaginal birth. Talking it through now means that if plans change on the day, it feels like a path you already know about rather than a failure. Either way of giving birth brings your baby home.",
+     "quiz": [
+      {
+       "question": "Which kinds of pain relief does NICHD list for a cesarean?",
+       "options": [
+        "Epidural, spinal block or general anesthesia",
+        "Only general anesthesia",
+        "No pain relief"
+       ],
+       "answer": "Epidural, spinal block or general anesthesia",
+       "why": "NICHD names all three; general anesthesia is often used in emergencies."
+      },
+      {
+       "question": "Which is a common reason for a cesarean?",
+       "options": [
+        "The baby is lying feet first",
+        "The pregnancy is past 37 weeks",
+        "The parent asked for an epidural"
+       ],
+       "answer": "The baby is lying feet first",
+       "why": "A breech position is one of the reasons NICHD lists."
+      }
+     ],
+     "talkTonight": "If the birth changes plan, what matters most to each of us in that moment? Who holds the baby first?"
+    },
+    {
+     "id": "first-checks",
+     "title": "The newborn's first checks",
+     "weeks": [
+      34,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "medline-newborn",
+     "body": "Before you leave the hospital, your baby will have a few screening tests. They are routine and done for every baby. A few drops of blood are taken by pricking the baby's heel, to look for inherited disorders. Every state tests for at least 30 of these, and the exact list depends on where you live. There is a hearing test that measures how the baby responds to sound. And there is a quick skin sensor that checks the oxygen level in the blood, which can pick up some heart conditions. Ask your team which tests your state includes and how you will get the results, so nobody is left wondering. A partner can take this job on while the birth parent rests.",
+     "quiz": [
+      {
+       "question": "How many conditions do all states screen for, at minimum, in the heel prick test?",
+       "options": [
+        "5",
+        "At least 30",
+        "Over 300"
+       ],
+       "answer": "At least 30",
+       "why": "MedlinePlus says all states test for at least 30."
+      },
+      {
+       "question": "What does the skin oxygen check look for?",
+       "options": [
+        "Jaundice",
+        "Some heart conditions",
+        "Hearing loss"
+       ],
+       "answer": "Some heart conditions",
+       "why": "Low blood oxygen can point to a congenital heart defect."
+      }
+     ],
+     "talkTonight": "Who will ask about the screening results, and where will we keep the baby's papers?"
+    }
+   ],
+   "stages": [
+    "pregnancy"
+   ]
+  },
+  {
+   "id": "feeding",
+   "title": "Feeding",
+   "icon": "a small bottle and a crescent moon",
+   "why": "Breast milk, formula or both: knowing the basics before the baby arrives takes a lot of guesswork out of the first weeks.",
+   "lessons": [
+    {
+     "id": "reading-cues",
+     "title": "Reading hunger and fullness cues",
+     "weeks": [
+      26,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-hunger",
+     "body": "Newborns cannot tell you they are hungry, but they do tell you. CDC lists the early hunger signs for babies up to five months: hands going to the mouth, turning the head toward the breast or bottle, puckering, smacking or licking the lips, and clenched little fists. Spotting these early signs lets you start feeding before the baby gets upset. Fullness has its own signals: the mouth closes, the head turns away, and the hands relax. Following these cues works the same way for breast milk and formula. It also means you do not have to push a baby to finish a bottle. This is a skill both parents can learn equally well, and it is a lovely thing to practice together in the first days: watching the baby and naming what you see.",
+     "quiz": [
+      {
+       "question": "Which is an early hunger cue?",
+       "options": [
+        "Relaxed hands",
+        "Hands to the mouth",
+        "Turning away from the bottle"
+       ],
+       "answer": "Hands to the mouth",
+       "why": "CDC lists hands to the mouth as a hunger sign."
+      },
+      {
+       "question": "Relaxed hands and turning away usually mean...",
+       "options": [
+        "Still hungry",
+        "Full",
+        "Tired of the position"
+       ],
+       "answer": "Full",
+       "why": "Both are on CDC's fullness list."
+      }
+     ],
+     "talkTonight": "How do we each imagine feeding at night? Is there a feed the partner could own?"
+    },
+    {
+     "id": "breastfeeding-rhythm",
+     "title": "The breastfeeding rhythm",
+     "weeks": [
+      28,
+      38
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-bf-howmuch",
+     "body": "If you plan to breastfeed, expect it to be frequent at first. CDC says most exclusively breastfed babies feed every two to four hours, around 8 to 12 times in 24 hours. That rhythm is normal, not a sign that something is wrong. Feeds will not all be the same length. A baby who has had enough usually seems content and drowsy afterward. If you are unsure whether the baby is getting enough, or how they are growing, ask the baby's doctor or nurse; that is exactly the kind of question they want to hear. For the partner, those 8 to 12 feeds are the shape of the day and night, and there is a lot to do around them: bringing water and snacks, burping and changing, and taking the baby afterward so the feeding parent can sleep. Breastfeeding is a skill for two people to learn, and it often takes some days to click.",
+     "quiz": [
+      {
+       "question": "How many times in 24 hours does a newborn breastfeed, according to CDC?",
+       "options": [
+        "3 to 4",
+        "8 to 12",
+        "20 or more"
+       ],
+       "answer": "8 to 12",
+       "why": "CDC gives 8 to 12 times in 24 hours."
+      },
+      {
+       "question": "What is a sign a baby has had enough milk?",
+       "options": [
+        "Content and drowsy after feeding",
+        "Crying right after",
+        "Clenched fists"
+       ],
+       "answer": "Content and drowsy after feeding",
+       "why": "CDC describes content and drowsy after a feed."
+      }
+     ],
+     "talkTonight": "What could the partner take on around each feed so the feeding parent gets real rest?"
+    },
+    {
+     "id": "formula-basics",
+     "title": "Formula feeding basics",
+     "weeks": [
+      28,
+      38
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-formula-howmuch",
+     "body": "Some families use formula from the start, some combine it with breast milk, and some switch later. All of these are ways to feed a baby well. CDC suggests offering a newborn 1 to 2 ounces of formula every two to three hours in the first days of life. Like breastfed babies, most formula-fed newborns feed 8 to 12 times in 24 hours. As the baby grows, so does their stomach, and they will drink more at each feed and space feeds to about every three to four hours. Babies generally take what they need and stop when they are full, so watch the baby rather than the bottle markings. Feeds vary in length, and that is normal. If you need to wake a sleepy baby to feed, patting, stroking, undressing or a diaper change can help. The baby's doctor or nurse can tell you how much is right for your baby as they grow.",
+     "quiz": [
+      {
+       "question": "How much formula does CDC suggest offering in the first days?",
+       "options": [
+        "1 to 2 ounces every 2 to 3 hours",
+        "6 ounces every 6 hours",
+        "As much as the baby can finish"
+       ],
+       "answer": "1 to 2 ounces every 2 to 3 hours",
+       "why": "That is CDC's starting guide for the first days."
+      },
+      {
+       "question": "Should a baby always finish the bottle?",
+       "options": [
+        "Yes, to get enough",
+        "No, babies usually stop when full"
+       ],
+       "answer": "No, babies usually stop when full",
+       "why": "CDC says babies generally take what they need."
+      }
+     ],
+     "talkTonight": "Are we planning breast milk, formula or both? What would make us feel fine about changing plans?"
+    },
+    {
+     "id": "feeding-safe-nights",
+     "title": "Night feeds, safely",
+     "weeks": [
+      32,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-safesleep",
+     "body": "Night feeds are when exhaustion and a warm baby meet, so it helps to plan them before the baby arrives. Safe to Sleep, the NICHD program based on the AAP task force, suggests keeping the baby's crib or bassinet in your room, close to your bed, for at least the first six months. That makes it easy to feed and comfort without getting all the way up. If you bring the baby into your bed to feed, clear pillows and blankets from your side first, and put the baby back in their own space when you are done. If you fall asleep while feeding in bed, move the baby back as soon as you wake. The one place to avoid completely is the couch or armchair, which is very risky if an adult dozes off. A partner can help a lot here: doing the handoff, settling the baby back down, and noticing when the feeding parent is too tired.",
+     "quiz": [
+      {
+       "question": "Where does Safe to Sleep say a baby should sleep for at least the first six months?",
+       "options": [
+        "In the parents' bed",
+        "In their own crib or bassinet in the parents' room",
+        "In their own room"
+       ],
+       "answer": "In their own crib or bassinet in the parents' room",
+       "why": "Room sharing without bed sharing is the advice."
+      },
+      {
+       "question": "Where should you never feed if you might fall asleep?",
+       "options": [
+        "In bed with soft items cleared",
+        "On a couch or armchair"
+       ],
+       "answer": "On a couch or armchair",
+       "why": "Safe to Sleep calls couches and armchairs never safe for baby sleep."
+      }
+     ],
+     "talkTonight": "Where will the bassinet go, and how will we hand the baby back and forth at night?"
+    }
+   ],
+   "stages": [
+    "pregnancy",
+    "postpartum",
+    "infant"
+   ]
+  },
+  {
+   "id": "first-weeks",
+   "title": "Sleep and the first weeks",
+   "icon": "a crib under a paper moon",
+   "why": "The first weeks are mostly about sleep, crying and small routines. A little preparation keeps everyone safer and calmer.",
+   "lessons": [
+    {
+     "id": "safe-sleep",
+     "title": "Safe sleep, the short version",
+     "weeks": [
+      26,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nichd-safesleep",
+     "body": "Safe sleep advice can feel endless, but the core fits on a sticky note. Back to sleep, every sleep, until the first birthday, including naps and including babies born early or with reflux. Once a baby can roll both ways on their own, you can leave them in the position they choose. The sleep surface should be firm, flat and level, with only a fitted sheet. No pillows, blankets, bumpers, soft toys or weighted products in the sleep space. Car seats, strollers, carriers and slings are not for regular sleep; if the baby nods off in one, move them to their crib when you can. Share a room, not a bed, for at least six months. Safe to Sleep is clear that this is for everyone who looks after the baby, so pass it on to grandparents and sitters too. Setting up the crib together before the birth is a good, concrete way to get it right.",
+     "quiz": [
+      {
+       "question": "What should be in the crib with a newborn?",
+       "options": [
+        "A pillow and a light blanket",
+        "Only a fitted sheet",
+        "Bumpers and one soft toy"
+       ],
+       "answer": "Only a fitted sheet",
+       "why": "Safe to Sleep says to remove everything but a fitted sheet."
+      },
+      {
+       "question": "Is it fine for a baby to sleep in the car seat at home?",
+       "options": [
+        "Yes",
+        "No, move them to their regular sleep space"
+       ],
+       "answer": "No, move them to their regular sleep space",
+       "why": "Sitting devices are not for regular sleep."
+      },
+      {
+       "question": "Until what age should babies be placed on their backs to sleep?",
+       "options": [
+        "3 months",
+        "6 months",
+        "1 year"
+       ],
+       "answer": "1 year",
+       "why": "Safe to Sleep says back to sleep until age 1."
+      }
+     ],
+     "talkTonight": "Who else will put our baby to sleep? How will we share the rules with them?"
+    },
+    {
+     "id": "crying",
+     "title": "When the crying feels endless",
+     "weeks": [
+      32,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-aht",
+     "body": "All babies cry, and some cry for long stretches that nothing seems to fix. CDC is clear that long periods of crying are normal infant behavior, even though it rarely feels normal at 2 a.m. There are things to try: swaddling, holding the baby skin to skin, a pacifier, gentle rocking, singing or talking softly, or a walk in the stroller. Some nights none of it works, and that is not your failure. What matters most then is you. If you feel your frustration rising, put the baby down on their back in a safe place like the crib, step away, and calm yourself, checking on them every 5 to 10 minutes. Then call someone: your partner, a friend, a relative, or the baby's doctor. Never shake a baby. Agreeing on a tag-out plan now, before the tiredness, makes it easier for either of you to say: I need a break, can you take over?",
+     "quiz": [
+      {
+       "question": "Is long, inconsolable crying normal in young babies?",
+       "options": [
+        "Yes, CDC calls it normal infant behavior",
+        "No, it always means something is wrong"
+       ],
+       "answer": "Yes, CDC calls it normal infant behavior",
+       "why": "Crying, even for long periods, is normal for infants."
+      },
+      {
+       "question": "What can you do if frustration is building?",
+       "options": [
+        "Put the baby down safely and step away for a few minutes",
+        "Keep rocking faster",
+        "Leave the baby with a sibling"
+       ],
+       "answer": "Put the baby down safely and step away for a few minutes",
+       "why": "CDC suggests a safe place, a break and checks every 5 to 10 minutes."
+      }
+     ],
+     "talkTonight": "What will our tag-out word be when one of us needs a break from the crying?"
+    },
+    {
+     "id": "visitors-vaccines",
+     "title": "Visitors, hugs and vaccines",
+     "weeks": [
+      28,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-family-vacc",
+     "body": "Everyone will want to meet the baby, and that is a lovely problem to have. It also helps to plan it. CDC says anyone who spends time around babies should be up to date on routine vaccines, especially whooping cough (Tdap for adults) and the flu shot in flu season. The timing matters: those who need either vaccine should get it at least two weeks before meeting the baby, so their body has time to make antibodies. That includes both parents, grandparents, regular sitters and anyone who will help in the early weeks. Asking can feel awkward, so make it a shared message from both of you, sent well before the due date, rather than a conversation at the door. Visitors can also help in other ways: bringing a meal, doing a load of laundry, holding the baby while you shower. Deciding who comes when, and for how long, is part of protecting your first weeks.",
+     "quiz": [
+      {
+       "question": "How long before meeting the baby should visitors get Tdap or a flu shot, if needed?",
+       "options": [
+        "The same day",
+        "At least two weeks",
+        "Six months"
+       ],
+       "answer": "At least two weeks",
+       "why": "CDC says at least two weeks so antibodies can develop."
+      },
+      {
+       "question": "Who should be up to date on vaccines?",
+       "options": [
+        "Only the parents",
+        "Anyone who is around the baby"
+       ],
+       "answer": "Anyone who is around the baby",
+       "why": "CDC means everyone around babies, including grandparents and sitters."
+      }
+     ],
+     "talkTonight": "Who do we want to see in the first two weeks, and who can wait? Let's write the message to family together."
+    },
+    {
+     "id": "baby-blues",
+     "title": "Baby blues, or something more",
+     "weeks": [
+      30,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nimh-perinatal",
+     "body": "In the first two weeks after birth, many new mothers have what is called the baby blues: mood swings, tearfulness, worry and exhaustion that come and go. Around-the-clock care is hard, and feeling tired or overwhelmed sometimes is normal. NIMH describes the line to watch for. If the low mood, anxiety or unhappiness is severe, or lasts longer than two weeks, it may be postpartum depression, which is common, treatable and nobody's fault. Most episodes start within four to eight weeks after the birth. Signs can include a persistent sad or empty mood, sleeping badly even when the baby sleeps, losing interest in things, and trouble bonding with the baby. Therapy, medicine or both help most people feel better. Partners are often the first to notice, so it is worth agreeing now that either of you can raise it, gently, without it being a judgment. You do not need to be sure before you talk to a provider.",
+     "quiz": [
+      {
+       "question": "How long do baby blues usually last?",
+       "options": [
+        "About two weeks",
+        "Six months",
+        "A year"
+       ],
+       "answer": "About two weeks",
+       "why": "NIMH describes baby blues in the first two weeks after birth."
+      },
+      {
+       "question": "When do most episodes of perinatal depression begin?",
+       "options": [
+        "Before pregnancy",
+        "Within 4 to 8 weeks after birth",
+        "After the first birthday"
+       ],
+       "answer": "Within 4 to 8 weeks after birth",
+       "why": "NIMH gives 4 to 8 weeks after birth."
+      },
+      {
+       "question": "Is postpartum depression treatable?",
+       "options": [
+        "Yes",
+        "No, it just has to pass"
+       ],
+       "answer": "Yes",
+       "why": "NIMH says with treatment most women feel better."
+      }
+     ],
+     "talkTonight": "How would you want me to bring it up if I noticed you were struggling?",
+     "urgentHelpLink": true
+    }
+   ],
+   "stages": [
+    "pregnancy",
+    "postpartum",
+    "infant"
+   ]
+  },
+  {
+   "id": "couple",
+   "title": "Your relationship",
+   "icon": "two overlapping circles, one in each parent's color",
+   "why": "A baby changes the couple too. Research shows it is a common strain, and couples who talk about it early have a head start.",
+   "lessons": [
+    {
+     "id": "research-on-couples",
+     "title": "What research says about couples after a baby",
+     "weeks": [
+      12,
+      24
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "frontiers-2022",
+     "body": "Here is a fact worth knowing early: relationship satisfaction usually dips after a baby arrives, for both partners. A 2022 meta-analysis that pooled many studies found a medium decline from pregnancy to the baby's first birthday, for mothers and fathers alike, and a smaller further dip in the second year. Couples without children showed some decline over the same time, too, so part of it is simply time passing. Age, gender and how long the couple had been together did not change the picture. This is not a prediction about your relationship. It is a reminder that if things feel harder next year, you are not failing; you are having the common experience, with less sleep. Knowing that tends to make it easier to say out loud. The good news is that you have months now to build habits, like a weekly check-in, that are much harder to start when you are both exhausted.",
+     "quiz": [
+      {
+       "question": "What happens to relationship satisfaction in the first year after a baby, on average?",
+       "options": [
+        "It rises",
+        "It dips for both partners",
+        "It dips only for mothers"
+       ],
+       "answer": "It dips for both partners",
+       "why": "The meta-analysis found a medium decline for mothers and fathers."
+      },
+      {
+       "question": "Does the dip mean a relationship is in trouble?",
+       "options": [
+        "Yes",
+        "No, it is a common pattern"
+       ],
+       "answer": "No, it is a common pattern",
+       "why": "It is an average across many couples, not a verdict on yours."
+      }
+     ],
+     "talkTonight": "What is one small ritual of ours we want to protect after the baby comes?"
+    },
+    {
+     "id": "sharing-nights",
+     "title": "Planning the nights together",
+     "weeks": [
+      26,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-bf-howmuch",
+     "body": "Newborns feed 8 to 12 times in 24 hours, according to CDC, and that does not pause at night. Who does what at 3 a.m. is one of the most common sources of friction for new parents, mostly because nobody planned it. A plan helps, and it does not need to be fair to the minute. It needs to be clear. Some couples split the night into two shifts, so each person gets one longer stretch of sleep. Others divide by task: one feeds, the other changes, burps and settles. If one parent is breastfeeding, the other can own everything around the feed and take the early morning so the feeding parent can sleep. Agree in advance what happens on the hard nights, and check in after the first week to adjust. Writing it down sounds silly, but a shared note you made calmly in week 30 is easier to follow than a negotiation at 3 a.m.",
+     "quiz": [
+      {
+       "question": "How many times a day does a newborn usually feed, per CDC?",
+       "options": [
+        "3 to 4",
+        "8 to 12",
+        "Only during the day"
+       ],
+       "answer": "8 to 12",
+       "why": "CDC gives 8 to 12 feeds in 24 hours, day and night."
+      },
+      {
+       "question": "What matters most in a night plan?",
+       "options": [
+        "That it is clear and agreed",
+        "That it is exactly 50/50"
+       ],
+       "answer": "That it is clear and agreed",
+       "why": "A clear plan beats a perfectly even one you renegotiate nightly."
+      }
+     ],
+     "talkTonight": "Shifts or tasks? Sketch a first version of our night plan, and pick a day to review it after the birth."
+    },
+    {
+     "id": "feelings-both-ways",
+     "title": "Feelings run both ways",
+     "weeks": [
+      18,
+      32
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "psi-pmh",
+     "body": "Pregnancy and the first year bring big feelings to both parents, and not all of them are happy. Postpartum Support International says that about 1 in 5 mothers and fathers report symptoms of depression or anxiety in the first year after birth, and the real number may be higher. These are the most common complications of having a baby, and they are treatable. You do not need a diagnosis to ask for help. Risk is higher with a personal or family history of depression or anxiety, or a big recent life event like a move or a job loss, which is worth telling your provider about now so a plan is in place. In a couple, it helps to talk about feelings in both directions, not just to ask how the pregnant partner is doing. A short weekly question, like how are you really, from each of you to the other, keeps the door open.",
+     "quiz": [
+      {
+       "question": "About how many mothers and fathers report depression or anxiety symptoms in the first year?",
+       "options": [
+        "1 in 100",
+        "1 in 5",
+        "1 in 2"
+       ],
+       "answer": "1 in 5",
+       "why": "PSI gives about 1 in 5 moms and dads."
+      },
+      {
+       "question": "Do you need a diagnosis to reach out for help?",
+       "options": [
+        "Yes",
+        "No"
+       ],
+       "answer": "No",
+       "why": "PSI says no diagnosis is needed to ask for help."
+      }
+     ],
+     "talkTonight": "How are you really feeling about becoming a parent? Answer it for yourself first, then for each other."
+    },
+    {
+     "id": "us-time",
+     "title": "Keeping some time for us",
+     "weeks": [
+      30,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "frontiers-2022",
+     "body": "When the baby comes, the couple easily turns into a logistics team. The 2022 meta-analysis on couples found satisfaction keeps sliding a little into the second year, so it is worth deciding now what you will protect. It does not have to be a date night. It can be ten minutes on the sofa after the last feed with phones away, a walk with the stroller where you talk about anything but the baby, or a weekly check-in where each of you says one thing that went well and one thing you need. The point is to keep seeing each other as partners, not only as co-workers on a night shift. Ask family or friends to cover an hour now and then, and accept the offer when it comes. Plan it now, while you still have time to imagine what you would miss most.",
+     "quiz": [
+      {
+       "question": "What does the meta-analysis find in the second year after birth?",
+       "options": [
+        "A small further decline",
+        "A full recovery",
+        "No data"
+       ],
+       "answer": "A small further decline",
+       "why": "It reports a small decline between 12 and 24 months for both."
+      },
+      {
+       "question": "Does keeping time for each other require a babysitter and a night out?",
+       "options": [
+        "Yes",
+        "No, short regular moments count"
+       ],
+       "answer": "No, short regular moments count",
+       "why": "Small rituals are easier to keep than big plans."
+      }
+     ],
+     "talkTonight": "What would we miss most about us right now? Let's name it so we protect it."
+    }
+   ],
+   "stages": [
+    "planning",
+    "trying",
+    "pregnancy",
+    "postpartum",
+    "infant",
+    "toddler",
+    "preschool",
+    "school_age"
+   ]
+  },
+  {
+   "id": "partner",
+   "title": "Being a partner",
+   "icon": "a pair of hands holding a tiny sock",
+   "why": "Partners are parents from day one. This path is for the dad, co-mother or partner who is not carrying the baby.",
+   "lessons": [
+    {
+     "id": "show-up",
+     "title": "Showing up from the start",
+     "weeks": [
+      6,
+      20
+     ],
+     "audience": "partner",
+     "readingMinutes": 1,
+     "source": "nichd-visits",
+     "body": "You are not carrying the baby, but you are already a parent, and the visits are a good place to start acting like one. Prenatal visits follow a set rhythm, about monthly until 28 weeks, then every two weeks, then weekly from 36 weeks. That makes them easy to plan around work. Coming along, even to some of them, means you hear the same information first hand, you can ask your own questions, and you will not be relying on a summary later. It also tells your partner, quietly, that this is shared. If you cannot be there, ask for a quick call afterward and keep your own notes. Small, concrete things count: owning the visit calendar, booking the time off, keeping the list of questions. You will also start to know the care team by name, which helps a lot on the day of the birth, when they are the people you will be talking to.",
+     "quiz": [
+      {
+       "question": "How often are visits from 28 to 36 weeks?",
+       "options": [
+        "Monthly",
+        "Every two weeks",
+        "Weekly"
+       ],
+       "answer": "Every two weeks",
+       "why": "NICHD lists every two weeks from 28 to 36 weeks."
+      },
+      {
+       "question": "Which is a concrete way for a partner to help with visits?",
+       "options": [
+        "Owning the calendar and the question list",
+        "Waiting to be told what happened"
+       ],
+       "answer": "Owning the calendar and the question list",
+       "why": "Owning a job makes the support real and visible."
+      }
+     ],
+     "talkTonight": "Which questions do I want to ask at the next visit? Add them to our shared list."
+    },
+    {
+     "id": "birth-support",
+     "title": "Your role in the birth room",
+     "weeks": [
+      30,
+      39
+     ],
+     "audience": "partner",
+     "readingMinutes": 1,
+     "source": "nichd-pain",
+     "body": "One thing NICHD lists among natural pain relief methods is simply continuous support: someone who stays, reassures, helps and advocates throughout labor. That someone can be you. Your job is not to know the medicine. It is to know your partner's wishes and to be calm, present and practical. Learn the pain relief options beforehand and know which ones your partner wants to try first. Help with breathing, music, position changes, water and ice. Keep track of the questions the team asks and the decisions made, so your partner does not have to hold everything. Speak up when your partner cannot, and ask the team to explain things when you are not sure. It is also fine to feel scared, useless or overwhelmed for a moment. Step out for air if you need it, then come back. A doula or another support person can share the load, which many couples find helpful.",
+     "quiz": [
+      {
+       "question": "What does NICHD call the support of someone who stays through labor?",
+       "options": [
+        "Continuous labor support",
+        "Induction",
+        "Analgesia"
+       ],
+       "answer": "Continuous labor support",
+       "why": "It is listed among natural pain relief methods."
+      },
+      {
+       "question": "Do you need medical knowledge to be a good birth partner?",
+       "options": [
+        "Yes",
+        "No, knowing their wishes and staying present matters most"
+       ],
+       "answer": "No, knowing their wishes and staying present matters most",
+       "why": "Support is about presence and advocacy, not medicine."
+      }
+     ],
+     "talkTonight": "What do you want me to do, and not do, when labor gets hard?"
+    },
+    {
+     "id": "partner-mental-health",
+     "title": "Your own mental health matters",
+     "weeks": [
+      20,
+      40
+     ],
+     "audience": "partner",
+     "readingMinutes": 1,
+     "source": "psi-dads",
+     "body": "Partners often put their own feelings aside to be the steady one. That is generous, but it is not the whole story. Postpartum Support International notes that about one in ten dads experiences postpartum depression, and 5 to 15 percent develop an anxiety disorder at some point during the pregnancy or the first year. None of this makes you a bad parent or a weak partner, and it is treatable. PSI offers a HelpLine, peer support groups for dads, and a directory of perinatal mental health providers. Looking after yourself is part of looking after your family: sleep where you can, keep a friend or two in the loop, and tell your partner how you are doing, not just how you are coping. If you notice something is off, talk to your own doctor.",
+     "quiz": [
+      {
+       "question": "About how many dads experience postpartum depression, according to PSI?",
+       "options": [
+        "1 in 100",
+        "1 in 10",
+        "1 in 2"
+       ],
+       "answer": "1 in 10",
+       "why": "PSI cites studies showing one in ten dads."
+      },
+      {
+       "question": "Is perinatal depression in dads treatable?",
+       "options": [
+        "Yes",
+        "No"
+       ],
+       "answer": "Yes",
+       "why": "PSI stresses these conditions are treatable."
+      }
+     ],
+     "talkTonight": "How am I really doing? Tell your partner one honest thing tonight.",
+     "urgentHelpLink": true
+    },
+    {
+     "id": "car-seat",
+     "title": "The first drive home",
+     "weeks": [
+      32,
+      38
+     ],
+     "audience": "partner",
+     "readingMinutes": 1,
+     "source": "cdc-carseat",
+     "body": "The car seat is often the partner's project, and it is a good one to finish early, well before the due date. CDC's guidance for babies is simple: use a rear-facing car seat with a harness, and keep the child rear-facing as long as possible, until they reach the seat's own weight or height limit. Never put a rear-facing seat in the front seat. Install it in the back well before the due date, read both the seat manual and the car manual, and practice buckling with a doll or a rolled towel. The first drive home is a quiet, slightly unreal moment, and you will be glad the seat was the one thing you did not have to think about.",
+     "quiz": [
+      {
+       "question": "Which way should a newborn's car seat face?",
+       "options": [
+        "Forward",
+        "Rear-facing",
+        "Either"
+       ],
+       "answer": "Rear-facing",
+       "why": "CDC says rear-facing with a harness from birth."
+      },
+      {
+       "question": "Where should a rear-facing seat never go?",
+       "options": [
+        "The back seat",
+        "The front seat"
+       ],
+       "answer": "The front seat",
+       "why": "CDC: never place a rear-facing seat in the front seat."
+      }
+     ],
+     "talkTonight": "When will we install the car seat, and who will check it?"
+    }
+   ],
+   "stages": [
+    "pregnancy"
+   ]
+  },
+  {
+   "id": "money-leave",
+   "title": "Money, leave and paperwork",
+   "icon": "a little envelope with a heart stamp",
+   "why": "Leave rules and insurance deadlines are easy to miss. Sorting them out before the birth frees the first weeks for the baby.",
+   "lessons": [
+    {
+     "id": "fmla-basics",
+     "title": "Family leave: what FMLA covers",
+     "weeks": [
+      12,
+      24
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dol-fmla28q",
+     "body": "The Family and Medical Leave Act gives eligible employees up to 12 weeks of job-protected leave for a birth and for bonding with a new child, and it applies to both parents. It covers private employers with 50 or more employees, and all public agencies and schools. You qualify if you have worked there at least 12 months, for at least 1,250 hours in the past year, at a site with 50 employees within 75 miles. Bonding leave can be taken any time in the 12 months after the birth. FMLA leave is unpaid, but it can run at the same time as paid leave your employer offers, so ask HR what you have. Give at least 30 days' notice when you can. This applies to adoptive and foster parents too, counted from the placement date. Each partner should check their own eligibility, since it can differ.",
+     "quiz": [
+      {
+       "question": "How many weeks of job-protected leave does FMLA give for a birth?",
+       "options": [
+        "6",
+        "Up to 12",
+        "26"
+       ],
+       "answer": "Up to 12",
+       "why": "DOL Fact Sheet 28Q gives up to 12 workweeks."
+      },
+      {
+       "question": "Is FMLA leave paid?",
+       "options": [
+        "Yes, always",
+        "No, but it can run alongside paid leave"
+       ],
+       "answer": "No, but it can run alongside paid leave",
+       "why": "FMLA itself is unpaid."
+      },
+      {
+       "question": "How much notice should you usually give for planned leave?",
+       "options": [
+        "A week",
+        "At least 30 days",
+        "None"
+       ],
+       "answer": "At least 30 days",
+       "why": "DOL asks for 30 days' notice when possible."
+      }
+     ],
+     "talkTonight": "What does each of our employers offer? Let's both ask HR this week and compare."
+    },
+    {
+     "id": "plan-leave",
+     "title": "Planning leave as a couple",
+     "weeks": [
+      18,
+      30
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dol-fmla28q",
+     "body": "Once you know what each of you is entitled to, plan the leave together. A few rules from the Department of Labor shape the choices. Bonding leave can be used any time within the first year, so one of you can stay home after the birth and the other can take over later, which stretches the time a baby has a parent at home. If you are married and work for the same employer, the two of you share a combined 12 weeks for bonding; unmarried partners each keep their own. Taking leave in pieces or as reduced hours needs your employer's agreement, unless the child has a serious health condition. Think about more than the dates: who covers the first two weeks, when the other parent is most needed, and how paid and unpaid weeks add up for your budget. Then put it on paper and send it to HR early.",
+     "quiz": [
+      {
+       "question": "Two married spouses work for the same employer. How much FMLA bonding leave do they get?",
+       "options": [
+        "12 weeks each",
+        "A combined 12 weeks"
+       ],
+       "answer": "A combined 12 weeks",
+       "why": "Fact Sheet 28Q limits same-employer spouses to a combined total."
+      },
+      {
+       "question": "Within what period must FMLA bonding leave be used?",
+       "options": [
+        "The first 6 weeks",
+        "The first 12 months after birth",
+        "Any time before the child turns 5"
+       ],
+       "answer": "The first 12 months after birth",
+       "why": "Bonding leave must end within 12 months of the birth."
+      },
+      {
+       "question": "Can you take bonding leave in pieces without your employer's agreement?",
+       "options": [
+        "Yes",
+        "No, it needs the employer's agreement"
+       ],
+       "answer": "No, it needs the employer's agreement",
+       "why": "Intermittent bonding leave needs agreement, except for a serious health condition."
+      }
+     ],
+     "talkTonight": "Draw our first year as a calendar: who is home when?"
+    },
+    {
+     "id": "insurance-newborn",
+     "title": "Adding the baby to your health insurance",
+     "weeks": [
+      28,
+      38
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dol-newborns",
+     "body": "Your baby needs their own place on a health plan, and the clock starts at birth. If you have coverage through an employer, a federal rule gives you a special enrollment right: you must request it within 30 days of the birth, adoption or placement, and coverage then goes back to the date of birth. If you buy coverage on HealthCare.gov, having or adopting a baby is a qualifying life event, and you usually have 60 days to enroll or change plans. Check now which plan the baby will join, especially if you each have your own, and what the deductible and out-of-pocket maximum will look like. A second federal law, the Newborns' Act, protects the hospital stay. Plans that cover maternity cannot limit the stay to less than 48 hours after a vaginal birth or 96 hours after a cesarean, though you and your provider can decide to go home sooner.",
+     "quiz": [
+      {
+       "question": "How long do you have to enroll a newborn in an employer plan?",
+       "options": [
+        "7 days",
+        "30 days",
+        "1 year"
+       ],
+       "answer": "30 days",
+       "why": "DOL says request special enrollment within 30 days."
+      },
+      {
+       "question": "When does that coverage start?",
+       "options": [
+        "The day you enroll",
+        "Back to the date of birth"
+       ],
+       "answer": "Back to the date of birth",
+       "why": "Special enrollment coverage is retroactive to the birth."
+      },
+      {
+       "question": "What is the minimum covered hospital stay after a vaginal birth?",
+       "options": [
+        "24 hours",
+        "48 hours",
+        "1 week"
+       ],
+       "answer": "48 hours",
+       "why": "The Newborns' Act sets 48 hours, or 96 after a cesarean."
+      }
+     ],
+     "talkTonight": "Whose plan will the baby join? Set a reminder for the week after the due date."
+    },
+    {
+     "id": "paperwork-list",
+     "title": "The paperwork list",
+     "weeks": [
+      32,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "hcgov-sep",
+     "body": "The weeks after the birth are not the time to discover a form. A short list now saves a lot of phone calls later. Start with the baby's health coverage: on HealthCare.gov a birth or adoption opens a special enrollment period, and you usually have 60 days to sign up, while employer plans need a request within 30 days. Next, leave: confirm your dates in writing with each employer and note what pay comes when. Then the hospital paperwork: ask before the birth how the birth certificate is handled where you will deliver and what you need to bring. Keep everything in one shared folder, digital or paper, so either of you can find it when the other is asleep. Finally, choose a pediatrician before the birth, so you know who will see the baby once you are home. Splitting this list between you, with names next to each task, is a small act of teamwork.",
+     "quiz": [
+      {
+       "question": "How long is the usual HealthCare.gov special enrollment window after a birth?",
+       "options": [
+        "10 days",
+        "60 days",
+        "6 months"
+       ],
+       "answer": "60 days",
+       "why": "HealthCare.gov says you usually have 60 days."
+      },
+      {
+       "question": "Why keep one shared paperwork folder?",
+       "options": [
+        "So either parent can find things",
+        "It is legally required"
+       ],
+       "answer": "So either parent can find things",
+       "why": "Shared access means nothing waits on one person."
+      }
+     ],
+     "talkTonight": "Let's split the paperwork list and put a name next to every task.",
+     "extraSources": [
+      "dol-newborns"
+     ]
+    }
+   ],
+   "stages": [
+    "planning",
+    "trying",
+    "pregnancy",
+    "postpartum"
+   ]
+  },
+  {
+   "id": "mental-health",
+   "title": "Mental health for both of you",
+   "icon": "a small cloud with a sun peeking out",
+   "why": "Feelings in pregnancy and after are part of health, for both parents. Knowing what is common and where help is makes it easier to reach out.",
+   "lessons": [
+    {
+     "id": "whats-common",
+     "title": "What is common, and what is help-worthy",
+     "weeks": [
+      8,
+      24
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "psi-pmh",
+     "body": "Becoming a parent shakes up sleep, hormones, work, money and identity all at once, so some ups and downs are expected. Mental health conditions around pregnancy are also very common: Postpartum Support International calls them the number one complication of childbearing, and about 1 in 5 mothers and fathers report depression or anxiety symptoms in the first year. They can start during pregnancy, not only after. They can show up as sadness, but also as anxiety or losing interest, joy or pleasure in things you used to enjoy. Some things raise the chances, such as a personal or family history of depression, anxiety, bipolar disorder or OCD, or a big recent loss or move. If any of that applies to you, tell your provider early, so a plan is ready. You do not need to be sure or have a diagnosis to ask for help.",
+     "quiz": [
+      {
+       "question": "What does PSI call perinatal mental health conditions?",
+       "options": [
+        "Rare",
+        "The number one complication of childbearing",
+        "A problem only after birth"
+       ],
+       "answer": "The number one complication of childbearing",
+       "why": "PSI uses those words on its perinatal mental health page."
+      },
+      {
+       "question": "Can these conditions start during pregnancy?",
+       "options": [
+        "Yes",
+        "No, only after birth"
+       ],
+       "answer": "Yes",
+       "why": "PSI says symptoms can start any time in the perinatal period."
+      }
+     ],
+     "talkTonight": "Is there anything in our own histories we should tell the provider about now?"
+    },
+    {
+     "id": "treatment-works",
+     "title": "Help that works",
+     "weeks": [
+      20,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nimh-perinatal",
+     "body": "If either of you does struggle, the hopeful part is that perinatal depression is treatable, and with treatment most people feel better. NIMH describes the main options. Talk therapy, especially cognitive behavioral therapy and interpersonal therapy, teaches new ways to handle thoughts, habits and relationships. Antidepressants can help, alone or together with therapy; they usually take four to eight weeks to work, and sleep and appetite often improve before mood does. There are also newer medicines approved specifically for postpartum depression. Decisions about medicine in pregnancy or while breastfeeding are made with a provider, weighing the risks and benefits for both parent and baby, so never start or stop a medicine on your own. Support matters too: sleep, practical help at home, and groups of people who have been there. The first step is a conversation with a doctor, midwife or mental health professional. Your partner can help make the appointment.",
+     "quiz": [
+      {
+       "question": "Which therapies does NIMH name for perinatal depression?",
+       "options": [
+        "CBT and interpersonal therapy",
+        "Only medication",
+        "Only rest"
+       ],
+       "answer": "CBT and interpersonal therapy",
+       "why": "NIMH lists both as evidence-based."
+      },
+      {
+       "question": "How long do antidepressants usually take to work?",
+       "options": [
+        "A day",
+        "About 4 to 8 weeks",
+        "Six months"
+       ],
+       "answer": "About 4 to 8 weeks",
+       "why": "NIMH gives 4 to 8 weeks."
+      }
+     ],
+     "talkTonight": "If one of us needed help, who would we call first? Write the name down together."
+    },
+    {
+     "id": "where-to-call",
+     "title": "Where to call, day or night",
+     "weeks": [
+      20,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "nimh-perinatal",
+     "body": "It is easier to reach out when the number is already in your phone. The National Maternal Mental Health Hotline is free, confidential and open 24 hours a day, 7 days a week, by call or text at 1-833-852-6262 (1-833-9-TLC-MAMA), in English and Spanish, for mothers and their families. Postpartum Support International runs a HelpLine at 1-800-944-4773 for moms and dads, where a trained volunteer gets back to you with support and local resources. If anyone is in crisis or having thoughts of suicide, call or text 988, and in a life-threatening emergency call 911. The Urgent help screen in this app is always one tap away. Save them in both phones tonight, even if you never need them. Knowing they are there is part of feeling ready.",
+     "quiz": [
+      {
+       "question": "Which number is the National Maternal Mental Health Hotline?",
+       "options": [
+        "1-833-852-6262",
+        "1-800-555-0100",
+        "411"
+       ],
+       "answer": "1-833-852-6262",
+       "why": "NIMH lists 1-833-9-TLC-MAMA (1-833-852-6262)."
+      },
+      {
+       "question": "When is the hotline open?",
+       "options": [
+        "Weekdays only",
+        "24 hours a day, 7 days a week"
+       ],
+       "answer": "24 hours a day, 7 days a week",
+       "why": "NIMH says counselors are available 24/7."
+      }
+     ],
+     "talkTonight": "Let's save the hotline numbers in both our phones right now.",
+     "urgentHelpLink": true,
+     "extraSources": [
+      "psi-dads"
+     ]
+    },
+    {
+     "id": "check-in-habit",
+     "title": "A five-minute weekly check-in",
+     "weeks": [
+      12,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "psi-pmh",
+     "body": "Big conversations are hard to start, and small ones are easy to skip. A weekly check-in solves both. Pick a regular slot, like Sunday evening, and take five minutes each. Rate your week from one to five, name one thing that felt good and one thing that felt heavy, and say one thing you need from the other person. Listen without fixing. Postpartum Support International lists social support and practical help, like prioritizing sleep, time for yourself and asking for help, among the things that support perinatal mental health, and a check-in is a simple way to make room for them. It also means that if one of you starts to slide, the other notices sooner. Keep it light most weeks. Use the mood check-in in this app if writing is easier than talking, and share the entries you want to share. Your diary stays private unless you choose otherwise.",
+     "quiz": [
+      {
+       "question": "What does PSI list among supports for perinatal mental health?",
+       "options": [
+        "Social support and practical help",
+        "Avoiding all conversation",
+        "Working longer hours"
+       ],
+       "answer": "Social support and practical help",
+       "why": "PSI names social support and practical help, such as sleep and asking for help."
+      },
+      {
+       "question": "What is the main rule while your partner talks in a check-in?",
+       "options": [
+        "Fix the problem right away",
+        "Listen without fixing"
+       ],
+       "answer": "Listen without fixing",
+       "why": "Feeling heard comes before solutions."
+      }
+     ],
+     "talkTonight": "Let's do our first check-in now: one to five, one good thing, one heavy thing, one need."
+    }
+   ],
+   "stages": [
+    "planning",
+    "trying",
+    "pregnancy",
+    "postpartum",
+    "infant",
+    "toddler",
+    "preschool",
+    "school_age"
+   ]
+  }
+ ]
+}
