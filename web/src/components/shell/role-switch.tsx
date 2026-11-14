@@ -19,27 +19,11 @@ export function RoleSwitch({ people, memberId }: { people: Person[]; memberId: s
 
   return (
     <>
-      <div
-        role="group"
-        aria-label="Who is using the app"
-        className="order-1 flex w-full min-w-0 items-center rounded-full bg-muted p-1 md:w-auto md:gap-0.5"
-      >
+      <div role="group" aria-label="Who is using the app" className="order-1 flex min-w-0 items-center gap-0.5 rounded-full bg-muted p-1">
         {people.map((p) => {
           const active = p.id === memberId;
-          const Icon = roleIcon[p.role];
           const who = `${p.displayName}, ${roleLabel[p.role]}`;
-          const avatar = (
-            <span
-              aria-hidden
-              className={cn(
-                "flex size-8 shrink-0 items-center justify-center rounded-full text-label font-semibold text-card md:size-7 md:text-caption",
-                roleAccent[p.role].bg,
-              )}
-            >
-              {p.displayName.charAt(0).toUpperCase()}
-            </span>
-          );
-          // Everyone but the active person is an avatar: the name and role sit in the tooltip and the label.
+          // Everyone but the active person is an avatar in their own colour: the name and role sit in the tooltip and the label.
           return (
             <Link
               key={p.id}
@@ -48,22 +32,20 @@ export function RoleSwitch({ people, memberId }: { people: Person[]; memberId: s
               aria-label={active ? undefined : who}
               title={who}
               className={cn(
-                "flex min-h-11 items-center rounded-full outline-none transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9",
+                "press flex min-h-11 items-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-10",
                 active
-                  ? "min-w-0 flex-1 gap-1.5 bg-card py-1 pr-2 pl-1 md:gap-2 md:pr-3 md:pl-1.5 shadow-[0_1px_2px_rgb(0_0_0/0.08)] md:max-w-56 md:flex-none"
-                  : "min-w-11 shrink-0 justify-center hover:bg-card/60 md:min-w-9",
+                  ? "min-w-11 justify-center gap-2 bg-card p-1 shadow-[0_1px_2px_rgb(60_40_20/0.08)] sm:pr-3.5 md:max-w-56"
+                  : "min-w-11 shrink-0 justify-center hover:bg-card/60 md:min-w-10",
               )}
             >
-              {avatar}
-              {active && (
-                <span className="flex min-w-0 flex-col leading-tight">
-                  <span className="truncate text-label font-medium">{p.displayName}</span>
-                  <span className={cn("flex items-center gap-1 text-caption", roleAccent[p.role].text)}>
-                    <Icon aria-hidden className="hidden size-3 shrink-0 md:block" />
-                    <span className="truncate">{roleLabel[p.role]}</span>
-                  </span>
-                </span>
-              )}
+              <span
+                aria-hidden
+                className={cn("flex size-8 shrink-0 items-center justify-center rounded-full text-label font-semibold text-white md:size-7.5", roleAccent[p.role].bg)}
+              >
+                {p.displayName.charAt(0).toUpperCase()}
+              </span>
+              {/* On phones the header must hold the switch, demo, bell and Urgent help in one row, so the name shows from sm up. */}
+              {active && <span className="truncate text-body font-semibold max-sm:sr-only">{p.displayName}</span>}
             </Link>
           );
         })}
@@ -97,7 +79,7 @@ function WindowLinks({ people, screen }: { people: Person[]; screen: string }) {
       <Popover.Trigger
         aria-label="Open a role in its own window"
         title="Open a role in its own window"
-        className="order-5 ml-auto flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-[popup-open]:bg-muted data-[popup-open]:text-foreground md:order-2 md:ml-0 md:size-9"
+        className="order-5 hidden size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-[popup-open]:bg-muted data-[popup-open]:text-foreground md:order-2 md:flex md:size-9"
       >
         <MonitorSmartphone aria-hidden className="size-4.5" />
       </Popover.Trigger>

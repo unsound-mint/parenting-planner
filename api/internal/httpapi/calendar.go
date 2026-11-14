@@ -22,6 +22,7 @@ func calendarEventOut(e calendar.Event) CalendarEvent {
 	out := CalendarEvent{
 		Id: e.ID, Kind: CalendarEventKind(e.Kind), Title: e.Title, StartsAt: e.StartsAt, EndsAt: e.EndsAt, AllDay: e.AllDay,
 		Location: e.Location, OwnerId: e.OwnerID, AttendeeIds: e.AttendeeIDs, Visibility: CalendarVisibility(e.Visibility),
+		ShiftId: e.ShiftID, TaskId: e.TaskID,
 	}
 	if out.AttendeeIds == nil {
 		out.AttendeeIds = []uuid.UUID{}
@@ -102,7 +103,7 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 	if b.AllDay != nil {
 		in.AllDay = *b.AllDay
 	}
-	e, err := calendar.Create(ctx, s.pool, familyID, m.ID, in)
+	e, err := calendar.Create(ctx, s.pool, familyID, m.ID, in, s.now(ctx))
 	switch {
 	case errors.Is(err, calendar.ErrBadAttendee):
 		return CreateCalendarEvent400JSONResponse(errBadAttendee), nil
@@ -119,20 +120,7 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 // remove its 501 from openapi.yaml and replace its test. The web shows an
 // empty state on 501.
 
+func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
 func (s *Server) UpdateCalendarEvent(_ context.Context, _ UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
 	return UpdateCalendarEvent501JSONResponse(Error{Code: "not_implemented", Message: "the calendar is not available yet"}), nil
 }
-
-func (s *Server) CreateAppointmentQuestion(_ context.Context, _ CreateAppointmentQuestionRequestObject) (CreateAppointmentQuestionResponseObject, error) {
-	return CreateAppointmentQuestion501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
-}
-
-func (s *Server) ListAppointmentQuestions(_ context.Context, _ ListAppointmentQuestionsRequestObject) (ListAppointmentQuestionsResponseObject, error) {
-	return ListAppointmentQuestions501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
-}
-
-func (s *Server) UpdateAppointmentQuestion(_ context.Context, _ UpdateAppointmentQuestionRequestObject) (UpdateAppointmentQuestionResponseObject, error) {
-	return UpdateAppointmentQuestion501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
-}
-
-func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }

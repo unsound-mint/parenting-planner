@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
@@ -47,6 +48,10 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
       <header>
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
+        {/* Privacy has no nav entry of its own: People is where it lives. */}
+        <Link href={`/family/${memberId}/settings`} className="mt-2 inline-block text-label text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
+          Privacy and your data
+        </Link>
       </header>
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
