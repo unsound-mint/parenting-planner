@@ -2,6 +2,7 @@ import { mockMiddleware, type MockTable } from "./registry";
 import { adminMocks } from "./fixtures/admin";
 import { appointmentQuestionMocks } from "./fixtures/appointment-questions";
 import { babyMocks } from "./fixtures/baby";
+import { calendarEventMocks } from "./fixtures/calendar-events";
 import { calendarFeedMocks } from "./fixtures/calendar-feed";
 import { careMocks } from "./fixtures/care";
 import { demoMocks } from "./fixtures/demo";
@@ -27,6 +28,7 @@ const tables: MockTable[] = [
   adminMocks,
   appointmentQuestionMocks,
   babyMocks,
+  calendarEventMocks,
   calendarFeedMocks,
   careMocks,
   demoMocks,

@@ -120,3 +120,6 @@ export type PartnerOfferInput = S["PartnerOfferInput"];
 export type Analytics = S["Analytics"];
 export type AnalyticsMetric = S["AnalyticsMetric"];
 export type ParentRole = S["ParentRole"];
+export type CalendarEventInput = S["CalendarEventInput"];
+export type CalendarEventUpdate = S["CalendarEventUpdate"];
+export type CalendarVisibility = S["CalendarVisibility"];

@@ -2,17 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Switch } from "@base-ui/react/switch";
 import { toast } from "sonner";
 import { Check, Copy, Lock } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { CaregiverPermission, CaregiverRole, CreatedInvitation } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { permissionIcon, permissionLabel, roleAccent, roleIcon, roleLabel } from "@/lib/visuals";
+import { roleAccent, roleIcon, roleLabel } from "@/lib/visuals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PermissionRow } from "./permission-row";
 
 // The contract lists the defaults per role (InvitationInput in api/openapi.yaml).
 const defaults: Record<CaregiverRole, CaregiverPermission[]> = {
@@ -140,31 +140,9 @@ export function InviteForm({ memberId }: { memberId: string }) {
 
           <fieldset className="flex flex-col">
             <legend className="mb-1 text-label font-medium">They will see</legend>
-            {allPermissions.map((p) => {
-              const Icon = permissionIcon[p];
-              const on = perms.has(p);
-              return (
-                <div key={p} className={cn("flex min-h-14 items-center gap-3 border-t border-border py-2 first:border-t-0 transition-opacity duration-150", !on && "opacity-60")}>
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                    <Icon aria-hidden className="size-4.5" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span id={`perm-${p}`} className="block text-label font-medium">
-                      {permissionLabel[p].name}
-                    </span>
-                    <span className="block text-caption text-muted-foreground">{permissionLabel[p].hint}</span>
-                  </span>
-                  <Switch.Root
-                    checked={on}
-                    onCheckedChange={(v) => toggle(p, v)}
-                    aria-labelledby={`perm-${p}`}
-                    className="relative flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full bg-input p-0.5 transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-[checked]:bg-primary"
-                  >
-                    <Switch.Thumb className="size-6 rounded-full bg-card shadow-sm transition-transform duration-150 ease-(--ease-out) data-[checked]:translate-x-5" />
-                  </Switch.Root>
-                </div>
-              );
-            })}
+            {allPermissions.map((p) => (
+              <PermissionRow key={p} permission={p} on={perms.has(p)} onChange={(v) => toggle(p, v)} />
+            ))}
             <p className="mt-2 flex items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-label text-muted-foreground">
               <Lock aria-hidden className="size-4 shrink-0" />
               Never shared: diaries, mood check-ins, labs and session notes.
