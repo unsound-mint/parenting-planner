@@ -409,7 +409,7 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 	visit := func(title string, days int) (uuid.UUID, error) {
 		e, err := q.CreateCalendarEvent(ctx, store.CreateCalendarEventParams{
 			FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", Kind: "appointment", Title: title,
-			StartsAt: today.AddDate(0, 0, days).Add(10 * time.Hour), Location: ptr(demoBirthAddress),
+			StartsAt: atHour(today.AddDate(0, 0, days), 10), Location: ptr(demoBirthAddress),
 		})
 		if err != nil {
 			return uuid.Nil, err
@@ -433,7 +433,7 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 		answeredAt *time.Time
 	}{
 		{past, "Is the back pain normal at this stage?", "partner", nil},
-		{past, "When do we sign up for the birth class?", "family", ptr(today.AddDate(0, 0, -14).Add(11 * time.Hour))},
+		{past, "When do we sign up for the birth class?", "family", ptr(atHour(today.AddDate(0, 0, -14), 11))},
 		{next, "When should I schedule the glucose screening?", "private", nil},
 		{next, "Which vaccines does Jake need before the birth?", "family", nil},
 	} {
@@ -463,12 +463,12 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 // shared with the family, one only she can see, and one the partner shared with her.
 func seedInsuranceCalls(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID, today time.Time) error {
 	for _, c := range []store.CreateInsuranceCallParams{
-		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", CalledAt: today.AddDate(0, 0, -6).Add(15 * time.Hour), Insurer: "Lakeside Health Plan",
+		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", CalledAt: atHour(today.AddDate(0, 0, -6), 15), Insurer: "Lakeside Health Plan",
 			Representative: ptr("Dana"), ReferenceNumber: ptr("CL-48213"), Topic: "add_baby",
 			Summary: "Asked how to add the baby after the birth. Dana said the plan needs the birth date and a request within 30 days; she will send the form.", FollowUpOn: ptr(today.AddDate(0, 0, 7))},
-		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "private", CalledAt: today.AddDate(0, 0, -2).Add(11 * time.Hour), Insurer: "Lakeside Health Plan",
+		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "private", CalledAt: atHour(today.AddDate(0, 0, -2), 11), Insurer: "Lakeside Health Plan",
 			Topic: "claim", Summary: "Asked about the status of a lab claim; still being processed."},
-		{FamilyID: familyID, OwnerMemberID: partner, Visibility: "partner", CalledAt: today.AddDate(0, 0, -20).Add(9 * time.Hour), Insurer: "Lakeside Health Plan",
+		{FamilyID: familyID, OwnerMemberID: partner, Visibility: "partner", CalledAt: atHour(today.AddDate(0, 0, -20), 9), Insurer: "Lakeside Health Plan",
 			Topic: "coverage", Summary: "Checked that the breast pump is covered; a prescription is needed."},
 	} {
 		if _, err := q.CreateInsuranceCall(ctx, c); err != nil {
