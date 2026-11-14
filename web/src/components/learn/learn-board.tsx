@@ -17,6 +17,8 @@ import { QuizCard } from "./quiz-card";
 import { TalkCard } from "./talk-card";
 import { bothFinished, heroPath, minutesLeft, minutesWord, nextLesson, progressOf, putRead, readOf, withLesson, type Couple } from "./model";
 
+const scrollBehavior = (): ScrollBehavior => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+
 type Props = {
   memberId: string;
   couple: Couple;
@@ -63,6 +65,11 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     setOpenId(undefined);
     setSwitched(true);
     syncUrl(p.id);
+    // Bring the new hero into view when the list was scrolled past it (long pages, phones).
+    requestAnimationFrame(() => {
+      const hero = document.getElementById("path-hero");
+      if (hero && hero.getBoundingClientRect().top < 0) hero.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    });
   }
 
   function toggle(lesson: Lesson) {
@@ -79,7 +86,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
 
   function openLesson(lesson: Lesson) {
     if (openId !== lesson.id) toggle(lesson);
-    requestAnimationFrame(() => document.getElementById(`lesson-${lesson.id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+    requestAnimationFrame(() => document.getElementById(`lesson-${lesson.id}`)?.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" }));
   }
 
   async function mark(lesson: Lesson, finished: boolean) {
@@ -137,7 +144,8 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     if (res.ok) setTalked((t) => ({ ...t, [promptId]: { talkedBy: res.data.talkedBy, talkedAt: res.data.talkedAt } }));
     else {
       setTalked((t) => {
-        const { [promptId]: _, ...rest } = t;
+        const rest = { ...t };
+        delete rest[promptId];
         return rest;
       });
       toast.error("Could not save that. Please try again.");
@@ -147,7 +155,8 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
   // The quiz follows the open lesson, else the one to read next, else the first open lesson with a question left.
   const open = path.lessons.find((l) => l.id === openId);
   const unanswered = (l: Lesson) => !l.locked && l.quiz.some((q) => !q.answers.some((a) => a.memberId === me.id));
-  const quizLesson = [open, nextLesson(path, me), ...path.lessons.filter(unanswered)].find((l) => l && !l.locked && l.quiz.length > 0);
+  // When every open question is answered, the first answered one stays, so the comparison with the partner is still there.
+  const quizLesson = [open, nextLesson(path, me), ...path.lessons.filter(unanswered), ...path.lessons].find((l) => l && !l.locked && l.quiz.length > 0);
   const quizNext = quizLesson && path.lessons.slice(path.lessons.indexOf(quizLesson) + 1).find(unanswered);
 
   const mine = progressOf(path, me.id);
@@ -168,12 +177,13 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.section
             key={path.id}
+            id="path-hero"
             aria-labelledby="path-title"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.28, ease: ease.out }}
-            className="relative mb-3.5 overflow-hidden rounded-[1.75rem] bg-sun md:rounded-[2rem]"
+            className="relative mb-3.5 scroll-mt-4 overflow-hidden rounded-[1.75rem] bg-sun md:rounded-[2rem]"
           >
             <PathCover pathId={path.id} />
             <div className="flex flex-col gap-3 px-5.5 pt-2 pb-6 md:px-8 md:pb-7">
@@ -222,10 +232,11 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
           onMark={mark}
           onTalked={talk}
           stagger={switched}
+          pathParty={party}
         />
       </Rise>
 
-      <Rise i={3} className="flex min-w-0 flex-col gap-6 @4xl:col-start-2 @4xl:grid @4xl:grid-cols-2 @4xl:items-start @7xl:sticky @7xl:top-4 @7xl:col-start-3 @7xl:row-start-1 @7xl:flex">
+      <Rise i={3} className="flex min-w-0 flex-col gap-6 @4xl:col-start-2 @4xl:grid @4xl:grid-cols-2 @4xl:items-start @7xl:sticky @7xl:top-4 @7xl:col-start-3 @7xl:row-start-1 @7xl:flex @7xl:items-stretch">
         {quizLesson && <QuizCard key={quizLesson.id} lesson={quizLesson} couple={couple} nextLesson={quizNext} onAnswer={answer} onOpenLesson={openLesson} />}
         <TalkCard key={path.id} lessons={path.lessons.filter((l) => l.id !== openId)} couple={couple} talked={talked} onTalked={talk} />
       </Rise>

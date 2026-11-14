@@ -26,16 +26,18 @@ type Props = {
   onToggle: (lesson: Lesson) => void;
   onMark: (lesson: Lesson, finished: boolean) => void;
   onTalked: (promptId: string) => void;
+  /** Set right after a finish that completed the path for both parents: the reader says so, once. */
+  pathParty?: boolean;
   /** Rows rise in one after another; on for a path the parent just switched to (the page entrance covers the first). */
   stagger?: boolean;
 };
 
 /** The lessons of the open path in reading order: done, reading, this week, open, later. A row opens into the lesson in place. */
-export function LessonList({ path, couple, openId, ...rest }: Props) {
+export function LessonList({ path, couple, openId, pathParty, ...rest }: Props) {
   return (
     <ol className="flex flex-col gap-2.5">
       {path.lessons.map((l, i) => (
-        <LessonItem key={l.id} lesson={l} n={i + 1} state={lessonState(l, path, couple.me)} couple={couple} open={openId === l.id} {...rest} />
+        <LessonItem key={l.id} lesson={l} n={i + 1} state={lessonState(l, path, couple.me)} couple={couple} open={openId === l.id} pathTitle={pathParty ? path.title : undefined} {...rest} />
       ))}
     </ol>
   );
@@ -54,7 +56,8 @@ function LessonItem({
   onMark,
   onTalked,
   stagger,
-}: Omit<Props, "path" | "openId"> & { lesson: Lesson; n: number; state: LessonState; open: boolean }) {
+  pathTitle,
+}: Omit<Props, "path" | "openId" | "pathParty"> & { lesson: Lesson; n: number; state: LessonState; open: boolean; pathTitle?: string }) {
   const now = useFamilyNow();
   const { me, them } = couple;
   const theirs = readOf(lesson, them?.id);
@@ -121,7 +124,7 @@ function LessonItem({
             transition={{ height: spring.ui, opacity: { duration: 0.2, ease: ease.out } }}
             className="overflow-hidden"
           >
-            <Reader lesson={lesson} couple={couple} finished={state === "done"} celebrate={justFinished.has(lesson.id)} talked={talked} helpHref={helpHref} onMark={onMark} onTalked={onTalked} />
+            <Reader lesson={lesson} couple={couple} finished={state === "done"} celebrate={justFinished.has(lesson.id)} bothDone={justFinished.has(lesson.id) ? pathTitle : undefined} talked={talked} helpHref={helpHref} onMark={onMark} onTalked={onTalked} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -172,6 +175,7 @@ function Reader({
   couple,
   finished,
   celebrate,
+  bothDone,
   talked,
   helpHref,
   onMark,
@@ -181,6 +185,8 @@ function Reader({
   couple: Couple;
   finished: boolean;
   celebrate: boolean;
+  /** The path's title when this finish completed it for both parents. */
+  bothDone?: string;
   talked: Talked;
   helpHref: string;
   onMark: (lesson: Lesson, finished: boolean) => void;
@@ -242,7 +248,7 @@ function Reader({
         </div>
       )}
 
-      <div className="flex min-h-11 items-center gap-3">
+      <div className="flex min-h-11 flex-wrap items-center gap-3">
         <AnimatePresence initial={false} mode="popLayout">
           {finished ? (
             <motion.span key="read" layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring.playful} className="relative inline-flex min-h-11 items-center gap-2 rounded-full bg-leaf-soft px-4.5 text-label font-semibold text-leaf">
@@ -264,7 +270,12 @@ function Reader({
             </motion.button>
           )}
         </AnimatePresence>
-        {finished && (
+        {finished && bothDone && couple.them && (
+          <motion.span initial={{ opacity: 0, y: 6, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ ...spring.playful, delay: 0.25 }} className="text-label text-ink-2">
+            You and {couple.them.displayName} both finished “{bothDone}”.
+          </motion.span>
+        )}
+        {finished && !bothDone && (
           <button type="button" onClick={() => onMark(lesson, false)} className="min-h-11 px-2 text-label font-normal text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
             Mark as unread
           </button>

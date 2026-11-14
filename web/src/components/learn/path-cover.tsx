@@ -5,17 +5,17 @@ import { cn } from "@/lib/utils";
 // covers are keyed by path slug with a warm fallback for any new path.
 // Art colours live in the SVG (docs/design.md, Tokens: illustrations are the exception).
 
-type Art = { sky: string; orb: string; halo: string; far: string; near: string; motif: "birds" | "drops" | "stars" | "hearts" | "sprouts" | "house" };
+type Art = { mark: string; sky: string; orb: string; halo: string; far: string; near: string; motif: "birds" | "drops" | "stars" | "hearts" | "sprouts" | "house" };
 
 const ART: Record<string, Art> = {
-  "your-pregnancy": { sky: "#FDF0DF", orb: "#F4CD6A", halo: "#F8D9A6", far: "#E6EFDC", near: "#3F6B37", motif: "sprouts" },
-  birth: { sky: "#FDF0DF", orb: "#F4CD6A", halo: "#F8D9A6", far: "#E8A07C", near: "#A84E2C", motif: "birds" },
-  feeding: { sky: "#FCEFE0", orb: "#F7CB92", halo: "#FAE3D5", far: "#F7CB92", near: "#4F7F45", motif: "drops" },
-  "first-weeks": { sky: "#E9EEF1", orb: "#F3E0A6", halo: "#F6EBC8", far: "#CBD3DA", near: "#1D6A70", motif: "stars" },
-  couple: { sky: "#FBEDE4", orb: "#E8A07C", halo: "#FAE3D5", far: "#F3D3C0", near: "#A04828", motif: "hearts" },
-  partner: { sky: "#E8F3F1", orb: "#F4CD6A", halo: "#F6E6B5", far: "#7DBAB6", near: "#1D6A70", motif: "birds" },
-  "money-leave": { sky: "#FAF2DC", orb: "#F4CD6A", halo: "#F6E6B5", far: "#F3E0A6", near: "#8A6414", motif: "house" },
-  "mental-health": { sky: "#EEF4E8", orb: "#F4CD6A", halo: "#F6E6B5", far: "#CFE0C3", near: "#3F6B37", motif: "sprouts" },
+  "your-pregnancy": { mark: "#E6EFDC", sky: "#FDF0DF", orb: "#F4CD6A", halo: "#F8D9A6", far: "#E6EFDC", near: "#3F6B37", motif: "sprouts" },
+  birth: { mark: "#F4CD6A", sky: "#FDF0DF", orb: "#F4CD6A", halo: "#F8D9A6", far: "#E8A07C", near: "#A84E2C", motif: "birds" },
+  feeding: { mark: "#F7CB92", sky: "#FCEFE0", orb: "#F7CB92", halo: "#FAE3D5", far: "#F7CB92", near: "#4F7F45", motif: "drops" },
+  "first-weeks": { mark: "#CBD3DA", sky: "#E9EEF1", orb: "#F3E0A6", halo: "#F6EBC8", far: "#CBD3DA", near: "#1D6A70", motif: "stars" },
+  couple: { mark: "#FAE3D5", sky: "#FBEDE4", orb: "#E8A07C", halo: "#FAE3D5", far: "#F3D3C0", near: "#A04828", motif: "hearts" },
+  partner: { mark: "#D8EDEB", sky: "#E8F3F1", orb: "#F4CD6A", halo: "#F6E6B5", far: "#7DBAB6", near: "#1D6A70", motif: "birds" },
+  "money-leave": { mark: "#F3E0A6", sky: "#FAF2DC", orb: "#F4CD6A", halo: "#F6E6B5", far: "#F3E0A6", near: "#8A6414", motif: "house" },
+  "mental-health": { mark: "#CFE0C3", sky: "#EEF4E8", orb: "#F4CD6A", halo: "#F6E6B5", far: "#CFE0C3", near: "#3F6B37", motif: "sprouts" },
 };
 const FALLBACK = ART.birth;
 
@@ -91,7 +91,7 @@ export function PathMark({ pathId, turn = 0, className }: { pathId: string; turn
   const a = pathArt(pathId);
   return (
     <svg viewBox="0 0 64 64" aria-hidden className={cn("size-11 shrink-0", className)}>
-      <path d={BLOB} fill={a.orb} transform={`rotate(${turn * 40} 32 32)`} />
+      <path d={BLOB} fill={a.mark} transform={`rotate(${turn * 40} 32 32)`} />
       <circle cx="32" cy="32" r="7" fill={a.near} />
     </svg>
   );

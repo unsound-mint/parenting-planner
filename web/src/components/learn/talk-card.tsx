@@ -20,8 +20,12 @@ export function TalkCard({ lessons, couple, talked, onTalked }: { lessons: Lesso
   const now = useFamilyNow();
   const prompts = lessons.filter((l) => l.talkPrompt && !l.locked);
   // Order once per mount (the parent keys the card by path): not talked about
-  // first. Marking one keeps it in place instead of swapping the text away.
-  const [order] = useState(() => [...prompts.filter((l) => !talked[`lesson:${l.id}`]), ...prompts.filter((l) => talked[`lesson:${l.id}`])].map((l) => l.id));
+  // first, then the rest. Marking one keeps it in place instead of swapping the text away.
+  // Within each group, lessons best read now come before the rest.
+  const [order] = useState(() => {
+    const rank = (l: Lesson) => (talked[`lesson:${l.id}`] ? 2 : 0) + (l.timing === "now" ? 0 : 1);
+    return [...prompts].sort((a, b) => rank(a) - rank(b)).map((l) => l.id);
+  });
   const ordered = order.map((id) => prompts.find((l) => l.id === id)).filter((l): l is Lesson => !!l);
   const [i, setI] = useState(0);
   if (ordered.length === 0) return null;
