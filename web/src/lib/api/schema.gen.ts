@@ -389,7 +389,24 @@ export interface paths {
          *     it nor see that a session is booked.
          */
         get: operations["getPsychologistAgenda"];
-        put?: never;
+        /**
+         * The acting parent reorders or removes topics for their next session
+         * @description Mother and partner, for their own agenda only; a grandparent or
+         *     nanny gets 404, like every read of the agenda. Same privacy as
+         *     session notes: the agenda is private to its author, so the other
+         *     parent can neither change nor see it, and nothing here is shared
+         *     with anyone but the parent's psychologist at the session.
+         *
+         *     topicIds is the whole agenda in the order the parent wants it. A
+         *     topic on the current agenda that is left out is removed, and stays
+         *     removed: topics are derived from the parent's own data with stable
+         *     ids, so the server stores the removal rather than deleting data. An
+         *     empty list clears the agenda. An id that is not on the acting
+         *     parent's current agenda is 400 unknown_topic (this also covers the
+         *     other parent's topic ids, so the answer reveals nothing). Returns
+         *     the agenda as getPsychologistAgenda would after the change. Audited.
+         */
+        put: operations["updatePsychologistAgenda"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1986,11 +2003,20 @@ export interface components {
             noteWritten: boolean;
         };
         PsychologistAgenda: {
-            /** @description Oldest first, so the longest-waiting topic is on top. */
+            /**
+             * @description In the order the parent saved with updatePsychologistAgenda.
+             *     Topics that appeared since then follow, oldest first; with no
+             *     saved order the whole list is oldest first, so the
+             *     longest-waiting topic is on top. Removed topics are left out.
+             */
             topics: components["schemas"]["AgendaTopic"][];
             nextSession?: components["schemas"]["PsychologistBooking"];
             /** @description The latest session that has started and has no note yet. */
             noteDue?: components["schemas"]["PsychologistBooking"];
+        };
+        PsychologistAgendaUpdate: {
+            /** @description Every topic to keep, in order. Leave a topic out to remove it. */
+            topicIds: string[];
         };
         Slot: {
             /** Format: uuid */
@@ -3711,6 +3737,77 @@ export interface operations {
                 };
             };
             /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updatePsychologistAgenda: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PsychologistAgendaUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistAgenda"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
             501: {
                 headers: {
                     [name: string]: unknown;

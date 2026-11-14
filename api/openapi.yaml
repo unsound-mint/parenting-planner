@@ -705,6 +705,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    put:
+      operationId: updatePsychologistAgenda
+      tags: [care]
+      summary: The acting parent reorders or removes topics for their next session
+      description: |
+        Mother and partner, for their own agenda only; a grandparent or
+        nanny gets 404, like every read of the agenda. Same privacy as
+        session notes: the agenda is private to its author, so the other
+        parent can neither change nor see it, and nothing here is shared
+        with anyone but the parent's psychologist at the session.
+
+        topicIds is the whole agenda in the order the parent wants it. A
+        topic on the current agenda that is left out is removed, and stays
+        removed: topics are derived from the parent's own data with stable
+        ids, so the server stores the removal rather than deleting data. An
+        empty list clears the agenda. An id that is not on the acting
+        parent's current agenda is 400 unknown_topic (this also covers the
+        other parent's topic ids, so the answer reveals nothing). Returns
+        the agenda as getPsychologistAgenda would after the change. Audited.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PsychologistAgendaUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistAgenda"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/psychologist-slots:
     get:
@@ -3861,7 +3919,11 @@ components:
       properties:
         topics:
           type: array
-          description: Oldest first, so the longest-waiting topic is on top.
+          description: |
+            In the order the parent saved with updatePsychologistAgenda.
+            Topics that appeared since then follow, oldest first; with no
+            saved order the whole list is oldest first, so the
+            longest-waiting topic is on top. Removed topics are left out.
           items:
             $ref: "#/components/schemas/AgendaTopic"
         nextSession:
@@ -3870,6 +3932,19 @@ components:
           allOf:
             - $ref: "#/components/schemas/PsychologistBooking"
           description: The latest session that has started and has no note yet.
+
+    PsychologistAgendaUpdate:
+      type: object
+      required: [topicIds]
+      properties:
+        topicIds:
+          type: array
+          description: Every topic to keep, in order. Leave a topic out to remove it.
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
 
     Slot:
       type: object

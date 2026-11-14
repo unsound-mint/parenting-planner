@@ -8,15 +8,20 @@ const provider = {
   focus: "Perinatal and postpartum mental health",
 };
 
+const topics = [
+  { id: uid(410), text: "Sleeping badly since week 22", addedAt: isoAt(-5, 20) },
+  { id: uid(411), text: "Worried about going back to work after leave", addedAt: isoAt(-3, 9) },
+  { id: uid(412), text: "How to split night shifts with Jake", addedAt: isoAt(-1, 21) },
+];
+
 // Agenda with topics and no booked session, so the slot picker shows.
-// The slots, booking and note endpoints answer with plausible bodies; nothing is stored.
+// The slots, booking, note and agenda save endpoints answer with plausible
+// bodies; nothing is stored, so a reload shows the original order again.
 export const careMocks = {
-  ...mock("/members/{memberId}/psychologist-agenda", "get", () => ({
-    topics: [
-      { id: uid(410), text: "Sleeping badly since week 22", addedAt: isoAt(-5, 20) },
-      { id: uid(411), text: "Worried about going back to work after leave", addedAt: isoAt(-3, 9) },
-      { id: uid(412), text: "How to split night shifts with Jake", addedAt: isoAt(-1, 21) },
-    ],
+  ...mock("/members/{memberId}/psychologist-agenda", "get", () => ({ topics })),
+  // Echoes the saved order: kept ids in the order sent, the rest removed.
+  ...mock("/members/{memberId}/psychologist-agenda", "put", (ctx) => ({
+    topics: ctx.body.topicIds.flatMap((id) => topics.filter((t) => t.id === id)),
   })),
   ...mock("/members/{memberId}/psychologist-slots", "get", () => ({
     provider,
