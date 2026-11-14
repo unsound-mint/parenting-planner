@@ -59,11 +59,19 @@ VALUES (@family_id, @subject_member_id, @subject_child_id, @vaccine, @dose, @due
 SELECT * FROM vaccine_schedule WHERE family_id = $1 ORDER BY due_on;
 
 -- name: CreateGrowthMeasurement :one
-INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm)
-VALUES (@family_id, @child_id, @measured_on, @weight_kg, @height_cm) RETURNING *;
+INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm, head_cm)
+VALUES (@family_id, @child_id, @measured_on, @weight_kg, @height_cm, sqlc.narg(head_cm)) RETURNING *;
+
+-- name: UpdateGrowthMeasurement :one
+UPDATE growth_measurements
+SET measured_on = @measured_on, weight_kg = @weight_kg, height_cm = @height_cm, head_cm = sqlc.narg(head_cm)
+WHERE id = @id AND family_id = @family_id RETURNING *;
+
+-- name: DeleteGrowthMeasurement :execrows
+DELETE FROM growth_measurements WHERE id = @id AND family_id = @family_id;
 
 -- name: ListGrowthMeasurements :many
-SELECT * FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on;
+SELECT * FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on, id;
 
 -- Logging health records (POST /members/{memberId}/immunizations, ...).
 
