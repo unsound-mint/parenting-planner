@@ -1179,6 +1179,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/calendar-events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                eventId: components["parameters"]["EventId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * The owner edits an appointment, class or reminder
+         * @description Only the acting parent who owns a stored event (kind appointment,
+         *     class, reminder or other); the partner gets 404 for it, a grandparent
+         *     or nanny gets 403. Shifts, task due dates and psychologist sessions
+         *     are not edited here (404). Every field is optional; only the fields
+         *     sent change. Moving an event to private removes attendees from it.
+         *     Sends a live update of kind calendar_event.
+         */
+        patch: operations["updateCalendarEvent"];
+        trace?: never;
+    };
     "/members/{memberId}/appointment-questions": {
         parameters: {
             query?: never;
@@ -3438,6 +3475,32 @@ export interface components {
             location?: string;
             attendeeIds?: string[];
             visibility: components["schemas"]["CalendarVisibility"];
+            /**
+             * @description When true, calendar subscription links and exported .ics files show
+             *     only the kind ("Appointment") with no location, never the title.
+             *     Default false for class, reminder and other; the UI defaults it to
+             *     true for appointments. In the app the owner still sees the title.
+             */
+            neutralTitle?: boolean;
+        };
+        /** @description Same fields as CalendarEventInput, all optional. kind cannot change. */
+        CalendarEventUpdate: {
+            title?: string;
+            /** Format: date-time */
+            startsAt?: string;
+            /** Format: date-time */
+            endsAt?: string;
+            allDay?: boolean;
+            location?: string;
+            attendeeIds?: string[];
+            visibility?: components["schemas"]["CalendarVisibility"];
+            /**
+             * @description When true, calendar subscription links and exported .ics files show
+             *     only the kind ("Appointment") with no location, never the title.
+             *     Default false for class, reminder and other; the UI defaults it to
+             *     true for appointments. In the app the owner still sees the title.
+             */
+            neutralTitle?: boolean;
         };
         CalendarEvent: {
             /**
@@ -3460,6 +3523,13 @@ export interface components {
             ownerId?: string;
             attendeeIds: string[];
             visibility: components["schemas"]["CalendarVisibility"];
+            /**
+             * @description When true, calendar subscription links and exported .ics files show
+             *     only the kind ("Appointment") with no location, never the title.
+             *     Default false for class, reminder and other; the UI defaults it to
+             *     true for appointments. In the app the owner still sees the title.
+             */
+            neutralTitle?: boolean;
             /** Format: uuid */
             shiftId?: string;
             /** Format: uuid */
@@ -4254,6 +4324,7 @@ export interface components {
          *     or permissions do not allow the action.
          */
         MemberId: string;
+        EventId: string;
         TaskId: string;
         InvitationId: string;
         /** @description The secret from the invitation link. */
@@ -7085,6 +7156,87 @@ export interface operations {
         responses: {
             /** @description Created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEvent"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateCalendarEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                eventId: components["parameters"]["EventId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
