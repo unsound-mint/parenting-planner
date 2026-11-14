@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { Journal } from "@/components/wellbeing/journal";
+import { PageFrame } from "@/components/shell/page";
 import { BackToCare, Unavailable, WellbeingFallback } from "@/components/wellbeing/chrome";
 
 // The private journal: own entries plus whatever the partner shared. Parents only.
@@ -29,7 +30,7 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
   const partner = family.parents.find((p) => p.id !== memberId);
 
   return (
-    <main className="flex-1 px-4 pt-4 pb-16 md:px-8">
+    <PageFrame className="block pt-4">
       <BackToCare memberId={memberId} />
       {!entries ? (
         <Unavailable title="Your journal is not loading" />
@@ -41,6 +42,6 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
           moods={(moods?.items ?? []).filter((m) => m.authorId === memberId)}
         />
       )}
-    </main>
+    </PageFrame>
   );
 }

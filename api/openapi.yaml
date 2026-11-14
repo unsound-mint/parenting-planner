@@ -2359,6 +2359,128 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/birth-plan:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getBirthPlan
+      tags: [calendar]
+      summary: Where to go and what to bring when labour starts
+      description: |
+        The family's birth hospital with its address, phone, route link and
+        usual drive time, the people to call and the documents to bring.
+        Documents come from the paperwork tasks, so a document is ready when
+        its task is done. The bag status is not repeated here: read the
+        hospital_bag tasks (listTasks). Mother and partner only; a
+        grandparent or nanny gets 404. Hidden while pregnancyLoss is set (404).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BirthPlan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/labour-alerts:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createLabourAlert
+      tags: [calendar]
+      summary: Tell the other parent that labour has started
+      description: |
+        Mother or partner. Sends the other parent a labour_started
+        notification (title: "Emily says labour has started") and a live
+        update, once per ten minutes per family; a second tap inside that
+        window is accepted and sends nothing. Carries no health text. A
+        grandparent or nanny gets 404.
+      responses:
+        "204":
+          description: Sent, or already sent a moment ago.
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/appointments/{appointmentId}/prep:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: appointmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getAppointmentPrep
+      tags: [calendar]
+      summary: What to bring, when to leave and what to ask for one appointment
+      description: |
+        The prep view of an upcoming appointment the acting parent can see
+        (CalendarEvent of kind appointment). Questions are the ones
+        listAppointmentQuestions would return for it, with the same
+        visibility rules. Documents and the travel estimate are computed
+        from the appointment's kind and location. Mother and partner only;
+        a grandparent or nanny, and any appointment that is not visible to
+        the acting parent, get 404.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentPrep"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/appointment-questions/{questionId}:
     patch:
       operationId: updateAppointmentQuestion
@@ -6096,6 +6218,36 @@ components:
           example: 32
         source:
           $ref: "#/components/schemas/Source"
+        ruleId:
+          type: string
+          description: The plan rule this guide explains, same format as PlanItem.ruleId. Absent when no rule covers it. A guide whose rule is already a plan item is not shown again as a lesson.
+          example: tdap-pregnancy
+        action:
+          $ref: "#/components/schemas/GuideAction"
+
+    GuideAction:
+      type: object
+      required: [kind]
+      description: The one thing a lesson ends in. Absent means the default, ask_at_visit with a question about the guide title.
+      properties:
+        kind:
+          type: string
+          description: add_task = put title on the plan (POST tasks); ask_at_visit = add question to the visit list; commit_shift = take the shift; practice = open the simulator.
+          enum: [add_task, ask_at_visit, commit_shift, practice]
+        label:
+          type: string
+          description: Button text, when the default for the kind does not fit.
+          example: Take 22:00 to 02:00
+        title:
+          type: string
+          description: The task title. Required for add_task.
+          example: Get the Tdap vaccine
+        question:
+          type: string
+          description: The question text. Required for ask_at_visit.
+          example: Is the RSV vaccine right for me this season?
+        shift:
+          $ref: "#/components/schemas/ShiftSuggestion"
 
     GuideList:
       type: object
@@ -6562,6 +6714,111 @@ components:
           items:
             $ref: "#/components/schemas/AppointmentQuestion"
 
+
+    Place:
+      type: object
+      required: [name, address]
+      properties:
+        name:
+          type: string
+          example: St. Anne's Birth Center
+        address:
+          type: string
+        phone:
+          type: string
+        mapsUrl:
+          type: string
+          format: uri
+          description: Opens the route in the maps app.
+        travelMinutes:
+          type: integer
+          minimum: 0
+          description: Usual drive time from the family's home, without traffic. The UI shows it as an estimate.
+
+    BringItem:
+      type: object
+      required: [title, ready]
+      properties:
+        title:
+          type: string
+          example: Insurance card and photo ID
+        detail:
+          type: string
+        ready:
+          type: boolean
+          description: True when the paperwork task behind it is done. Items with no task are false until the visit.
+        taskId:
+          type: string
+          format: uuid
+          description: The paperwork or plan task this item comes from.
+
+    BirthContact:
+      type: object
+      required: [label, name, phone]
+      properties:
+        label:
+          type: string
+          description: Why to call, such as "Labour and delivery desk" or "Your OB".
+        name:
+          type: string
+        phone:
+          type: string
+        memberId:
+          type: string
+          format: uuid
+          description: Set when the contact is a family member (the partner, a grandparent).
+
+    BirthPlan:
+      type: object
+      required: [hospital, contacts, documents]
+      properties:
+        hospital:
+          $ref: "#/components/schemas/Place"
+        contacts:
+          type: array
+          description: In the order to call them.
+          items:
+            $ref: "#/components/schemas/BirthContact"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BringItem"
+        preferencesNote:
+          type: string
+          description: The family's birth preferences to talk through with the care team. A note, not a plan the AI writes.
+
+    AppointmentTravel:
+      type: object
+      required: [minutes, leaveBy]
+      properties:
+        minutes:
+          type: integer
+          minimum: 0
+          description: Drive time plus a fixed ten minute buffer.
+        leaveBy:
+          type: string
+          format: date-time
+        mapsUrl:
+          type: string
+          format: uri
+
+    AppointmentPrep:
+      type: object
+      required: [appointment, documents, questions]
+      properties:
+        appointment:
+          $ref: "#/components/schemas/CalendarEvent"
+        travel:
+          $ref: "#/components/schemas/AppointmentTravel"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BringItem"
+        questions:
+          type: array
+          description: Unanswered first, then oldest first.
+          items:
+            $ref: "#/components/schemas/AppointmentQuestion"
 
     SimulatorSkill:
       type: string
@@ -7179,8 +7436,9 @@ components:
         appointment is tomorrow (calendar event); invitation_accepted = a
         caregiver the recipient invited joined (invitation);
         subscription_started = the family's paid plan started (both
-        parents).
-      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started]
+        parents); labour_started = the other parent tapped "Going to the
+        hospital" (entityId: the sender, createLabourAlert).
+      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started, labour_started]
 
     Notification:
       type: object

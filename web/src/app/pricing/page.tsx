@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Plans" };
 // only adds the family's current plan and an earlier upgrade request.
 export default function PricingPage() {
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pt-6 pb-16 md:px-8">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-16 md:px-8">
       <header className="flex items-center justify-between">
         <Link
           href="/family"
