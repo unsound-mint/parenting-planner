@@ -4,6 +4,9 @@
 # deploy.sh's git reset because it is untracked). Compose reads it automatically.
 #   POSTGRES_PASSWORD=...   required
 #   SENTRY_DSN=...          optional; API error reports, unset means none are sent
+#   DIARY_ENCRYPTION_KEY=...  32 bytes, base64 (`openssl rand -base64 32`). Without it
+#                           the API makes a new key on every start and older diary
+#                           entries can no longer be read
 #   ANTHROPIC_API_KEY=...   optional; without it the AI plan is off and the
 #                           rule plan shows on its own
 #   ANTHROPIC_MODEL=...     optional model id override for the AI plan
@@ -36,6 +39,7 @@ services:
       SENTRY_DSN: ${SENTRY_DSN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      DIARY_ENCRYPTION_KEY: ${DIARY_ENCRYPTION_KEY:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:

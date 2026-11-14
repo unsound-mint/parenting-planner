@@ -14,9 +14,12 @@ import (
 var errNoContentItem = Error{Code: "not_found", Message: "no such content item"}
 
 func (s *Server) ListContentItems(ctx context.Context, req ListContentItemsRequestObject) (ListContentItemsResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return ListContentItems401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return ListContentItems403JSONResponse(errForbidden), nil
 	}
 	items, err := admin.ListContent(ctx, s.pool, familyID, content.ItemKind(req.Params.Kind))
 	if err != nil {
@@ -30,9 +33,12 @@ func (s *Server) ListContentItems(ctx context.Context, req ListContentItemsReque
 }
 
 func (s *Server) UpdateContentItem(ctx context.Context, req UpdateContentItemRequestObject) (UpdateContentItemResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return UpdateContentItem401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return UpdateContentItem403JSONResponse(errForbidden), nil
 	}
 	it, err := admin.UpdateContent(ctx, s.pool, familyID, content.ItemKind(req.Kind), req.ItemId, req.Body.Title, req.Body.Body, s.now(ctx))
 	switch {
@@ -45,9 +51,12 @@ func (s *Server) UpdateContentItem(ctx context.Context, req UpdateContentItemReq
 }
 
 func (s *Server) ResetContentItem(ctx context.Context, req ResetContentItemRequestObject) (ResetContentItemResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return ResetContentItem401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return ResetContentItem403JSONResponse(errForbidden), nil
 	}
 	it, err := admin.ResetContent(ctx, s.pool, familyID, content.ItemKind(req.Kind), req.ItemId)
 	switch {

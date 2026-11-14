@@ -25,19 +25,7 @@ func (s *Server) GetPsychologistAgenda(ctx context.Context, req GetPsychologistA
 	if err != nil {
 		return nil, err
 	}
-	out := PsychologistAgenda{Topics: make([]AgendaTopic, 0, len(a.Topics))}
-	for _, t := range a.Topics {
-		out.Topics = append(out.Topics, AgendaTopic{Id: t.ID, Text: t.Text, AddedAt: t.AddedAt.UTC()})
-	}
-	if a.NextSession != nil {
-		b := bookingOut(*a.NextSession)
-		out.NextSession = &b
-	}
-	if a.NoteDue != nil {
-		b := bookingOut(*a.NoteDue)
-		out.NoteDue = &b
-	}
-	return GetPsychologistAgenda200JSONResponse(out), nil
+	return GetPsychologistAgenda200JSONResponse(agendaOut(a)), nil
 }
 
 func (s *Server) ListPsychologistSlots(ctx context.Context, req ListPsychologistSlotsRequestObject) (ListPsychologistSlotsResponseObject, error) {
@@ -118,4 +106,20 @@ func bookingOut(b care.Booking) PsychologistBooking {
 		Id: b.ID, Provider: psychologistOut(b.Psychologist), StartsAt: b.StartsAt.UTC(),
 		DurationMinutes: b.DurationMinutes, NoteWritten: b.NoteWritten,
 	}
+}
+
+func agendaOut(a care.Agenda) PsychologistAgenda {
+	out := PsychologistAgenda{Topics: make([]AgendaTopic, 0, len(a.Topics))}
+	for _, t := range a.Topics {
+		out.Topics = append(out.Topics, AgendaTopic{Id: t.ID, Text: t.Text, AddedAt: t.AddedAt.UTC()})
+	}
+	if a.NextSession != nil {
+		b := bookingOut(*a.NextSession)
+		out.NextSession = &b
+	}
+	if a.NoteDue != nil {
+		b := bookingOut(*a.NoteDue)
+		out.NoteDue = &b
+	}
+	return out
 }
