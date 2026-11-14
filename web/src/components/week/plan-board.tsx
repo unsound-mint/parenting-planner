@@ -4,45 +4,93 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { BookOpen, CalendarCheck, CheckCircle2, ChevronDown, ExternalLink, UserRound, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, CalendarCheck, CheckCircle2, ChevronDown, ExternalLink, Lock, UserRound, type LucideIcon } from "lucide-react";
 import { api } from "@/lib/api/client";
-import type { PlanItem } from "@/lib/api/types";
+import type { PlanItem, WeeklyPlanPoint } from "@/lib/api/types";
 import { BOOKING_ENABLED } from "@/lib/features";
 import { daysUntil, firstSentence, formatLongDate, formatShortDate } from "@/lib/format";
-import { categoryIcon, categoryLabel, statusBar, statusTint } from "@/lib/visuals";
+import { categoryIcon, statusBar, statusTint, talkIcon, weeklyNoteIcon } from "@/lib/visuals";
+import type { NoteParts } from "@/lib/week";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { StatusPill } from "./status-pill";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // The plan as one focus card plus a quieter list. Each item explains itself
 // in place: "Why?" opens under the item and adds only what the item does not
 // already say (the parent's data, the rest of the guideline, the source with
 // its checked date), so nothing on the page is printed twice.
-export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: string }) {
+//
+// The written weekly note (Plus) is not a separate card: its line for an item
+// replaces the item's generic action, and its points about nothing on the plan
+// become rows of their own (lib/week.ts). On the free plan one row offers it.
+export function PlanBoard({
+  items,
+  memberId,
+  note,
+  noteLocked,
+  talkHref,
+}: {
+  items: PlanItem[];
+  memberId: string;
+  note?: NoteParts;
+  noteLocked?: boolean;
+  /** Where "Talk to someone" leads when the parent's check-ins show a pattern; shown on mental health items. */
+  talkHref?: string;
+}) {
   const focus = items.find((i) => i.status !== "upcoming") ?? items[0];
   const [openId, setOpenId] = useState<string | null>(null);
   const toggle = (id: string) => setOpenId((o) => (o === id ? null : id));
 
+  const loose = note?.loose ?? [];
+  // Note rows about nothing on the plan, and the Plus offer, show even when the plan is empty.
+  const extras = (
+    <>
+      {loose.map((point, i) => (
+        <li key={`note-${i}`}>
+          <NoteRow point={point} open={openId === `note-${i}`} onToggle={() => toggle(`note-${i}`)} id={`note-${i}`} />
+        </li>
+      ))}
+      {noteLocked && (
+        <li>
+          <LockedNoteRow />
+        </li>
+      )}
+    </>
+  );
+
   if (!focus) {
     return (
-      <div className="mt-8 flex max-w-2xl items-center gap-4 rounded-2xl border border-border bg-card p-6">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-ok-soft text-status-ok">
-          <CheckCircle2 className="size-6" aria-hidden />
-        </span>
-        <div>
-          <p className="text-title">Nothing from the guidelines needs you right now</p>
-          <p className="text-label text-muted-foreground">We check again when your family&apos;s data or the week changes.</p>
+      <div className="mt-8 flex min-w-0 flex-col gap-2">
+        <div className="mb-4 flex max-w-2xl items-center gap-4 rounded-2xl border border-border bg-card p-6">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-ok-soft text-status-ok">
+            <CheckCircle2 className="size-6" aria-hidden />
+          </span>
+          <div>
+            <p className="text-title">Nothing from the guidelines needs you right now</p>
+            <p className="text-label text-muted-foreground">We check again when your family&apos;s data or the week changes.</p>
+          </div>
         </div>
+        {(loose.length > 0 || noteLocked) && <ul className="flex flex-col gap-2">{extras}</ul>}
       </div>
     );
   }
 
   const rest = items.filter((i) => i.ruleId !== focus.ruleId);
+  const talk = (item: PlanItem) => (item.category === "mental_health" ? talkHref : undefined);
 
   return (
     <div className="mt-8 flex min-w-0 flex-col gap-6">
-      <FocusCard item={focus} memberId={memberId} whyOpen={openId === focus.ruleId} onToggleWhy={() => toggle(focus.ruleId)} />
-      {rest.length > 0 && (
+      <FocusCard
+        item={focus}
+        line={note?.byRule[focus.ruleId]}
+        talkHref={talk(focus)}
+        memberId={memberId}
+        whyOpen={openId === focus.ruleId}
+        onToggleWhy={() => toggle(focus.ruleId)}
+      />
+      {(rest.length > 0 || loose.length > 0) && (
         <section aria-labelledby="also-title" className="mt-2">
           <h2 id="also-title" className="text-title">
             Also on your plan
@@ -55,11 +103,20 @@ export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: st
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.06 + i * 0.04 }}
               >
-                <ItemRow item={item} open={openId === item.ruleId} onToggle={() => toggle(item.ruleId)} />
+                <ItemRow item={item} line={note?.byRule[item.ruleId]} talkHref={talk(item)} open={openId === item.ruleId} onToggle={() => toggle(item.ruleId)} />
               </motion.li>
             ))}
+            {extras}
           </ul>
         </section>
+      )}
+      {/* Only the Plus offer: no heading over an upsell. */}
+      {rest.length === 0 && loose.length === 0 && noteLocked && (
+        <ul className="-mt-2">
+          <li>
+            <LockedNoteRow />
+          </li>
+        </ul>
       )}
     </div>
   );
@@ -83,11 +140,26 @@ function ItemIcon({ item, size }: { item: PlanItem; size: "md" | "lg" }) {
 // Window for the countdown bar: items further out than this fill the track.
 const COUNTDOWN_DAYS = 56;
 
-function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; memberId: string; whyOpen: boolean; onToggleWhy: () => void }) {
+function FocusCard({
+  item,
+  line,
+  talkHref,
+  memberId,
+  whyOpen,
+  onToggleWhy,
+}: {
+  item: PlanItem;
+  line?: WeeklyPlanPoint;
+  talkHref?: string;
+  memberId: string;
+  whyOpen: boolean;
+  onToggleWhy: () => void;
+}) {
   const router = useRouter();
   const [booked, setBooked] = useState(false);
   const [pending, startTransition] = useTransition();
-  const days = item.dueBy ? daysUntil(item.dueBy) : undefined;
+  const now = useFamilyNow();
+  const days = item.dueBy ? daysUntil(item.dueBy, now) : undefined;
   const progress = booked ? "booked" : item.progress;
 
   function markBooked() {
@@ -123,7 +195,7 @@ function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; m
           <h2 id="focus-title" className="mt-1 text-title">
             {item.title}
           </h2>
-          <p className="mt-1 line-clamp-2 text-body">{firstSentence(item.detail)}</p>
+          {line ? <NoteLine point={line} className="mt-1" /> : <p className="mt-1 line-clamp-2 text-body">{firstSentence(item.detail)}</p>}
         </div>
       </div>
 
@@ -131,7 +203,6 @@ function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; m
 
       <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-3">
         <StatusPill status={item.status} />
-        <span className="text-caption text-muted-foreground">{categoryLabel[item.category]}</span>
         <div className="ml-auto flex items-center gap-2">
           <Button
             type="button"
@@ -144,6 +215,7 @@ function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; m
             Why?
             <ChevronDown className={cn("size-4 transition-transform duration-220", whyOpen && "rotate-180")} aria-hidden />
           </Button>
+          {talkHref && <TalkLink href={talkHref} />}
           {BOOKING_ENABLED && !progress && (
             <Button type="button" onClick={markBooked} disabled={pending} className="h-11 px-4 text-label md:h-9">
               <CalendarCheck aria-hidden />
@@ -164,7 +236,7 @@ function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; m
           )}
         </div>
       </div>
-      <Why id={`why-${item.ruleId}`} item={item} open={whyOpen} skipFirstSentence />
+      <Why id={`why-${item.ruleId}`} item={item} line={line} open={whyOpen} skipFirstSentence />
     </motion.article>
   );
 }
@@ -204,7 +276,7 @@ function Countdown({ item, days }: { item: PlanItem; days: number }) {
   );
 }
 
-function ItemRow({ item, open, onToggle }: { item: PlanItem; open: boolean; onToggle: () => void }) {
+function ItemRow({ item, line, talkHref, open, onToggle }: { item: PlanItem; line?: WeeklyPlanPoint; talkHref?: string; open: boolean; onToggle: () => void }) {
   return (
     <div className={cn("rounded-xl border bg-card transition-colors duration-150", open ? "border-input" : "border-border")}>
       <button
@@ -217,25 +289,120 @@ function ItemRow({ item, open, onToggle }: { item: PlanItem; open: boolean; onTo
         <ItemIcon item={item} size="md" />
         <span className="min-w-0 flex-1">
           <span className="block text-body font-semibold">{item.title}</span>
-          <span className="block text-caption text-muted-foreground">
-            {categoryLabel[item.category]}
-            {item.dueBy ? ` · by ${formatShortDate(item.dueBy)}` : ""}
-          </span>
+          {line && <NoteLine point={line} small />}
         </span>
-        {item.progress ? (
-          <span className="inline-flex items-center gap-1 rounded-md bg-status-ok-soft px-2 py-0.5 text-caption font-semibold text-status-ok">
-            <CheckCircle2 className="size-3.5" aria-hidden />
-            {item.progress === "done" ? "Done" : "Booked"}
-          </span>
-        ) : (
-          <StatusPill status={item.status} />
-        )}
+        <span className="flex shrink-0 flex-col items-end gap-1">
+          {item.progress ? (
+            <span className="inline-flex items-center gap-1 rounded-md bg-status-ok-soft px-2 py-0.5 text-caption font-semibold text-status-ok">
+              <CheckCircle2 className="size-3.5" aria-hidden />
+              {item.progress === "done" ? "Done" : "Booked"}
+            </span>
+          ) : (
+            <StatusPill status={item.status} />
+          )}
+          {item.dueBy && <span className="font-mono text-caption text-muted-foreground">by {formatShortDate(item.dueBy)}</span>}
+        </span>
         <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-220", open && "rotate-180")} aria-hidden />
       </button>
+      {talkHref && (
+        <div className="-mt-1 flex pr-4 pb-3 pl-16">
+          <TalkLink href={talkHref} />
+        </div>
+      )}
       <div className="px-4">
-        <Why id={`why-${item.ruleId}`} item={item} open={open} className="pb-4" />
+        <Why id={`why-${item.ruleId}`} item={item} line={line} open={open} className="pb-4" />
       </div>
     </div>
+  );
+}
+
+// The note's line for an item: what to do, said for this family. The pen marks
+// it as the written note rather than the guideline.
+function NoteLine({ point, small, className }: { point: WeeklyPlanPoint; small?: boolean; className?: string }) {
+  const Icon = weeklyNoteIcon;
+  return (
+    <span className={cn("flex items-start gap-1.5", small ? "text-label text-muted-foreground" : "text-body", className)}>
+      <Icon className={cn("shrink-0 text-primary", small ? "mt-0.5 size-3.5" : "mt-1 size-4")} aria-label="From your weekly note" />
+      <span>{point.text}</span>
+    </span>
+  );
+}
+
+function TalkLink({ href }: { href: string }) {
+  const Icon = talkIcon;
+  return (
+    <Link href={href} className={cn(buttonVariants(), "h-11 px-4 text-label md:h-9")}>
+      <Icon aria-hidden />
+      Talk to someone
+    </Link>
+  );
+}
+
+// A note point about nothing on this person's plan (the partner's booster on
+// Emily's page). Its reason and source open in place like any item.
+function NoteRow({ point, id, open, onToggle }: { point: WeeklyPlanPoint; id: string; open: boolean; onToggle: () => void }) {
+  const Icon = weeklyNoteIcon;
+  return (
+    <div className={cn("rounded-xl border bg-card transition-colors duration-150", open ? "border-input" : "border-border")}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={`why-${id}`}
+        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+          <Icon className="size-4.5" aria-label="From your weekly note" />
+        </span>
+        <span className="min-w-0 flex-1 text-body">{point.text}</span>
+        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-220", open && "rotate-180")} aria-hidden />
+      </button>
+      <section
+        id={`why-${id}`}
+        aria-label="Why this is in your note"
+        className={cn(
+          "grid px-4 transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out)",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+        inert={!open}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <ol className="mt-1 flex flex-col border-t border-border pt-5 pb-4">
+            <Step icon={UserRound} label="Your data" last={!point.source}>
+              <p className="text-body">{point.reason}</p>
+            </Step>
+            {point.source && (
+              <Step icon={ExternalLink} label="Source" last>
+                <a href={point.source.url} target="_blank" rel="noreferrer" className="block font-mono text-caption underline-offset-2 hover:underline">
+                  {point.source.title}
+                </a>
+                <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(point.source.checkedAt)}</p>
+              </Step>
+            )}
+          </ol>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// Free plan: one row in the list says the note exists and leads to pricing.
+function LockedNoteRow() {
+  const Icon = weeklyNoteIcon;
+  return (
+    <Link
+      href="/pricing"
+      className="flex min-h-14 items-center gap-3 rounded-xl border border-dashed border-border px-4 py-3 transition-colors duration-150 hover:bg-muted"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Icon className="size-4.5" aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1 text-body text-muted-foreground">A personal line on each step</span>
+      <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-secondary px-3 text-caption font-medium text-secondary-foreground">
+        <Lock className="size-3.5" aria-hidden />
+        Plus
+      </span>
+    </Link>
   );
 }
 
@@ -243,7 +410,23 @@ function ItemRow({ item, open, onToggle }: { item: PlanItem; open: boolean; onTo
 // the content below slides instead of jumping. Closed content is inert.
 // skipFirstSentence: the focus card already shows the guideline's first
 // sentence as its action, so the guideline step only adds what follows it.
-function Why({ id, item, open, skipFirstSentence, className }: { id: string; item: PlanItem; open: boolean; skipFirstSentence?: boolean; className?: string }) {
+function Why({
+  id,
+  item,
+  line,
+  open,
+  skipFirstSentence,
+  className,
+}: {
+  id: string;
+  item: PlanItem;
+  /** The note's line on this item: its source is listed too when it cites a different guideline. */
+  line?: WeeklyPlanPoint;
+  open: boolean;
+  skipFirstSentence?: boolean;
+  className?: string;
+}) {
+  const sources = [item.source, ...(line?.source && line.source.url !== item.source.url ? [line.source] : [])];
   const guideline = skipFirstSentence ? item.detail.slice(firstSentence(item.detail).length).trim() : item.detail;
   return (
     <section
@@ -265,11 +448,15 @@ function Why({ id, item, open, skipFirstSentence, className }: { id: string; ite
               <p className="text-body">{guideline}</p>
             </Step>
           )}
-          <Step icon={ExternalLink} label="Source" last>
-            <a href={item.source.url} target="_blank" rel="noreferrer" className="block font-mono text-caption underline-offset-2 hover:underline">
-              {item.source.title}
-            </a>
-            <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(item.source.checkedAt)}</p>
+          <Step icon={ExternalLink} label={sources.length > 1 ? "Sources" : "Source"} last>
+            {sources.map((source, i) => (
+              <div key={source.url} className={cn(i > 0 && "mt-3")}>
+                <a href={source.url} target="_blank" rel="noreferrer" className="block font-mono text-caption underline-offset-2 hover:underline">
+                  {source.title}
+                </a>
+                <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(source.checkedAt)}</p>
+              </div>
+            ))}
           </Step>
         </ol>
         <p className={cn("mt-4 text-caption text-muted-foreground", className)}>Guidance to discuss with your doctor, not a diagnosis.</p>

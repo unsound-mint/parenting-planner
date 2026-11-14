@@ -6,6 +6,7 @@
 #   ANTHROPIC_API_KEY=...   optional; without it the AI plan is off and the
 #                           rule plan shows on its own
 #   ANTHROPIC_MODEL=...     optional model id override for the AI plan
+#   SENTRY_DSN=...          optional; API error reports (unset means none are sent)
 # Check the key is set without printing it (never run `docker compose config`
 # on the server, it prints every value):
 #   grep -c '^ANTHROPIC_API_KEY=.' deploy/.env                  # 1 = set
@@ -34,6 +35,7 @@ services:
       DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:

@@ -9,7 +9,7 @@ import (
 )
 
 func (s *Server) CreateDemoSession(ctx context.Context, req CreateDemoSessionRequestObject) (CreateDemoSessionResponseObject, error) {
-	familyID, token, err := demo.Start(ctx, s.pool, demo.Template(req.Body.Template), s.today())
+	familyID, token, err := demo.Start(ctx, s.pool, demo.Template(req.Body.Template), s.realToday())
 	if errors.Is(err, demo.ErrUnknownTemplate) {
 		return CreateDemoSession400JSONResponse{Code: "bad_template", Message: err.Error()}, nil
 	}
@@ -20,9 +20,31 @@ func (s *Server) CreateDemoSession(ctx context.Context, req CreateDemoSessionReq
 	if err != nil {
 		return nil, err
 	}
-	cookie := (&http.Cookie{
+	cookie := s.sessionCookieHeader(token)
+	return CreateDemoSession201JSONResponse{Body: fam, Headers: CreateDemoSession201ResponseHeaders{SetCookie: &cookie}}, nil
+}
+
+// sessionCookieHeader is the Set-Cookie value for a new session token.
+func (s *Server) sessionCookieHeader(token string) string {
+	return (&http.Cookie{
 		Name: sessionCookie, Value: token, Path: "/", HttpOnly: true,
 		Secure: s.cfg.SecureCookies, SameSite: http.SameSiteLaxMode, MaxAge: int(demo.SessionTTL.Seconds()),
 	}).String()
-	return CreateDemoSession201JSONResponse{Body: fam, Headers: CreateDemoSession201ResponseHeaders{SetCookie: &cookie}}, nil
+}
+
+// CreateDemoTimeSkip moves the session family's demo clock a week ahead.
+// Every later request reads the new offset in the session middleware.
+func (s *Server) CreateDemoTimeSkip(ctx context.Context, _ CreateDemoTimeSkipRequestObject) (CreateDemoTimeSkipResponseObject, error) {
+	familyID, ok := familyFrom(ctx)
+	if !ok {
+		return CreateDemoTimeSkip401JSONResponse(errNoSession), nil
+	}
+	if err := demo.SkipWeek(ctx, s.pool, familyID); err != nil {
+		return nil, err
+	}
+	fam, err := s.loadFamily(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	return CreateDemoTimeSkip200JSONResponse(fam), nil
 }

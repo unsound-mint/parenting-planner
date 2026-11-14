@@ -59,9 +59,11 @@
   --color-status-late-soft: var(--status-late-soft);
   --color-urgent: var(--urgent);
 
-  /* Each parent owns an accent: ownership in the shared plan and handoffs. */
+  /* Each person in the family owns an accent: ownership in the shared plan, handoffs and the role switch. */
   --color-mom: var(--mom);
   --color-partner: var(--partner);
+  --color-grandparent: var(--grandparent);
+  --color-nanny: var(--nanny);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -136,6 +138,8 @@
 
   --mom: #3e6e5e;
   --partner: #5b5aa8;
+  --grandparent: #8f5f2a;
+  --nanny: #2f7388;
 
   --chart-1: #3e6e5e;
   --chart-2: #5b5aa8;
@@ -185,6 +189,8 @@
 
   --mom: #e9b872;
   --partner: #7cc2b3;
+  --grandparent: #e0a08c;
+  --nanny: #86b8d4;
 
   --chart-1: #7cc2b3;
   --chart-2: #b3a9e6;

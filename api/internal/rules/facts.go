@@ -18,6 +18,38 @@ type Facts struct {
 	CareTeam map[string]bool
 	// The viewing parent's own mood check-ins from the last 14 days, newest first.
 	RecentMoods []MoodSample
+	// The viewing parent's own mood questionnaires from the last year, newest
+	// first. Never the other parent's, even when shared.
+	MoodScreenings []ScreeningSample
+	// When the viewing parent last wrote a note after a psychologist session
+	// (last 14 days only), and whether they have a next session booked. Never
+	// the note text.
+	LastSessionNoteAt *time.Time
+	NextSessionBooked bool
+	// Rubella immunity from the pregnant or planning parent's latest lab that
+	// reports it: "immune", "not immune", or "" when no lab says.
+	MotherRubella string
+	// The family's children, oldest first.
+	Children []ChildFacts
+}
+
+// ChildFacts is what the rules know about one child.
+type ChildFacts struct {
+	Name      string
+	BirthDate time.Time
+	// Doses on record per vaccine (dtap, ipv, mmr, ...).
+	Doses map[string]int
+	// Lab or screening kinds on record (vision_screen, ...), with the latest date.
+	Labs map[string]time.Time
+}
+
+// AgeMonths is the child's age in completed months on the given day.
+func (c ChildFacts) AgeMonths(on time.Time) int {
+	m := (on.Year()-c.BirthDate.Year())*12 + int(on.Month()-c.BirthDate.Month())
+	if on.Day() < c.BirthDate.Day() {
+		m--
+	}
+	return max(m, 0)
 }
 
 const pregnancyDays = 280

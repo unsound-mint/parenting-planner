@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -31,6 +32,8 @@ type Client struct {
 	base string
 	http *http.Client
 	Pool *pgxpool.Pool
+	// LastHeader holds the response headers of the last request.
+	LastHeader http.Header
 }
 
 func New(t *testing.T) *Client {
@@ -97,7 +100,29 @@ func (c *Client) Put(path string, body any, wantStatus int, out any) {
 	c.do(http.MethodPut, path, body, wantStatus, out)
 }
 
+func (c *Client) Patch(path string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.do(http.MethodPatch, path, body, wantStatus, out)
+}
+
+func (c *Client) Delete(path string, wantStatus int, out any) {
+	c.t.Helper()
+	c.do(http.MethodDelete, path, nil, wantStatus, out)
+}
+
+// PostWithHeaders is Post with extra request headers, for callers such as
+// webhooks that authenticate with a header instead of the session cookie.
+func (c *Client) PostWithHeaders(path string, headers map[string]string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.doWithHeaders(http.MethodPost, path, headers, body, wantStatus, out)
+}
+
 func (c *Client) do(method, path string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.doWithHeaders(method, path, nil, body, wantStatus, out)
+}
+
+func (c *Client) doWithHeaders(method, path string, headers map[string]string, body any, wantStatus int, out any) {
 	c.t.Helper()
 	var r io.Reader
 	if body != nil {
@@ -114,11 +139,15 @@ func (c *Client) do(method, path string, body any, wantStatus int, out any) {
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
 	res, err := c.http.Do(req)
 	if err != nil {
 		c.t.Fatal(err)
 	}
 	defer res.Body.Close()
+	c.LastHeader = res.Header
 	raw, _ := io.ReadAll(res.Body)
 	if res.StatusCode != wantStatus {
 		c.t.Fatalf("%s %s: status %d, want %d; body: %s", method, path, res.StatusCode, wantStatus, raw)
@@ -128,6 +157,32 @@ func (c *Client) do(method, path string, body any, wantStatus int, out any) {
 			c.t.Fatalf("%s %s: decode: %v; body: %s", method, path, err, raw)
 		}
 	}
+}
+
+// SessionCookie is the pp_session value the client holds, or "" if none.
+func (c *Client) SessionCookie() string {
+	c.t.Helper()
+	u, err := url.Parse(c.base)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	for _, ck := range c.http.Jar.Cookies(u) {
+		if ck.Name == "pp_session" {
+			return ck.Value
+		}
+	}
+	return ""
+}
+
+// SetSessionCookie makes the client send this pp_session value, e.g. an old
+// one kept from before the session ended.
+func (c *Client) SetSessionCookie(value string) {
+	c.t.Helper()
+	u, err := url.Parse(c.base)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	c.http.Jar.SetCookies(u, []*http.Cookie{{Name: "pp_session", Value: value, Path: "/"}})
 }
 
 // AuditCount counts audit rows for a family, action and entity.
@@ -141,4 +196,25 @@ func (c *Client) AuditCount(familyID any, action, entity string) int {
 		c.t.Fatal(err)
 	}
 	return n
+}
+
+// Raw sends a body that is not JSON (an audio upload) or reads a body that is
+// not JSON (a calendar feed) and returns the status and the raw response.
+func (c *Client) Raw(method, path, contentType string, body io.Reader) (int, []byte) {
+	c.t.Helper()
+	req, err := http.NewRequest(method, c.base+path, body)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	res, err := c.http.Do(req)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	defer res.Body.Close()
+	c.LastHeader = res.Header
+	raw, _ := io.ReadAll(res.Body)
+	return res.StatusCode, raw
 }
