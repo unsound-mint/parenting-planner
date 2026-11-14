@@ -34,6 +34,15 @@ type Facts struct {
 	MotherRubella string
 	// The family's children, oldest first.
 	Children []ChildFacts
+	// The family's childcare options (family-wide, both parents see them).
+	ChildcareOptions []ChildcareOptionFacts
+}
+
+// ChildcareOptionFacts is what the rules know about one childcare option.
+type ChildcareOptionFacts struct {
+	Name     string
+	Status   string
+	DecideBy *time.Time
 }
 
 // ChildFacts is what the rules know about one child.

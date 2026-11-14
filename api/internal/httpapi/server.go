@@ -204,6 +204,7 @@ var (
 	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
 	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
 	errNoPlanItem        = Error{Code: "not_found", Message: "this item is not on this parent's plan"}
+	errNoChildcareOption = Error{Code: "not_found", Message: "no such childcare option in this family"}
 
 	errNoVoiceNote       = Error{Code: "not_found", Message: "no such voice note"}
 	errVoiceNoteType     = Error{Code: "invalid_request", Message: "record as audio/webm, audio/mp4 or audio/ogg"}

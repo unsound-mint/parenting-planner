@@ -239,7 +239,42 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedChildcare(ctx, q, fam, today); err != nil {
+		return uuid.Nil, err
+	}
 	return fam, nil
+}
+
+// seedChildcare gives the newborn family three childcare options in different
+// states: a daycare place offered for when Leo is 4 months, with an answer due
+// in 10 days (an upcoming "Decide on a childcare offer" plan item); a daycare
+// waitlist; and a nanny share they are still researching. All invented.
+func seedChildcare(ctx context.Context, q *store.Queries, fam uuid.UUID, today time.Time) error {
+	cost := func(v int32) pgtype.Int4 { return pgtype.Int4{Int32: v, Valid: true} }
+	day := func(n int) *time.Time { d := today.AddDate(0, 0, n); return &d }
+	at := func(n, h int) time.Time { return today.AddDate(0, 0, n).Add(time.Duration(h) * time.Hour) }
+	for _, o := range []store.CreateChildcareOptionParams{
+		{
+			Name: "Little Harbor Early Learning", Kind: "daycare", Contact: ptr("Ms. Rivera, (617) 555-0142"), MonthlyCost: cost(2450),
+			Status: "offered", AppliedOn: day(-75), DecideBy: day(10),
+			Notes: ptr("Infant room place from when Leo is 4 months. A $500 deposit holds it."), Now: at(-3, 16),
+		},
+		{
+			Name: "Brightwater Children's Center", Kind: "daycare", Contact: ptr("admissions@brightwater.example"), MonthlyCost: cost(2700),
+			Status: "waitlisted", WaitlistPosition: cost(6), AppliedOn: day(-90),
+			Notes: ptr("Toured before Leo was born. They call when an infant spot opens, likely in spring."), Now: at(-20, 15),
+		},
+		{
+			Name: "Nanny share with the Delgados", Kind: "nanny", Contact: ptr("Priya Delgado, (617) 555-0187"), MonthlyCost: cost(1900),
+			Status: "researching", Notes: ptr("Two families, three days a week at our place. Interviewing nannies next week."), Now: at(-2, 19),
+		},
+	} {
+		o.FamilyID = fam
+		if _, err := q.CreateChildcareOption(ctx, o); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // handoffTone is three seconds of a generated 440 Hz tone (Ogg Opus), standing
