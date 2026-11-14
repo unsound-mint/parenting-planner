@@ -7070,6 +7070,8 @@ components:
           type: string
           description: ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your OB, midwife or pharmacist.
           enum: [ok, limit, avoid, ask]
+          # Plain Ok/Limit/Ask collide with other Go identifiers in httpapi.
+          x-enum-varnames: [SafetyOk, SafetyLimit, SafetyAvoid, SafetyAsk]
         why:
           type: string
           description: One plain line. Never a personal approval.
