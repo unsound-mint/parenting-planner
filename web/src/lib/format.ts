@@ -15,10 +15,14 @@ export function formatLongDate(isoDate: string): string {
 
 const numberWords = ["No", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
 
+/** "Two", "One", "12". */
+export function countWord(n: number): string {
+  return n < numberWords.length ? numberWords[n] : String(n);
+}
+
 /** "Two things", "One thing", "12 things". */
 export function countThings(n: number): string {
-  const word = n < numberWords.length ? numberWords[n] : String(n);
-  return `${word} ${n === 1 ? "thing" : "things"}`;
+  return `${countWord(n)} ${n === 1 ? "thing" : "things"}`;
 }
 
 export const stageLabel: Record<Stage, string> = {
@@ -85,4 +89,10 @@ export function daysUntilInstant(iso: string, now = new Date()): number {
 export function whenWords(days: number): string {
   if (days <= 0) return "today";
   return days === 1 ? "tomorrow" : `in ${days} days`;
+}
+
+/** The first sentence of a longer guideline text: the one-line action for a card. */
+export function firstSentence(text: string): string {
+  const m = text.match(/^[\s\S]*?[.!?](?=\s|$)/);
+  return (m ? m[0] : text).trim();
 }

@@ -37,7 +37,7 @@ export function ParentSwitch({
               href={`/family/${p.id}${rest ? `/${rest}` : ""}`}
               aria-current={active ? "true" : undefined}
               className={cn(
-                "rounded-full px-3.5 py-1 text-[13px] font-medium transition-colors duration-150",
+                "rounded-full px-3.5 py-1 text-label font-medium transition-colors duration-150",
                 active
                   ? cn(
                       "bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)]",
@@ -57,10 +57,15 @@ export function ParentSwitch({
           target="_blank"
           rel="noopener"
           aria-label={`Open ${other.displayName} in a new window`}
-          title={`Open ${other.displayName} in a new window`}
-          className="flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
+          className="group/tip relative flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
         >
           <AppWindow aria-hidden className="size-4" />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-full right-0 z-20 mt-2 rounded-md bg-foreground px-2 py-1 text-caption whitespace-nowrap text-background opacity-0 transition-opacity duration-150 group-hover/tip:opacity-100 group-focus-visible/tip:opacity-100"
+          >
+            Open {other.displayName} in a new window
+          </span>
         </Link>
       )}
     </div>

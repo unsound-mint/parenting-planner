@@ -15,7 +15,7 @@ Before starting an issue, read `docs/product.md`. If the issue conflicts with it
 | Denis | frontend | `web/` |
 | Sofia | backend | `api/` (except `openapi.yaml`), `deploy/` |
 | Dayana | product | `docs/product.md`, `docs/demo-script.md`, rule wording in `api/internal/rules/`, GitHub issues |
-| Denis and Sofia | both | `api/openapi.yaml`, the contract: changes need both to agree |
+| Denis | contract | `api/openapi.yaml`, generated code and 501 stubs (the [API] issues); Sofia is notified, not a blocker |
 
 Touching another owner's area is fine for small changes; mention it in the PR so they see it.
 
@@ -43,6 +43,6 @@ Architecture and commands: `docs/architecture.md`. Before changing `api/`, read 
 - `main` deploys to production on every push. Keep it working.
 - One issue, one short-lived branch (`<issue-number>-short-name`), one PR that says `Closes #N`. Merge as soon as CI is green; review is optional during the hackathon except for schema or deploy changes.
 - Small PRs merged often beat a big one at 3 am.
-- Contract changes: push and open the PR (a draft is fine) as soon as `api/openapi.yaml` changes, before building on it, so CODEOWNERS asks both Denis and Sofia for review right away. Merge only after the other side agrees.
+- Contract changes: only [API] PRs touch `api/openapi.yaml`, generated code and 501 stubs. Open the PR as soon as the contract changes (CODEOWNERS notifies Sofia) and merge it when CI is green, before the [BE] and [FE] work that builds on it.
 - Before starting an issue, check `gh pr list` and `git ls-remote --heads origin` for the other person's work on it.
 - No AI attribution in commits, PRs or code comments.
