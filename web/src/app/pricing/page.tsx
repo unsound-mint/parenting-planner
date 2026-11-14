@@ -46,7 +46,9 @@ async function Plans() {
   } catch {
     family = undefined;
   }
-  return <PlanCards currentTier={family?.tier} requested={family?.upgradeRequest} />;
+  // One subscription covers the family; a parent acts for it at checkout.
+  const parent = family?.parents.find((p) => p.role === "mother") ?? family?.parents[0];
+  return <PlanCards currentTier={family?.tier} requested={family?.upgradeRequest} memberId={parent?.id} />;
 }
 
 function Cards() {

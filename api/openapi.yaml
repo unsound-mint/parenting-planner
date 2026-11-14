@@ -79,6 +79,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /demo/custom-sessions:
+    post:
+      operationId: createCustomSession
+      tags: [demo]
+      security: []
+      summary: Start with a new family built from the visitor's own details
+      description: |
+        "Try it with your own details": creates a new family for this visitor
+        from what they typed, through the same seed and rules path as the demo
+        families, and sets the same session cookie as createDemoSession. The
+        family's template is `custom`. No auth; nothing is stored beyond the
+        typed fields, and each call makes a separate family.
+
+        Dates are checked against the stage (400 `bad_details` otherwise):
+        - pregnancy: dueDate is required, from 14 days ago to 280 days ahead.
+        - postpartum, infant, toddler, preschool, school_age: childBirthDate is
+          required, not in the future, and the child's age must fit the stage:
+          postpartum under 3 months, infant 3 to 11 months, toddler 12 to 35
+          months, preschool 36 to 59 months, school_age 60 months to 9 years.
+        - planning, trying: no dates.
+        A date that does not belong to the stage is ignored and not stored, and
+        childName is ignored before birth.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomFamilyInput"
+      responses:
+        "201":
+          description: Family created; the session cookie is set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /family:
     get:
       operationId: getFamily
@@ -194,6 +246,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WeeklyPlan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/journey:
+    get:
+      operationId: getMemberJourney
+      tags: [journey]
+      summary: The family's path from planning to age 9, where they are now and what comes next
+      description: |
+        Every stage from planning to age 9 in order, each marked past, current
+        or future, with its dates when the family's due date or child's birth
+        date fixes them. `current` is the "you are here" marker, computed from
+        the family's stage, due date and youngest child's birth date. The
+        upcoming items are the first few items of this parent's plan from the
+        rules engine (the same items and order as getMemberPlan), so the two
+        parents can see different items.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journey"
         "401":
           description: Error
           content:
@@ -2889,8 +2982,8 @@ components:
 
     DemoTemplate:
       type: string
-      description: "Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists."
-      enum: [planning, pregnancy, newborn, preschool]
+      description: "Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists. `custom` marks a family built from the visitor's own details (createCustomSession); createDemoSession rejects it with 400."
+      enum: [planning, pregnancy, newborn, preschool, custom]
 
     CreateDemoSessionRequest:
       type: object
@@ -2898,6 +2991,34 @@ components:
       properties:
         template:
           $ref: "#/components/schemas/DemoTemplate"
+
+    CustomFamilyInput:
+      type: object
+      required: [stage, motherName, partnerName]
+      properties:
+        stage:
+          $ref: "#/components/schemas/Stage"
+        dueDate:
+          type: string
+          format: date
+          description: Required for pregnancy.
+        childBirthDate:
+          type: string
+          format: date
+          description: Required once the child is born (postpartum and later).
+        childName:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: Optional; "Baby" when left out.
+        motherName:
+          type: string
+          minLength: 1
+          maxLength: 40
+        partnerName:
+          type: string
+          minLength: 1
+          maxLength: 40
 
     Stage:
       type: string
@@ -3045,6 +3166,80 @@ components:
         items:
           type: array
           description: Sorted by status (overdue, due, upcoming), then due date.
+          items:
+            $ref: "#/components/schemas/PlanItem"
+
+    JourneyStage:
+      type: string
+      description: |
+        A step on the timeline shown to parents, from planning to age 9. Finer
+        than the family's stored Stage: birth, newborn and first year are
+        separate steps.
+      enum: [planning, pregnancy, birth, newborn, first_year, toddler, preschool, school_age]
+
+    JourneySpanStatus:
+      type: string
+      enum: [past, current, future]
+
+    JourneySpan:
+      type: object
+      required: [stage, status]
+      properties:
+        stage:
+          $ref: "#/components/schemas/JourneyStage"
+        status:
+          $ref: "#/components/schemas/JourneySpanStatus"
+        startsOn:
+          type: string
+          format: date
+          description: First day of this stage for this family. Absent when no due date or birth date fixes it (planning families).
+        endsOn:
+          type: string
+          format: date
+          description: Last day of this stage for this family. Absent when unknown. Birth is a single day, so startsOn equals endsOn.
+
+    JourneyPosition:
+      type: object
+      description: The "you are here" marker. Numbers only; the web formats them.
+      required: [stage]
+      properties:
+        stage:
+          $ref: "#/components/schemas/JourneyStage"
+        gestationalWeek:
+          type: integer
+          description: Set in pregnancy; the same value as Family.gestationalWeek.
+        childId:
+          type: string
+          format: uuid
+          description: Set after birth; the youngest child, whose age places the family.
+        childAgeWeeks:
+          type: integer
+          description: Set after birth; completed weeks since the youngest child's birth.
+        childAgeMonths:
+          type: integer
+          description: Set after birth; the same value as Child.ageMonths.
+
+    Journey:
+      type: object
+      required: [memberId, generatedAt, current, stages, upcoming]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        generatedAt:
+          type: string
+          format: date-time
+        current:
+          $ref: "#/components/schemas/JourneyPosition"
+        stages:
+          type: array
+          description: All eight stages in order, from planning to school age (to age 9).
+          items:
+            $ref: "#/components/schemas/JourneySpan"
+        upcoming:
+          type: array
+          description: The next things for this parent, from the rules engine, most urgent first. Up to 5; fewer when the rules have less to say at this stage.
+          maxItems: 5
           items:
             $ref: "#/components/schemas/PlanItem"
 

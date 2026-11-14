@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, CircleCheck } from "lucide-react";
+import { Check, CircleCheck, CreditCard } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PaidTier, Tier, UpgradeIntent } from "@/lib/api/types";
 import { PLANS, type Plan } from "@/lib/plans";
@@ -12,21 +12,44 @@ import { Button } from "@/components/ui/button";
 const HELP_STEPS = 3;
 const helpLevel: Record<Tier, number> = { free: 1, plus: 2, concierge: 3 };
 
-// Three plans side by side. The button records intent only (no payment) and the
-// card turns into a thank-you. Prices come from lib/plans.ts.
-export function PlanCards({ currentTier, requested }: { currentTier?: Tier; requested?: UpgradeIntent }) {
+// Three plans side by side. "Upgrade" starts a Stripe test checkout. When the
+// server has no payments (501 or 503) the buttons fall back to recording intent
+// only, and the card turns into a thank-you. Prices come from lib/plans.ts.
+export function PlanCards({ currentTier, requested, memberId }: { currentTier?: Tier; requested?: UpgradeIntent; memberId?: string }) {
   const [asked, setAsked] = useState<PaidTier | undefined>(requested?.tier);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<string>();
   const [pending, startTransition] = useTransition();
   const [sending, setSending] = useState<PaidTier>();
+  // Payments need a parent to act as; without one, or once the server says no, record intent.
+  const [paymentsOff, setPaymentsOff] = useState(!memberId);
+  const own = helpLevel[currentTier ?? "free"];
 
-  function request(tier: PaidTier) {
+  async function recordIntent(tier: PaidTier) {
+    const { error } = await api.POST("/family/upgrade-intents", { body: { tier } });
+    if (error) setFailed("We could not save that just now. Please try again in a moment.");
+    else setAsked(tier);
+  }
+
+  function choose(tier: PaidTier) {
     setSending(tier);
-    setFailed(false);
+    setFailed(undefined);
     startTransition(async () => {
-      const { error } = await api.POST("/family/upgrade-intents", { body: { tier } });
-      if (error) setFailed(true);
-      else setAsked(tier);
+      if (paymentsOff || !memberId) return recordIntent(tier);
+      const { data, error, response } = await api.POST("/members/{memberId}/checkout-sessions", {
+        params: { path: { memberId } },
+        body: { tier },
+      });
+      if (data?.url) {
+        window.location.assign(data.url);
+        // Keep the button busy while the browser leaves.
+        await new Promise(() => {});
+      }
+      if (response.status === 501 || response.status === 503) {
+        setPaymentsOff(true);
+        return recordIntent(tier);
+      }
+      if (error?.code === "already_subscribed") setFailed("You already have this plan.");
+      else setFailed("We could not open the payment page. Please try again in a moment.");
     });
   }
 
@@ -40,17 +63,27 @@ export function PlanCards({ currentTier, requested }: { currentTier?: Tier; requ
               isCurrent={(currentTier ?? "free") === plan.tier}
               isAsked={asked === plan.tier}
               busy={pending && sending === plan.tier}
-              onRequest={plan.tier === "free" ? undefined : () => request(plan.tier as PaidTier)}
+              paid={!paymentsOff}
+              onChoose={plan.tier === "free" || helpLevel[plan.tier] <= own ? undefined : () => choose(plan.tier as PaidTier)}
             />
           </li>
         ))}
       </ul>
-      <p role="status" className="mt-8 min-h-6 text-center text-label text-muted-foreground">
-        {failed
-          ? "We could not save that just now. Please try again in a moment."
-          : asked
+      {!paymentsOff && (
+        <p className="mx-auto mt-8 flex w-fit max-w-full flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-xl bg-muted px-4 py-3 text-label text-muted-foreground">
+          <CreditCard className="size-4.5 shrink-0" aria-hidden />
+          <span>Demo payment. Use the test card</span>
+          <span className="font-mono text-foreground tabular-nums">4242 4242 4242 4242</span>
+          <span>any future date, any CVC.</span>
+        </p>
+      )}
+      <p role="status" className="mt-4 min-h-6 text-center text-label text-muted-foreground">
+        {failed ??
+          (asked
             ? "Thank you. We noted your interest and no payment was taken."
-            : "No payment today. Tell us which plan you want and we will be in touch."}
+            : paymentsOff
+              ? "No payment today. Tell us which plan you want and we will be in touch."
+              : "")}
       </p>
     </div>
   );
@@ -61,13 +94,15 @@ function PlanCard({
   isCurrent,
   isAsked,
   busy,
-  onRequest,
+  paid,
+  onChoose,
 }: {
   plan: Plan;
   isCurrent: boolean;
   isAsked: boolean;
   busy: boolean;
-  onRequest?: () => void;
+  paid: boolean;
+  onChoose?: () => void;
 }) {
   const Icon = tierIcon[plan.tier];
   const level = helpLevel[plan.tier];
@@ -130,18 +165,18 @@ function PlanCard({
             <CircleCheck className="size-4.5" aria-hidden />
             Requested
           </p>
-        ) : isCurrent && !onRequest ? (
+        ) : isCurrent ? (
           <p className="flex h-11 items-center justify-center rounded-lg bg-muted text-label font-semibold text-muted-foreground">Your plan</p>
-        ) : onRequest ? (
+        ) : onChoose ? (
           <Button
             type="button"
             size="lg"
             variant={plan.recommended ? "default" : "outline"}
             disabled={busy}
-            onClick={onRequest}
+            onClick={onChoose}
             className="h-11 w-full text-label"
           >
-            {busy ? "Sending..." : `Choose ${plan.name}`}
+            {busy ? (paid ? "Opening payment..." : "Sending...") : paid ? `Upgrade to ${plan.name}` : `Choose ${plan.name}`}
           </Button>
         ) : null}
       </div>
