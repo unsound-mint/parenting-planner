@@ -8266,6 +8266,10 @@ components:
         talkPrompt:
           type: string
           description: A question for the couple to talk about after reading.
+        talkedAt:
+          type: string
+          format: date-time
+          description: When either parent marked this lesson's talk prompt (prompt id `lesson:<lessonId>`) as talked about. Absent until then.
         urgentHelpLink:
           type: boolean
           description: True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there.
