@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -29,6 +30,8 @@ type Config struct {
 	SecureCookies bool
 	// Now is the clock; tests override it.
 	Now func() time.Time
+	// Diary encrypts diary text at rest; see internal/crypt. The zero key works for tests.
+	Diary crypt.Key
 }
 
 type Server struct {

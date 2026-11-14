@@ -42,7 +42,7 @@ func (s *Server) CreateDemoTimeSkip(ctx context.Context, _ CreateDemoTimeSkipReq
 	case errNotParent:
 		return CreateDemoTimeSkip403JSONResponse(errForbidden), nil
 	}
-	if err := demo.SkipWeek(ctx, s.pool, familyID); err != nil {
+	if err := demo.SkipWeek(ctx, s.pool, familyID, s.now(ctx)); err != nil {
 		return nil, err
 	}
 	fam, err := s.loadFamily(ctx, familyID)

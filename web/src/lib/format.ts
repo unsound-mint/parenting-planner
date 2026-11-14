@@ -47,6 +47,9 @@ export function familyContext(family: Family): string {
   const child = family.children[0];
   if (child) {
     const m = child.ageMonths;
+    // Under 3 months parents count in weeks, like the plan item ("7 weeks old") does.
+    const days = Math.floor((Date.now() + (family.demoDaysAhead ?? 0) * 86_400_000 - Date.parse(`${child.birthDate}T00:00:00Z`)) / 86_400_000);
+    if (child.birthDate && days >= 7 && days < 84) return `${child.name}, ${Math.floor(days / 7)} weeks`;
     // From 24 months it is always 2 or more years, so only months need the singular.
     const age = m < 24 ? `${m} ${m === 1 ? "month" : "months"}` : `${Math.floor(m / 12)} years`;
     return `${child.name}, ${age}`;
