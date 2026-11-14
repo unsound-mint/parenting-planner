@@ -69,7 +69,7 @@ async function GuidesLoader({ guides }: { guides: Pending<{ items: Guide[] }> })
   return data ? <GuideList guides={data.items.slice(0, 2)} /> : null;
 }
 
-// The stage chip is shown only once the stage content endpoint answers: stage
+// The stage chip waits for the stage content endpoint (a preview mock counts): stage
 // editing (updateFamily) and stage filtering (listGuides) are the same backend
 // issue (#213), and a PATCH cannot be probed without changing data.
 export function StageSlot({ guides, memberId, family }: { guides: Pending<{ items: Guide[] }>; memberId: string; family: Family }) {

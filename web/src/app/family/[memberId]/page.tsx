@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
+import { AppointmentQuestions } from "@/components/week/appointment-questions";
 import { AiPlan } from "@/components/week/ai-plan";
 import { PlanBoard } from "@/components/week/plan-board";
 import { MoodPatternCard } from "@/components/week/mood-pattern-card";
@@ -77,12 +78,15 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <div className="mt-8 empty:hidden">
           <ComingUpSlot today={today} />
         </div>
-        <AiPlan memberId={memberId} />
+        <AiPlan memberId={memberId} tier={family.tier} />
       </section>
 
       <aside className="flex flex-col gap-6 xl:pt-1">
         <WeekCardSlot card={card} />
         <GuidesSlot guides={guides} />
+        <Suspense fallback={null}>
+          <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
+        </Suspense>
         {pattern && <MoodPatternCard pattern={pattern} checkins={own} memberId={memberId} />}
         {own.length >= MIN_SLEEP_CHECKINS && <SleepChart checkins={own} />}
         <MoodCheckinCard memberId={memberId} partnerName={partner?.displayName} />
