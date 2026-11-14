@@ -676,11 +676,11 @@ export interface paths {
          *       birth), handoffs waiting for them, two stage guides. The two
          *       parents get different items because plans, tasks and events are
          *       per person.
-         *     - Grandparent: their own shifts and handoffs, the care summary with
+         *     - Grandparent: their own shifts with schedule, handoffs and the care summary with
          *       care_log, the pregnancy card summary with pregnancy_updates,
          *       tasks with family_plan, caregiver guides. Never plan items.
-         *     - Nanny: her own shifts, handoffs to her, the care summary with
-         *       care_log. Never plan items, the pregnancy card or the parents'
+         *     - Nanny: her own shifts with schedule, handoffs to her and the care
+         *       summary with care_log. Never plan items, the pregnancy card or the parents'
          *       events.
          */
         get: operations["getToday"];
@@ -835,6 +835,7 @@ export interface paths {
         /**
          * The proposed parent takes the task over
          * @description Ownership moves only here. 409 if the acting parent is not the one it was offered to.
+         *     A grandparent or nanny with family_plan may accept a task offered to them.
          */
         post: operations["acceptTaskReassignment"];
         delete?: never;
@@ -867,6 +868,7 @@ export interface paths {
         /**
          * The proposed parent declines; the task stays with its assignee
          * @description 409 if the acting parent is not the one it was offered to.
+         *     A grandparent or nanny may decline a task offered to them.
          */
         post: operations["declineTaskReassignment"];
         delete?: never;
@@ -909,9 +911,9 @@ export interface paths {
          *     Visibility: an event with visibility private (for example a
          *     psychologist session) is returned only to its owner, in every
          *     scope. Mother and partner may use every scope. A grandparent or
-         *     nanny may use only mine (403 otherwise) and gets only their own
-         *     shifts and events they attend; a nanny never sees the parents'
-         *     appointments.
+         *     nanny needs the schedule permission (403 without it), may use only
+         *     mine (403 otherwise) and gets only their own shifts and events they
+         *     attend; a nanny never sees the parents' appointments.
          */
         get: operations["listCalendarEvents"];
         put?: never;
@@ -1116,8 +1118,8 @@ export interface paths {
         /**
          * Committed shifts, agreed and active
          * @description Mother and partner see every shift in the family; a grandparent or
-         *     nanny sees only their own. Ordered by first weekday, then start
-         *     time.
+         *     nanny sees only their own and needs the schedule permission (403
+         *     without it). Ordered by first weekday, then start time.
          */
         get: operations["listShifts"];
         put?: never;
@@ -1125,7 +1127,9 @@ export interface paths {
          * The acting person commits to a recurring care shift
          * @description This is the "commit" at the end of a simulator round, and also
          *     works on its own. The shift belongs to the acting person; nobody
-         *     commits someone else. Any family member may commit. Before "Baby
+         *     commits someone else. Mother and partner may always commit; a
+         *     grandparent or nanny needs the schedule permission (403 without
+         *     it). Before "Baby
          *     is home" the shift is agreed (no calendar occurrences yet); after,
          *     it is active from today and shows in every calendar that may see
          *     it. 409 shift_overlap when it overlaps one of the person's own
@@ -5563,6 +5567,15 @@ export interface operations {
                 };
             };
             /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -5626,6 +5639,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
