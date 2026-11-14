@@ -21,6 +21,16 @@ type AuditLog struct {
 	At            time.Time
 }
 
+type BagItem struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	List           string
+	Label          string
+	PackerMemberID uuid.NullUUID
+	Packed         bool
+	CreatedAt      time.Time
+}
+
 type CareTeam struct {
 	ID       uuid.UUID
 	FamilyID uuid.UUID

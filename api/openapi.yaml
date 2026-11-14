@@ -23,6 +23,7 @@ tags:
 
   - name: care
   - name: invitations
+  - name: bag
 paths:
   /healthz:
     get:
@@ -521,6 +522,98 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /family/bag-items:
+    post:
+      operationId: createBagItem
+      tags: [bag]
+      summary: Add an item to one of the hospital bag lists
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BagItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BagItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listBagItems
+      tags: [bag]
+      summary: The three hospital bag lists (mother, baby, partner) with who packs each item
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BagItemList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/bag-items/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateBagItem
+      tags: [bag]
+      summary: Mark an item packed or change who packs it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BagItemUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BagItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /providers:
     get:
       operationId: listProviders
@@ -1010,6 +1103,61 @@ components:
         parent's health data (labs, mood check-ins, diary, session notes) and
         cannot create or change those records.
       enum: [grandparent, nanny]
+
+    BagList:
+      type: string
+      enum: [mother, baby, partner]
+
+    BagItem:
+      type: object
+      required: [id, list, label, packed]
+      properties:
+        id:
+          type: string
+          format: uuid
+        list:
+          $ref: "#/components/schemas/BagList"
+        label:
+          type: string
+        ownerMemberId:
+          type: string
+          format: uuid
+          description: The parent who packs it. Absent when nobody has taken it.
+        packed:
+          type: boolean
+
+    BagItemInput:
+      type: object
+      required: [list, label]
+      properties:
+        list:
+          $ref: "#/components/schemas/BagList"
+        label:
+          type: string
+          minLength: 1
+          maxLength: 120
+        ownerMemberId:
+          type: string
+          format: uuid
+
+    BagItemUpdate:
+      type: object
+      description: Send what changes. The owner cannot be cleared, only changed.
+      properties:
+        packed:
+          type: boolean
+        ownerMemberId:
+          type: string
+          format: uuid
+
+    BagItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BagItem"
 
     CaregiverPermission:
       type: string

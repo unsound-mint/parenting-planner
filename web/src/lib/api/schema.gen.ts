@@ -291,6 +291,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/bag-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The three hospital bag lists (mother, baby, partner) with who packs each item */
+        get: operations["listBagItems"];
+        put?: never;
+        /** Add an item to one of the hospital bag lists */
+        post: operations["createBagItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/bag-items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark an item packed or change who packs it */
+        patch: operations["updateBagItem"];
+        trace?: never;
+    };
     "/providers": {
         parameters: {
             query?: never;
@@ -535,6 +572,35 @@ export interface components {
          * @enum {string}
          */
         CaregiverRole: "grandparent" | "nanny";
+        /** @enum {string} */
+        BagList: "mother" | "baby" | "partner";
+        BagItem: {
+            /** Format: uuid */
+            id: string;
+            list: components["schemas"]["BagList"];
+            label: string;
+            /**
+             * Format: uuid
+             * @description The parent who packs it. Absent when nobody has taken it.
+             */
+            ownerMemberId?: string;
+            packed: boolean;
+        };
+        BagItemInput: {
+            list: components["schemas"]["BagList"];
+            label: string;
+            /** Format: uuid */
+            ownerMemberId?: string;
+        };
+        /** @description Send what changes. The owner cannot be cleared, only changed. */
+        BagItemUpdate: {
+            packed?: boolean;
+            /** Format: uuid */
+            ownerMemberId?: string;
+        };
+        BagItemList: {
+            items: components["schemas"]["BagItem"][];
+        };
         /**
          * @description What a caregiver may see. The parents choose these when they invite.
          * @enum {string}
@@ -1630,6 +1696,130 @@ export interface operations {
             };
             /** @description Expired, revoked or already used */
             410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listBagItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BagItemList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createBagItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BagItemInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BagItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateBagItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BagItemUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BagItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

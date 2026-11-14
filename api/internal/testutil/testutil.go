@@ -88,6 +88,11 @@ func (c *Client) Put(path string, body any, wantStatus int, out any) {
 	c.do(http.MethodPut, path, body, wantStatus, out)
 }
 
+func (c *Client) Patch(path string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.do(http.MethodPatch, path, body, wantStatus, out)
+}
+
 func (c *Client) Delete(path string, wantStatus int, out any) {
 	c.t.Helper()
 	c.do(http.MethodDelete, path, nil, wantStatus, out)

@@ -127,6 +127,33 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 			return uuid.Nil, err
 		}
 	}
+	// Hospital bag: three lists, each item has a parent who packs it.
+	jake, err := q.ListMembers(ctx, fam.ID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	var partnerID uuid.UUID
+	for _, m := range jake {
+		if m.Role == "partner" {
+			partnerID = m.ID
+		}
+	}
+	own := func(id uuid.UUID) uuid.NullUUID { return uuid.NullUUID{UUID: id, Valid: true} }
+	for _, b := range []store.CreateBagItemParams{
+		{List: "mother", Label: "Photo ID and insurance card", PackerMemberID: own(mom.ID)},
+		{List: "mother", Label: "Nursing bra and comfortable robe", PackerMemberID: own(mom.ID)},
+		{List: "mother", Label: "Phone charger with a long cable", PackerMemberID: own(partnerID)},
+		{List: "baby", Label: "Going-home outfit", PackerMemberID: own(mom.ID)},
+		{List: "baby", Label: "Rear-facing car seat, installed", PackerMemberID: own(partnerID)},
+		{List: "baby", Label: "Newborn diapers and wipes"},
+		{List: "partner", Label: "Snacks and a change of clothes", PackerMemberID: own(partnerID)},
+		{List: "partner", Label: "Hospital paperwork folder", PackerMemberID: own(partnerID)},
+	} {
+		b.FamilyID = fam.ID
+		if _, err := q.CreateBagItem(ctx, b); err != nil {
+			return uuid.Nil, err
+		}
+	}
 	for _, c := range []store.CreateCareTeamMemberParams{
 		{FamilyID: fam.ID, Role: "obgyn", Name: "Dr. Priya Shah", Phone: ptr("(512) 555-0142")},
 		{FamilyID: fam.ID, Role: "birth_clinic", Name: "Riverbend Women's Hospital", Address: ptr("Austin, TX")},
