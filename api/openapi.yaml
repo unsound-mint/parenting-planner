@@ -36,6 +36,7 @@ tags:
   - name: live
   - name: billing
   - name: notifications
+  - name: postcard
   - name: leave
   - name: insurance
   - name: screening
@@ -4491,6 +4492,176 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/postcard:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getPostcard
+      tags: [postcard]
+      summary: This week's postcard for the acting person
+      description: |
+        One card for the family circle: the baby's size this week (pregnancy)
+        or what babies do about now (after birth), one line the parents chose
+        to share, and the love already sent. Built from the same reference
+        content as getPregnancyWeek and getStageNow, never from a diary, mood
+        check-in, lab or session note.
+
+        - Mother and partner: the card as a grandparent sees it, plus every
+          love received in the last 7 days.
+        - Grandparent: pregnancy needs the pregnancy_updates permission and
+          the baby stage needs baby_passport, otherwise 403. loves holds only
+          what this grandparent sent.
+        - Nanny: always 403. The postcard is for family.
+
+        409 not_available when there is nothing to show yet: planning
+        families, and a baby stage with no child on record.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Postcard"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/postcard/line:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    put:
+      operationId: setPostcardLine
+      tags: [postcard]
+      summary: Write or clear this week's line on the postcard
+      description: |
+        Mother or partner (a caregiver gets 403). One line per family and
+        week: the second parent to save replaces the first, and a new week
+        starts empty. An empty text clears the line. The line is shown to
+        every grandparent with access to the postcard, so the screen says
+        so next to the field. Returns the postcard as the parent sees it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostcardLineInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Postcard"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/postcard/love:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: sendPostcardLove
+      tags: [postcard]
+      summary: Send a heart, with an optional short message, to the parents
+      description: |
+        A grandparent who may read the postcard (see getPostcard). Parents
+        and nannies get 403. Both parents get a love_sent notification,
+        at most one per grandparent and day so a tapping hand does not fill
+        the bell; every heart is still kept and shown in loves. The
+        notification title never carries the message. Returns the postcard
+        as this grandparent sees it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostcardLoveInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Postcard"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
           description: Error
           content:
             application/json:
@@ -9751,8 +9922,10 @@ components:
         caregiver the recipient invited joined (invitation);
         subscription_started = the family's paid plan started (both
         parents); labour_started = the other parent tapped "Going to the
-        hospital" (entityId: the sender, createLabourAlert).
-      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started, labour_started]
+        hospital" (entityId: the sender, createLabourAlert);
+        love_sent = a grandparent sent love from the postcard (both parents;
+        entityId and actorId: the grandparent).
+      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started, labour_started, love_sent]
 
     Notification:
       type: object
@@ -9804,6 +9977,88 @@ components:
           items:
             type: string
             format: uuid
+
+    Postcard:
+      type: object
+      required: [kind, stage, period, headline, source, loves, loveSentToday]
+      properties:
+        kind:
+          type: string
+          enum: [pregnancy, baby]
+        stage:
+          $ref: "#/components/schemas/Stage"
+        period:
+          type: string
+          description: '"Week 25" or "Week 8 of life", "4 years".'
+          example: Week 25
+        headline:
+          type: string
+          description: The size line in pregnancy ("About the size of a zucchini") or the stage headline after birth.
+          example: About the size of a zucchini
+        comparison:
+          type: string
+          description: Pregnancy only. The size comparison, for the illustration.
+          example: a zucchini
+        detail:
+          type: string
+          description: One plain sentence on what is happening now. Pregnancy uses the development line of the weekly card.
+        source:
+          $ref: "#/components/schemas/Source"
+        line:
+          $ref: "#/components/schemas/PostcardLine"
+        loves:
+          type: array
+          description: Newest first, last 7 days, at most 20. Parents see every heart received, a grandparent only their own.
+          items:
+            $ref: "#/components/schemas/PostcardLove"
+        loveSentToday:
+          type: boolean
+          description: True when the acting grandparent already sent a heart on the family's today. Always false for parents.
+
+    PostcardLine:
+      type: object
+      required: [text, authorName, updatedAt]
+      properties:
+        text:
+          type: string
+          maxLength: 140
+        authorName:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    PostcardLove:
+      type: object
+      required: [id, fromName, sentAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromName:
+          type: string
+        message:
+          type: string
+          maxLength: 140
+        sentAt:
+          type: string
+          format: date-time
+
+    PostcardLineInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          maxLength: 140
+          description: Empty clears this week's line.
+
+    PostcardLoveInput:
+      type: object
+      properties:
+        message:
+          type: string
+          maxLength: 140
 
     CalendarFeedScope:
       type: string

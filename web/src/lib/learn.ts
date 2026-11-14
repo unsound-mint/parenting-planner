@@ -18,14 +18,14 @@ const ask = (text: string): LessonAction => ({ kind: "question", text });
 const practice: LessonAction = { kind: "practice" };
 
 const actions: Record<string, LessonAction> = {
-  "planning-folic-acid": task("Start taking folic acid daily"),
+  "planning-folic-acid": ask("Should I start folic acid before we try, and which kind fits me?"),
   "planning-preconception-visit": task("Book a preconception visit"),
   "trying-fertility-evaluation": ask("When should we ask for a fertility evaluation, given our ages?"),
   "preg-first-visit": task("Book the first prenatal visit"),
   "preg-screening-choices": ask("Which first-trimester screening do you recommend for us?"),
   "preg-warning-signs": practice,
   "preg-glucose-screen": task("Book the glucose test"),
-  "preg-tdap": task("Get the Tdap vaccine"),
+  "preg-tdap": ask("When in weeks 27 to 36 should I get the Tdap vaccine?"),
   "preg-partner-vaccines": task("Check my own vaccines"),
   "preg-rsv": ask("Is the RSV vaccine right for me this season?"),
   "preg-gbs": ask("When is the group B strep swab, and what happens if it is positive?"),

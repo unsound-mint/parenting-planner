@@ -36,7 +36,7 @@ const planning: StageNow = {
   period: "Planning",
   headline: "Getting ready together, before you try.",
   detail:
-    "A visit to your doctor is the place to go over health history, medicines and vaccines. The Office on Women's Health suggests preparing at least three months ahead, and the CDC lists 400 micrograms of folic acid a day starting at least a month before pregnancy.",
+    "A visit to your doctor is the place to go over health history, medicines and vaccines. The Office on Women's Health suggests starting that conversation well before you try, and CDC guidance mentions folic acid before pregnancy. Ask your doctor what fits you.",
   playIdea: "Sit down together and write one list of questions for the preconception visit.",
   note: "Your doctor can tell you what fits your own health.",
   sources: [

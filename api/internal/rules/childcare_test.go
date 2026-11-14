@@ -41,7 +41,7 @@ func TestChildcareDecision(t *testing.T) {
 		{Name: "Little Harbor", Status: "offered", DecideBy: in(4)},
 	}
 	it := checkStatus(t, "two offers", "childcare-decision", f, Due)
-	want := "Little Harbor offered you a place and asked for an answer by " + in(4).Format("Jan 2") + ". Another offer is waiting for an answer too."
+	want := "Because Little Harbor offered you a place and asked for an answer by " + in(4).Format("Jan 2") + ". Another offer is waiting for an answer too."
 	if it != nil && it.Reason != want {
 		t.Errorf("reason = %q, want %q", it.Reason, want)
 	}
