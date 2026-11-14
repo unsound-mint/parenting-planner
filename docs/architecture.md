@@ -48,6 +48,16 @@ Tables, owners, visibility, and which screen uses each table: `docs/data-model.m
 
 Convention tests (`*/conventions_test.go`) check the rules a reviewer would otherwise check by hand: sensitive tables have visibility, sensitive reads mirror `internal/access`, every rule and endpoint has a test. `scripts/check-migrations.sh` fails if an applied migration changes.
 
+## Analytics
+
+`GET /api/admin/analytics` (`internal/analytics`) is the only read across families. Its privacy rules:
+
+- Counts only. The response has dates, metric names, template names and integers; no ids, names, birth dates or free text. `TestAnalyticsReturnsNoIdsOrNames` checks this.
+- Sources are an allow-list of non-health tables (today only `families`). Mood check-ins, diary, labs, vaccines, allergies, growth, screenings and any mental-health data, psychologist bookings, session notes, insurance calls and care log contents are never counted. `TestAnalyticsReadsOnlyAllowListedTables` fails if `queries/analytics.sql` names another table; widen the list only with a non-health table.
+- No events are sent from the browser and no third-party analytics SDK is used; the counts come from the API's own database.
+- It needs a demo session (any one) but is not linked from the family screens. Every family is synthetic.
+- A metric whose source table has not landed yet returns zeros, so the dashboard shape stays fixed.
+
 ## Error monitoring
 
 The API reports unexpected 500s and recovered panics to Sentry, only when the `SENTRY_DSN` environment variable is set. Without it (tests, CI, local dev) nothing is sent; the server still logs the error locally.
@@ -77,4 +87,4 @@ Go tools (oapi-codegen, sqlc) are pinned in `api/go.mod` and run with `go tool`;
 
 ## Production
 
-Server `musicroombot`, Docker Compose (`deploy/compose.yml`): Postgres, the API on `127.0.0.1:8792`, Next.js on `127.0.0.1:8790`. Caddy on the host serves `parenting.unsoundmint.com` (`deploy/Caddyfile.snippet`). `deploy/.env` on the server holds `POSTGRES_PASSWORD` and, optionally, `SENTRY_DSN`; compose passes it to the API and leaves it empty when unset. Pushes to `main` run `.github/workflows/deploy.yml`, which calls `deploy/deploy.sh` on the server once the repo variable `DEPLOY_ENABLED` is `true`.
+Server `musicroombot`, Docker Compose (`deploy/compose.yml`): Postgres, the API on `127.0.0.1:8792`, Next.js on `127.0.0.1:8790`. Caddy on the host serves `parenting.unsoundmint.com` (`deploy/Caddyfile.snippet`). `deploy/.env` on the server holds `POSTGRES_PASSWORD`, the optional `SENTRY_DSN`, the optional `ANTHROPIC_API_KEY` and, for Stripe test payments, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and `PUBLIC_BASE_URL` (see the header of `deploy/compose.yml`); the keys exist only there and in the API's environment. The Stripe webhook endpoint is `https://parenting.unsoundmint.com/api/billing/stripe-webhook` with snapshot events `checkout.session.completed` and `customer.subscription.deleted`; locally, `stripe listen --forward-to localhost:8091/api/billing/stripe-webhook`. Pushes to `main` run `.github/workflows/deploy.yml`, which calls `deploy/deploy.sh` on the server once the repo variable `DEPLOY_ENABLED` is `true`.

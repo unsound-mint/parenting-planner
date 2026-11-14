@@ -22,43 +22,48 @@ export function RoleSwitch({ people, memberId }: { people: Person[]; memberId: s
       <div
         role="group"
         aria-label="Who is using the app"
-        className="order-1 grid w-full min-w-0 gap-1 rounded-2xl bg-muted p-1 md:flex md:w-auto md:rounded-full"
-        style={{ gridTemplateColumns: `repeat(${people.length}, minmax(0, 1fr))` }}
+        className="order-1 flex w-full min-w-0 items-center rounded-full bg-muted p-1 md:w-auto md:gap-0.5"
       >
         {people.map((p) => {
           const active = p.id === memberId;
           const Icon = roleIcon[p.role];
+          const who = `${p.displayName}, ${roleLabel[p.role]}`;
+          const avatar = (
+            <span
+              aria-hidden
+              className={cn(
+                "flex size-8 shrink-0 items-center justify-center rounded-full text-label font-semibold text-card md:size-7 md:text-caption",
+                roleAccent[p.role].bg,
+              )}
+            >
+              {p.displayName.charAt(0).toUpperCase()}
+            </span>
+          );
+          // Everyone but the active person is an avatar: the name and role sit in the tooltip and the label.
           return (
             <Link
               key={p.id}
               href={pathFor(p, screen)}
               aria-current={active ? "true" : undefined}
-              title={`${roleLabel[p.role]}: ${p.displayName}`}
+              aria-label={active ? undefined : who}
+              title={who}
               className={cn(
-                "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9 md:flex-row md:gap-2 md:rounded-full md:py-1 md:pr-3 md:pl-1",
+                "flex min-h-11 items-center rounded-full outline-none transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9",
                 active
-                  ? "bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)]"
-                  : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
+                  ? "min-w-0 flex-1 gap-1.5 bg-card py-1 pr-2 pl-1 md:gap-2 md:pr-3 md:pl-1.5 shadow-[0_1px_2px_rgb(0_0_0/0.08)] md:max-w-56 md:flex-none"
+                  : "min-w-11 shrink-0 justify-center hover:bg-card/60 md:min-w-9",
               )}
             >
-              <span
-                aria-hidden
-                className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-full text-caption font-semibold text-card",
-                  roleAccent[p.role].bg,
-                )}
-              >
-                {p.displayName.charAt(0).toUpperCase()}
-              </span>
-              <span
-                className={cn(
-                  "flex items-center gap-1 text-caption font-medium md:text-label",
-                  active && roleAccent[p.role].text,
-                )}
-              >
-                <Icon aria-hidden className="size-3 shrink-0 md:size-3.5" />
-                {roleLabel[p.role]}
-              </span>
+              {avatar}
+              {active && (
+                <span className="flex min-w-0 flex-col leading-tight">
+                  <span className="truncate text-label font-medium">{p.displayName}</span>
+                  <span className={cn("flex items-center gap-1 text-caption", roleAccent[p.role].text)}>
+                    <Icon aria-hidden className="hidden size-3 shrink-0 md:block" />
+                    <span className="truncate">{roleLabel[p.role]}</span>
+                  </span>
+                </span>
+              )}
             </Link>
           );
         })}

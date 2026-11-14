@@ -7,6 +7,7 @@ Conventions that hold for every table:
 - **Family scope.** Every row belongs to one family (`family_id`, `ON DELETE CASCADE`). The only exceptions are global demo catalogues (`psychologists`, and `providers` in flight), which every session reads. Queries always filter by the session's family.
 - **Sensitive records** have an `owner_member_id` and a `visibility` (`private`, `partner`, `care_team`, `family`). The read policy lives in `internal/access`, and list queries mirror it in SQL.
 - **Audit.** Reads and writes of sensitive records add an `audit_log` row in the same transaction.
+- **Deletion and backups.** `DELETE /api/family` deletes the `families` row; every family-scoped row (members, children, sessions, health records, check-ins, notes, bookings, the audit log) goes with it through the cascade, in one transaction. Nothing is soft-deleted, and the deletion leaves no audit row because the family's audit log is deleted too. The repo configures no database backups: production Postgres is the `pgdata` volume in `deploy/compose.yml`, with no dump or snapshot job. Any disk snapshots taken by the hosting provider are outside the repo; Sofia (deploy) owns that and must add their retention here if they exist. `GET /api/members/{memberId}/export` is the data export: everything that parent may see, read through the same access rules as the screens.
 - **Subject.** A health record is about one parent or one child. `subject_member_id` and `subject_child_id` are both nullable, and a CHECK requires that exactly one is set.
 
 ## On main
@@ -339,7 +340,8 @@ Overlapping PRs:
 | `lab_results` | Owner plus a subject (parent or child) | `visibility`. Plan reads are filtered by `internal/access` but not audited. | `internal/plan` (rules), Passport (#342) |
 | `immunizations` | Subject only. No owner. | none | Plan facts (vaccine rules), Passport (#342) |
 | `audit_log` | Family; actor is a member | It is the audit. | Written by `wellbeing` and `care`. `GET .../access-log` is a stub on main; #363 builds it. |
-| `mood_checkins` | Owner | `visibility`, audited on read and write | Home: mood check-in card, sleep chart, `GET/POST .../mood-checkins`, `GET .../mood-patterns`; plan facts |
+| `mood_checkins` | Owner | `visibility`, audited on read and write | Home: mood and sleep card (check-in, seven-day chart, pattern), `GET/POST .../mood-checkins`, `GET .../mood-patterns`; plan facts |
+| `mood_screenings` | Owner | `visibility`, audited on read and write; another parent's shared result never shows `urgent` or the message | Care: mood questionnaire (EPDS, PHQ-9), `GET .../screening-questionnaires`, `GET/POST .../mood-screenings`; plan facts (own results only) |
 | `upgrade_intents` | One row per family | n/a | Pricing: `POST /family/upgrade-intents` |
 | `psychologists` | Global demo row | n/a | Care screen |
 | `psychologist_slots` | Family. No owner until booked. | n/a | Care: `GET .../psychologist-slots` |

@@ -1,10 +1,11 @@
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, EyeOff, Lock } from "lucide-react";
 import type { CalendarEvent } from "@/lib/api/types";
 import { formatClock, formatWeekday } from "@/lib/format";
 import type { Role } from "@/lib/roles";
-import { compactRange, eventDay, weekKeys } from "@/lib/schedule";
+import { compactRange, eventDay, isStoredKind, weekKeys } from "@/lib/schedule";
 import { calendarKindIcon, calendarKindLabel, roleTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
+import { EventDialog, type Guest } from "./event-dialog";
 
 export type Owner = { name: string; role: Role };
 
@@ -15,11 +16,14 @@ export function WeekView({
   today,
   events,
   owners,
+  edit,
 }: {
   from: string;
   today: string;
   events: CalendarEvent[];
   owners: Record<string, Owner>;
+  /** Parents only: the owner can open their own stored events to change them. */
+  edit?: { memberId: string; guests: Guest[] };
 }) {
   const byDay = new Map<string, CalendarEvent[]>();
   for (const e of events) {
@@ -57,7 +61,7 @@ export function WeekView({
               {items.length === 0 ? (
                 <li className="py-1.5 text-caption text-muted-foreground xl:py-0">Free</li>
               ) : (
-                items.map((e) => <EventCard key={e.id} event={e} owner={e.ownerId ? owners[e.ownerId] : undefined} />)
+                items.map((e) => <EventCard key={e.id} event={e} owner={e.ownerId ? owners[e.ownerId] : undefined} edit={edit && e.ownerId === edit.memberId && isStoredKind(e.kind) ? { ...edit, today } : undefined} />)
               )}
             </ul>
           </li>
@@ -67,27 +71,56 @@ export function WeekView({
   );
 }
 
-function EventCard({ event, owner }: { event: CalendarEvent; owner?: Owner }) {
+function EventCard({ event, owner, edit }: { event: CalendarEvent; owner?: Owner; edit?: { memberId: string; guests: Guest[]; today: string } }) {
   const Icon = calendarKindIcon[event.kind] ?? CalendarCheck;
   const time = event.allDay
     ? "All day"
     : compactRange(formatClock(event.startsAt), event.endsAt ? formatClock(event.endsAt) : undefined);
-  return (
-    <li
-      className={cn(
-        "min-h-11 min-w-0 rounded-lg border-l-[3px] px-2.5 py-2",
-        owner ? roleTint[owner.role] : "border-l-border bg-muted",
-      )}
-    >
-      <p className="flex items-start gap-1.5 text-label">
+  const body = (
+    <>
+      <span className="flex items-start gap-1.5 text-label">
         <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-        <span className="min-w-0 break-words">
+        <span className="min-w-0 flex-1 break-words">
           <span className="sr-only">{calendarKindLabel[event.kind]}: </span>
           {event.title}
         </span>
-      </p>
-      <p className="mt-0.5 font-mono text-caption text-muted-foreground">{time}</p>
-      {owner && <p className="text-caption font-semibold text-foreground/80">{owner.name}</p>}
+        {event.visibility === "private" && event.kind !== "shift" && (
+          <>
+            <Lock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="sr-only">Only you</span>
+          </>
+        )}
+        {event.neutralTitle && (
+          <>
+            <EyeOff className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="sr-only">Other calendars show only the kind</span>
+          </>
+        )}
+      </span>
+      <span className="mt-0.5 block font-mono text-caption text-muted-foreground">{time}</span>
+      {owner && <span className="block text-caption font-semibold text-foreground/80">{owner.name}</span>}
+    </>
+  );
+  return (
+    <li
+      className={cn(
+        "min-h-11 min-w-0 rounded-lg border-l-[3px]",
+        owner ? roleTint[owner.role] : "border-l-border bg-muted",
+      )}
+    >
+      {edit ? (
+        <EventDialog
+          memberId={edit.memberId}
+          guests={edit.guests}
+          event={event}
+          today={edit.today}
+          triggerClassName="block min-h-11 w-full cursor-pointer rounded-lg px-2.5 py-2 text-left outline-none transition-colors duration-150 hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {body}
+        </EventDialog>
+      ) : (
+        <div className="px-2.5 py-2">{body}</div>
+      )}
     </li>
   );
 }

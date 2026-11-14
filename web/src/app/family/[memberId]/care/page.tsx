@@ -1,17 +1,20 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CloudOff, Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
-import type { PsychologistAgenda, PsychologistSlots } from "@/lib/api/types";
+import type { DiaryEntry, PsychologistAgenda, PsychologistSlots, ScreeningQuestionnaire } from "@/lib/api/types";
 import { daysUntilInstant, whenWords } from "@/lib/format";
-import { AgendaCard } from "@/components/care/agenda-card";
+import { AgendaCard, TopicsReadyHeadline } from "@/components/care/agenda-card";
 import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
+import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { PageFrame, PageGrid } from "@/components/shell/page";
+import { familyNow } from "@/lib/clock";
 
 // "Care": the psychologist agenda, booking and the note after a session.
-// The private diary joins once its endpoints land (#202). Everything here belongs to the acting parent only.
+// Links to the private journal and the mood questionnaires sit under the agenda. Everything here belongs to the acting parent only.
 export default function CarePage({ params }: PageProps<"/family/[memberId]/care">) {
   return (
     <Suspense fallback={<CareFallback />}>
@@ -25,12 +28,16 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: agenda }, { data: slots }] = await Promise.all([
+  const [{ data: family }, { data: agenda }, { data: slots }, { data: diary }, { data: questionnaires }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
+    api.GET("/members/{memberId}/diary-entries", path),
+    api.GET("/members/{memberId}/screening-questionnaires", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !parent) redirect("/family");
   if (!family || !parent) notFound();
 
   return (
@@ -39,6 +46,9 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       name={parent.displayName}
       agenda={agenda}
       slots={slots}
+      entries={diary?.items.filter((e) => e.authorId === memberId)}
+      questionnaires={questionnaires?.items}
+      now={familyNow(family)}
     />
   );
 }
@@ -48,21 +58,23 @@ type ViewProps = {
   name: string;
   agenda?: PsychologistAgenda;
   slots?: PsychologistSlots;
+  entries?: DiaryEntry[];
+  questionnaires?: ScreeningQuestionnaire[];
+  now: Date;
 };
 
-function CareView({ memberId, name, agenda, slots }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires, now }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
 
-  let headline = `Pick a time with your psychologist, ${name}.`;
+  let headline: React.ReactNode = <TopicsReadyHeadline memberId={memberId} topics={topics} fallback={`Pick a time with your psychologist, ${name}.`} />;
   if (noteDue) headline = `How did it go, ${name}?`;
-  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt))}.`;
-  else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
+  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt, now))}.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8">
-      <section aria-labelledby="care-headline" className="flex min-w-0 max-w-5xl flex-col gap-6">
+    <PageFrame>
+      <section aria-labelledby="care-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
@@ -76,7 +88,8 @@ function CareView({ memberId, name, agenda, slots }: ViewProps) {
         {!agenda ? (
           <Unavailable />
         ) : (
-          <div className="flex max-w-2xl flex-col gap-3">
+          // The session step, the agenda and the wellbeing links: two across, three on the widest screens.
+          <PageGrid cols={3}>
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
@@ -84,12 +97,12 @@ function CareView({ memberId, name, agenda, slots }: ViewProps) {
             ) : slots ? (
               <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
-            <AgendaCard topics={topics} />
-          </div>
+            <AgendaCard memberId={memberId} topics={topics} />
+            <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
+          </PageGrid>
         )}
       </section>
-
-    </main>
+    </PageFrame>
   );
 }
 

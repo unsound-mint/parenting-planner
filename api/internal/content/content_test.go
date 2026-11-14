@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 )
 
 // Every URL in the catalog must appear in docs/guidelines on a row that is not
@@ -201,5 +203,107 @@ func TestBirthPrepIsGoneAfterBirth(t *testing.T) {
 		if n := len(Guides(State{Stage: stage, HasChild: true, AgeMonths: 1}, Viewer{Role: "mother"}, BirthPrep)); n != 0 {
 			t.Errorf("%s family sees %d birth prep modules", stage, n)
 		}
+	}
+}
+
+func TestEveryArticleHasAnActionWithItsPayload(t *testing.T) {
+	for _, g := range All() {
+		if g.Kind != Article {
+			if g.Action != nil {
+				t.Errorf("%s: birth prep modules have no action", g.ID)
+			}
+			continue
+		}
+		a := g.Action
+		if a == nil {
+			t.Errorf("%s: an article needs an action", g.ID)
+			continue
+		}
+		switch a.Kind {
+		case AddTask:
+			if a.Title == "" {
+				t.Errorf("%s: add_task needs a title", g.ID)
+			}
+		case AskAtVisit:
+			if a.Question == "" {
+				t.Errorf("%s: ask_at_visit needs a question", g.ID)
+			}
+		case CommitShift:
+			if a.Shift == nil || a.Shift.Title == "" || len(a.Shift.Days) == 0 || a.Shift.StartTime == "" || a.Shift.EndTime == "" {
+				t.Errorf("%s: commit_shift needs a full shift", g.ID)
+			}
+		case Practice:
+		default:
+			t.Errorf("%s: unknown action kind %q", g.ID, a.Kind)
+		}
+	}
+}
+
+func TestEveryGuideRuleExists(t *testing.T) {
+	known := map[string]bool{}
+	for _, r := range rules.All() {
+		known[r.ID] = true
+	}
+	seen := 0
+	for _, g := range All() {
+		if g.RuleID == "" {
+			continue
+		}
+		seen++
+		if !known[g.RuleID] {
+			t.Errorf("%s names the rule %q, which does not exist in internal/rules", g.ID, g.RuleID)
+		}
+	}
+	if seen == 0 {
+		t.Error("some guides explain a plan rule")
+	}
+	for id := range ruleIDs { // a stale entry would silently do nothing
+		found := false
+		for _, g := range All() {
+			found = found || g.ID == id
+		}
+		if !found {
+			t.Errorf("ruleIDs names the guide %q, which is not in the catalog", id)
+		}
+	}
+	for id := range actions {
+		found := false
+		for _, g := range All() {
+			found = found || g.ID == id
+		}
+		if !found {
+			t.Errorf("actions names the guide %q, which is not in the catalog", id)
+		}
+	}
+}
+
+func TestSizeEveryWeekIsSourced(t *testing.T) {
+	for w := MinWeek; w <= MaxWeek; w++ {
+		sz, dev, ok := SizeFor(w)
+		if !ok || sz.Comparison == "" || sz.LengthCm <= 0 || sz.LengthMeasure == "" || dev == "" {
+			t.Fatalf("week %d: incomplete size %+v %q", w, sz, dev)
+		}
+		if (w >= 14) != sz.HasWeight() {
+			t.Errorf("week %d: weight present = %v", w, sz.HasWeight())
+		}
+		if sz.HasWeight() && !(sz.WeightRangeG[0] < sz.WeightG && sz.WeightG < sz.WeightRangeG[1]) {
+			t.Errorf("week %d: median %v outside range %v", w, sz.WeightG, sz.WeightRangeG)
+		}
+		if len(sz.Sources) == 0 {
+			t.Errorf("week %d: no source", w)
+		}
+		for _, s := range sz.Sources {
+			if s.URL == "" || s.CheckedAt.IsZero() {
+				t.Errorf("week %d: source %+v", w, s)
+			}
+		}
+		for _, text := range []string{sz.Comparison, dev} {
+			if strings.ContainsAny(text, "—–") {
+				t.Errorf("week %d: dash in %q", w, text)
+			}
+		}
+	}
+	if _, _, ok := SizeFor(MaxWeek + 1); ok {
+		t.Error("week 41 should have no size")
 	}
 }

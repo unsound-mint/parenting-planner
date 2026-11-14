@@ -39,6 +39,33 @@ func (q *Queries) AcceptHandoff(ctx context.Context, arg AcceptHandoffParams) (H
 	return i, err
 }
 
+const attachVoiceNoteToHandoff = `-- name: AttachVoiceNoteToHandoff :execrows
+UPDATE voice_notes SET handoff_id = $1
+WHERE id = $2 AND family_id = $3 AND uploader_member_id = $4 AND handoff_id IS NULL
+`
+
+type AttachVoiceNoteToHandoffParams struct {
+	HandoffID   uuid.NullUUID
+	VoiceNoteID uuid.UUID
+	FamilyID    uuid.UUID
+	UploaderID  uuid.UUID
+}
+
+// Attaches the uploader's own unattached note. Zero rows: someone else's, already
+// attached, or gone.
+func (q *Queries) AttachVoiceNoteToHandoff(ctx context.Context, arg AttachVoiceNoteToHandoffParams) (int64, error) {
+	result, err := q.db.Exec(ctx, attachVoiceNoteToHandoff,
+		arg.HandoffID,
+		arg.VoiceNoteID,
+		arg.FamilyID,
+		arg.UploaderID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const countPendingHandoffsFrom = `-- name: CountPendingHandoffsFrom :one
 SELECT count(*) FROM handoffs WHERE family_id = $1 AND from_member_id = $2 AND status = 'pending'
 `
@@ -105,7 +132,8 @@ func (q *Queries) CreateCareLogEntry(ctx context.Context, arg CreateCareLogEntry
 }
 
 const createHandoff = `-- name: CreateHandoff :one
-INSERT INTO handoffs (family_id, from_member_id, to_member_id, note, shift_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, from_member_id, to_member_id, note, shift_id, status, created_at, accepted_at
+INSERT INTO handoffs (family_id, from_member_id, to_member_id, note, shift_id, created_at)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, family_id, from_member_id, to_member_id, note, shift_id, status, created_at, accepted_at
 `
 
 type CreateHandoffParams struct {
@@ -114,8 +142,11 @@ type CreateHandoffParams struct {
 	ToMemberID   uuid.UUID
 	Note         *string
 	ShiftID      uuid.NullUUID
+	CreatedAt    time.Time
 }
 
+// created_at comes from the caller (the family's demo clock), not the database
+// default: ListHandoffs filters on it with the same clock.
 func (q *Queries) CreateHandoff(ctx context.Context, arg CreateHandoffParams) (Handoff, error) {
 	row := q.db.QueryRow(ctx, createHandoff,
 		arg.FamilyID,
@@ -123,6 +154,7 @@ func (q *Queries) CreateHandoff(ctx context.Context, arg CreateHandoffParams) (H
 		arg.ToMemberID,
 		arg.Note,
 		arg.ShiftID,
+		arg.CreatedAt,
 	)
 	var i Handoff
 	err := row.Scan(
@@ -250,6 +282,53 @@ func (q *Queries) ListCareLogEntries(ctx context.Context, arg ListCareLogEntries
 			&i.AmountMl,
 			&i.Diaper,
 			&i.Note,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listHandoffVoiceNotes = `-- name: ListHandoffVoiceNotes :many
+SELECT id, handoff_id, content_type, size_bytes, duration_seconds, created_at FROM voice_notes
+WHERE family_id = $1 AND handoff_id = ANY($2::uuid[])
+`
+
+type ListHandoffVoiceNotesParams struct {
+	FamilyID   uuid.UUID
+	HandoffIds []uuid.UUID
+}
+
+type ListHandoffVoiceNotesRow struct {
+	ID              uuid.UUID
+	HandoffID       uuid.NullUUID
+	ContentType     string
+	SizeBytes       int32
+	DurationSeconds pgtype.Int4
+	CreatedAt       time.Time
+}
+
+// Metadata only, never the audio.
+func (q *Queries) ListHandoffVoiceNotes(ctx context.Context, arg ListHandoffVoiceNotesParams) ([]ListHandoffVoiceNotesRow, error) {
+	rows, err := q.db.Query(ctx, listHandoffVoiceNotes, arg.FamilyID, arg.HandoffIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListHandoffVoiceNotesRow{}
+	for rows.Next() {
+		var i ListHandoffVoiceNotesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.HandoffID,
+			&i.ContentType,
+			&i.SizeBytes,
+			&i.DurationSeconds,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err

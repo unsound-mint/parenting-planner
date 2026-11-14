@@ -10,6 +10,7 @@ import { roleAccent, roleLabel } from "@/lib/visuals";
 import type { Person } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { VoiceRecorder, type Recording } from "./voice-recorder";
 
 export function AcceptHandoff({ memberId, handoffId, fromName }: { memberId: string; handoffId: string; fromName: string }) {
   const router = useRouter();
@@ -39,21 +40,43 @@ export function AcceptHandoff({ memberId, handoffId, fromName }: { memberId: str
   );
 }
 
-// Pick who is next (faces, not a dropdown) and leave one note. The receiver
-// sees the live care summary next to the note, so the note is for what the log cannot say.
-export function HandoffForm({ memberId, recipients, childName }: { memberId: string; recipients: Person[]; childName: string }) {
+// Pick who is next (faces, not a dropdown) and leave one note, written or
+// spoken. The receiver sees the live care summary next to the note, so the note
+// is for what the log cannot say. voice: false hides the recorder (no backend yet).
+export function HandoffForm({ memberId, recipients, childName, voice = true }: { memberId: string; recipients: Person[]; childName: string; voice?: boolean }) {
   const router = useRouter();
   const [to, setTo] = useState<string | null>(recipients.length === 1 ? recipients[0].id : null);
   const [note, setNote] = useState("");
+  const [recording, setRecording] = useState<Recording | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!to) return;
     startTransition(async () => {
+      // Upload first, then attach: the handoff only takes a note id the sender already owns.
+      let voiceNoteId: string | undefined;
+      if (recording) {
+        const { data, error, response } = await api.POST("/members/{memberId}/voice-notes", {
+          params: { path: { memberId }, query: { durationSeconds: recording.durationSeconds } },
+          // Raw audio, not JSON: the API reads the bytes and the Content-Type as they are.
+          body: recording.blob as unknown as string,
+          bodySerializer: (b) => b as unknown as BodyInit,
+          headers: { "Content-Type": recording.blob.type || "audio/webm" },
+        });
+        if (error || !data) {
+          toast.error(
+            response.status === 413
+              ? "The voice note is over 1 MB. Record a shorter one, or send the written note alone."
+              : "The voice note did not upload. Try again, or delete it and send the written note alone.",
+          );
+          return;
+        }
+        voiceNoteId = data.id;
+      }
       const { error } = await api.POST("/members/{memberId}/handoffs", {
         params: { path: { memberId } },
-        body: { toMemberId: to, note: note.trim() || undefined },
+        body: { toMemberId: to, note: note.trim() || undefined, voiceNoteId },
       });
       if (error) {
         toast.error(error.message ?? "Could not hand over. Please try again.");
@@ -62,6 +85,7 @@ export function HandoffForm({ memberId, recipients, childName }: { memberId: str
       const name = recipients.find((r) => r.id === to)?.displayName ?? "them";
       toast.success(`Handoff sent. ${name} accepts it on their screen.`);
       setNote("");
+      setRecording(null);
       router.refresh();
     });
   }
@@ -99,6 +123,7 @@ export function HandoffForm({ memberId, recipients, childName }: { memberId: str
         placeholder="Anything the log does not say, like cream on the changing table"
         className="min-h-20 text-base"
       />
+      {voice && <VoiceRecorder value={recording} onChange={setRecording} disabled={pending} />}
       <Button type="submit" size="lg" disabled={!to || pending} className="h-11 gap-2 text-label font-semibold">
         <Send aria-hidden className="size-4" />
         Hand over
