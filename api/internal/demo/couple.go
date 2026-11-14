@@ -51,7 +51,7 @@ type seedLetter struct {
 
 var letterStories = map[Template][]seedLetter{
 	Pregnancy: {
-		{mother, "18th birthday", 18, 0, false, "Dear little one,\n\nYou are about the size of a mango while I write this and you kick every evening at nine. Your dad reads to my belly in a funny voice. Whatever you are doing today, we are proud of you, and the kitchen table is always open.\n\nLove, Mum"},
+		{mother, "18th birthday", 18, 0, false, "Dear little one,\n\nYou are about the size of a mango while I write this and you kick every evening at nine. Your dad reads to my belly in a funny voice. Whatever you are doing today, we are proud of you, and the kitchen table is always open.\n\nLove, Mom"},
 		{partner, "First day of school", 5, 0, true, "Hi buddy,\n\nI am writing this before I know your name. I hope your shoes fit, your lunch is good and someone saves you a seat. Be kind, be curious, and come home and tell me everything.\n\nDad"},
 	},
 	Planning: {

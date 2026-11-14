@@ -80,7 +80,7 @@ var Cards = []Card{
 	c("childcare-who-decides", TopicChildcare, "Choosing a doctor, daycare or school. Who leads?",
 		"Who leads on which decisions for the child, and how do we make sure the other still has a say?",
 		"We decide everything together", "Each of us leads on a few areas", "The one with more time researches, then we agree", "Whoever feels strongest about it"),
-	c("values-bedtime", TopicValues, "Bedtime for an older baby: crying at the cot. How do you feel about it?",
+	c("values-bedtime", TopicValues, "Bedtime for an older baby: crying in the crib. How do you feel about it?",
 		"What do we each feel is okay at bedtime and what is not, and how would we try something new together?",
 		"Always respond quickly", "Give a few minutes first", "Follow a gentle method together", "Whatever the baby's pattern needs"),
 	c("money-income", TopicMoney, "One of you could earn less or pause work for a while. How would you want to handle it?",
