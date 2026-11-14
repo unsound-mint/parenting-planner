@@ -295,3 +295,26 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	sort.SliceStable(out, func(i, j int) bool { return out[i].StartsAt.Before(out[j].StartsAt) })
 	return out, nil
 }
+
+// NextShift returns the person's next shift occurrence that has not ended yet,
+// looking a week ahead; nil when they have none. It never touches audit: it is
+// the person's own schedule.
+func NextShift(ctx context.Context, pool *pgxpool.Pool, familyID, member uuid.UUID, now time.Time) (*Event, error) {
+	active, err := store.New(pool).ListActiveShifts(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	var best *Event
+	for _, sh := range active {
+		if sh.MemberID != member {
+			continue
+		}
+		for _, ev := range occurrenceEvents(sh, now.AddDate(0, 0, -1), now.AddDate(0, 0, 8)) {
+			if ev.EndsAt != nil && ev.EndsAt.After(now) && (best == nil || ev.StartsAt.Before(best.StartsAt)) {
+				e := ev
+				best = &e
+			}
+		}
+	}
+	return best, nil
+}
