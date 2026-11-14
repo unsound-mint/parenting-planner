@@ -20,8 +20,17 @@ tags:
   - name: wellbeing
   - name: directory
   - name: passport
-
   - name: care
+  - name: invitations
+  - name: content
+  - name: today
+  - name: tasks
+  - name: calendar
+  - name: simulator
+  - name: shifts
+  - name: carelog
+  - name: live
+  - name: billing
 paths:
   /healthz:
     get:
@@ -712,6 +721,2102 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/family:
+    patch:
+      operationId: updateFamily
+      tags: [family]
+      summary: A parent sets the family's stage or due date
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Send only the
+        fields to change. Used by the onboarding stage picker and to move the
+        due date.
+
+        - Stage pregnancy needs a due date, sent now or already stored (400
+          otherwise). Moving the due date moves everything derived from it,
+          because those values are computed on read, not stored: the
+          gestational week, the weekly card, the birth prep unlock and the
+          deadlines of paperwork tasks anchored to the due date.
+        - Stages after birth (postpartum and later) need a child. Without one
+          this returns 409 no_child; the UI offers "Baby is home" instead,
+          which is the only way a child is added.
+        - Leaving pregnancy for planning or trying clears the due date.
+
+        Content everywhere is filtered by the stored stage (see listGuides),
+        so after this call every screen shows the new stage. Sends a live
+        update of kind family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FamilyUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/baby-arrival:
+    post:
+      operationId: createBabyArrival
+      tags: [family]
+      summary: A parent flips the family to "Baby is home"
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. 409
+        not_pregnant when the family's stage is not pregnancy (so a second
+        call is 409). In one transaction the server:
+
+        - adds the child with this name and birth date;
+        - sets the stage to postpartum (the due date stays stored, but
+          gestationalWeek is no longer returned);
+        - turns every agreed shift into an active shift starting today, so
+          committed shifts appear in everyone's calendar and Today;
+        - re-anchors paperwork deadlines that count from the birth date;
+        - hides pregnancy items: hospital bag tasks, the weekly pregnancy
+          card, birth prep guides and pregnancy plan rules stop being
+          returned (they are kept in the database, not deleted).
+
+        Sends a live update of kind family so every open screen refreshes.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BabyArrivalInput"
+      responses:
+        "201":
+          description: Created; the family as it is now, with the child.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/invitations:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createInvitation
+      tags: [invitations]
+      summary: A parent invites a grandparent or nanny and gets a one-time link
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Nothing is
+        emailed: the response carries the link to share. The token is
+        random, single use and expires after 7 days; only its sha256 is
+        stored, so the link is returned here once and never again.
+        permissions are the toggles from the invite screen; only the
+        listed CaregiverPermission values exist, so a parent's diary, mood
+        check-ins, labs, session notes and appointment questions can never
+        be granted. Sends a live update of kind invitation to parents.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedInvitation"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listInvitations
+      tags: [invitations]
+      summary: The family's invitations, newest first
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Every
+        invitation of the family with its current status (expired is
+        computed from expiresAt). Links are not included; see
+        createInvitation.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/invitations/{invitationId}/revoke:
+    post:
+      operationId: revokeInvitation
+      tags: [invitations]
+      summary: A parent revokes an invitation or a caregiver's access
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. A pending
+        invitation can no longer be accepted. An accepted one removes the
+        caregiver's access at once: they drop out of family.caregivers and
+        their member id gets 404 on every endpoint. 409
+        invitation_not_active when it is already revoked or expired.
+        Recorded in the access log.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/InvitationId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invitation"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /invitations/{token}:
+    get:
+      operationId: getInvitation
+      tags: [invitations]
+      security: []
+      summary: What an invitation link offers, for the accept page
+      description: |
+        No session needed: the person opening the link is usually in
+        another browser. Returns who invited them, the role and the
+        permissions so the accept page can say what they will see. A
+        revoked, expired or used invitation still comes back, with its
+        status, so the page can explain. 404 for an unknown token.
+      parameters:
+        - $ref: "#/components/parameters/InvitationToken"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationPreview"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /invitations/{token}/accept:
+    post:
+      operationId: acceptInvitation
+      tags: [invitations]
+      security: []
+      summary: Accept an invitation and enter the family as the new caregiver
+      description: |
+        No session needed. Creates the caregiver in the inviting family with
+        the invited role, name and permissions, starts a new session for
+        that family (sets the pp_session cookie, replacing any session this
+        browser had) and returns the family and the new member id to act
+        as. Single use: 409 invitation_not_pending when it was already
+        accepted, revoked or has expired. Recorded in the access log and
+        sends a live update of kind invitation to parents.
+      parameters:
+        - $ref: "#/components/parameters/InvitationToken"
+      responses:
+        "201":
+          description: Accepted; the session cookie is set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationAcceptance"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/access-log:
+    get:
+      operationId: listAccessLogEntries
+      tags: [invitations]
+      summary: What caregivers read and changed, last 30 days
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Newest
+        first. Lists what grandparents and nannies did (reads of the baby
+        passport, care log entries, handoffs) and invitation events
+        (created, accepted, revoked). A parent's own reads of sensitive
+        records are not listed, so this never reveals the other parent's
+        private activity.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessLogList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/guides:
+    get:
+      operationId: listGuides
+      tags: [content]
+      summary: Stage content for the acting person, filtered on the server
+      description: |
+        Every guide carries stage, week or age range and audience tags. The
+        server returns only guides matching the family's stored stage, the
+        current gestational week (pregnancy) or the child's age in months,
+        and the acting person's role. A planning family never gets toddler
+        content and the reverse.
+
+        - Mother and partner: guides for parents and for their own role
+          (some are partner-only, some mother-only).
+        - Grandparent: caregiver guides; pregnancy guides only with the
+          pregnancy_updates permission.
+        - Nanny: caregiver guides only.
+
+        Birth prep modules (kind birth_prep) come back from week 28 with
+        locked true and unlock at week 32, counted from the due date. They
+        are not returned after "Baby is home". Content is demo content,
+        not medical advice; the UI says so.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: kind
+          in: query
+          required: false
+          description: Only guides of this kind.
+          schema:
+            $ref: "#/components/schemas/GuideKind"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuideList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/pregnancy-weeks/{week}:
+    get:
+      operationId: getPregnancyWeek
+      tags: [content]
+      summary: The weekly pregnancy card for one week
+      description: |
+        37 seeded cards, weeks 4 to 40. Any week can be opened; isCurrentWeek
+        marks the family's week. tasks are written for the acting person's
+        role, so mother and partner get different tasks for the same week.
+        birthPrep lists the modules that belong to this week, locked until
+        the family itself reaches week 32.
+
+        Mother and partner always; a grandparent only with the
+        pregnancy_updates permission; a nanny never (403). 409 not_pregnant
+        when the family's stage is not pregnancy.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: week
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 4
+            maximum: 40
+          example: 33
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PregnancyWeek"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/today:
+    get:
+      operationId: getToday
+      tags: [today]
+      summary: The acting person's Today screen in one call
+      description: |
+        Built from the family's data for the acting person's role and the
+        stage. Every section is present; a section the person may not see
+        or that does not apply is empty or absent, never filled with
+        someone else's private data.
+
+        - Mother and partner: their own top plan items, their tasks due
+          within 7 days and tasks offered to them, today's and tomorrow's
+          calendar as they may see it, the pregnancy card summary
+          (pregnancy) or the care summary and who is on duty (after
+          birth), handoffs waiting for them, two stage guides. The two
+          parents get different items because plans, tasks and events are
+          per person.
+        - Grandparent: their own shifts with schedule, handoffs and the care summary with
+          care_log, the pregnancy card summary with pregnancy_updates,
+          tasks with family_plan, caregiver guides. Never plan items.
+        - Nanny: her own shifts with schedule, handoffs to her and the care
+          summary with care_log. Never plan items, the pregnancy card or the parents'
+          events.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Today"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: The acting parent adds a family task, assigned to themselves
+      description: |
+        To give it to the other parent, propose a reassignment; they must accept.
+
+        kind task is the shared plan; kind hospital_bag adds an item to one
+        of the three bag lists and needs bag (400 without it). Paperwork
+        items are seeded and cannot be created. Mother and partner; a
+        grandparent or nanny with family_plan may also add tasks, and gets
+        403 without it. Sends a live update of kind task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: All of the family's tasks, soonest due first, undated last
+      description: |
+        Tasks are shared by both parents, so both see the same list.
+
+        One model for every owned checklist item: kind task is the shared
+        plan, paperwork is the US paperwork checklist, hospital_bag the
+        three hospital bag lists. Filter with kind. Paperwork deadlines are
+        computed on read from dueAnchor and dueOffsetDays, so moving the due
+        date or the birth moves them. Hospital bag items are not returned
+        after "Baby is home". A grandparent or nanny sees the list only with
+        family_plan (403 without it).
+      parameters:
+        - name: kind
+          in: query
+          required: false
+          description: Only tasks of this kind.
+          schema:
+            $ref: "#/components/schemas/TaskKind"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Tick a task or checklist item done, or undo it
+      description: |
+        The assignee or either parent may tick or untick; anyone else gets
+        403. Ownership never changes here; use the reassignment flow.
+        Sends a live update of kind task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}/reassignment:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: proposeTaskReassignment
+      tags: [tasks]
+      summary: The assignee offers the task to the other parent
+      description: |
+        The task keeps its assignee until the other parent accepts.
+        409 if the acting parent is not the assignee or offers it to themselves.
+
+        The task can also be offered to a grandparent or nanny who has
+        family_plan. Sends a live update of kind task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskReassignmentInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}/reassignment/accept:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: acceptTaskReassignment
+      tags: [tasks]
+      summary: The proposed parent takes the task over
+      description: |
+        Ownership moves only here. 409 if the acting parent is not the one it was offered to.
+        A grandparent or nanny with family_plan may accept a task offered to them.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/tasks/{taskId}/reassignment/decline:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: declineTaskReassignment
+      tags: [tasks]
+      summary: The proposed parent declines; the task stays with its assignee
+      description: |
+        409 if the acting parent is not the one it was offered to.
+        A grandparent or nanny may decline a task offered to them.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/calendar-events:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listCalendarEvents
+      tags: [calendar]
+      summary: One calendar feed with Mine, Partner and Family filters
+      description: |
+        One feed merged from stored events, active shifts (one event per
+        occurrence), task due dates and the acting parent's psychologist
+        sessions. Earliest first. Default window: today and the next 6
+        days; at most 31 days (400 beyond).
+
+        - mine: events the acting person owns or attends, and their shifts.
+        - partner: the other parent's events and shifts that the acting
+          parent may see.
+        - family: everything the acting parent may see, including family
+          events and caregivers' shifts.
+
+        Visibility: an event with visibility private (for example a
+        psychologist session) is returned only to its owner, in every
+        scope. Mother and partner may use every scope. A grandparent or
+        nanny needs the schedule permission (403 without it), may use only
+        mine (403 otherwise) and gets only their own shifts and events they
+        attend; a nanny never sees the parents' appointments.
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/CalendarScope"
+        - name: from
+          in: query
+          required: false
+          description: First day, inclusive. Default today.
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          description: Last day, inclusive. Default from + 6 days.
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEventList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createCalendarEvent
+      tags: [calendar]
+      summary: A parent adds an appointment, class or reminder
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. The acting
+        parent owns the event. attendeeIds may name other family members,
+        for example the partner coming to an OB visit or the grandparent
+        babysitting; they see it under mine. Shifts are not created here
+        (see createShift). Sends a live update of kind calendar_event.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEventInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEvent"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/appointment-questions:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createAppointmentQuestion
+      tags: [calendar]
+      summary: The acting parent adds a question for an upcoming appointment
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Without
+        appointmentId the question goes to the next upcoming appointment
+        the acting parent may see, preferring their own; 409
+        no_upcoming_appointment when there is none. An appointmentId must
+        be an appointment event the acting parent may see (404 otherwise).
+        Questions are health data: visibility is required, the UI defaults
+        it to private, and the server never widens it. Sends a live update
+        of kind appointment_question to those who may read it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentQuestionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentQuestion"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listAppointmentQuestions
+      tags: [calendar]
+      summary: Questions for upcoming appointments, unanswered ones carried over
+      description: |
+        The acting parent's own questions plus the other parent's questions
+        shared with them (access.CanParentRead). A question not answered by
+        the time its appointment has passed moves to the next upcoming
+        appointment of the same owner and kind (carriedOver true). Answered
+        questions of the last 30 days are included. Grouped by appointment:
+        appointments lists the upcoming appointments the questions belong
+        to, soonest first. Mother and partner only; a grandparent or nanny
+        gets 403. Reads are audited.
+      parameters:
+        - name: appointmentId
+          in: query
+          required: false
+          description: Only questions now under this appointment.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentQuestionList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/appointment-questions/{questionId}:
+    patch:
+      operationId: updateAppointmentQuestion
+      tags: [calendar]
+      summary: The author marks a question answered, with an optional answer
+      description: |
+        Only the author. Any other question id, including the other
+        parent's shared question, is 404, so the response does not reveal
+        that it exists. Sending answered false reopens it.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: questionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentQuestionUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentQuestion"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/simulator:
+    get:
+      operationId: getSimulatorProgress
+      tags: [simulator]
+      summary: The acting person's skill scores, weak spots and scenarios
+      description: |
+        Any family member (mother, partner, grandparent, nanny) trains for
+        themselves; scores are their own and nobody else sees them. A skill
+        is a weak spot when its score is below 70 percent over the
+        person's answers. Each scenario may suggest a shift to commit to
+        after the round (see createShift).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorProgress"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/simulator-rounds:
+    post:
+      operationId: createSimulatorRound
+      tags: [simulator]
+      summary: Start a scenario or a practice round
+      description: |
+        Any family member, for themselves. mode scenario plays the seeded
+        questions of scenarioId (400 without it, 404 when unknown). mode
+        practice is built from the person's own history: questions they
+        last answered wrong come first (most recent first), then unseen
+        questions of weak skills, then the questions answered right
+        longest ago, up to 8. 409 nothing_to_practice before any scenario
+        was played.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulatorRoundInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorRound"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/simulator-rounds/{roundId}:
+    get:
+      operationId: getSimulatorRound
+      tags: [simulator]
+      summary: One round with the answers so far and, once complete, the result
+      description: Only the person who started the round; anyone else gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/RoundId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorRound"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/simulator-rounds/{roundId}/answers:
+    post:
+      operationId: createSimulatorAnswer
+      tags: [simulator]
+      summary: Answer one question of a round
+      description: |
+        Only the person who started the round (404 otherwise). Returns
+        whether it was right, the right choice and why, with a source.
+        409 already_answered for a second answer to the same question in
+        the round; 400 when the question is not in the round or the choice
+        not in the question. The answer feeds the skill score at once.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/RoundId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulatorAnswerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulatorAnswerResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/shifts:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createShift
+      tags: [shifts]
+      summary: The acting person commits to a recurring care shift
+      description: |
+        This is the "commit" at the end of a simulator round, and also
+        works on its own. The shift belongs to the acting person; nobody
+        commits someone else. Mother and partner may always commit; a
+        grandparent or nanny needs the schedule permission (403 without
+        it). Before "Baby
+        is home" the shift is agreed (no calendar occurrences yet); after,
+        it is active from today and shows in every calendar that may see
+        it. 409 shift_overlap when it overlaps one of the person's own
+        shifts on a shared weekday. Sends a live update of kind shift.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShiftInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shift"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listShifts
+      tags: [shifts]
+      summary: Committed shifts, agreed and active
+      description: |
+        Mother and partner see every shift in the family; a grandparent or
+        nanny sees only their own and needs the schedule permission (403
+        without it). Ordered by first weekday, then start time.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShiftList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/care-log:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createCareLogEntry
+      tags: [carelog]
+      summary: Log a feed, a sleep or a diaper for the baby
+      description: |
+        Mother and partner; a grandparent or nanny with care_log (403
+        without it). 409 no_child before "Baby is home". feedMethod is
+        required for a feed and diaper for a diaper (400 otherwise). Not a
+        sensitive per-parent record: everyone with care_log sees every
+        entry. Sends a live update of kind care_log.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareLogEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareLogEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listCareLogEntries
+      tags: [carelog]
+      summary: The last 48 hours of the care log, with the latest of each kind
+      description: |
+        Mother and partner; a grandparent or nanny with care_log (403
+        without it). Newest first. latest holds the last feed, sleep and
+        diaper even when older than 48 hours, and who is on duty now.
+        Empty before "Baby is home".
+      parameters:
+        - name: kind
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/CareLogKind"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareLogList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/handoffs:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createHandoff
+      tags: [carelog]
+      summary: Hand the baby over to another person, with a note
+      description: |
+        Anyone with care_log (parents always) hands over to another family
+        member who has care_log. 403 when the acting person lacks
+        care_log; 409 handoff_invalid when handing to themselves, to
+        someone without care_log, or while one of their handoffs is still
+        pending. The care summary (last feed, sleep, diaper) is computed
+        when read, so the receiver always sees the latest. Sends a live
+        update of kind handoff.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HandoffInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Handoff"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listHandoffs
+      tags: [carelog]
+      summary: Handoffs to or from the acting person, last 48 hours
+      description: |
+        Pending first, then newest first. Mother and partner see every
+        handoff in the family; a grandparent or nanny sees those to or
+        from them, and needs care_log (403 without it).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HandoffList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/handoffs/{handoffId}/accept:
+    post:
+      operationId: acceptHandoff
+      tags: [carelog]
+      summary: The receiver accepts and is now on duty
+      description: |
+        Only the person the handoff is to; 409 not_handoff_recipient for
+        anyone else and 409 handoff_not_pending when already accepted.
+        After this the receiver is on duty (Today and care log show it).
+        Sends a live update of kind handoff.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: handoffId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Handoff"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/live:
+    get:
+      operationId: getLiveUpdates
+      tags: [live]
+      summary: Server-sent events that tell the acting person's screens what changed
+      description: |
+        A text/event-stream that stays open. Each change in the family is
+        one event named update whose data is a LiveUpdate JSON object: the
+        kind of thing that changed and its id, never its content. The
+        client refetches what it shows for that kind, so a change shows on
+        other screens within a second or two (well inside the 5 seconds
+        T1.11 asks for). A comment line (": ping") is sent every 15 seconds
+        to keep proxies from closing the stream.
+
+        An update is sent only to people who may read the changed record:
+        a private appointment question or calendar event only to its
+        owner, care log and handoff updates only to people with care_log,
+        task updates only to people with family_plan, and so on. Any
+        family member may open the stream. If the stream drops, the client
+        reconnects and refetches everything on screen.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: |
+            Event stream. Each event is "event: update" and
+            "data: <LiveUpdate as JSON>", separated by a blank line.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/children/{childId}/passport:
+    get:
+      operationId: getChildPassport
+      tags: [passport]
+      summary: The baby passport card, limited by role
+      description: |
+        Mother and partner see everything: profile, pediatrician,
+        allergies, emergency contacts, medical history and vaccines. A
+        grandparent or nanny with baby_passport sees the profile,
+        pediatrician, allergies (suspected and confirmed) and emergency
+        contacts; medicalHistory and vaccines are left out and limitedView
+        is true. Without baby_passport: 403. 404 for a child not in the
+        family. Reading allergies and history is audited, so caregiver
+        reads show in the access log.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildPassport"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/checkout-sessions:
+    post:
+      operationId: createCheckoutSession
+      tags: [billing]
+      summary: A parent starts a Stripe Checkout (test mode) for a paid tier
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Creates a
+        Stripe Checkout Session in test mode for the tier, with the family
+        id in its metadata, and returns the Stripe URL to redirect to.
+        Stripe sends the visitor back to /pricing/success?session_id=... or
+        /pricing on cancel. One subscription covers the whole family, so
+        both parents are unlocked. 409 already_subscribed when the family
+        already has this tier. 503 payments_unavailable when the server
+        has no Stripe keys.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutSessionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/checkout-sessions/{sessionId}:
+    get:
+      operationId: getCheckoutSession
+      tags: [billing]
+      summary: The state of a checkout, for the success screen
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Asks
+        Stripe for the session. When it is complete and paid and the
+        webhook has not been processed yet, the server applies the tier
+        now (idempotent with the webhook), so the success screen never
+        waits on webhook delivery. 404 when the session is not this
+        family's. 503 payments_unavailable without Stripe keys.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: sessionId
+          in: path
+          required: true
+          description: The Stripe Checkout Session id (cs_test_...).
+          schema:
+            type: string
+            maxLength: 255
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /billing/stripe-webhook:
+    post:
+      operationId: handleStripeWebhook
+      tags: [billing]
+      security: []
+      summary: Stripe calls this when a checkout or subscription changes
+      description: |
+        Called by Stripe, never by the web app; no session. The server
+        verifies the Stripe-Signature header against the raw body with
+        the webhook secret (400 invalid_signature otherwise) before
+        trusting anything. checkout.session.completed sets the family's
+        tier and subscription from the session metadata;
+        customer.subscription.deleted sets it back to free. Other event
+        types are acknowledged and ignored. Idempotent by Stripe event id.
+        Sends a live update of kind family.
+      parameters:
+        - name: Stripe-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StripeEvent"
+      responses:
+        "200":
+          description: Received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookReceipt"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MemberId:
@@ -719,8 +2824,47 @@ components:
       in: path
       required: true
       description: |
-        The acting parent. There is no login, so the UI says which parent is
-        using the app; the API checks that this parent belongs to the session's family.
+        The acting person. There is no login, so the UI says who is using
+        the app; the API checks that this person belongs to the session's
+        family. Usually a parent (mother or partner). A grandparent or nanny
+        id (family.caregivers) is accepted only where the operation says so:
+        operations written for parents return 404 for a caregiver id, and
+        operations open to caregivers return 403 forbidden when their role
+        or permissions do not allow the action.
+      schema:
+        type: string
+        format: uuid
+
+    TaskId:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    InvitationId:
+      name: invitationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    InvitationToken:
+      name: token
+      in: path
+      required: true
+      description: The secret from the invitation link.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+
+    RoundId:
+      name: roundId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -766,7 +2910,9 @@ components:
 
     Tier:
       type: string
-      description: The plan the family is on. Demo families start on free; there is no billing.
+      description: |
+        The plan the family is on, for both parents. Demo families start on
+        free; a completed Stripe test checkout sets it (see subscription).
       enum: [free, plus, concierge]
 
     PaidTier:
@@ -810,6 +2956,8 @@ components:
           description: Completed weeks of pregnancy today, derived from dueDate.
         tier:
           $ref: "#/components/schemas/Tier"
+        subscription:
+          $ref: "#/components/schemas/Subscription"
         upgradeRequest:
           $ref: "#/components/schemas/UpgradeIntent"
         parents:
@@ -853,7 +3001,7 @@ components:
 
     Caregiver:
       type: object
-      required: [id, role, displayName]
+      required: [id, role, displayName, permissions]
       properties:
         id:
           type: string
@@ -863,6 +3011,11 @@ components:
           $ref: "#/components/schemas/CaregiverRole"
         displayName:
           type: string
+        permissions:
+          type: array
+          description: What this caregiver was granted; the web hides navigation they may not use.
+          items:
+            $ref: "#/components/schemas/CaregiverPermission"
 
     Child:
       type: object
@@ -1521,3 +3674,1291 @@ components:
           format: date-time
         text:
           type: string
+
+    PersonRole:
+      type: string
+      description: Any person who can act in the family, parents and caregivers.
+      enum: [mother, partner, grandparent, nanny]
+
+    CaregiverPermission:
+      type: string
+      description: |
+        What a grandparent or nanny may see or do; parents have all of
+        these. Nothing else can be granted: a parent's diary, mood
+        check-ins, labs, session notes, appointment questions, plans and
+        booking requests are never visible to a caregiver.
+        care_log = read and write feeds, sleep and diapers, give and take
+        handoffs; baby_passport = the limited baby card (profile,
+        pediatrician, allergies, emergency contacts, no medical history);
+        schedule = their own shifts and events they attend in the calendar
+        and Today; family_plan = the shared task list and tasks offered to
+        them; pregnancy_updates = the weekly pregnancy card and pregnancy
+        guides.
+      enum: [care_log, baby_passport, schedule, family_plan, pregnancy_updates]
+
+    FamilyUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        stage:
+          $ref: "#/components/schemas/Stage"
+        dueDate:
+          type: string
+          format: date
+
+    BabyArrivalInput:
+      type: object
+      required: [name, birthDate]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        birthDate:
+          type: string
+          format: date
+          description: Today or up to 30 days ago; a future date is 400.
+
+    Subscription:
+      type: object
+      required: [tier, status, startedAt]
+      description: The family's paid plan. One subscription unlocks both parents.
+      properties:
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+        status:
+          $ref: "#/components/schemas/SubscriptionStatus"
+        startedAt:
+          type: string
+          format: date-time
+        currentPeriodEnd:
+          type: string
+          format: date-time
+
+    SubscriptionStatus:
+      type: string
+      enum: [active, past_due, canceled]
+
+    InvitationStatus:
+      type: string
+      description: expired is computed from expiresAt; accepted and revoked are stored.
+      enum: [pending, accepted, revoked, expired]
+
+    InvitationInput:
+      type: object
+      required: [role, displayName, permissions]
+      properties:
+        role:
+          $ref: "#/components/schemas/CaregiverRole"
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 60
+          example: Grandma Rose
+        permissions:
+          type: array
+          uniqueItems: true
+          description: |
+            The toggles. The UI starts from the defaults per role: nanny
+            care_log, baby_passport, schedule; grandparent the same plus
+            pregnancy_updates.
+          items:
+            $ref: "#/components/schemas/CaregiverPermission"
+
+    Invitation:
+      type: object
+      required: [id, role, displayName, permissions, status, invitedById, createdAt, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/CaregiverRole"
+        displayName:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaregiverPermission"
+        status:
+          $ref: "#/components/schemas/InvitationStatus"
+        invitedById:
+          type: string
+          format: uuid
+        memberId:
+          type: string
+          format: uuid
+          description: The caregiver created on accept. Set once accepted.
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+
+    CreatedInvitation:
+      type: object
+      required: [invitation, token, path]
+      properties:
+        invitation:
+          $ref: "#/components/schemas/Invitation"
+        token:
+          type: string
+          description: Returned only here; the server keeps only its hash.
+        path:
+          type: string
+          description: Web path of the accept page, to put after the site origin.
+          example: /invite/3q2-xS0...
+
+    InvitationList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/Invitation"
+
+    InvitationPreview:
+      type: object
+      required: [role, displayName, permissions, status, invitedByName, expiresAt]
+      properties:
+        role:
+          $ref: "#/components/schemas/CaregiverRole"
+        displayName:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaregiverPermission"
+        status:
+          $ref: "#/components/schemas/InvitationStatus"
+        invitedByName:
+          type: string
+          example: Emily
+        expiresAt:
+          type: string
+          format: date-time
+
+    InvitationAcceptance:
+      type: object
+      required: [family, memberId]
+      properties:
+        family:
+          $ref: "#/components/schemas/Family"
+        memberId:
+          type: string
+          format: uuid
+          description: The new caregiver; act as this person.
+
+    AccessLogEntry:
+      type: object
+      required: [id, actorName, action, entity, at]
+      properties:
+        id:
+          type: string
+        actorId:
+          type: string
+          format: uuid
+          description: Absent when the person was removed.
+        actorName:
+          type: string
+        actorRole:
+          $ref: "#/components/schemas/PersonRole"
+        action:
+          type: string
+          description: create, read, update, delete, accept or revoke.
+          example: read
+        entity:
+          type: string
+          description: snake_case entity name, as in the audit log.
+          example: child_passport
+        entityId:
+          type: string
+        at:
+          type: string
+          format: date-time
+
+    AccessLogList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/AccessLogEntry"
+
+    GuideKind:
+      type: string
+      description: article = stage content; birth_prep = a birth preparation module.
+      enum: [article, birth_prep]
+
+    GuideAudience:
+      type: string
+      enum: [mother, partner, caregiver]
+
+    Guide:
+      type: object
+      required: [id, kind, title, summary, steps, stages, audience, locked, source]
+      properties:
+        id:
+          type: string
+          description: Stable slug from the content catalog.
+          example: birth-prep-breathing
+        kind:
+          $ref: "#/components/schemas/GuideKind"
+        title:
+          type: string
+        summary:
+          type: string
+        steps:
+          type: array
+          description: The body as short steps or paragraphs.
+          items:
+            type: string
+        minutes:
+          type: integer
+          description: Time to read or practice.
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Stage"
+        weekFrom:
+          type: integer
+          description: First gestational week it applies to (pregnancy content).
+        weekTo:
+          type: integer
+        ageMonthsFrom:
+          type: integer
+          description: First child age in months it applies to (after birth).
+        ageMonthsTo:
+          type: integer
+        audience:
+          type: array
+          items:
+            $ref: "#/components/schemas/GuideAudience"
+        locked:
+          type: boolean
+          description: True for birth prep before week 32.
+        unlocksAtWeek:
+          type: integer
+          example: 32
+        source:
+          $ref: "#/components/schemas/Source"
+
+    GuideList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Most relevant first.
+          items:
+            $ref: "#/components/schemas/Guide"
+
+    BabySize:
+      type: object
+      required: [comparison, lengthCm, weightG]
+      properties:
+        comparison:
+          type: string
+          example: a pineapple
+        lengthCm:
+          type: number
+        weightG:
+          type: number
+
+    PregnancyWeek:
+      type: object
+      required: [week, isCurrentWeek, size, development, whyItMatters, tasks, questions, birthPrep, source]
+      properties:
+        week:
+          type: integer
+        isCurrentWeek:
+          type: boolean
+        size:
+          $ref: "#/components/schemas/BabySize"
+        development:
+          type: string
+          description: What is developing this week, in plain words.
+        whyItMatters:
+          type: string
+          description: Why this week matters for the parents, never a diagnosis.
+        tasks:
+          type: array
+          description: For the acting person's role.
+          items:
+            type: string
+        questions:
+          type: array
+          description: Suggested questions; the UI can add one with createAppointmentQuestion.
+          items:
+            type: string
+        birthPrep:
+          type: array
+          description: Birth prep modules for this week (from week 28), locked until the family reaches week 32.
+          items:
+            $ref: "#/components/schemas/Guide"
+        source:
+          $ref: "#/components/schemas/Source"
+
+    PregnancyWeekSummary:
+      type: object
+      required: [week, sizeComparison, headline]
+      properties:
+        week:
+          type: integer
+        sizeComparison:
+          type: string
+          example: a pineapple
+        headline:
+          type: string
+          description: The first sentence of whyItMatters.
+
+    Today:
+      type: object
+      required: [memberId, role, date, stage, planItems, tasks, events, pendingHandoffs, guides]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/PersonRole"
+        date:
+          type: string
+          format: date
+        stage:
+          $ref: "#/components/schemas/Stage"
+        pregnancyWeek:
+          $ref: "#/components/schemas/PregnancyWeekSummary"
+        planItems:
+          type: array
+          description: Up to 3 overdue or due plan items. Parents only; empty for caregivers.
+          items:
+            $ref: "#/components/schemas/PlanItem"
+        tasks:
+          type: array
+          description: The person's tasks due within 7 days or overdue, then tasks offered to them.
+          items:
+            $ref: "#/components/schemas/Task"
+        events:
+          type: array
+          description: Today and tomorrow, as listCalendarEvents scope mine (parents also get family events).
+          items:
+            $ref: "#/components/schemas/CalendarEvent"
+        nextShift:
+          $ref: "#/components/schemas/CalendarEvent"
+        careSummary:
+          $ref: "#/components/schemas/CareSummary"
+        pendingHandoffs:
+          type: array
+          description: Handoffs to the acting person not accepted yet.
+          items:
+            $ref: "#/components/schemas/Handoff"
+        guides:
+          type: array
+          description: Up to 2 guides from listGuides.
+          items:
+            $ref: "#/components/schemas/Guide"
+
+
+    TaskKind:
+      type: string
+      description: |
+        task = the shared plan; paperwork = the seeded US paperwork
+        checklist; hospital_bag = an item on one of the three bag lists.
+      enum: [task, paperwork, hospital_bag]
+
+    TaskInputKind:
+      type: string
+      description: Paperwork is seeded, never created by hand.
+      enum: [task, hospital_bag]
+
+    HospitalBag:
+      type: string
+      description: Which of the three hospital bag lists an item is on.
+      enum: [mother, partner, baby]
+
+    TaskDueAnchor:
+      type: string
+      description: What a computed deadline counts from.
+      enum: [due_date, birth_date]
+
+    TaskInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        dueOn:
+          type: string
+          format: date
+        kind:
+          $ref: "#/components/schemas/TaskInputKind"
+        bag:
+          $ref: "#/components/schemas/HospitalBag"
+        detail:
+          type: string
+          maxLength: 500
+
+    TaskUpdate:
+      type: object
+      required: [done]
+      properties:
+        done:
+          type: boolean
+
+    TaskReassignmentInput:
+      type: object
+      required: [toMemberId]
+      properties:
+        toMemberId:
+          type: string
+          format: uuid
+          description: The parent the task is offered to. Must be in the family and not the acting parent. May also be a caregiver with family_plan.
+
+    Task:
+      type: object
+      required: [id, title, assigneeId, kind, done]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        dueOn:
+          type: string
+          format: date
+        assigneeId:
+          type: string
+          format: uuid
+          description: The parent who owns the task now.
+        pendingAssigneeId:
+          type: string
+          format: uuid
+          description: Set while the task is offered to the other parent and not yet accepted.
+        kind:
+          $ref: "#/components/schemas/TaskKind"
+        bag:
+          $ref: "#/components/schemas/HospitalBag"
+        detail:
+          type: string
+          description: What to do and how, in plain words.
+        done:
+          type: boolean
+        doneAt:
+          type: string
+          format: date-time
+        doneById:
+          type: string
+          format: uuid
+        dueAnchor:
+          $ref: "#/components/schemas/TaskDueAnchor"
+        dueOffsetDays:
+          type: integer
+          description: |
+            With dueAnchor, dueOn = anchor date + this many days (negative
+            = before). Absent when dueOn is a plain date or the anchor is
+            not known yet (birth_date before birth: dueOn is then counted
+            from the due date as an estimate).
+        source:
+          $ref: "#/components/schemas/Source"
+
+    TaskList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Soonest due first, undated last.
+          items:
+            $ref: "#/components/schemas/Task"
+
+    CalendarScope:
+      type: string
+      description: Default family for parents; caregivers may only use mine.
+      enum: [mine, partner, family]
+
+    CalendarEventKind:
+      type: string
+      description: |
+        appointment, class, reminder and other are stored events; shift is
+        one occurrence of an active shift; task is a task due date;
+        psychologist_session is the owner's own booking, always private.
+      enum: [appointment, class, reminder, other, shift, task, psychologist_session]
+
+    CalendarEventInputKind:
+      type: string
+      enum: [appointment, class, reminder, other]
+
+    CalendarVisibility:
+      type: string
+      description: private = owner only; family = both parents, and attendees.
+      enum: [private, family]
+
+    CalendarEventInput:
+      type: object
+      required: [kind, title, startsAt, visibility]
+      properties:
+        kind:
+          $ref: "#/components/schemas/CalendarEventInputKind"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        allDay:
+          type: boolean
+        location:
+          type: string
+          maxLength: 200
+        attendeeIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        visibility:
+          $ref: "#/components/schemas/CalendarVisibility"
+
+    CalendarEvent:
+      type: object
+      required: [id, kind, title, startsAt, allDay, attendeeIds, visibility]
+      properties:
+        id:
+          type: string
+          description: |
+            Stable per occurrence. A uuid for stored events and appointments;
+            "<shiftId>:<date>" for a shift occurrence; the task id for a task.
+        kind:
+          $ref: "#/components/schemas/CalendarEventKind"
+        title:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        allDay:
+          type: boolean
+        location:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+          description: The person it belongs to (shift owner, task assignee). Absent for family-wide events.
+        attendeeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        visibility:
+          $ref: "#/components/schemas/CalendarVisibility"
+        shiftId:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+          format: uuid
+
+    CalendarEventList:
+      type: object
+      required: [from, to, items]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        items:
+          type: array
+          description: Earliest first.
+          items:
+            $ref: "#/components/schemas/CalendarEvent"
+
+    AppointmentQuestionInput:
+      type: object
+      required: [text, visibility]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 300
+        appointmentId:
+          type: string
+          format: uuid
+          description: Default the next upcoming appointment the acting parent may see.
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    AppointmentQuestionUpdate:
+      type: object
+      required: [answered]
+      properties:
+        answered:
+          type: boolean
+        answer:
+          type: string
+          maxLength: 1000
+
+    AppointmentQuestion:
+      type: object
+      required: [id, authorId, text, askedForAppointmentId, carriedOver, answered, visibility, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        text:
+          type: string
+        appointmentId:
+          type: string
+          format: uuid
+          description: The appointment it is under now. Absent when unanswered and no later appointment exists yet.
+        askedForAppointmentId:
+          type: string
+          format: uuid
+          description: The appointment it was first added to.
+        carriedOver:
+          type: boolean
+          description: True when appointmentId differs from askedForAppointmentId.
+        answered:
+          type: boolean
+        answer:
+          type: string
+        answeredAt:
+          type: string
+          format: date-time
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        createdAt:
+          type: string
+          format: date-time
+
+    AppointmentQuestionList:
+      type: object
+      required: [appointments, items]
+      properties:
+        appointments:
+          type: array
+          description: Upcoming appointments that have questions, soonest first.
+          items:
+            $ref: "#/components/schemas/CalendarEvent"
+        items:
+          type: array
+          description: Unanswered first, then by appointment, then oldest first.
+          items:
+            $ref: "#/components/schemas/AppointmentQuestion"
+
+
+    SimulatorSkill:
+      type: string
+      enum: [feeding, soothing, safe_sleep, diapering, warning_signs, teamwork]
+
+    SimulatorMode:
+      type: string
+      enum: [scenario, practice]
+
+    SkillScore:
+      type: object
+      required: [skill, answered, correct, weak]
+      properties:
+        skill:
+          $ref: "#/components/schemas/SimulatorSkill"
+        answered:
+          type: integer
+        correct:
+          type: integer
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Percent correct. Absent before the first answer.
+        weak:
+          type: boolean
+          description: True when score is below 70.
+
+    ShiftSuggestion:
+      type: object
+      required: [title, days, startTime, endTime]
+      description: The shift a scenario suggests committing to; post it to createShift as is or edited.
+      properties:
+        title:
+          type: string
+          example: Night feeds
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/Weekday"
+        startTime:
+          type: string
+          example: "22:00"
+        endTime:
+          type: string
+          example: "02:00"
+
+    SimulatorScenario:
+      type: object
+      required: [id, title, summary, skills, questionCount]
+      properties:
+        id:
+          type: string
+          example: first-night-home
+        title:
+          type: string
+        summary:
+          type: string
+        skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimulatorSkill"
+        questionCount:
+          type: integer
+        suggestedShift:
+          $ref: "#/components/schemas/ShiftSuggestion"
+
+    SimulatorProgress:
+      type: object
+      required: [memberId, skills, weakSpots, scenarios, roundsCompleted]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillScore"
+        weakSpots:
+          type: array
+          description: Skills with a score below 70, weakest first.
+          items:
+            $ref: "#/components/schemas/SimulatorSkill"
+        scenarios:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimulatorScenario"
+        roundsCompleted:
+          type: integer
+
+    SimulatorRoundInput:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          $ref: "#/components/schemas/SimulatorMode"
+        scenarioId:
+          type: string
+          maxLength: 80
+          description: Required for mode scenario.
+
+    SimulatorChoice:
+      type: object
+      required: [id, text]
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+
+    SimulatorQuestion:
+      type: object
+      required: [id, skill, prompt, choices]
+      properties:
+        id:
+          type: string
+        skill:
+          $ref: "#/components/schemas/SimulatorSkill"
+        prompt:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimulatorChoice"
+        answer:
+          $ref: "#/components/schemas/SimulatorAnswerResult"
+
+    SimulatorRoundResult:
+      type: object
+      required: [correct, total, skills, weakSpots]
+      properties:
+        correct:
+          type: integer
+        total:
+          type: integer
+        skills:
+          type: array
+          description: The person's overall scores after this round.
+          items:
+            $ref: "#/components/schemas/SkillScore"
+        weakSpots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimulatorSkill"
+        suggestedShift:
+          $ref: "#/components/schemas/ShiftSuggestion"
+
+    SimulatorRound:
+      type: object
+      required: [id, mode, title, questions, completed, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        mode:
+          $ref: "#/components/schemas/SimulatorMode"
+        scenarioId:
+          type: string
+        title:
+          type: string
+        questions:
+          type: array
+          description: In the order to ask them. answer is set once answered.
+          items:
+            $ref: "#/components/schemas/SimulatorQuestion"
+        completed:
+          type: boolean
+        result:
+          $ref: "#/components/schemas/SimulatorRoundResult"
+        createdAt:
+          type: string
+          format: date-time
+
+    SimulatorAnswerInput:
+      type: object
+      required: [questionId, choiceId]
+      properties:
+        questionId:
+          type: string
+          maxLength: 80
+        choiceId:
+          type: string
+          maxLength: 80
+
+    SimulatorAnswerResult:
+      type: object
+      required: [questionId, choiceId, correct, correctChoiceId, explanation, skill]
+      properties:
+        questionId:
+          type: string
+        choiceId:
+          type: string
+        correct:
+          type: boolean
+        correctChoiceId:
+          type: string
+        explanation:
+          type: string
+          description: Why, in plain words. Never a diagnosis.
+        skill:
+          $ref: "#/components/schemas/SimulatorSkill"
+        source:
+          $ref: "#/components/schemas/Source"
+        roundCompleted:
+          type: boolean
+          description: True when this was the last unanswered question; fetch the round for the result.
+
+    Weekday:
+      type: string
+      enum: [mon, tue, wed, thu, fri, sat, sun]
+
+    ShiftStatus:
+      type: string
+      description: |
+        agreed = committed before "Baby is home", no occurrences yet;
+        active = in the calendar from startsOn.
+      enum: [agreed, active]
+
+    ShiftInput:
+      type: object
+      required: [title, days, startTime, endTime]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+        days:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/Weekday"
+        startTime:
+          type: string
+          pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+          description: Local time HH:MM.
+          example: "22:00"
+        endTime:
+          type: string
+          pattern: "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+          description: Local time HH:MM. Earlier than startTime means the next morning.
+          example: "02:00"
+        roundId:
+          type: string
+          format: uuid
+          description: The simulator round this commitment came from.
+
+    Shift:
+      type: object
+      required: [id, memberId, title, days, startTime, endTime, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        memberId:
+          type: string
+          format: uuid
+          description: Who is on duty during this shift.
+        title:
+          type: string
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/Weekday"
+        startTime:
+          type: string
+        endTime:
+          type: string
+        status:
+          $ref: "#/components/schemas/ShiftStatus"
+        startsOn:
+          type: string
+          format: date
+          description: Set when active.
+        roundId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    ShiftList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Shift"
+
+    CareLogKind:
+      type: string
+      enum: [feed, sleep, diaper]
+
+    FeedMethod:
+      type: string
+      enum: [breast_left, breast_right, bottle_breast_milk, bottle_formula]
+
+    DiaperContent:
+      type: string
+      enum: [wet, dirty, both]
+
+    CareLogEntryInput:
+      type: object
+      required: [kind, startedAt]
+      properties:
+        kind:
+          $ref: "#/components/schemas/CareLogKind"
+        childId:
+          type: string
+          format: uuid
+          description: Default the family's only or youngest child.
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+          description: For a feed or a sleep; absent while it is still going.
+        feedMethod:
+          $ref: "#/components/schemas/FeedMethod"
+        amountMl:
+          type: integer
+          minimum: 0
+          maximum: 400
+        diaper:
+          $ref: "#/components/schemas/DiaperContent"
+        note:
+          type: string
+          maxLength: 300
+
+    CareLogEntry:
+      type: object
+      required: [id, childId, authorId, kind, startedAt, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        childId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/CareLogKind"
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+        feedMethod:
+          $ref: "#/components/schemas/FeedMethod"
+        amountMl:
+          type: integer
+        diaper:
+          $ref: "#/components/schemas/DiaperContent"
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    OnDuty:
+      type: object
+      required: [memberId, since, via]
+      description: Who has the baby now.
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        since:
+          type: string
+          format: date-time
+        via:
+          type: string
+          description: handoff = the last accepted handoff; shift = the current shift occurrence, when no handoff came after its start.
+          enum: [handoff, shift]
+
+    CareSummary:
+      type: object
+      properties:
+        lastFeed:
+          $ref: "#/components/schemas/CareLogEntry"
+        lastSleep:
+          $ref: "#/components/schemas/CareLogEntry"
+        lastDiaper:
+          $ref: "#/components/schemas/CareLogEntry"
+        onDuty:
+          $ref: "#/components/schemas/OnDuty"
+
+    CareLogList:
+      type: object
+      required: [items, latest]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/CareLogEntry"
+        latest:
+          $ref: "#/components/schemas/CareSummary"
+
+    HandoffStatus:
+      type: string
+      enum: [pending, accepted]
+
+    HandoffInput:
+      type: object
+      required: [toMemberId]
+      properties:
+        toMemberId:
+          type: string
+          format: uuid
+        note:
+          type: string
+          maxLength: 500
+          example: Fed at 14:10, 90 ml. Napping since 14:40. Diaper cream on the changing table.
+        shiftId:
+          type: string
+          format: uuid
+          description: The receiver's shift this handoff starts, when there is one.
+
+    Handoff:
+      type: object
+      required: [id, fromMemberId, toMemberId, status, createdAt, careSummary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromMemberId:
+          type: string
+          format: uuid
+        toMemberId:
+          type: string
+          format: uuid
+        note:
+          type: string
+        shiftId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/HandoffStatus"
+        createdAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        careSummary:
+          $ref: "#/components/schemas/CareSummary"
+
+    HandoffList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Pending first, then newest first.
+          items:
+            $ref: "#/components/schemas/Handoff"
+
+    LiveUpdateKind:
+      type: string
+      description: Which screens should refetch.
+      enum: [family, task, shift, calendar_event, care_log, handoff, appointment_question, invitation]
+
+    LiveUpdate:
+      type: object
+      required: [kind, actorId, at]
+      description: The data of one "update" event on getLiveUpdates. Never carries the record itself.
+      properties:
+        kind:
+          $ref: "#/components/schemas/LiveUpdateKind"
+        entityId:
+          type: string
+          description: The changed record, when there is one.
+        actorId:
+          type: string
+          format: uuid
+          description: Who made the change, so a screen can skip its own echo.
+        at:
+          type: string
+          format: date-time
+
+    EmergencyContact:
+      type: object
+      required: [name, relation, phone]
+      properties:
+        name:
+          type: string
+        relation:
+          type: string
+          example: Grandmother
+        phone:
+          type: string
+
+    MedicalHistoryEntry:
+      type: object
+      required: [date, title]
+      properties:
+        date:
+          type: string
+          format: date
+        title:
+          type: string
+          example: Newborn hearing screen passed
+        detail:
+          type: string
+
+    ChildPassport:
+      type: object
+      required: [child, limitedView, allergies, emergencyContacts]
+      properties:
+        child:
+          $ref: "#/components/schemas/Child"
+        limitedView:
+          type: boolean
+          description: True for a grandparent or nanny; medicalHistory and vaccines are then absent.
+        pediatrician:
+          $ref: "#/components/schemas/CareTeamMember"
+        allergies:
+          type: array
+          description: Suspected and confirmed. Empty means none known.
+          items:
+            $ref: "#/components/schemas/Allergy"
+        emergencyContacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmergencyContact"
+        medicalHistory:
+          type: array
+          description: Parents only. Newest first.
+          items:
+            $ref: "#/components/schemas/MedicalHistoryEntry"
+        vaccines:
+          type: array
+          description: Parents only.
+          items:
+            $ref: "#/components/schemas/VaccineDose"
+
+    CheckoutSessionInput:
+      type: object
+      required: [tier]
+      properties:
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+
+    CheckoutSessionStatus:
+      type: string
+      description: As Stripe reports it.
+      enum: [open, complete, expired]
+
+    CheckoutSession:
+      type: object
+      required: [id, tier, status]
+      properties:
+        id:
+          type: string
+          description: Stripe Checkout Session id.
+          example: cs_test_a1B2c3
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+        status:
+          $ref: "#/components/schemas/CheckoutSessionStatus"
+        url:
+          type: string
+          description: Stripe-hosted page to redirect to. Set while status is open.
+        paid:
+          type: boolean
+          description: True once Stripe reports payment_status paid.
+
+    StripeEvent:
+      type: object
+      required: [id, type, data]
+      description: The parts of a Stripe event the server reads; Stripe sends more.
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          example: checkout.session.completed
+        data:
+          type: object
+          additionalProperties: true
+
+    WebhookReceipt:
+      type: object
+      required: [received]
+      properties:
+        received:
+          type: boolean

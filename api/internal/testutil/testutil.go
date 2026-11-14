@@ -88,7 +88,24 @@ func (c *Client) Put(path string, body any, wantStatus int, out any) {
 	c.do(http.MethodPut, path, body, wantStatus, out)
 }
 
+func (c *Client) Patch(path string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.do(http.MethodPatch, path, body, wantStatus, out)
+}
+
+// PostWithHeaders is Post with extra request headers, for callers such as
+// webhooks that authenticate with a header instead of the session cookie.
+func (c *Client) PostWithHeaders(path string, headers map[string]string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.doWithHeaders(http.MethodPost, path, headers, body, wantStatus, out)
+}
+
 func (c *Client) do(method, path string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.doWithHeaders(method, path, nil, body, wantStatus, out)
+}
+
+func (c *Client) doWithHeaders(method, path string, headers map[string]string, body any, wantStatus int, out any) {
 	c.t.Helper()
 	var r io.Reader
 	if body != nil {
@@ -104,6 +121,9 @@ func (c *Client) do(method, path string, body any, wantStatus int, out any) {
 	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 	res, err := c.http.Do(req)
 	if err != nil {

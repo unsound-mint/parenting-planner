@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -57,6 +58,123 @@ func (e BookingRequestStatus) Valid() bool {
 	}
 }
 
+// Defines values for CalendarEventInputKind.
+const (
+	CalendarEventInputKindAppointment CalendarEventInputKind = "appointment"
+	CalendarEventInputKindClass       CalendarEventInputKind = "class"
+	CalendarEventInputKindOther       CalendarEventInputKind = "other"
+	CalendarEventInputKindReminder    CalendarEventInputKind = "reminder"
+)
+
+// Valid indicates whether the value is a known member of the CalendarEventInputKind enum.
+func (e CalendarEventInputKind) Valid() bool {
+	switch e {
+	case CalendarEventInputKindAppointment:
+		return true
+	case CalendarEventInputKindClass:
+		return true
+	case CalendarEventInputKindOther:
+		return true
+	case CalendarEventInputKindReminder:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CalendarEventKind.
+const (
+	CalendarEventKindAppointment         CalendarEventKind = "appointment"
+	CalendarEventKindClass               CalendarEventKind = "class"
+	CalendarEventKindOther               CalendarEventKind = "other"
+	CalendarEventKindPsychologistSession CalendarEventKind = "psychologist_session"
+	CalendarEventKindReminder            CalendarEventKind = "reminder"
+	CalendarEventKindShift               CalendarEventKind = "shift"
+	CalendarEventKindTask                CalendarEventKind = "task"
+)
+
+// Valid indicates whether the value is a known member of the CalendarEventKind enum.
+func (e CalendarEventKind) Valid() bool {
+	switch e {
+	case CalendarEventKindAppointment:
+		return true
+	case CalendarEventKindClass:
+		return true
+	case CalendarEventKindOther:
+		return true
+	case CalendarEventKindPsychologistSession:
+		return true
+	case CalendarEventKindReminder:
+		return true
+	case CalendarEventKindShift:
+		return true
+	case CalendarEventKindTask:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CalendarScope.
+const (
+	CalendarScopeFamily  CalendarScope = "family"
+	CalendarScopeMine    CalendarScope = "mine"
+	CalendarScopePartner CalendarScope = "partner"
+)
+
+// Valid indicates whether the value is a known member of the CalendarScope enum.
+func (e CalendarScope) Valid() bool {
+	switch e {
+	case CalendarScopeFamily:
+		return true
+	case CalendarScopeMine:
+		return true
+	case CalendarScopePartner:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CalendarVisibility.
+const (
+	CalendarVisibilityFamily  CalendarVisibility = "family"
+	CalendarVisibilityPrivate CalendarVisibility = "private"
+)
+
+// Valid indicates whether the value is a known member of the CalendarVisibility enum.
+func (e CalendarVisibility) Valid() bool {
+	switch e {
+	case CalendarVisibilityFamily:
+		return true
+	case CalendarVisibilityPrivate:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CareLogKind.
+const (
+	Diaper CareLogKind = "diaper"
+	Feed   CareLogKind = "feed"
+	Sleep  CareLogKind = "sleep"
+)
+
+// Valid indicates whether the value is a known member of the CareLogKind enum.
+func (e CareLogKind) Valid() bool {
+	switch e {
+	case Diaper:
+		return true
+	case Feed:
+		return true
+	case Sleep:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CareRole.
 const (
 	CareRoleDentist             CareRole = "dentist"
@@ -90,18 +208,66 @@ func (e CareRole) Valid() bool {
 	}
 }
 
+// Defines values for CaregiverPermission.
+const (
+	BabyPassport     CaregiverPermission = "baby_passport"
+	CareLog          CaregiverPermission = "care_log"
+	FamilyPlan       CaregiverPermission = "family_plan"
+	PregnancyUpdates CaregiverPermission = "pregnancy_updates"
+	Schedule         CaregiverPermission = "schedule"
+)
+
+// Valid indicates whether the value is a known member of the CaregiverPermission enum.
+func (e CaregiverPermission) Valid() bool {
+	switch e {
+	case BabyPassport:
+		return true
+	case CareLog:
+		return true
+	case FamilyPlan:
+		return true
+	case PregnancyUpdates:
+		return true
+	case Schedule:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CaregiverRole.
 const (
-	Grandparent CaregiverRole = "grandparent"
-	Nanny       CaregiverRole = "nanny"
+	CaregiverRoleGrandparent CaregiverRole = "grandparent"
+	CaregiverRoleNanny       CaregiverRole = "nanny"
 )
 
 // Valid indicates whether the value is a known member of the CaregiverRole enum.
 func (e CaregiverRole) Valid() bool {
 	switch e {
-	case Grandparent:
+	case CaregiverRoleGrandparent:
 		return true
-	case Nanny:
+	case CaregiverRoleNanny:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CheckoutSessionStatus.
+const (
+	CheckoutSessionStatusComplete CheckoutSessionStatus = "complete"
+	CheckoutSessionStatusExpired  CheckoutSessionStatus = "expired"
+	CheckoutSessionStatusOpen     CheckoutSessionStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the CheckoutSessionStatus enum.
+func (e CheckoutSessionStatus) Valid() bool {
+	switch e {
+	case CheckoutSessionStatusComplete:
+		return true
+	case CheckoutSessionStatusExpired:
+		return true
+	case CheckoutSessionStatusOpen:
 		return true
 	default:
 		return false
@@ -132,6 +298,153 @@ func (e DemoTemplate) Valid() bool {
 	}
 }
 
+// Defines values for DiaperContent.
+const (
+	Both  DiaperContent = "both"
+	Dirty DiaperContent = "dirty"
+	Wet   DiaperContent = "wet"
+)
+
+// Valid indicates whether the value is a known member of the DiaperContent enum.
+func (e DiaperContent) Valid() bool {
+	switch e {
+	case Both:
+		return true
+	case Dirty:
+		return true
+	case Wet:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for FeedMethod.
+const (
+	BottleBreastMilk FeedMethod = "bottle_breast_milk"
+	BottleFormula    FeedMethod = "bottle_formula"
+	BreastLeft       FeedMethod = "breast_left"
+	BreastRight      FeedMethod = "breast_right"
+)
+
+// Valid indicates whether the value is a known member of the FeedMethod enum.
+func (e FeedMethod) Valid() bool {
+	switch e {
+	case BottleBreastMilk:
+		return true
+	case BottleFormula:
+		return true
+	case BreastLeft:
+		return true
+	case BreastRight:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GuideAudience.
+const (
+	GuideAudienceCaregiver GuideAudience = "caregiver"
+	GuideAudienceMother    GuideAudience = "mother"
+	GuideAudiencePartner   GuideAudience = "partner"
+)
+
+// Valid indicates whether the value is a known member of the GuideAudience enum.
+func (e GuideAudience) Valid() bool {
+	switch e {
+	case GuideAudienceCaregiver:
+		return true
+	case GuideAudienceMother:
+		return true
+	case GuideAudiencePartner:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GuideKind.
+const (
+	Article   GuideKind = "article"
+	BirthPrep GuideKind = "birth_prep"
+)
+
+// Valid indicates whether the value is a known member of the GuideKind enum.
+func (e GuideKind) Valid() bool {
+	switch e {
+	case Article:
+		return true
+	case BirthPrep:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HandoffStatus.
+const (
+	HandoffStatusAccepted HandoffStatus = "accepted"
+	HandoffStatusPending  HandoffStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the HandoffStatus enum.
+func (e HandoffStatus) Valid() bool {
+	switch e {
+	case HandoffStatusAccepted:
+		return true
+	case HandoffStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HospitalBag.
+const (
+	HospitalBagBaby    HospitalBag = "baby"
+	HospitalBagMother  HospitalBag = "mother"
+	HospitalBagPartner HospitalBag = "partner"
+)
+
+// Valid indicates whether the value is a known member of the HospitalBag enum.
+func (e HospitalBag) Valid() bool {
+	switch e {
+	case HospitalBagBaby:
+		return true
+	case HospitalBagMother:
+		return true
+	case HospitalBagPartner:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for InvitationStatus.
+const (
+	InvitationStatusAccepted InvitationStatus = "accepted"
+	InvitationStatusExpired  InvitationStatus = "expired"
+	InvitationStatusPending  InvitationStatus = "pending"
+	InvitationStatusRevoked  InvitationStatus = "revoked"
+)
+
+// Valid indicates whether the value is a known member of the InvitationStatus enum.
+func (e InvitationStatus) Valid() bool {
+	switch e {
+	case InvitationStatusAccepted:
+		return true
+	case InvitationStatusExpired:
+		return true
+	case InvitationStatusPending:
+		return true
+	case InvitationStatusRevoked:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MoodPatternKind.
 const (
 	LowMood         MoodPatternKind = "low_mood"
@@ -144,6 +457,24 @@ func (e MoodPatternKind) Valid() bool {
 	case LowMood:
 		return true
 	case LowMoodAndSleep:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OnDutyVia.
+const (
+	OnDutyViaHandoff OnDutyVia = "handoff"
+	OnDutyViaShift   OnDutyVia = "shift"
+)
+
+// Valid indicates whether the value is a known member of the OnDutyVia enum.
+func (e OnDutyVia) Valid() bool {
+	switch e {
+	case OnDutyViaHandoff:
+		return true
+	case OnDutyViaShift:
 		return true
 	default:
 		return false
@@ -198,6 +529,30 @@ func (e PassportPersonKind) Valid() bool {
 	case PassportPersonKindChild:
 		return true
 	case PassportPersonKindParent:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PersonRole.
+const (
+	PersonRoleGrandparent PersonRole = "grandparent"
+	PersonRoleMother      PersonRole = "mother"
+	PersonRoleNanny       PersonRole = "nanny"
+	PersonRolePartner     PersonRole = "partner"
+)
+
+// Valid indicates whether the value is a known member of the PersonRole enum.
+func (e PersonRole) Valid() bool {
+	switch e {
+	case PersonRoleGrandparent:
+		return true
+	case PersonRoleMother:
+		return true
+	case PersonRoleNanny:
+		return true
+	case PersonRolePartner:
 		return true
 	default:
 		return false
@@ -309,6 +664,72 @@ func (e ProviderType) Valid() bool {
 	}
 }
 
+// Defines values for ShiftStatus.
+const (
+	ShiftStatusActive ShiftStatus = "active"
+	ShiftStatusAgreed ShiftStatus = "agreed"
+)
+
+// Valid indicates whether the value is a known member of the ShiftStatus enum.
+func (e ShiftStatus) Valid() bool {
+	switch e {
+	case ShiftStatusActive:
+		return true
+	case ShiftStatusAgreed:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SimulatorMode.
+const (
+	Practice SimulatorMode = "practice"
+	Scenario SimulatorMode = "scenario"
+)
+
+// Valid indicates whether the value is a known member of the SimulatorMode enum.
+func (e SimulatorMode) Valid() bool {
+	switch e {
+	case Practice:
+		return true
+	case Scenario:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SimulatorSkill.
+const (
+	Diapering    SimulatorSkill = "diapering"
+	Feeding      SimulatorSkill = "feeding"
+	SafeSleep    SimulatorSkill = "safe_sleep"
+	Soothing     SimulatorSkill = "soothing"
+	Teamwork     SimulatorSkill = "teamwork"
+	WarningSigns SimulatorSkill = "warning_signs"
+)
+
+// Valid indicates whether the value is a known member of the SimulatorSkill enum.
+func (e SimulatorSkill) Valid() bool {
+	switch e {
+	case Diapering:
+		return true
+	case Feeding:
+		return true
+	case SafeSleep:
+		return true
+	case Soothing:
+		return true
+	case Teamwork:
+		return true
+	case WarningSigns:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Stage.
 const (
 	StageInfant     Stage = "infant"
@@ -339,6 +760,84 @@ func (e Stage) Valid() bool {
 	case StageToddler:
 		return true
 	case StageTrying:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SubscriptionStatus.
+const (
+	SubscriptionStatusActive   SubscriptionStatus = "active"
+	SubscriptionStatusCanceled SubscriptionStatus = "canceled"
+	SubscriptionStatusPastDue  SubscriptionStatus = "past_due"
+)
+
+// Valid indicates whether the value is a known member of the SubscriptionStatus enum.
+func (e SubscriptionStatus) Valid() bool {
+	switch e {
+	case SubscriptionStatusActive:
+		return true
+	case SubscriptionStatusCanceled:
+		return true
+	case SubscriptionStatusPastDue:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TaskDueAnchor.
+const (
+	BirthDate TaskDueAnchor = "birth_date"
+	DueDate   TaskDueAnchor = "due_date"
+)
+
+// Valid indicates whether the value is a known member of the TaskDueAnchor enum.
+func (e TaskDueAnchor) Valid() bool {
+	switch e {
+	case BirthDate:
+		return true
+	case DueDate:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TaskInputKind.
+const (
+	TaskInputKindHospitalBag TaskInputKind = "hospital_bag"
+	TaskInputKindTask        TaskInputKind = "task"
+)
+
+// Valid indicates whether the value is a known member of the TaskInputKind enum.
+func (e TaskInputKind) Valid() bool {
+	switch e {
+	case TaskInputKindHospitalBag:
+		return true
+	case TaskInputKindTask:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TaskKind.
+const (
+	TaskKindHospitalBag TaskKind = "hospital_bag"
+	TaskKindPaperwork   TaskKind = "paperwork"
+	TaskKindTask        TaskKind = "task"
+)
+
+// Valid indicates whether the value is a known member of the TaskKind enum.
+func (e TaskKind) Valid() bool {
+	switch e {
+	case TaskKindHospitalBag:
+		return true
+	case TaskKindPaperwork:
+		return true
+	case TaskKindTask:
 		return true
 	default:
 		return false
@@ -414,6 +913,68 @@ func (e Visibility) Valid() bool {
 	}
 }
 
+// Defines values for Weekday.
+const (
+	Fri Weekday = "fri"
+	Mon Weekday = "mon"
+	Sat Weekday = "sat"
+	Sun Weekday = "sun"
+	Thu Weekday = "thu"
+	Tue Weekday = "tue"
+	Wed Weekday = "wed"
+)
+
+// Valid indicates whether the value is a known member of the Weekday enum.
+func (e Weekday) Valid() bool {
+	switch e {
+	case Fri:
+		return true
+	case Mon:
+		return true
+	case Sat:
+		return true
+	case Sun:
+		return true
+	case Thu:
+		return true
+	case Tue:
+		return true
+	case Wed:
+		return true
+	default:
+		return false
+	}
+}
+
+// AccessLogEntry defines model for AccessLogEntry.
+type AccessLogEntry struct {
+	// Action create, read, update, delete, accept or revoke.
+	//
+	// Example: read
+	Action string `json:"action"`
+
+	// ActorId Absent when the person was removed.
+	ActorId   *openapi_types.UUID `json:"actorId,omitempty"`
+	ActorName string              `json:"actorName"`
+
+	// ActorRole Any person who can act in the family, parents and caregivers.
+	ActorRole *PersonRole `json:"actorRole,omitempty"`
+	At        time.Time   `json:"at"`
+
+	// Entity snake_case entity name, as in the audit log.
+	//
+	// Example: child_passport
+	Entity   string  `json:"entity"`
+	EntityId *string `json:"entityId,omitempty"`
+	Id       string  `json:"id"`
+}
+
+// AccessLogList defines model for AccessLogList.
+type AccessLogList struct {
+	// Items Newest first.
+	Items []AccessLogEntry `json:"items"`
+}
+
 // AgendaTopic defines model for AgendaTopic.
 type AgendaTopic struct {
 	AddedAt time.Time          `json:"addedAt"`
@@ -445,6 +1006,73 @@ type Allergy struct {
 // AllergyCertainty confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
 type AllergyCertainty string
 
+// AppointmentQuestion defines model for AppointmentQuestion.
+type AppointmentQuestion struct {
+	Answer     *string    `json:"answer,omitempty"`
+	Answered   bool       `json:"answered"`
+	AnsweredAt *time.Time `json:"answeredAt,omitempty"`
+
+	// AppointmentId The appointment it is under now. Absent when unanswered and no later appointment exists yet.
+	AppointmentId *openapi_types.UUID `json:"appointmentId,omitempty"`
+
+	// AskedForAppointmentId The appointment it was first added to.
+	AskedForAppointmentId openapi_types.UUID `json:"askedForAppointmentId"`
+	AuthorId              openapi_types.UUID `json:"authorId"`
+
+	// CarriedOver True when appointmentId differs from askedForAppointmentId.
+	CarriedOver bool               `json:"carriedOver"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	Id          openapi_types.UUID `json:"id"`
+	Text        string             `json:"text"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// AppointmentQuestionInput defines model for AppointmentQuestionInput.
+type AppointmentQuestionInput struct {
+	// AppointmentId Default the next upcoming appointment the acting parent may see.
+	AppointmentId *openapi_types.UUID `json:"appointmentId,omitempty"`
+	Text          string              `json:"text"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// AppointmentQuestionList defines model for AppointmentQuestionList.
+type AppointmentQuestionList struct {
+	// Appointments Upcoming appointments that have questions, soonest first.
+	Appointments []CalendarEvent `json:"appointments"`
+
+	// Items Unanswered first, then by appointment, then oldest first.
+	Items []AppointmentQuestion `json:"items"`
+}
+
+// AppointmentQuestionUpdate defines model for AppointmentQuestionUpdate.
+type AppointmentQuestionUpdate struct {
+	Answer   *string `json:"answer,omitempty"`
+	Answered bool    `json:"answered"`
+}
+
+// BabyArrivalInput defines model for BabyArrivalInput.
+type BabyArrivalInput struct {
+	// BirthDate Today or up to 30 days ago; a future date is 400.
+	BirthDate openapi_types.Date `json:"birthDate"`
+	Name      string             `json:"name"`
+}
+
+// BabySize defines model for BabySize.
+type BabySize struct {
+	// Comparison Example: a pineapple
+	Comparison string  `json:"comparison"`
+	LengthCm   float32 `json:"lengthCm"`
+	WeightG    float32 `json:"weightG"`
+}
+
 // BookingRequest defines model for BookingRequest.
 type BookingRequest struct {
 	CreatedAt time.Time          `json:"createdAt"`
@@ -475,8 +1103,123 @@ type BookingRequestList struct {
 // BookingRequestStatus Only requested exists for now; the demo never confirms a booking.
 type BookingRequestStatus string
 
+// CalendarEvent defines model for CalendarEvent.
+type CalendarEvent struct {
+	AllDay      bool                 `json:"allDay"`
+	AttendeeIds []openapi_types.UUID `json:"attendeeIds"`
+	EndsAt      *time.Time           `json:"endsAt,omitempty"`
+
+	// Id Stable per occurrence. A uuid for stored events and appointments;
+	// "<shiftId>:<date>" for a shift occurrence; the task id for a task.
+	Id string `json:"id"`
+
+	// Kind appointment, class, reminder and other are stored events; shift is
+	// one occurrence of an active shift; task is a task due date;
+	// psychologist_session is the owner's own booking, always private.
+	Kind     CalendarEventKind `json:"kind"`
+	Location *string           `json:"location,omitempty"`
+
+	// OwnerId The person it belongs to (shift owner, task assignee). Absent for family-wide events.
+	OwnerId  *openapi_types.UUID `json:"ownerId,omitempty"`
+	ShiftId  *openapi_types.UUID `json:"shiftId,omitempty"`
+	StartsAt time.Time           `json:"startsAt"`
+	TaskId   *openapi_types.UUID `json:"taskId,omitempty"`
+	Title    string              `json:"title"`
+
+	// Visibility private = owner only; family = both parents, and attendees.
+	Visibility CalendarVisibility `json:"visibility"`
+}
+
+// CalendarEventInput defines model for CalendarEventInput.
+type CalendarEventInput struct {
+	AllDay      *bool                  `json:"allDay,omitempty"`
+	AttendeeIds *[]openapi_types.UUID  `json:"attendeeIds,omitempty"`
+	EndsAt      *time.Time             `json:"endsAt,omitempty"`
+	Kind        CalendarEventInputKind `json:"kind"`
+	Location    *string                `json:"location,omitempty"`
+	StartsAt    time.Time              `json:"startsAt"`
+	Title       string                 `json:"title"`
+
+	// Visibility private = owner only; family = both parents, and attendees.
+	Visibility CalendarVisibility `json:"visibility"`
+}
+
+// CalendarEventInputKind defines model for CalendarEventInputKind.
+type CalendarEventInputKind string
+
+// CalendarEventKind appointment, class, reminder and other are stored events; shift is
+// one occurrence of an active shift; task is a task due date;
+// psychologist_session is the owner's own booking, always private.
+type CalendarEventKind string
+
+// CalendarEventList defines model for CalendarEventList.
+type CalendarEventList struct {
+	From openapi_types.Date `json:"from"`
+
+	// Items Earliest first.
+	Items []CalendarEvent    `json:"items"`
+	To    openapi_types.Date `json:"to"`
+}
+
+// CalendarScope Default family for parents; caregivers may only use mine.
+type CalendarScope string
+
+// CalendarVisibility private = owner only; family = both parents, and attendees.
+type CalendarVisibility string
+
+// CareLogEntry defines model for CareLogEntry.
+type CareLogEntry struct {
+	AmountMl   *int               `json:"amountMl,omitempty"`
+	AuthorId   openapi_types.UUID `json:"authorId"`
+	ChildId    openapi_types.UUID `json:"childId"`
+	CreatedAt  time.Time          `json:"createdAt"`
+	Diaper     *DiaperContent     `json:"diaper,omitempty"`
+	EndedAt    *time.Time         `json:"endedAt,omitempty"`
+	FeedMethod *FeedMethod        `json:"feedMethod,omitempty"`
+	Id         openapi_types.UUID `json:"id"`
+	Kind       CareLogKind        `json:"kind"`
+	Note       *string            `json:"note,omitempty"`
+	StartedAt  time.Time          `json:"startedAt"`
+}
+
+// CareLogEntryInput defines model for CareLogEntryInput.
+type CareLogEntryInput struct {
+	AmountMl *int `json:"amountMl,omitempty"`
+
+	// ChildId Default the family's only or youngest child.
+	ChildId *openapi_types.UUID `json:"childId,omitempty"`
+	Diaper  *DiaperContent      `json:"diaper,omitempty"`
+
+	// EndedAt For a feed or a sleep; absent while it is still going.
+	EndedAt    *time.Time  `json:"endedAt,omitempty"`
+	FeedMethod *FeedMethod `json:"feedMethod,omitempty"`
+	Kind       CareLogKind `json:"kind"`
+	Note       *string     `json:"note,omitempty"`
+	StartedAt  time.Time   `json:"startedAt"`
+}
+
+// CareLogKind defines model for CareLogKind.
+type CareLogKind string
+
+// CareLogList defines model for CareLogList.
+type CareLogList struct {
+	// Items Newest first.
+	Items  []CareLogEntry `json:"items"`
+	Latest CareSummary    `json:"latest"`
+}
+
 // CareRole defines model for CareRole.
 type CareRole string
+
+// CareSummary defines model for CareSummary.
+type CareSummary struct {
+	LastDiaper *CareLogEntry `json:"lastDiaper,omitempty"`
+	LastFeed   *CareLogEntry `json:"lastFeed,omitempty"`
+	LastSleep  *CareLogEntry `json:"lastSleep,omitempty"`
+
+	// OnDuty Who has the baby now.
+	OnDuty *OnDuty `json:"onDuty,omitempty"`
+}
 
 // CareTeamMember defines model for CareTeamMember.
 type CareTeamMember struct {
@@ -496,6 +1239,9 @@ type Caregiver struct {
 	// Id Used in /family/{id} on the web side, like a parent id.
 	Id openapi_types.UUID `json:"id"`
 
+	// Permissions What this caregiver was granted; the web hides navigation they may not use.
+	Permissions []CaregiverPermission `json:"permissions"`
+
 	// Role What each person may see. mother and partner see everything their own
 	// data and the sharing rules allow. A grandparent or nanny sees the baby's
 	// care: the child's schedule, feeding, sleep, visits and milestones, and
@@ -505,6 +1251,19 @@ type Caregiver struct {
 	Role CaregiverRole `json:"role"`
 }
 
+// CaregiverPermission What a grandparent or nanny may see or do; parents have all of
+// these. Nothing else can be granted: a parent's diary, mood
+// check-ins, labs, session notes, appointment questions, plans and
+// booking requests are never visible to a caregiver.
+// care_log = read and write feeds, sleep and diapers, give and take
+// handoffs; baby_passport = the limited baby card (profile,
+// pediatrician, allergies, emergency contacts, no medical history);
+// schedule = their own shifts and events they attend in the calendar
+// and Today; family_plan = the shared task list and tasks offered to
+// them; pregnancy_updates = the weekly pregnancy card and pregnancy
+// guides.
+type CaregiverPermission string
+
 // CaregiverRole What each person may see. mother and partner see everything their own
 // data and the sharing rules allow. A grandparent or nanny sees the baby's
 // care: the child's schedule, feeding, sleep, visits and milestones, and
@@ -512,6 +1271,32 @@ type Caregiver struct {
 // parent's health data (labs, mood check-ins, diary, session notes) and
 // cannot create or change those records.
 type CaregiverRole string
+
+// CheckoutSession defines model for CheckoutSession.
+type CheckoutSession struct {
+	// Id Stripe Checkout Session id.
+	//
+	// Example: cs_test_a1B2c3
+	Id string `json:"id"`
+
+	// Paid True once Stripe reports payment_status paid.
+	Paid *bool `json:"paid,omitempty"`
+
+	// Status As Stripe reports it.
+	Status CheckoutSessionStatus `json:"status"`
+	Tier   PaidTier              `json:"tier"`
+
+	// Url Stripe-hosted page to redirect to. Set while status is open.
+	Url *string `json:"url,omitempty"`
+}
+
+// CheckoutSessionInput defines model for CheckoutSessionInput.
+type CheckoutSessionInput struct {
+	Tier PaidTier `json:"tier"`
+}
+
+// CheckoutSessionStatus As Stripe reports it.
+type CheckoutSessionStatus string
 
 // Child defines model for Child.
 type Child struct {
@@ -521,14 +1306,57 @@ type Child struct {
 	Name      string             `json:"name"`
 }
 
+// ChildPassport defines model for ChildPassport.
+type ChildPassport struct {
+	// Allergies Suspected and confirmed. Empty means none known.
+	Allergies         []Allergy          `json:"allergies"`
+	Child             Child              `json:"child"`
+	EmergencyContacts []EmergencyContact `json:"emergencyContacts"`
+
+	// LimitedView True for a grandparent or nanny; medicalHistory and vaccines are then absent.
+	LimitedView bool `json:"limitedView"`
+
+	// MedicalHistory Parents only. Newest first.
+	MedicalHistory *[]MedicalHistoryEntry `json:"medicalHistory,omitempty"`
+	Pediatrician   *CareTeamMember        `json:"pediatrician,omitempty"`
+
+	// Vaccines Parents only.
+	Vaccines *[]VaccineDose `json:"vaccines,omitempty"`
+}
+
 // CreateDemoSessionRequest defines model for CreateDemoSessionRequest.
 type CreateDemoSessionRequest struct {
 	// Template Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists.
 	Template DemoTemplate `json:"template"`
 }
 
+// CreatedInvitation defines model for CreatedInvitation.
+type CreatedInvitation struct {
+	Invitation Invitation `json:"invitation"`
+
+	// Path Web path of the accept page, to put after the site origin.
+	//
+	// Example: /invite/3q2-xS0...
+	Path string `json:"path"`
+
+	// Token Returned only here; the server keeps only its hash.
+	Token string `json:"token"`
+}
+
 // DemoTemplate Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists.
 type DemoTemplate string
+
+// DiaperContent defines model for DiaperContent.
+type DiaperContent string
+
+// EmergencyContact defines model for EmergencyContact.
+type EmergencyContact struct {
+	Name  string `json:"name"`
+	Phone string `json:"phone"`
+
+	// Relation Example: Grandmother
+	Relation string `json:"relation"`
+}
 
 // Error defines model for Error.
 type Error struct {
@@ -555,13 +1383,28 @@ type Family struct {
 	// Stage Where the family is on the journey from planning to age 9.
 	Stage Stage `json:"stage"`
 
+	// Subscription The family's paid plan. One subscription unlocks both parents.
+	Subscription *Subscription `json:"subscription,omitempty"`
+
 	// Template Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists.
 	Template DemoTemplate `json:"template"`
 
-	// Tier The plan the family is on. Demo families start on free; there is no billing.
+	// Tier The plan the family is on, for both parents. Demo families start on
+	// free; a completed Stripe test checkout sets it (see subscription).
 	Tier           *Tier          `json:"tier,omitempty"`
 	UpgradeRequest *UpgradeIntent `json:"upgradeRequest,omitempty"`
 }
+
+// FamilyUpdate defines model for FamilyUpdate.
+type FamilyUpdate struct {
+	DueDate *openapi_types.Date `json:"dueDate,omitempty"`
+
+	// Stage Where the family is on the journey from planning to age 9.
+	Stage *Stage `json:"stage,omitempty"`
+}
+
+// FeedMethod defines model for FeedMethod.
+type FeedMethod string
 
 // GrowthPoint defines model for GrowthPoint.
 type GrowthPoint struct {
@@ -574,6 +1417,172 @@ type GrowthPoint struct {
 	// WeightPercentile Against the WHO or CDC chart for the child's age and sex, computed by the server.
 	WeightPercentile *int `json:"weightPercentile,omitempty"`
 }
+
+// Guide defines model for Guide.
+type Guide struct {
+	// AgeMonthsFrom First child age in months it applies to (after birth).
+	AgeMonthsFrom *int            `json:"ageMonthsFrom,omitempty"`
+	AgeMonthsTo   *int            `json:"ageMonthsTo,omitempty"`
+	Audience      []GuideAudience `json:"audience"`
+
+	// Id Stable slug from the content catalog.
+	//
+	// Example: birth-prep-breathing
+	Id string `json:"id"`
+
+	// Kind article = stage content; birth_prep = a birth preparation module.
+	Kind GuideKind `json:"kind"`
+
+	// Locked True for birth prep before week 32.
+	Locked bool `json:"locked"`
+
+	// Minutes Time to read or practice.
+	Minutes *int    `json:"minutes,omitempty"`
+	Source  Source  `json:"source"`
+	Stages  []Stage `json:"stages"`
+
+	// Steps The body as short steps or paragraphs.
+	Steps   []string `json:"steps"`
+	Summary string   `json:"summary"`
+	Title   string   `json:"title"`
+
+	// UnlocksAtWeek Example: 32
+	UnlocksAtWeek *int `json:"unlocksAtWeek,omitempty"`
+
+	// WeekFrom First gestational week it applies to (pregnancy content).
+	WeekFrom *int `json:"weekFrom,omitempty"`
+	WeekTo   *int `json:"weekTo,omitempty"`
+}
+
+// GuideAudience defines model for GuideAudience.
+type GuideAudience string
+
+// GuideKind article = stage content; birth_prep = a birth preparation module.
+type GuideKind string
+
+// GuideList defines model for GuideList.
+type GuideList struct {
+	// Items Most relevant first.
+	Items []Guide `json:"items"`
+}
+
+// Handoff defines model for Handoff.
+type Handoff struct {
+	AcceptedAt   *time.Time          `json:"acceptedAt,omitempty"`
+	CareSummary  CareSummary         `json:"careSummary"`
+	CreatedAt    time.Time           `json:"createdAt"`
+	FromMemberId openapi_types.UUID  `json:"fromMemberId"`
+	Id           openapi_types.UUID  `json:"id"`
+	Note         *string             `json:"note,omitempty"`
+	ShiftId      *openapi_types.UUID `json:"shiftId,omitempty"`
+	Status       HandoffStatus       `json:"status"`
+	ToMemberId   openapi_types.UUID  `json:"toMemberId"`
+}
+
+// HandoffInput defines model for HandoffInput.
+type HandoffInput struct {
+	// Note Example: Fed at 14:10, 90 ml. Napping since 14:40. Diaper cream on the changing table.
+	Note *string `json:"note,omitempty"`
+
+	// ShiftId The receiver's shift this handoff starts, when there is one.
+	ShiftId    *openapi_types.UUID `json:"shiftId,omitempty"`
+	ToMemberId openapi_types.UUID  `json:"toMemberId"`
+}
+
+// HandoffList defines model for HandoffList.
+type HandoffList struct {
+	// Items Pending first, then newest first.
+	Items []Handoff `json:"items"`
+}
+
+// HandoffStatus defines model for HandoffStatus.
+type HandoffStatus string
+
+// HospitalBag Which of the three hospital bag lists an item is on.
+type HospitalBag string
+
+// Invitation defines model for Invitation.
+type Invitation struct {
+	AcceptedAt  *time.Time         `json:"acceptedAt,omitempty"`
+	CreatedAt   time.Time          `json:"createdAt"`
+	DisplayName string             `json:"displayName"`
+	ExpiresAt   time.Time          `json:"expiresAt"`
+	Id          openapi_types.UUID `json:"id"`
+	InvitedById openapi_types.UUID `json:"invitedById"`
+
+	// MemberId The caregiver created on accept. Set once accepted.
+	MemberId    *openapi_types.UUID   `json:"memberId,omitempty"`
+	Permissions []CaregiverPermission `json:"permissions"`
+	RevokedAt   *time.Time            `json:"revokedAt,omitempty"`
+
+	// Role What each person may see. mother and partner see everything their own
+	// data and the sharing rules allow. A grandparent or nanny sees the baby's
+	// care: the child's schedule, feeding, sleep, visits and milestones, and
+	// what the parents chose to share for the family. They never see a
+	// parent's health data (labs, mood check-ins, diary, session notes) and
+	// cannot create or change those records.
+	Role CaregiverRole `json:"role"`
+
+	// Status expired is computed from expiresAt; accepted and revoked are stored.
+	Status InvitationStatus `json:"status"`
+}
+
+// InvitationAcceptance defines model for InvitationAcceptance.
+type InvitationAcceptance struct {
+	Family Family `json:"family"`
+
+	// MemberId The new caregiver; act as this person.
+	MemberId openapi_types.UUID `json:"memberId"`
+}
+
+// InvitationInput defines model for InvitationInput.
+type InvitationInput struct {
+	// DisplayName Example: Grandma Rose
+	DisplayName string `json:"displayName"`
+
+	// Permissions The toggles. The UI starts from the defaults per role: nanny
+	// care_log, baby_passport, schedule; grandparent the same plus
+	// pregnancy_updates.
+	Permissions []CaregiverPermission `json:"permissions"`
+
+	// Role What each person may see. mother and partner see everything their own
+	// data and the sharing rules allow. A grandparent or nanny sees the baby's
+	// care: the child's schedule, feeding, sleep, visits and milestones, and
+	// what the parents chose to share for the family. They never see a
+	// parent's health data (labs, mood check-ins, diary, session notes) and
+	// cannot create or change those records.
+	Role CaregiverRole `json:"role"`
+}
+
+// InvitationList defines model for InvitationList.
+type InvitationList struct {
+	// Items Newest first.
+	Items []Invitation `json:"items"`
+}
+
+// InvitationPreview defines model for InvitationPreview.
+type InvitationPreview struct {
+	DisplayName string    `json:"displayName"`
+	ExpiresAt   time.Time `json:"expiresAt"`
+
+	// InvitedByName Example: Emily
+	InvitedByName string                `json:"invitedByName"`
+	Permissions   []CaregiverPermission `json:"permissions"`
+
+	// Role What each person may see. mother and partner see everything their own
+	// data and the sharing rules allow. A grandparent or nanny sees the baby's
+	// care: the child's schedule, feeding, sleep, visits and milestones, and
+	// what the parents chose to share for the family. They never see a
+	// parent's health data (labs, mood check-ins, diary, session notes) and
+	// cannot create or change those records.
+	Role CaregiverRole `json:"role"`
+
+	// Status expired is computed from expiresAt; accepted and revoked are stored.
+	Status InvitationStatus `json:"status"`
+}
+
+// InvitationStatus expired is computed from expiresAt; accepted and revoked are stored.
+type InvitationStatus string
 
 // LabResult defines model for LabResult.
 type LabResult struct {
@@ -597,6 +1606,15 @@ type LabResult struct {
 	// private = author only; partner = author and the other parent;
 	// care_team = author and their professionals, not the partner; family = both parents.
 	Visibility Visibility `json:"visibility"`
+}
+
+// MedicalHistoryEntry defines model for MedicalHistoryEntry.
+type MedicalHistoryEntry struct {
+	Date   openapi_types.Date `json:"date"`
+	Detail *string            `json:"detail,omitempty"`
+
+	// Title Example: Newborn hearing screen passed
+	Title string `json:"title"`
 }
 
 // MoodCheckin defines model for MoodCheckin.
@@ -670,6 +1688,18 @@ type MoodPatternList struct {
 	Items []MoodPattern `json:"items"`
 }
 
+// OnDuty Who has the baby now.
+type OnDuty struct {
+	MemberId openapi_types.UUID `json:"memberId"`
+	Since    time.Time          `json:"since"`
+
+	// Via handoff = the last accepted handoff; shift = the current shift occurrence, when no handoff came after its start.
+	Via OnDutyVia `json:"via"`
+}
+
+// OnDutyVia handoff = the last accepted handoff; shift = the current shift occurrence, when no handoff came after its start.
+type OnDutyVia string
+
 // PaidTier defines model for PaidTier.
 type PaidTier string
 
@@ -717,6 +1747,9 @@ type PassportPerson struct {
 // PassportPersonKind defines model for PassportPerson.Kind.
 type PassportPersonKind string
 
+// PersonRole Any person who can act in the family, parents and caregivers.
+type PersonRole string
+
 // Plan defines model for Plan.
 type Plan struct {
 	GeneratedAt time.Time `json:"generatedAt"`
@@ -761,6 +1794,38 @@ type PlanItemProgressInput struct {
 
 // PlanItemStatus defines model for PlanItemStatus.
 type PlanItemStatus string
+
+// PregnancyWeek defines model for PregnancyWeek.
+type PregnancyWeek struct {
+	// BirthPrep Birth prep modules for this week (from week 28), locked until the family reaches week 32.
+	BirthPrep []Guide `json:"birthPrep"`
+
+	// Development What is developing this week, in plain words.
+	Development   string `json:"development"`
+	IsCurrentWeek bool   `json:"isCurrentWeek"`
+
+	// Questions Suggested questions; the UI can add one with createAppointmentQuestion.
+	Questions []string `json:"questions"`
+	Size      BabySize `json:"size"`
+	Source    Source   `json:"source"`
+
+	// Tasks For the acting person's role.
+	Tasks []string `json:"tasks"`
+	Week  int      `json:"week"`
+
+	// WhyItMatters Why this week matters for the parents, never a diagnosis.
+	WhyItMatters string `json:"whyItMatters"`
+}
+
+// PregnancyWeekSummary defines model for PregnancyWeekSummary.
+type PregnancyWeekSummary struct {
+	// Headline The first sentence of whyItMatters.
+	Headline string `json:"headline"`
+
+	// SizeComparison Example: a pineapple
+	SizeComparison string `json:"sizeComparison"`
+	Week           int    `json:"week"`
+}
 
 // Provider defines model for Provider.
 type Provider struct {
@@ -854,6 +1919,184 @@ type SessionNoteInput struct {
 	Text      string             `json:"text"`
 }
 
+// Shift defines model for Shift.
+type Shift struct {
+	CreatedAt time.Time          `json:"createdAt"`
+	Days      []Weekday          `json:"days"`
+	EndTime   string             `json:"endTime"`
+	Id        openapi_types.UUID `json:"id"`
+
+	// MemberId Who is on duty during this shift.
+	MemberId  openapi_types.UUID  `json:"memberId"`
+	RoundId   *openapi_types.UUID `json:"roundId,omitempty"`
+	StartTime string              `json:"startTime"`
+
+	// StartsOn Set when active.
+	StartsOn *openapi_types.Date `json:"startsOn,omitempty"`
+
+	// Status agreed = committed before "Baby is home", no occurrences yet;
+	// active = in the calendar from startsOn.
+	Status ShiftStatus `json:"status"`
+	Title  string      `json:"title"`
+}
+
+// ShiftInput defines model for ShiftInput.
+type ShiftInput struct {
+	Days []Weekday `json:"days"`
+
+	// EndTime Local time HH:MM. Earlier than startTime means the next morning.
+	//
+	// Example: 02:00
+	EndTime string `json:"endTime"`
+
+	// RoundId The simulator round this commitment came from.
+	RoundId *openapi_types.UUID `json:"roundId,omitempty"`
+
+	// StartTime Local time HH:MM.
+	//
+	// Example: 22:00
+	StartTime string `json:"startTime"`
+	Title     string `json:"title"`
+}
+
+// ShiftList defines model for ShiftList.
+type ShiftList struct {
+	Items []Shift `json:"items"`
+}
+
+// ShiftStatus agreed = committed before "Baby is home", no occurrences yet;
+// active = in the calendar from startsOn.
+type ShiftStatus string
+
+// ShiftSuggestion The shift a scenario suggests committing to; post it to createShift as is or edited.
+type ShiftSuggestion struct {
+	Days []Weekday `json:"days"`
+
+	// EndTime Example: 02:00
+	EndTime string `json:"endTime"`
+
+	// StartTime Example: 22:00
+	StartTime string `json:"startTime"`
+
+	// Title Example: Night feeds
+	Title string `json:"title"`
+}
+
+// SimulatorAnswerInput defines model for SimulatorAnswerInput.
+type SimulatorAnswerInput struct {
+	ChoiceId   string `json:"choiceId"`
+	QuestionId string `json:"questionId"`
+}
+
+// SimulatorAnswerResult defines model for SimulatorAnswerResult.
+type SimulatorAnswerResult struct {
+	ChoiceId        string `json:"choiceId"`
+	Correct         bool   `json:"correct"`
+	CorrectChoiceId string `json:"correctChoiceId"`
+
+	// Explanation Why, in plain words. Never a diagnosis.
+	Explanation string `json:"explanation"`
+	QuestionId  string `json:"questionId"`
+
+	// RoundCompleted True when this was the last unanswered question; fetch the round for the result.
+	RoundCompleted *bool          `json:"roundCompleted,omitempty"`
+	Skill          SimulatorSkill `json:"skill"`
+	Source         *Source        `json:"source,omitempty"`
+}
+
+// SimulatorChoice defines model for SimulatorChoice.
+type SimulatorChoice struct {
+	Id   string `json:"id"`
+	Text string `json:"text"`
+}
+
+// SimulatorMode defines model for SimulatorMode.
+type SimulatorMode string
+
+// SimulatorProgress defines model for SimulatorProgress.
+type SimulatorProgress struct {
+	MemberId        openapi_types.UUID  `json:"memberId"`
+	RoundsCompleted int                 `json:"roundsCompleted"`
+	Scenarios       []SimulatorScenario `json:"scenarios"`
+	Skills          []SkillScore        `json:"skills"`
+
+	// WeakSpots Skills with a score below 70, weakest first.
+	WeakSpots []SimulatorSkill `json:"weakSpots"`
+}
+
+// SimulatorQuestion defines model for SimulatorQuestion.
+type SimulatorQuestion struct {
+	Answer  *SimulatorAnswerResult `json:"answer,omitempty"`
+	Choices []SimulatorChoice      `json:"choices"`
+	Id      string                 `json:"id"`
+	Prompt  string                 `json:"prompt"`
+	Skill   SimulatorSkill         `json:"skill"`
+}
+
+// SimulatorRound defines model for SimulatorRound.
+type SimulatorRound struct {
+	Completed bool               `json:"completed"`
+	CreatedAt time.Time          `json:"createdAt"`
+	Id        openapi_types.UUID `json:"id"`
+	Mode      SimulatorMode      `json:"mode"`
+
+	// Questions In the order to ask them. answer is set once answered.
+	Questions  []SimulatorQuestion   `json:"questions"`
+	Result     *SimulatorRoundResult `json:"result,omitempty"`
+	ScenarioId *string               `json:"scenarioId,omitempty"`
+	Title      string                `json:"title"`
+}
+
+// SimulatorRoundInput defines model for SimulatorRoundInput.
+type SimulatorRoundInput struct {
+	Mode SimulatorMode `json:"mode"`
+
+	// ScenarioId Required for mode scenario.
+	ScenarioId *string `json:"scenarioId,omitempty"`
+}
+
+// SimulatorRoundResult defines model for SimulatorRoundResult.
+type SimulatorRoundResult struct {
+	Correct int `json:"correct"`
+
+	// Skills The person's overall scores after this round.
+	Skills []SkillScore `json:"skills"`
+
+	// SuggestedShift The shift a scenario suggests committing to; post it to createShift as is or edited.
+	SuggestedShift *ShiftSuggestion `json:"suggestedShift,omitempty"`
+	Total          int              `json:"total"`
+	WeakSpots      []SimulatorSkill `json:"weakSpots"`
+}
+
+// SimulatorScenario defines model for SimulatorScenario.
+type SimulatorScenario struct {
+	// Id Example: first-night-home
+	Id            string           `json:"id"`
+	QuestionCount int              `json:"questionCount"`
+	Skills        []SimulatorSkill `json:"skills"`
+
+	// SuggestedShift The shift a scenario suggests committing to; post it to createShift as is or edited.
+	SuggestedShift *ShiftSuggestion `json:"suggestedShift,omitempty"`
+	Summary        string           `json:"summary"`
+	Title          string           `json:"title"`
+}
+
+// SimulatorSkill defines model for SimulatorSkill.
+type SimulatorSkill string
+
+// SkillScore defines model for SkillScore.
+type SkillScore struct {
+	Answered int `json:"answered"`
+	Correct  int `json:"correct"`
+
+	// Score Percent correct. Absent before the first answer.
+	Score *int           `json:"score,omitempty"`
+	Skill SimulatorSkill `json:"skill"`
+
+	// Weak True when score is below 70.
+	Weak bool `json:"weak"`
+}
+
 // Slot defines model for Slot.
 type Slot struct {
 	DurationMinutes int                `json:"durationMinutes"`
@@ -872,8 +2115,133 @@ type Source struct {
 // Stage Where the family is on the journey from planning to age 9.
 type Stage string
 
-// Tier The plan the family is on. Demo families start on free; there is no billing.
+// StripeEvent The parts of a Stripe event the server reads; Stripe sends more.
+type StripeEvent struct {
+	Data map[string]interface{} `json:"data"`
+	Id   string                 `json:"id"`
+
+	// Type Example: checkout.session.completed
+	Type string `json:"type"`
+}
+
+// Subscription The family's paid plan. One subscription unlocks both parents.
+type Subscription struct {
+	CurrentPeriodEnd *time.Time         `json:"currentPeriodEnd,omitempty"`
+	StartedAt        time.Time          `json:"startedAt"`
+	Status           SubscriptionStatus `json:"status"`
+	Tier             PaidTier           `json:"tier"`
+}
+
+// SubscriptionStatus defines model for SubscriptionStatus.
+type SubscriptionStatus string
+
+// Task defines model for Task.
+type Task struct {
+	// AssigneeId The parent who owns the task now.
+	AssigneeId openapi_types.UUID `json:"assigneeId"`
+
+	// Bag Which of the three hospital bag lists an item is on.
+	Bag *HospitalBag `json:"bag,omitempty"`
+
+	// Detail What to do and how, in plain words.
+	Detail   *string             `json:"detail,omitempty"`
+	Done     bool                `json:"done"`
+	DoneAt   *time.Time          `json:"doneAt,omitempty"`
+	DoneById *openapi_types.UUID `json:"doneById,omitempty"`
+
+	// DueAnchor What a computed deadline counts from.
+	DueAnchor *TaskDueAnchor `json:"dueAnchor,omitempty"`
+
+	// DueOffsetDays With dueAnchor, dueOn = anchor date + this many days (negative
+	// = before). Absent when dueOn is a plain date or the anchor is
+	// not known yet (birth_date before birth: dueOn is then counted
+	// from the due date as an estimate).
+	DueOffsetDays *int                `json:"dueOffsetDays,omitempty"`
+	DueOn         *openapi_types.Date `json:"dueOn,omitempty"`
+	Id            openapi_types.UUID  `json:"id"`
+
+	// Kind task = the shared plan; paperwork = the seeded US paperwork
+	// checklist; hospital_bag = an item on one of the three bag lists.
+	Kind TaskKind `json:"kind"`
+
+	// PendingAssigneeId Set while the task is offered to the other parent and not yet accepted.
+	PendingAssigneeId *openapi_types.UUID `json:"pendingAssigneeId,omitempty"`
+	Source            *Source             `json:"source,omitempty"`
+	Title             string              `json:"title"`
+}
+
+// TaskDueAnchor What a computed deadline counts from.
+type TaskDueAnchor string
+
+// TaskInput defines model for TaskInput.
+type TaskInput struct {
+	// Bag Which of the three hospital bag lists an item is on.
+	Bag    *HospitalBag        `json:"bag,omitempty"`
+	Detail *string             `json:"detail,omitempty"`
+	DueOn  *openapi_types.Date `json:"dueOn,omitempty"`
+
+	// Kind Paperwork is seeded, never created by hand.
+	Kind  *TaskInputKind `json:"kind,omitempty"`
+	Title string         `json:"title"`
+}
+
+// TaskInputKind Paperwork is seeded, never created by hand.
+type TaskInputKind string
+
+// TaskKind task = the shared plan; paperwork = the seeded US paperwork
+// checklist; hospital_bag = an item on one of the three bag lists.
+type TaskKind string
+
+// TaskList defines model for TaskList.
+type TaskList struct {
+	// Items Soonest due first, undated last.
+	Items []Task `json:"items"`
+}
+
+// TaskReassignmentInput defines model for TaskReassignmentInput.
+type TaskReassignmentInput struct {
+	// ToMemberId The parent the task is offered to. Must be in the family and not the acting parent. May also be a caregiver with family_plan.
+	ToMemberId openapi_types.UUID `json:"toMemberId"`
+}
+
+// TaskUpdate defines model for TaskUpdate.
+type TaskUpdate struct {
+	Done bool `json:"done"`
+}
+
+// Tier The plan the family is on, for both parents. Demo families start on
+// free; a completed Stripe test checkout sets it (see subscription).
 type Tier string
+
+// Today defines model for Today.
+type Today struct {
+	CareSummary *CareSummary       `json:"careSummary,omitempty"`
+	Date        openapi_types.Date `json:"date"`
+
+	// Events Today and tomorrow, as listCalendarEvents scope mine (parents also get family events).
+	Events []CalendarEvent `json:"events"`
+
+	// Guides Up to 2 guides from listGuides.
+	Guides    []Guide            `json:"guides"`
+	MemberId  openapi_types.UUID `json:"memberId"`
+	NextShift *CalendarEvent     `json:"nextShift,omitempty"`
+
+	// PendingHandoffs Handoffs to the acting person not accepted yet.
+	PendingHandoffs []Handoff `json:"pendingHandoffs"`
+
+	// PlanItems Up to 3 overdue or due plan items. Parents only; empty for caregivers.
+	PlanItems     []PlanItem            `json:"planItems"`
+	PregnancyWeek *PregnancyWeekSummary `json:"pregnancyWeek,omitempty"`
+
+	// Role Any person who can act in the family, parents and caregivers.
+	Role PersonRole `json:"role"`
+
+	// Stage Where the family is on the journey from planning to age 9.
+	Stage Stage `json:"stage"`
+
+	// Tasks The person's tasks due within 7 days or overdue, then tasks offered to them.
+	Tasks []Task `json:"tasks"`
+}
 
 // UpgradeIntent defines model for UpgradeIntent.
 type UpgradeIntent struct {
@@ -921,6 +2289,14 @@ type VaccineStatus string
 // care_team = author and their professionals, not the partner; family = both parents.
 type Visibility string
 
+// WebhookReceipt defines model for WebhookReceipt.
+type WebhookReceipt struct {
+	Received bool `json:"received"`
+}
+
+// Weekday defines model for Weekday.
+type Weekday string
+
 // WeeklyPlan defines model for WeeklyPlan.
 type WeeklyPlan struct {
 	// Fallback True when the rule-based plan was used because the AI call failed.
@@ -954,8 +2330,59 @@ type WeeklyPlanSection struct {
 	Title string `json:"title"`
 }
 
+// InvitationId defines model for InvitationId.
+type InvitationId = openapi_types.UUID
+
+// InvitationToken defines model for InvitationToken.
+type InvitationToken = string
+
 // MemberId defines model for MemberId.
 type MemberId = openapi_types.UUID
+
+// RoundId defines model for RoundId.
+type RoundId = openapi_types.UUID
+
+// TaskId defines model for TaskId.
+type TaskId = openapi_types.UUID
+
+// HandleStripeWebhookParams defines parameters for HandleStripeWebhook.
+type HandleStripeWebhookParams struct {
+	StripeSignature string `json:"Stripe-Signature"`
+}
+
+// ListAppointmentQuestionsParams defines parameters for ListAppointmentQuestions.
+type ListAppointmentQuestionsParams struct {
+	// AppointmentId Only questions now under this appointment.
+	AppointmentId *openapi_types.UUID `form:"appointmentId,omitempty" json:"appointmentId,omitempty"`
+}
+
+// ListCalendarEventsParams defines parameters for ListCalendarEvents.
+type ListCalendarEventsParams struct {
+	Scope *CalendarScope `form:"scope,omitempty" json:"scope,omitempty"`
+
+	// From First day, inclusive. Default today.
+	From *openapi_types.Date `form:"from,omitempty" json:"from,omitempty"`
+
+	// To Last day, inclusive. Default from + 6 days.
+	To *openapi_types.Date `form:"to,omitempty" json:"to,omitempty"`
+}
+
+// ListCareLogEntriesParams defines parameters for ListCareLogEntries.
+type ListCareLogEntriesParams struct {
+	Kind *CareLogKind `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
+// ListGuidesParams defines parameters for ListGuides.
+type ListGuidesParams struct {
+	// Kind Only guides of this kind.
+	Kind *GuideKind `form:"kind,omitempty" json:"kind,omitempty"`
+}
+
+// ListTasksParams defines parameters for ListTasks.
+type ListTasksParams struct {
+	// Kind Only tasks of this kind.
+	Kind *TaskKind `form:"kind,omitempty" json:"kind,omitempty"`
+}
 
 // ListProvidersParams defines parameters for ListProviders.
 type ListProvidersParams struct {
@@ -966,14 +2393,44 @@ type ListProvidersParams struct {
 	State *UsState `form:"state,omitempty" json:"state,omitempty"`
 }
 
+// HandleStripeWebhookJSONRequestBody defines body for HandleStripeWebhook for application/json ContentType.
+type HandleStripeWebhookJSONRequestBody = StripeEvent
+
 // CreateDemoSessionJSONRequestBody defines body for CreateDemoSession for application/json ContentType.
 type CreateDemoSessionJSONRequestBody = CreateDemoSessionRequest
 
 // CreateUpgradeIntentJSONRequestBody defines body for CreateUpgradeIntent for application/json ContentType.
 type CreateUpgradeIntentJSONRequestBody = UpgradeIntentInput
 
+// CreateAppointmentQuestionJSONRequestBody defines body for CreateAppointmentQuestion for application/json ContentType.
+type CreateAppointmentQuestionJSONRequestBody = AppointmentQuestionInput
+
+// UpdateAppointmentQuestionJSONRequestBody defines body for UpdateAppointmentQuestion for application/json ContentType.
+type UpdateAppointmentQuestionJSONRequestBody = AppointmentQuestionUpdate
+
+// CreateBabyArrivalJSONRequestBody defines body for CreateBabyArrival for application/json ContentType.
+type CreateBabyArrivalJSONRequestBody = BabyArrivalInput
+
 // CreateBookingRequestJSONRequestBody defines body for CreateBookingRequest for application/json ContentType.
 type CreateBookingRequestJSONRequestBody = BookingRequestInput
+
+// CreateCalendarEventJSONRequestBody defines body for CreateCalendarEvent for application/json ContentType.
+type CreateCalendarEventJSONRequestBody = CalendarEventInput
+
+// CreateCareLogEntryJSONRequestBody defines body for CreateCareLogEntry for application/json ContentType.
+type CreateCareLogEntryJSONRequestBody = CareLogEntryInput
+
+// CreateCheckoutSessionJSONRequestBody defines body for CreateCheckoutSession for application/json ContentType.
+type CreateCheckoutSessionJSONRequestBody = CheckoutSessionInput
+
+// UpdateFamilyJSONRequestBody defines body for UpdateFamily for application/json ContentType.
+type UpdateFamilyJSONRequestBody = FamilyUpdate
+
+// CreateHandoffJSONRequestBody defines body for CreateHandoff for application/json ContentType.
+type CreateHandoffJSONRequestBody = HandoffInput
+
+// CreateInvitationJSONRequestBody defines body for CreateInvitation for application/json ContentType.
+type CreateInvitationJSONRequestBody = InvitationInput
 
 // CreateMoodCheckinJSONRequestBody defines body for CreateMoodCheckin for application/json ContentType.
 type CreateMoodCheckinJSONRequestBody = MoodCheckinInput
@@ -987,8 +2444,29 @@ type CreatePsychologistBookingJSONRequestBody = PsychologistBookingInput
 // CreateSessionNoteJSONRequestBody defines body for CreateSessionNote for application/json ContentType.
 type CreateSessionNoteJSONRequestBody = SessionNoteInput
 
+// CreateShiftJSONRequestBody defines body for CreateShift for application/json ContentType.
+type CreateShiftJSONRequestBody = ShiftInput
+
+// CreateSimulatorRoundJSONRequestBody defines body for CreateSimulatorRound for application/json ContentType.
+type CreateSimulatorRoundJSONRequestBody = SimulatorRoundInput
+
+// CreateSimulatorAnswerJSONRequestBody defines body for CreateSimulatorAnswer for application/json ContentType.
+type CreateSimulatorAnswerJSONRequestBody = SimulatorAnswerInput
+
+// CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
+type CreateTaskJSONRequestBody = TaskInput
+
+// UpdateTaskJSONRequestBody defines body for UpdateTask for application/json ContentType.
+type UpdateTaskJSONRequestBody = TaskUpdate
+
+// ProposeTaskReassignmentJSONRequestBody defines body for ProposeTaskReassignment for application/json ContentType.
+type ProposeTaskReassignmentJSONRequestBody = TaskReassignmentInput
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// HandleStripeWebhook Stripe calls this when a checkout or subscription changes
+	// (POST /billing/stripe-webhook)
+	HandleStripeWebhook(w http.ResponseWriter, r *http.Request, params HandleStripeWebhookParams)
 	// CreateDemoSession Start a demo with a fresh copy of a synthetic family
 	// (POST /demo/sessions)
 	CreateDemoSession(w http.ResponseWriter, r *http.Request)
@@ -1001,12 +2479,81 @@ type ServerInterface interface {
 
 	// (GET /healthz)
 	Healthz(w http.ResponseWriter, r *http.Request)
+	// GetInvitation What an invitation link offers, for the accept page
+	// (GET /invitations/{token})
+	GetInvitation(w http.ResponseWriter, r *http.Request, token InvitationToken)
+	// AcceptInvitation Accept an invitation and enter the family as the new caregiver
+	// (POST /invitations/{token}/accept)
+	AcceptInvitation(w http.ResponseWriter, r *http.Request, token InvitationToken)
+	// ListAccessLogEntries What caregivers read and changed, last 30 days
+	// (GET /members/{memberId}/access-log)
+	ListAccessLogEntries(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListAppointmentQuestions Questions for upcoming appointments, unanswered ones carried over
+	// (GET /members/{memberId}/appointment-questions)
+	ListAppointmentQuestions(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListAppointmentQuestionsParams)
+	// CreateAppointmentQuestion The acting parent adds a question for an upcoming appointment
+	// (POST /members/{memberId}/appointment-questions)
+	CreateAppointmentQuestion(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// UpdateAppointmentQuestion The author marks a question answered, with an optional answer
+	// (PATCH /members/{memberId}/appointment-questions/{questionId})
+	UpdateAppointmentQuestion(w http.ResponseWriter, r *http.Request, memberId MemberId, questionId openapi_types.UUID)
+	// CreateBabyArrival A parent flips the family to "Baby is home"
+	// (POST /members/{memberId}/baby-arrival)
+	CreateBabyArrival(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// ListBookingRequests The acting parent's own booking requests
 	// (GET /members/{memberId}/booking-requests)
 	ListBookingRequests(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// CreateBookingRequest The acting parent asks a provider for an appointment
 	// (POST /members/{memberId}/booking-requests)
 	CreateBookingRequest(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListCalendarEvents One calendar feed with Mine, Partner and Family filters
+	// (GET /members/{memberId}/calendar-events)
+	ListCalendarEvents(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListCalendarEventsParams)
+	// CreateCalendarEvent A parent adds an appointment, class or reminder
+	// (POST /members/{memberId}/calendar-events)
+	CreateCalendarEvent(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListCareLogEntries The last 48 hours of the care log, with the latest of each kind
+	// (GET /members/{memberId}/care-log)
+	ListCareLogEntries(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListCareLogEntriesParams)
+	// CreateCareLogEntry Log a feed, a sleep or a diaper for the baby
+	// (POST /members/{memberId}/care-log)
+	CreateCareLogEntry(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateCheckoutSession A parent starts a Stripe Checkout (test mode) for a paid tier
+	// (POST /members/{memberId}/checkout-sessions)
+	CreateCheckoutSession(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// GetCheckoutSession The state of a checkout, for the success screen
+	// (GET /members/{memberId}/checkout-sessions/{sessionId})
+	GetCheckoutSession(w http.ResponseWriter, r *http.Request, memberId MemberId, sessionId string)
+	// GetChildPassport The baby passport card, limited by role
+	// (GET /members/{memberId}/children/{childId}/passport)
+	GetChildPassport(w http.ResponseWriter, r *http.Request, memberId MemberId, childId openapi_types.UUID)
+	// UpdateFamily A parent sets the family's stage or due date
+	// (PATCH /members/{memberId}/family)
+	UpdateFamily(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListGuides Stage content for the acting person, filtered on the server
+	// (GET /members/{memberId}/guides)
+	ListGuides(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListGuidesParams)
+	// ListHandoffs Handoffs to or from the acting person, last 48 hours
+	// (GET /members/{memberId}/handoffs)
+	ListHandoffs(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateHandoff Hand the baby over to another person, with a note
+	// (POST /members/{memberId}/handoffs)
+	CreateHandoff(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// AcceptHandoff The receiver accepts and is now on duty
+	// (POST /members/{memberId}/handoffs/{handoffId}/accept)
+	AcceptHandoff(w http.ResponseWriter, r *http.Request, memberId MemberId, handoffId openapi_types.UUID)
+	// ListInvitations The family's invitations, newest first
+	// (GET /members/{memberId}/invitations)
+	ListInvitations(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateInvitation A parent invites a grandparent or nanny and gets a one-time link
+	// (POST /members/{memberId}/invitations)
+	CreateInvitation(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// RevokeInvitation A parent revokes an invitation or a caregiver's access
+	// (POST /members/{memberId}/invitations/{invitationId}/revoke)
+	RevokeInvitation(w http.ResponseWriter, r *http.Request, memberId MemberId, invitationId InvitationId)
+	// GetLiveUpdates Server-sent events that tell the acting person's screens what changed
+	// (GET /members/{memberId}/live)
+	GetLiveUpdates(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// ListMoodCheckins Check-ins from the last 30 days that the acting parent may see
 	// (GET /members/{memberId}/mood-checkins)
 	ListMoodCheckins(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -1025,6 +2572,9 @@ type ServerInterface interface {
 	// SetPlanItemProgress The acting parent marks a plan item as booked or done
 	// (PUT /members/{memberId}/plan/{ruleId}/status)
 	SetPlanItemProgress(w http.ResponseWriter, r *http.Request, memberId MemberId, ruleId string)
+	// GetPregnancyWeek The weekly pregnancy card for one week
+	// (GET /members/{memberId}/pregnancy-weeks/{week})
+	GetPregnancyWeek(w http.ResponseWriter, r *http.Request, memberId MemberId, week int)
 	// GetPsychologistAgenda Topics for the acting parent's next psychologist session
 	// (GET /members/{memberId}/psychologist-agenda)
 	GetPsychologistAgenda(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -1037,6 +2587,45 @@ type ServerInterface interface {
 	// CreateSessionNote The acting parent writes a short note after a session
 	// (POST /members/{memberId}/session-notes)
 	CreateSessionNote(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListShifts Committed shifts, agreed and active
+	// (GET /members/{memberId}/shifts)
+	ListShifts(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateShift The acting person commits to a recurring care shift
+	// (POST /members/{memberId}/shifts)
+	CreateShift(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// GetSimulatorProgress The acting person's skill scores, weak spots and scenarios
+	// (GET /members/{memberId}/simulator)
+	GetSimulatorProgress(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateSimulatorRound Start a scenario or a practice round
+	// (POST /members/{memberId}/simulator-rounds)
+	CreateSimulatorRound(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// GetSimulatorRound One round with the answers so far and, once complete, the result
+	// (GET /members/{memberId}/simulator-rounds/{roundId})
+	GetSimulatorRound(w http.ResponseWriter, r *http.Request, memberId MemberId, roundId RoundId)
+	// CreateSimulatorAnswer Answer one question of a round
+	// (POST /members/{memberId}/simulator-rounds/{roundId}/answers)
+	CreateSimulatorAnswer(w http.ResponseWriter, r *http.Request, memberId MemberId, roundId RoundId)
+	// ListTasks All of the family's tasks, soonest due first, undated last
+	// (GET /members/{memberId}/tasks)
+	ListTasks(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListTasksParams)
+	// CreateTask The acting parent adds a family task, assigned to themselves
+	// (POST /members/{memberId}/tasks)
+	CreateTask(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// UpdateTask Tick a task or checklist item done, or undo it
+	// (PATCH /members/{memberId}/tasks/{taskId})
+	UpdateTask(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
+	// ProposeTaskReassignment The assignee offers the task to the other parent
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment)
+	ProposeTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
+	// AcceptTaskReassignment The proposed parent takes the task over
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/accept)
+	AcceptTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
+	// DeclineTaskReassignment The proposed parent declines; the task stays with its assignee
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/decline)
+	DeclineTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId)
+	// GetToday The acting person's Today screen in one call
+	// (GET /members/{memberId}/today)
+	GetToday(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// GetMemberWeeklyPlan A short written plan for this parent's week
 	// (GET /members/{memberId}/weekly-plan)
 	GetMemberWeeklyPlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -1053,6 +2642,51 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// HandleStripeWebhook operation middleware
+func (siw *ServerInterfaceWrapper) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandleStripeWebhookParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Stripe-Signature" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Stripe-Signature")]; found {
+		var StripeSignature string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Stripe-Signature", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Stripe-Signature", valueList[0], &StripeSignature, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Stripe-Signature", Err: err})
+			return
+		}
+
+		params.StripeSignature = StripeSignature
+
+	} else {
+		err := fmt.Errorf("Header parameter Stripe-Signature is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Stripe-Signature", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandleStripeWebhook(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // CreateDemoSession operation middleware
 func (siw *ServerInterfaceWrapper) CreateDemoSession(w http.ResponseWriter, r *http.Request) {
@@ -1110,6 +2744,213 @@ func (siw *ServerInterfaceWrapper) Healthz(w http.ResponseWriter, r *http.Reques
 	handler.ServeHTTP(w, r)
 }
 
+// GetInvitation operation middleware
+func (siw *ServerInterfaceWrapper) GetInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "token" -------------
+	var token InvitationToken
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", r.PathValue("token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetInvitation(w, r, token)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "token" -------------
+	var token InvitationToken
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", r.PathValue("token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptInvitation(w, r, token)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAccessLogEntries operation middleware
+func (siw *ServerInterfaceWrapper) ListAccessLogEntries(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAccessLogEntries(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAppointmentQuestions operation middleware
+func (siw *ServerInterfaceWrapper) ListAppointmentQuestions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAppointmentQuestionsParams
+
+	// ------------- Optional query parameter "appointmentId" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "appointmentId", r.URL.Query(), &params.AppointmentId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "appointmentId"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "appointmentId", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAppointmentQuestions(w, r, memberId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAppointmentQuestion operation middleware
+func (siw *ServerInterfaceWrapper) CreateAppointmentQuestion(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAppointmentQuestion(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateAppointmentQuestion operation middleware
+func (siw *ServerInterfaceWrapper) UpdateAppointmentQuestion(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "questionId" -------------
+	var questionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "questionId", r.PathValue("questionId"), &questionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "questionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateAppointmentQuestion(w, r, memberId, questionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateBabyArrival operation middleware
+func (siw *ServerInterfaceWrapper) CreateBabyArrival(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateBabyArrival(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListBookingRequests operation middleware
 func (siw *ServerInterfaceWrapper) ListBookingRequests(w http.ResponseWriter, r *http.Request) {
 
@@ -1153,6 +2994,532 @@ func (siw *ServerInterfaceWrapper) CreateBookingRequest(w http.ResponseWriter, r
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateBookingRequest(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListCalendarEvents operation middleware
+func (siw *ServerInterfaceWrapper) ListCalendarEvents(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCalendarEventsParams
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "scope", r.URL.Query(), &params.Scope, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "scope"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scope", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "to" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "to", r.URL.Query(), &params.To, runtime.BindQueryParameterOptions{Type: "string", Format: "date"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "to"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "to", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCalendarEvents(w, r, memberId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCalendarEvent operation middleware
+func (siw *ServerInterfaceWrapper) CreateCalendarEvent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCalendarEvent(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListCareLogEntries operation middleware
+func (siw *ServerInterfaceWrapper) ListCareLogEntries(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCareLogEntriesParams
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCareLogEntries(w, r, memberId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCareLogEntry operation middleware
+func (siw *ServerInterfaceWrapper) CreateCareLogEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCareLogEntry(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCheckoutSession operation middleware
+func (siw *ServerInterfaceWrapper) CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCheckoutSession(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCheckoutSession operation middleware
+func (siw *ServerInterfaceWrapper) GetCheckoutSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", r.PathValue("sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCheckoutSession(w, r, memberId, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetChildPassport operation middleware
+func (siw *ServerInterfaceWrapper) GetChildPassport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "childId" -------------
+	var childId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "childId", r.PathValue("childId"), &childId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "childId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetChildPassport(w, r, memberId, childId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateFamily operation middleware
+func (siw *ServerInterfaceWrapper) UpdateFamily(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateFamily(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGuides operation middleware
+func (siw *ServerInterfaceWrapper) ListGuides(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGuidesParams
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGuides(w, r, memberId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListHandoffs operation middleware
+func (siw *ServerInterfaceWrapper) ListHandoffs(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListHandoffs(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateHandoff operation middleware
+func (siw *ServerInterfaceWrapper) CreateHandoff(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateHandoff(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptHandoff operation middleware
+func (siw *ServerInterfaceWrapper) AcceptHandoff(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "handoffId" -------------
+	var handoffId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "handoffId", r.PathValue("handoffId"), &handoffId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "handoffId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptHandoff(w, r, memberId, handoffId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListInvitations operation middleware
+func (siw *ServerInterfaceWrapper) ListInvitations(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListInvitations(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateInvitation operation middleware
+func (siw *ServerInterfaceWrapper) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateInvitation(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeInvitation operation middleware
+func (siw *ServerInterfaceWrapper) RevokeInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "invitationId" -------------
+	var invitationId InvitationId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "invitationId", r.PathValue("invitationId"), &invitationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "invitationId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeInvitation(w, r, memberId, invitationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLiveUpdates operation middleware
+func (siw *ServerInterfaceWrapper) GetLiveUpdates(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLiveUpdates(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1327,6 +3694,41 @@ func (siw *ServerInterfaceWrapper) SetPlanItemProgress(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// GetPregnancyWeek operation middleware
+func (siw *ServerInterfaceWrapper) GetPregnancyWeek(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "week" -------------
+	var week int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "week", r.PathValue("week"), &week, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "week", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPregnancyWeek(w, r, memberId, week)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetPsychologistAgenda operation middleware
 func (siw *ServerInterfaceWrapper) GetPsychologistAgenda(w http.ResponseWriter, r *http.Request) {
 
@@ -1422,6 +3824,414 @@ func (siw *ServerInterfaceWrapper) CreateSessionNote(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateSessionNote(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListShifts operation middleware
+func (siw *ServerInterfaceWrapper) ListShifts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListShifts(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateShift operation middleware
+func (siw *ServerInterfaceWrapper) CreateShift(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateShift(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSimulatorProgress operation middleware
+func (siw *ServerInterfaceWrapper) GetSimulatorProgress(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSimulatorProgress(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSimulatorRound operation middleware
+func (siw *ServerInterfaceWrapper) CreateSimulatorRound(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSimulatorRound(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSimulatorRound operation middleware
+func (siw *ServerInterfaceWrapper) GetSimulatorRound(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "roundId" -------------
+	var roundId RoundId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "roundId", r.PathValue("roundId"), &roundId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "roundId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSimulatorRound(w, r, memberId, roundId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSimulatorAnswer operation middleware
+func (siw *ServerInterfaceWrapper) CreateSimulatorAnswer(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "roundId" -------------
+	var roundId RoundId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "roundId", r.PathValue("roundId"), &roundId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "roundId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSimulatorAnswer(w, r, memberId, roundId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListTasks operation middleware
+func (siw *ServerInterfaceWrapper) ListTasks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTasksParams
+
+	// ------------- Optional query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListTasks(w, r, memberId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTask operation middleware
+func (siw *ServerInterfaceWrapper) CreateTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTask(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateTask operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateTask(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProposeTaskReassignment operation middleware
+func (siw *ServerInterfaceWrapper) ProposeTaskReassignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProposeTaskReassignment(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptTaskReassignment operation middleware
+func (siw *ServerInterfaceWrapper) AcceptTaskReassignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptTaskReassignment(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeclineTaskReassignment operation middleware
+func (siw *ServerInterfaceWrapper) DeclineTaskReassignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "taskId" -------------
+	var taskId TaskId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "taskId", r.PathValue("taskId"), &taskId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeclineTaskReassignment(w, r, memberId, taskId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetToday operation middleware
+func (siw *ServerInterfaceWrapper) GetToday(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetToday(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1641,8 +4451,111 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/psychologist-slots", wrapper.ListPsychologistSlots)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/psychologist-bookings", wrapper.CreatePsychologistBooking)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/session-notes", wrapper.CreateSessionNote)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/members/{memberId}/family", wrapper.UpdateFamily)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/baby-arrival", wrapper.CreateBabyArrival)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/invitations", wrapper.ListInvitations)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/invitations", wrapper.CreateInvitation)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/invitations/{invitationId}/revoke", wrapper.RevokeInvitation)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/invitations/{token}", wrapper.GetInvitation)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/invitations/{token}/accept", wrapper.AcceptInvitation)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/access-log", wrapper.ListAccessLogEntries)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/guides", wrapper.ListGuides)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/pregnancy-weeks/{week}", wrapper.GetPregnancyWeek)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/today", wrapper.GetToday)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/tasks", wrapper.ListTasks)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks", wrapper.CreateTask)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}", wrapper.UpdateTask)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}/reassignment", wrapper.ProposeTaskReassignment)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}/reassignment/accept", wrapper.AcceptTaskReassignment)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/tasks/{taskId}/reassignment/decline", wrapper.DeclineTaskReassignment)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/calendar-events", wrapper.ListCalendarEvents)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/calendar-events", wrapper.CreateCalendarEvent)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/appointment-questions", wrapper.ListAppointmentQuestions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/appointment-questions", wrapper.CreateAppointmentQuestion)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/members/{memberId}/appointment-questions/{questionId}", wrapper.UpdateAppointmentQuestion)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/simulator", wrapper.GetSimulatorProgress)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/simulator-rounds", wrapper.CreateSimulatorRound)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/simulator-rounds/{roundId}", wrapper.GetSimulatorRound)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/simulator-rounds/{roundId}/answers", wrapper.CreateSimulatorAnswer)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/shifts", wrapper.ListShifts)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/shifts", wrapper.CreateShift)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/care-log", wrapper.ListCareLogEntries)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/care-log", wrapper.CreateCareLogEntry)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/handoffs", wrapper.ListHandoffs)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/handoffs", wrapper.CreateHandoff)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/handoffs/{handoffId}/accept", wrapper.AcceptHandoff)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/live", wrapper.GetLiveUpdates)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/children/{childId}/passport", wrapper.GetChildPassport)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/checkout-sessions", wrapper.CreateCheckoutSession)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/checkout-sessions/{sessionId}", wrapper.GetCheckoutSession)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/billing/stripe-webhook", wrapper.HandleStripeWebhook)
 
 	return m
+}
+
+type HandleStripeWebhookRequestObject struct {
+	Params HandleStripeWebhookParams
+	Body   *HandleStripeWebhookJSONRequestBody
+}
+
+type HandleStripeWebhookResponseObject interface {
+	VisitHandleStripeWebhookResponse(w http.ResponseWriter) error
+}
+
+type HandleStripeWebhook200JSONResponse WebhookReceipt
+
+func (response HandleStripeWebhook200JSONResponse) VisitHandleStripeWebhookResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HandleStripeWebhook400JSONResponse Error
+
+func (response HandleStripeWebhook400JSONResponse) VisitHandleStripeWebhookResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HandleStripeWebhook501JSONResponse Error
+
+func (response HandleStripeWebhook501JSONResponse) VisitHandleStripeWebhookResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type HandleStripeWebhook503JSONResponse Error
+
+func (response HandleStripeWebhook503JSONResponse) VisitHandleStripeWebhookResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
 }
 
 type CreateDemoSessionRequestObject struct {
@@ -1814,6 +4727,595 @@ func (response Healthz200JSONResponse) VisitHealthzResponse(w http.ResponseWrite
 	return err
 }
 
+type GetInvitationRequestObject struct {
+	Token InvitationToken `json:"token"`
+}
+
+type GetInvitationResponseObject interface {
+	VisitGetInvitationResponse(w http.ResponseWriter) error
+}
+
+type GetInvitation200JSONResponse InvitationPreview
+
+func (response GetInvitation200JSONResponse) VisitGetInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetInvitation404JSONResponse Error
+
+func (response GetInvitation404JSONResponse) VisitGetInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetInvitation501JSONResponse Error
+
+func (response GetInvitation501JSONResponse) VisitGetInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationRequestObject struct {
+	Token InvitationToken `json:"token"`
+}
+
+type AcceptInvitationResponseObject interface {
+	VisitAcceptInvitationResponse(w http.ResponseWriter) error
+}
+
+type AcceptInvitation201ResponseHeaders struct {
+	SetCookie *string
+}
+
+type AcceptInvitation201JSONResponse struct {
+	Body    InvitationAcceptance
+	Headers AcceptInvitation201ResponseHeaders
+}
+
+func (response AcceptInvitation201JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.SetCookie != nil {
+		w.Header().Set("Set-Cookie", fmt.Sprint(*response.Headers.SetCookie))
+	}
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation404JSONResponse Error
+
+func (response AcceptInvitation404JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation409JSONResponse Error
+
+func (response AcceptInvitation409JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation501JSONResponse Error
+
+func (response AcceptInvitation501JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccessLogEntriesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListAccessLogEntriesResponseObject interface {
+	VisitListAccessLogEntriesResponse(w http.ResponseWriter) error
+}
+
+type ListAccessLogEntries200JSONResponse AccessLogList
+
+func (response ListAccessLogEntries200JSONResponse) VisitListAccessLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccessLogEntries401JSONResponse Error
+
+func (response ListAccessLogEntries401JSONResponse) VisitListAccessLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccessLogEntries403JSONResponse Error
+
+func (response ListAccessLogEntries403JSONResponse) VisitListAccessLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccessLogEntries404JSONResponse Error
+
+func (response ListAccessLogEntries404JSONResponse) VisitListAccessLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccessLogEntries501JSONResponse Error
+
+func (response ListAccessLogEntries501JSONResponse) VisitListAccessLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAppointmentQuestionsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Params   ListAppointmentQuestionsParams
+}
+
+type ListAppointmentQuestionsResponseObject interface {
+	VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error
+}
+
+type ListAppointmentQuestions200JSONResponse AppointmentQuestionList
+
+func (response ListAppointmentQuestions200JSONResponse) VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAppointmentQuestions400JSONResponse Error
+
+func (response ListAppointmentQuestions400JSONResponse) VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAppointmentQuestions401JSONResponse Error
+
+func (response ListAppointmentQuestions401JSONResponse) VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAppointmentQuestions403JSONResponse Error
+
+func (response ListAppointmentQuestions403JSONResponse) VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAppointmentQuestions404JSONResponse Error
+
+func (response ListAppointmentQuestions404JSONResponse) VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAppointmentQuestions501JSONResponse Error
+
+func (response ListAppointmentQuestions501JSONResponse) VisitListAppointmentQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestionRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateAppointmentQuestionJSONRequestBody
+}
+
+type CreateAppointmentQuestionResponseObject interface {
+	VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error
+}
+
+type CreateAppointmentQuestion201JSONResponse AppointmentQuestion
+
+func (response CreateAppointmentQuestion201JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestion400JSONResponse Error
+
+func (response CreateAppointmentQuestion400JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestion401JSONResponse Error
+
+func (response CreateAppointmentQuestion401JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestion403JSONResponse Error
+
+func (response CreateAppointmentQuestion403JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestion404JSONResponse Error
+
+func (response CreateAppointmentQuestion404JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestion409JSONResponse Error
+
+func (response CreateAppointmentQuestion409JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAppointmentQuestion501JSONResponse Error
+
+func (response CreateAppointmentQuestion501JSONResponse) VisitCreateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAppointmentQuestionRequestObject struct {
+	MemberId   MemberId           `json:"memberId"`
+	QuestionId openapi_types.UUID `json:"questionId"`
+	Body       *UpdateAppointmentQuestionJSONRequestBody
+}
+
+type UpdateAppointmentQuestionResponseObject interface {
+	VisitUpdateAppointmentQuestionResponse(w http.ResponseWriter) error
+}
+
+type UpdateAppointmentQuestion200JSONResponse AppointmentQuestion
+
+func (response UpdateAppointmentQuestion200JSONResponse) VisitUpdateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAppointmentQuestion400JSONResponse Error
+
+func (response UpdateAppointmentQuestion400JSONResponse) VisitUpdateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAppointmentQuestion401JSONResponse Error
+
+func (response UpdateAppointmentQuestion401JSONResponse) VisitUpdateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAppointmentQuestion404JSONResponse Error
+
+func (response UpdateAppointmentQuestion404JSONResponse) VisitUpdateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAppointmentQuestion501JSONResponse Error
+
+func (response UpdateAppointmentQuestion501JSONResponse) VisitUpdateAppointmentQuestionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrivalRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateBabyArrivalJSONRequestBody
+}
+
+type CreateBabyArrivalResponseObject interface {
+	VisitCreateBabyArrivalResponse(w http.ResponseWriter) error
+}
+
+type CreateBabyArrival201JSONResponse Family
+
+func (response CreateBabyArrival201JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrival400JSONResponse Error
+
+func (response CreateBabyArrival400JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrival401JSONResponse Error
+
+func (response CreateBabyArrival401JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrival403JSONResponse Error
+
+func (response CreateBabyArrival403JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrival404JSONResponse Error
+
+func (response CreateBabyArrival404JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrival409JSONResponse Error
+
+func (response CreateBabyArrival409JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBabyArrival501JSONResponse Error
+
+func (response CreateBabyArrival501JSONResponse) VisitCreateBabyArrivalResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListBookingRequestsRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -1960,6 +5462,1492 @@ func (response CreateBookingRequest409JSONResponse) VisitCreateBookingRequestRes
 type CreateBookingRequest501JSONResponse Error
 
 func (response CreateBookingRequest501JSONResponse) VisitCreateBookingRequestResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCalendarEventsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Params   ListCalendarEventsParams
+}
+
+type ListCalendarEventsResponseObject interface {
+	VisitListCalendarEventsResponse(w http.ResponseWriter) error
+}
+
+type ListCalendarEvents200JSONResponse CalendarEventList
+
+func (response ListCalendarEvents200JSONResponse) VisitListCalendarEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCalendarEvents400JSONResponse Error
+
+func (response ListCalendarEvents400JSONResponse) VisitListCalendarEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCalendarEvents401JSONResponse Error
+
+func (response ListCalendarEvents401JSONResponse) VisitListCalendarEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCalendarEvents403JSONResponse Error
+
+func (response ListCalendarEvents403JSONResponse) VisitListCalendarEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCalendarEvents404JSONResponse Error
+
+func (response ListCalendarEvents404JSONResponse) VisitListCalendarEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCalendarEvents501JSONResponse Error
+
+func (response ListCalendarEvents501JSONResponse) VisitListCalendarEventsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarEventRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateCalendarEventJSONRequestBody
+}
+
+type CreateCalendarEventResponseObject interface {
+	VisitCreateCalendarEventResponse(w http.ResponseWriter) error
+}
+
+type CreateCalendarEvent201JSONResponse CalendarEvent
+
+func (response CreateCalendarEvent201JSONResponse) VisitCreateCalendarEventResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarEvent400JSONResponse Error
+
+func (response CreateCalendarEvent400JSONResponse) VisitCreateCalendarEventResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarEvent401JSONResponse Error
+
+func (response CreateCalendarEvent401JSONResponse) VisitCreateCalendarEventResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarEvent403JSONResponse Error
+
+func (response CreateCalendarEvent403JSONResponse) VisitCreateCalendarEventResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarEvent404JSONResponse Error
+
+func (response CreateCalendarEvent404JSONResponse) VisitCreateCalendarEventResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarEvent501JSONResponse Error
+
+func (response CreateCalendarEvent501JSONResponse) VisitCreateCalendarEventResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCareLogEntriesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Params   ListCareLogEntriesParams
+}
+
+type ListCareLogEntriesResponseObject interface {
+	VisitListCareLogEntriesResponse(w http.ResponseWriter) error
+}
+
+type ListCareLogEntries200JSONResponse CareLogList
+
+func (response ListCareLogEntries200JSONResponse) VisitListCareLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCareLogEntries400JSONResponse Error
+
+func (response ListCareLogEntries400JSONResponse) VisitListCareLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCareLogEntries401JSONResponse Error
+
+func (response ListCareLogEntries401JSONResponse) VisitListCareLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCareLogEntries403JSONResponse Error
+
+func (response ListCareLogEntries403JSONResponse) VisitListCareLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCareLogEntries404JSONResponse Error
+
+func (response ListCareLogEntries404JSONResponse) VisitListCareLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCareLogEntries501JSONResponse Error
+
+func (response ListCareLogEntries501JSONResponse) VisitListCareLogEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntryRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateCareLogEntryJSONRequestBody
+}
+
+type CreateCareLogEntryResponseObject interface {
+	VisitCreateCareLogEntryResponse(w http.ResponseWriter) error
+}
+
+type CreateCareLogEntry201JSONResponse CareLogEntry
+
+func (response CreateCareLogEntry201JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntry400JSONResponse Error
+
+func (response CreateCareLogEntry400JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntry401JSONResponse Error
+
+func (response CreateCareLogEntry401JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntry403JSONResponse Error
+
+func (response CreateCareLogEntry403JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntry404JSONResponse Error
+
+func (response CreateCareLogEntry404JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntry409JSONResponse Error
+
+func (response CreateCareLogEntry409JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCareLogEntry501JSONResponse Error
+
+func (response CreateCareLogEntry501JSONResponse) VisitCreateCareLogEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSessionRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateCheckoutSessionJSONRequestBody
+}
+
+type CreateCheckoutSessionResponseObject interface {
+	VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error
+}
+
+type CreateCheckoutSession201JSONResponse CheckoutSession
+
+func (response CreateCheckoutSession201JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession400JSONResponse Error
+
+func (response CreateCheckoutSession400JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession401JSONResponse Error
+
+func (response CreateCheckoutSession401JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession403JSONResponse Error
+
+func (response CreateCheckoutSession403JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession404JSONResponse Error
+
+func (response CreateCheckoutSession404JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession409JSONResponse Error
+
+func (response CreateCheckoutSession409JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession501JSONResponse Error
+
+func (response CreateCheckoutSession501JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCheckoutSession503JSONResponse Error
+
+func (response CreateCheckoutSession503JSONResponse) VisitCreateCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCheckoutSessionRequestObject struct {
+	MemberId  MemberId `json:"memberId"`
+	SessionId string   `json:"sessionId"`
+}
+
+type GetCheckoutSessionResponseObject interface {
+	VisitGetCheckoutSessionResponse(w http.ResponseWriter) error
+}
+
+type GetCheckoutSession200JSONResponse CheckoutSession
+
+func (response GetCheckoutSession200JSONResponse) VisitGetCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCheckoutSession401JSONResponse Error
+
+func (response GetCheckoutSession401JSONResponse) VisitGetCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCheckoutSession403JSONResponse Error
+
+func (response GetCheckoutSession403JSONResponse) VisitGetCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCheckoutSession404JSONResponse Error
+
+func (response GetCheckoutSession404JSONResponse) VisitGetCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCheckoutSession501JSONResponse Error
+
+func (response GetCheckoutSession501JSONResponse) VisitGetCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCheckoutSession503JSONResponse Error
+
+func (response GetCheckoutSession503JSONResponse) VisitGetCheckoutSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetChildPassportRequestObject struct {
+	MemberId MemberId           `json:"memberId"`
+	ChildId  openapi_types.UUID `json:"childId"`
+}
+
+type GetChildPassportResponseObject interface {
+	VisitGetChildPassportResponse(w http.ResponseWriter) error
+}
+
+type GetChildPassport200JSONResponse ChildPassport
+
+func (response GetChildPassport200JSONResponse) VisitGetChildPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetChildPassport401JSONResponse Error
+
+func (response GetChildPassport401JSONResponse) VisitGetChildPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetChildPassport403JSONResponse Error
+
+func (response GetChildPassport403JSONResponse) VisitGetChildPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetChildPassport404JSONResponse Error
+
+func (response GetChildPassport404JSONResponse) VisitGetChildPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetChildPassport501JSONResponse Error
+
+func (response GetChildPassport501JSONResponse) VisitGetChildPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamilyRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *UpdateFamilyJSONRequestBody
+}
+
+type UpdateFamilyResponseObject interface {
+	VisitUpdateFamilyResponse(w http.ResponseWriter) error
+}
+
+type UpdateFamily200JSONResponse Family
+
+func (response UpdateFamily200JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamily400JSONResponse Error
+
+func (response UpdateFamily400JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamily401JSONResponse Error
+
+func (response UpdateFamily401JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamily403JSONResponse Error
+
+func (response UpdateFamily403JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamily404JSONResponse Error
+
+func (response UpdateFamily404JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamily409JSONResponse Error
+
+func (response UpdateFamily409JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateFamily501JSONResponse Error
+
+func (response UpdateFamily501JSONResponse) VisitUpdateFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGuidesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Params   ListGuidesParams
+}
+
+type ListGuidesResponseObject interface {
+	VisitListGuidesResponse(w http.ResponseWriter) error
+}
+
+type ListGuides200JSONResponse GuideList
+
+func (response ListGuides200JSONResponse) VisitListGuidesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGuides400JSONResponse Error
+
+func (response ListGuides400JSONResponse) VisitListGuidesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGuides401JSONResponse Error
+
+func (response ListGuides401JSONResponse) VisitListGuidesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGuides404JSONResponse Error
+
+func (response ListGuides404JSONResponse) VisitListGuidesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGuides501JSONResponse Error
+
+func (response ListGuides501JSONResponse) VisitListGuidesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListHandoffsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListHandoffsResponseObject interface {
+	VisitListHandoffsResponse(w http.ResponseWriter) error
+}
+
+type ListHandoffs200JSONResponse HandoffList
+
+func (response ListHandoffs200JSONResponse) VisitListHandoffsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListHandoffs401JSONResponse Error
+
+func (response ListHandoffs401JSONResponse) VisitListHandoffsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListHandoffs403JSONResponse Error
+
+func (response ListHandoffs403JSONResponse) VisitListHandoffsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListHandoffs404JSONResponse Error
+
+func (response ListHandoffs404JSONResponse) VisitListHandoffsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListHandoffs501JSONResponse Error
+
+func (response ListHandoffs501JSONResponse) VisitListHandoffsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoffRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateHandoffJSONRequestBody
+}
+
+type CreateHandoffResponseObject interface {
+	VisitCreateHandoffResponse(w http.ResponseWriter) error
+}
+
+type CreateHandoff201JSONResponse Handoff
+
+func (response CreateHandoff201JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoff400JSONResponse Error
+
+func (response CreateHandoff400JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoff401JSONResponse Error
+
+func (response CreateHandoff401JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoff403JSONResponse Error
+
+func (response CreateHandoff403JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoff404JSONResponse Error
+
+func (response CreateHandoff404JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoff409JSONResponse Error
+
+func (response CreateHandoff409JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateHandoff501JSONResponse Error
+
+func (response CreateHandoff501JSONResponse) VisitCreateHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptHandoffRequestObject struct {
+	MemberId  MemberId           `json:"memberId"`
+	HandoffId openapi_types.UUID `json:"handoffId"`
+}
+
+type AcceptHandoffResponseObject interface {
+	VisitAcceptHandoffResponse(w http.ResponseWriter) error
+}
+
+type AcceptHandoff200JSONResponse Handoff
+
+func (response AcceptHandoff200JSONResponse) VisitAcceptHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptHandoff401JSONResponse Error
+
+func (response AcceptHandoff401JSONResponse) VisitAcceptHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptHandoff404JSONResponse Error
+
+func (response AcceptHandoff404JSONResponse) VisitAcceptHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptHandoff409JSONResponse Error
+
+func (response AcceptHandoff409JSONResponse) VisitAcceptHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptHandoff501JSONResponse Error
+
+func (response AcceptHandoff501JSONResponse) VisitAcceptHandoffResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitationsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListInvitationsResponseObject interface {
+	VisitListInvitationsResponse(w http.ResponseWriter) error
+}
+
+type ListInvitations200JSONResponse InvitationList
+
+func (response ListInvitations200JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitations401JSONResponse Error
+
+func (response ListInvitations401JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitations403JSONResponse Error
+
+func (response ListInvitations403JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitations404JSONResponse Error
+
+func (response ListInvitations404JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitations501JSONResponse Error
+
+func (response ListInvitations501JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitationRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateInvitationJSONRequestBody
+}
+
+type CreateInvitationResponseObject interface {
+	VisitCreateInvitationResponse(w http.ResponseWriter) error
+}
+
+type CreateInvitation201JSONResponse CreatedInvitation
+
+func (response CreateInvitation201JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation400JSONResponse Error
+
+func (response CreateInvitation400JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation401JSONResponse Error
+
+func (response CreateInvitation401JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation403JSONResponse Error
+
+func (response CreateInvitation403JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation404JSONResponse Error
+
+func (response CreateInvitation404JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation501JSONResponse Error
+
+func (response CreateInvitation501JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitationRequestObject struct {
+	MemberId     MemberId     `json:"memberId"`
+	InvitationId InvitationId `json:"invitationId"`
+}
+
+type RevokeInvitationResponseObject interface {
+	VisitRevokeInvitationResponse(w http.ResponseWriter) error
+}
+
+type RevokeInvitation200JSONResponse Invitation
+
+func (response RevokeInvitation200JSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation401JSONResponse Error
+
+func (response RevokeInvitation401JSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation403JSONResponse Error
+
+func (response RevokeInvitation403JSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation404JSONResponse Error
+
+func (response RevokeInvitation404JSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation409JSONResponse Error
+
+func (response RevokeInvitation409JSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation501JSONResponse Error
+
+func (response RevokeInvitation501JSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLiveUpdatesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type GetLiveUpdatesResponseObject interface {
+	VisitGetLiveUpdatesResponse(w http.ResponseWriter) error
+}
+
+type GetLiveUpdates200TexteventStreamResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetLiveUpdates200TexteventStreamResponse) VisitGetLiveUpdatesResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		// If w doesn't support flushing, fall back to io.Copy.
+		_, err := io.Copy(w, response.Body)
+		return err
+	}
+	// text/event-stream messages are typically small; use a
+	// modest buffer and flush after each chunk so clients see
+	// events immediately instead of waiting on OS buffering.
+	buf := make([]byte, 4096)
+	for {
+		n, err := response.Body.Read(buf)
+		if n > 0 {
+			if _, writeErr := w.Write(buf[:n]); writeErr != nil {
+				return writeErr
+			}
+			flusher.Flush()
+		}
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+	}
+}
+
+type GetLiveUpdates401JSONResponse Error
+
+func (response GetLiveUpdates401JSONResponse) VisitGetLiveUpdatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLiveUpdates404JSONResponse Error
+
+func (response GetLiveUpdates404JSONResponse) VisitGetLiveUpdatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLiveUpdates501JSONResponse Error
+
+func (response GetLiveUpdates501JSONResponse) VisitGetLiveUpdatesResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -2344,6 +7332,113 @@ func (response SetPlanItemProgress501JSONResponse) VisitSetPlanItemProgressRespo
 	return err
 }
 
+type GetPregnancyWeekRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Week     int      `json:"week"`
+}
+
+type GetPregnancyWeekResponseObject interface {
+	VisitGetPregnancyWeekResponse(w http.ResponseWriter) error
+}
+
+type GetPregnancyWeek200JSONResponse PregnancyWeek
+
+func (response GetPregnancyWeek200JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPregnancyWeek400JSONResponse Error
+
+func (response GetPregnancyWeek400JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPregnancyWeek401JSONResponse Error
+
+func (response GetPregnancyWeek401JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPregnancyWeek403JSONResponse Error
+
+func (response GetPregnancyWeek403JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPregnancyWeek404JSONResponse Error
+
+func (response GetPregnancyWeek404JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPregnancyWeek409JSONResponse Error
+
+func (response GetPregnancyWeek409JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPregnancyWeek501JSONResponse Error
+
+func (response GetPregnancyWeek501JSONResponse) VisitGetPregnancyWeekResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetPsychologistAgendaRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -2644,6 +7739,1103 @@ func (response CreateSessionNote501JSONResponse) VisitCreateSessionNoteResponse(
 	return err
 }
 
+type ListShiftsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListShiftsResponseObject interface {
+	VisitListShiftsResponse(w http.ResponseWriter) error
+}
+
+type ListShifts200JSONResponse ShiftList
+
+func (response ListShifts200JSONResponse) VisitListShiftsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListShifts401JSONResponse Error
+
+func (response ListShifts401JSONResponse) VisitListShiftsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListShifts403JSONResponse Error
+
+func (response ListShifts403JSONResponse) VisitListShiftsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListShifts404JSONResponse Error
+
+func (response ListShifts404JSONResponse) VisitListShiftsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListShifts501JSONResponse Error
+
+func (response ListShifts501JSONResponse) VisitListShiftsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShiftRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateShiftJSONRequestBody
+}
+
+type CreateShiftResponseObject interface {
+	VisitCreateShiftResponse(w http.ResponseWriter) error
+}
+
+type CreateShift201JSONResponse Shift
+
+func (response CreateShift201JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShift400JSONResponse Error
+
+func (response CreateShift400JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShift401JSONResponse Error
+
+func (response CreateShift401JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShift403JSONResponse Error
+
+func (response CreateShift403JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShift404JSONResponse Error
+
+func (response CreateShift404JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShift409JSONResponse Error
+
+func (response CreateShift409JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateShift501JSONResponse Error
+
+func (response CreateShift501JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorProgressRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type GetSimulatorProgressResponseObject interface {
+	VisitGetSimulatorProgressResponse(w http.ResponseWriter) error
+}
+
+type GetSimulatorProgress200JSONResponse SimulatorProgress
+
+func (response GetSimulatorProgress200JSONResponse) VisitGetSimulatorProgressResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorProgress401JSONResponse Error
+
+func (response GetSimulatorProgress401JSONResponse) VisitGetSimulatorProgressResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorProgress404JSONResponse Error
+
+func (response GetSimulatorProgress404JSONResponse) VisitGetSimulatorProgressResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorProgress501JSONResponse Error
+
+func (response GetSimulatorProgress501JSONResponse) VisitGetSimulatorProgressResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorRoundRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateSimulatorRoundJSONRequestBody
+}
+
+type CreateSimulatorRoundResponseObject interface {
+	VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error
+}
+
+type CreateSimulatorRound201JSONResponse SimulatorRound
+
+func (response CreateSimulatorRound201JSONResponse) VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorRound400JSONResponse Error
+
+func (response CreateSimulatorRound400JSONResponse) VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorRound401JSONResponse Error
+
+func (response CreateSimulatorRound401JSONResponse) VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorRound404JSONResponse Error
+
+func (response CreateSimulatorRound404JSONResponse) VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorRound409JSONResponse Error
+
+func (response CreateSimulatorRound409JSONResponse) VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorRound501JSONResponse Error
+
+func (response CreateSimulatorRound501JSONResponse) VisitCreateSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorRoundRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	RoundId  RoundId  `json:"roundId"`
+}
+
+type GetSimulatorRoundResponseObject interface {
+	VisitGetSimulatorRoundResponse(w http.ResponseWriter) error
+}
+
+type GetSimulatorRound200JSONResponse SimulatorRound
+
+func (response GetSimulatorRound200JSONResponse) VisitGetSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorRound401JSONResponse Error
+
+func (response GetSimulatorRound401JSONResponse) VisitGetSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorRound404JSONResponse Error
+
+func (response GetSimulatorRound404JSONResponse) VisitGetSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSimulatorRound501JSONResponse Error
+
+func (response GetSimulatorRound501JSONResponse) VisitGetSimulatorRoundResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorAnswerRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	RoundId  RoundId  `json:"roundId"`
+	Body     *CreateSimulatorAnswerJSONRequestBody
+}
+
+type CreateSimulatorAnswerResponseObject interface {
+	VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error
+}
+
+type CreateSimulatorAnswer201JSONResponse SimulatorAnswerResult
+
+func (response CreateSimulatorAnswer201JSONResponse) VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorAnswer400JSONResponse Error
+
+func (response CreateSimulatorAnswer400JSONResponse) VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorAnswer401JSONResponse Error
+
+func (response CreateSimulatorAnswer401JSONResponse) VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorAnswer404JSONResponse Error
+
+func (response CreateSimulatorAnswer404JSONResponse) VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorAnswer409JSONResponse Error
+
+func (response CreateSimulatorAnswer409JSONResponse) VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateSimulatorAnswer501JSONResponse Error
+
+func (response CreateSimulatorAnswer501JSONResponse) VisitCreateSimulatorAnswerResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasksRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Params   ListTasksParams
+}
+
+type ListTasksResponseObject interface {
+	VisitListTasksResponse(w http.ResponseWriter) error
+}
+
+type ListTasks200JSONResponse TaskList
+
+func (response ListTasks200JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks400JSONResponse Error
+
+func (response ListTasks400JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks401JSONResponse Error
+
+func (response ListTasks401JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks403JSONResponse Error
+
+func (response ListTasks403JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks404JSONResponse Error
+
+func (response ListTasks404JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasks501JSONResponse Error
+
+func (response ListTasks501JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTaskRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateTaskJSONRequestBody
+}
+
+type CreateTaskResponseObject interface {
+	VisitCreateTaskResponse(w http.ResponseWriter) error
+}
+
+type CreateTask201JSONResponse Task
+
+func (response CreateTask201JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask400JSONResponse Error
+
+func (response CreateTask400JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask401JSONResponse Error
+
+func (response CreateTask401JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask403JSONResponse Error
+
+func (response CreateTask403JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask404JSONResponse Error
+
+func (response CreateTask404JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTask501JSONResponse Error
+
+func (response CreateTask501JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTaskRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+	Body     *UpdateTaskJSONRequestBody
+}
+
+type UpdateTaskResponseObject interface {
+	VisitUpdateTaskResponse(w http.ResponseWriter) error
+}
+
+type UpdateTask200JSONResponse Task
+
+func (response UpdateTask200JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTask400JSONResponse Error
+
+func (response UpdateTask400JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTask401JSONResponse Error
+
+func (response UpdateTask401JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTask403JSONResponse Error
+
+func (response UpdateTask403JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTask404JSONResponse Error
+
+func (response UpdateTask404JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTask501JSONResponse Error
+
+func (response UpdateTask501JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignmentRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+	Body     *ProposeTaskReassignmentJSONRequestBody
+}
+
+type ProposeTaskReassignmentResponseObject interface {
+	VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error
+}
+
+type ProposeTaskReassignment200JSONResponse Task
+
+func (response ProposeTaskReassignment200JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment400JSONResponse Error
+
+func (response ProposeTaskReassignment400JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment401JSONResponse Error
+
+func (response ProposeTaskReassignment401JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment404JSONResponse Error
+
+func (response ProposeTaskReassignment404JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment409JSONResponse Error
+
+func (response ProposeTaskReassignment409JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ProposeTaskReassignment501JSONResponse Error
+
+func (response ProposeTaskReassignment501JSONResponse) VisitProposeTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignmentRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+}
+
+type AcceptTaskReassignmentResponseObject interface {
+	VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error
+}
+
+type AcceptTaskReassignment200JSONResponse Task
+
+func (response AcceptTaskReassignment200JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment401JSONResponse Error
+
+func (response AcceptTaskReassignment401JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment404JSONResponse Error
+
+func (response AcceptTaskReassignment404JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment409JSONResponse Error
+
+func (response AcceptTaskReassignment409JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptTaskReassignment501JSONResponse Error
+
+func (response AcceptTaskReassignment501JSONResponse) VisitAcceptTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignmentRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	TaskId   TaskId   `json:"taskId"`
+}
+
+type DeclineTaskReassignmentResponseObject interface {
+	VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error
+}
+
+type DeclineTaskReassignment200JSONResponse Task
+
+func (response DeclineTaskReassignment200JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment401JSONResponse Error
+
+func (response DeclineTaskReassignment401JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment404JSONResponse Error
+
+func (response DeclineTaskReassignment404JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment409JSONResponse Error
+
+func (response DeclineTaskReassignment409JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeclineTaskReassignment501JSONResponse Error
+
+func (response DeclineTaskReassignment501JSONResponse) VisitDeclineTaskReassignmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTodayRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type GetTodayResponseObject interface {
+	VisitGetTodayResponse(w http.ResponseWriter) error
+}
+
+type GetToday200JSONResponse Today
+
+func (response GetToday200JSONResponse) VisitGetTodayResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetToday401JSONResponse Error
+
+func (response GetToday401JSONResponse) VisitGetTodayResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetToday404JSONResponse Error
+
+func (response GetToday404JSONResponse) VisitGetTodayResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetToday501JSONResponse Error
+
+func (response GetToday501JSONResponse) VisitGetTodayResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMemberWeeklyPlanRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -2774,6 +8966,9 @@ func (response ListProviders501JSONResponse) VisitListProvidersResponse(w http.R
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// HandleStripeWebhook Stripe calls this when a checkout or subscription changes
+	// (POST /billing/stripe-webhook)
+	HandleStripeWebhook(ctx context.Context, request HandleStripeWebhookRequestObject) (HandleStripeWebhookResponseObject, error)
 	// CreateDemoSession Start a demo with a fresh copy of a synthetic family
 	// (POST /demo/sessions)
 	CreateDemoSession(ctx context.Context, request CreateDemoSessionRequestObject) (CreateDemoSessionResponseObject, error)
@@ -2786,12 +8981,81 @@ type StrictServerInterface interface {
 
 	// (GET /healthz)
 	Healthz(ctx context.Context, request HealthzRequestObject) (HealthzResponseObject, error)
+	// GetInvitation What an invitation link offers, for the accept page
+	// (GET /invitations/{token})
+	GetInvitation(ctx context.Context, request GetInvitationRequestObject) (GetInvitationResponseObject, error)
+	// AcceptInvitation Accept an invitation and enter the family as the new caregiver
+	// (POST /invitations/{token}/accept)
+	AcceptInvitation(ctx context.Context, request AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error)
+	// ListAccessLogEntries What caregivers read and changed, last 30 days
+	// (GET /members/{memberId}/access-log)
+	ListAccessLogEntries(ctx context.Context, request ListAccessLogEntriesRequestObject) (ListAccessLogEntriesResponseObject, error)
+	// ListAppointmentQuestions Questions for upcoming appointments, unanswered ones carried over
+	// (GET /members/{memberId}/appointment-questions)
+	ListAppointmentQuestions(ctx context.Context, request ListAppointmentQuestionsRequestObject) (ListAppointmentQuestionsResponseObject, error)
+	// CreateAppointmentQuestion The acting parent adds a question for an upcoming appointment
+	// (POST /members/{memberId}/appointment-questions)
+	CreateAppointmentQuestion(ctx context.Context, request CreateAppointmentQuestionRequestObject) (CreateAppointmentQuestionResponseObject, error)
+	// UpdateAppointmentQuestion The author marks a question answered, with an optional answer
+	// (PATCH /members/{memberId}/appointment-questions/{questionId})
+	UpdateAppointmentQuestion(ctx context.Context, request UpdateAppointmentQuestionRequestObject) (UpdateAppointmentQuestionResponseObject, error)
+	// CreateBabyArrival A parent flips the family to "Baby is home"
+	// (POST /members/{memberId}/baby-arrival)
+	CreateBabyArrival(ctx context.Context, request CreateBabyArrivalRequestObject) (CreateBabyArrivalResponseObject, error)
 	// ListBookingRequests The acting parent's own booking requests
 	// (GET /members/{memberId}/booking-requests)
 	ListBookingRequests(ctx context.Context, request ListBookingRequestsRequestObject) (ListBookingRequestsResponseObject, error)
 	// CreateBookingRequest The acting parent asks a provider for an appointment
 	// (POST /members/{memberId}/booking-requests)
 	CreateBookingRequest(ctx context.Context, request CreateBookingRequestRequestObject) (CreateBookingRequestResponseObject, error)
+	// ListCalendarEvents One calendar feed with Mine, Partner and Family filters
+	// (GET /members/{memberId}/calendar-events)
+	ListCalendarEvents(ctx context.Context, request ListCalendarEventsRequestObject) (ListCalendarEventsResponseObject, error)
+	// CreateCalendarEvent A parent adds an appointment, class or reminder
+	// (POST /members/{memberId}/calendar-events)
+	CreateCalendarEvent(ctx context.Context, request CreateCalendarEventRequestObject) (CreateCalendarEventResponseObject, error)
+	// ListCareLogEntries The last 48 hours of the care log, with the latest of each kind
+	// (GET /members/{memberId}/care-log)
+	ListCareLogEntries(ctx context.Context, request ListCareLogEntriesRequestObject) (ListCareLogEntriesResponseObject, error)
+	// CreateCareLogEntry Log a feed, a sleep or a diaper for the baby
+	// (POST /members/{memberId}/care-log)
+	CreateCareLogEntry(ctx context.Context, request CreateCareLogEntryRequestObject) (CreateCareLogEntryResponseObject, error)
+	// CreateCheckoutSession A parent starts a Stripe Checkout (test mode) for a paid tier
+	// (POST /members/{memberId}/checkout-sessions)
+	CreateCheckoutSession(ctx context.Context, request CreateCheckoutSessionRequestObject) (CreateCheckoutSessionResponseObject, error)
+	// GetCheckoutSession The state of a checkout, for the success screen
+	// (GET /members/{memberId}/checkout-sessions/{sessionId})
+	GetCheckoutSession(ctx context.Context, request GetCheckoutSessionRequestObject) (GetCheckoutSessionResponseObject, error)
+	// GetChildPassport The baby passport card, limited by role
+	// (GET /members/{memberId}/children/{childId}/passport)
+	GetChildPassport(ctx context.Context, request GetChildPassportRequestObject) (GetChildPassportResponseObject, error)
+	// UpdateFamily A parent sets the family's stage or due date
+	// (PATCH /members/{memberId}/family)
+	UpdateFamily(ctx context.Context, request UpdateFamilyRequestObject) (UpdateFamilyResponseObject, error)
+	// ListGuides Stage content for the acting person, filtered on the server
+	// (GET /members/{memberId}/guides)
+	ListGuides(ctx context.Context, request ListGuidesRequestObject) (ListGuidesResponseObject, error)
+	// ListHandoffs Handoffs to or from the acting person, last 48 hours
+	// (GET /members/{memberId}/handoffs)
+	ListHandoffs(ctx context.Context, request ListHandoffsRequestObject) (ListHandoffsResponseObject, error)
+	// CreateHandoff Hand the baby over to another person, with a note
+	// (POST /members/{memberId}/handoffs)
+	CreateHandoff(ctx context.Context, request CreateHandoffRequestObject) (CreateHandoffResponseObject, error)
+	// AcceptHandoff The receiver accepts and is now on duty
+	// (POST /members/{memberId}/handoffs/{handoffId}/accept)
+	AcceptHandoff(ctx context.Context, request AcceptHandoffRequestObject) (AcceptHandoffResponseObject, error)
+	// ListInvitations The family's invitations, newest first
+	// (GET /members/{memberId}/invitations)
+	ListInvitations(ctx context.Context, request ListInvitationsRequestObject) (ListInvitationsResponseObject, error)
+	// CreateInvitation A parent invites a grandparent or nanny and gets a one-time link
+	// (POST /members/{memberId}/invitations)
+	CreateInvitation(ctx context.Context, request CreateInvitationRequestObject) (CreateInvitationResponseObject, error)
+	// RevokeInvitation A parent revokes an invitation or a caregiver's access
+	// (POST /members/{memberId}/invitations/{invitationId}/revoke)
+	RevokeInvitation(ctx context.Context, request RevokeInvitationRequestObject) (RevokeInvitationResponseObject, error)
+	// GetLiveUpdates Server-sent events that tell the acting person's screens what changed
+	// (GET /members/{memberId}/live)
+	GetLiveUpdates(ctx context.Context, request GetLiveUpdatesRequestObject) (GetLiveUpdatesResponseObject, error)
 	// ListMoodCheckins Check-ins from the last 30 days that the acting parent may see
 	// (GET /members/{memberId}/mood-checkins)
 	ListMoodCheckins(ctx context.Context, request ListMoodCheckinsRequestObject) (ListMoodCheckinsResponseObject, error)
@@ -2810,6 +9074,9 @@ type StrictServerInterface interface {
 	// SetPlanItemProgress The acting parent marks a plan item as booked or done
 	// (PUT /members/{memberId}/plan/{ruleId}/status)
 	SetPlanItemProgress(ctx context.Context, request SetPlanItemProgressRequestObject) (SetPlanItemProgressResponseObject, error)
+	// GetPregnancyWeek The weekly pregnancy card for one week
+	// (GET /members/{memberId}/pregnancy-weeks/{week})
+	GetPregnancyWeek(ctx context.Context, request GetPregnancyWeekRequestObject) (GetPregnancyWeekResponseObject, error)
 	// GetPsychologistAgenda Topics for the acting parent's next psychologist session
 	// (GET /members/{memberId}/psychologist-agenda)
 	GetPsychologistAgenda(ctx context.Context, request GetPsychologistAgendaRequestObject) (GetPsychologistAgendaResponseObject, error)
@@ -2822,6 +9089,45 @@ type StrictServerInterface interface {
 	// CreateSessionNote The acting parent writes a short note after a session
 	// (POST /members/{memberId}/session-notes)
 	CreateSessionNote(ctx context.Context, request CreateSessionNoteRequestObject) (CreateSessionNoteResponseObject, error)
+	// ListShifts Committed shifts, agreed and active
+	// (GET /members/{memberId}/shifts)
+	ListShifts(ctx context.Context, request ListShiftsRequestObject) (ListShiftsResponseObject, error)
+	// CreateShift The acting person commits to a recurring care shift
+	// (POST /members/{memberId}/shifts)
+	CreateShift(ctx context.Context, request CreateShiftRequestObject) (CreateShiftResponseObject, error)
+	// GetSimulatorProgress The acting person's skill scores, weak spots and scenarios
+	// (GET /members/{memberId}/simulator)
+	GetSimulatorProgress(ctx context.Context, request GetSimulatorProgressRequestObject) (GetSimulatorProgressResponseObject, error)
+	// CreateSimulatorRound Start a scenario or a practice round
+	// (POST /members/{memberId}/simulator-rounds)
+	CreateSimulatorRound(ctx context.Context, request CreateSimulatorRoundRequestObject) (CreateSimulatorRoundResponseObject, error)
+	// GetSimulatorRound One round with the answers so far and, once complete, the result
+	// (GET /members/{memberId}/simulator-rounds/{roundId})
+	GetSimulatorRound(ctx context.Context, request GetSimulatorRoundRequestObject) (GetSimulatorRoundResponseObject, error)
+	// CreateSimulatorAnswer Answer one question of a round
+	// (POST /members/{memberId}/simulator-rounds/{roundId}/answers)
+	CreateSimulatorAnswer(ctx context.Context, request CreateSimulatorAnswerRequestObject) (CreateSimulatorAnswerResponseObject, error)
+	// ListTasks All of the family's tasks, soonest due first, undated last
+	// (GET /members/{memberId}/tasks)
+	ListTasks(ctx context.Context, request ListTasksRequestObject) (ListTasksResponseObject, error)
+	// CreateTask The acting parent adds a family task, assigned to themselves
+	// (POST /members/{memberId}/tasks)
+	CreateTask(ctx context.Context, request CreateTaskRequestObject) (CreateTaskResponseObject, error)
+	// UpdateTask Tick a task or checklist item done, or undo it
+	// (PATCH /members/{memberId}/tasks/{taskId})
+	UpdateTask(ctx context.Context, request UpdateTaskRequestObject) (UpdateTaskResponseObject, error)
+	// ProposeTaskReassignment The assignee offers the task to the other parent
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment)
+	ProposeTaskReassignment(ctx context.Context, request ProposeTaskReassignmentRequestObject) (ProposeTaskReassignmentResponseObject, error)
+	// AcceptTaskReassignment The proposed parent takes the task over
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/accept)
+	AcceptTaskReassignment(ctx context.Context, request AcceptTaskReassignmentRequestObject) (AcceptTaskReassignmentResponseObject, error)
+	// DeclineTaskReassignment The proposed parent declines; the task stays with its assignee
+	// (POST /members/{memberId}/tasks/{taskId}/reassignment/decline)
+	DeclineTaskReassignment(ctx context.Context, request DeclineTaskReassignmentRequestObject) (DeclineTaskReassignmentResponseObject, error)
+	// GetToday The acting person's Today screen in one call
+	// (GET /members/{memberId}/today)
+	GetToday(ctx context.Context, request GetTodayRequestObject) (GetTodayResponseObject, error)
 	// GetMemberWeeklyPlan A short written plan for this parent's week
 	// (GET /members/{memberId}/weekly-plan)
 	GetMemberWeeklyPlan(ctx context.Context, request GetMemberWeeklyPlanRequestObject) (GetMemberWeeklyPlanResponseObject, error)
@@ -2867,6 +9173,39 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// HandleStripeWebhook operation middleware
+func (sh *strictHandler) HandleStripeWebhook(w http.ResponseWriter, r *http.Request, params HandleStripeWebhookParams) {
+	var request HandleStripeWebhookRequestObject
+
+	request.Params = params
+
+	var body HandleStripeWebhookJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.HandleStripeWebhook(ctx, request.(HandleStripeWebhookRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HandleStripeWebhook")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(HandleStripeWebhookResponseObject); ok {
+		if err := validResponse.VisitHandleStripeWebhookResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // CreateDemoSession operation middleware
@@ -2979,6 +9318,211 @@ func (sh *strictHandler) Healthz(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetInvitation operation middleware
+func (sh *strictHandler) GetInvitation(w http.ResponseWriter, r *http.Request, token InvitationToken) {
+	var request GetInvitationRequestObject
+
+	request.Token = token
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetInvitation(ctx, request.(GetInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetInvitationResponseObject); ok {
+		if err := validResponse.VisitGetInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptInvitation operation middleware
+func (sh *strictHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request, token InvitationToken) {
+	var request AcceptInvitationRequestObject
+
+	request.Token = token
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptInvitation(ctx, request.(AcceptInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptInvitationResponseObject); ok {
+		if err := validResponse.VisitAcceptInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListAccessLogEntries operation middleware
+func (sh *strictHandler) ListAccessLogEntries(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListAccessLogEntriesRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListAccessLogEntries(ctx, request.(ListAccessLogEntriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListAccessLogEntries")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListAccessLogEntriesResponseObject); ok {
+		if err := validResponse.VisitListAccessLogEntriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListAppointmentQuestions operation middleware
+func (sh *strictHandler) ListAppointmentQuestions(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListAppointmentQuestionsParams) {
+	var request ListAppointmentQuestionsRequestObject
+
+	request.MemberId = memberId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListAppointmentQuestions(ctx, request.(ListAppointmentQuestionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListAppointmentQuestions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListAppointmentQuestionsResponseObject); ok {
+		if err := validResponse.VisitListAppointmentQuestionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateAppointmentQuestion operation middleware
+func (sh *strictHandler) CreateAppointmentQuestion(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateAppointmentQuestionRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateAppointmentQuestionJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateAppointmentQuestion(ctx, request.(CreateAppointmentQuestionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateAppointmentQuestion")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateAppointmentQuestionResponseObject); ok {
+		if err := validResponse.VisitCreateAppointmentQuestionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateAppointmentQuestion operation middleware
+func (sh *strictHandler) UpdateAppointmentQuestion(w http.ResponseWriter, r *http.Request, memberId MemberId, questionId openapi_types.UUID) {
+	var request UpdateAppointmentQuestionRequestObject
+
+	request.MemberId = memberId
+	request.QuestionId = questionId
+
+	var body UpdateAppointmentQuestionJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateAppointmentQuestion(ctx, request.(UpdateAppointmentQuestionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateAppointmentQuestion")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateAppointmentQuestionResponseObject); ok {
+		if err := validResponse.VisitUpdateAppointmentQuestionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateBabyArrival operation middleware
+func (sh *strictHandler) CreateBabyArrival(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateBabyArrivalRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateBabyArrivalJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateBabyArrival(ctx, request.(CreateBabyArrivalRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateBabyArrival")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateBabyArrivalResponseObject); ok {
+		if err := validResponse.VisitCreateBabyArrivalResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListBookingRequests operation middleware
 func (sh *strictHandler) ListBookingRequests(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request ListBookingRequestsRequestObject
@@ -3031,6 +9575,471 @@ func (sh *strictHandler) CreateBookingRequest(w http.ResponseWriter, r *http.Req
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(CreateBookingRequestResponseObject); ok {
 		if err := validResponse.VisitCreateBookingRequestResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListCalendarEvents operation middleware
+func (sh *strictHandler) ListCalendarEvents(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListCalendarEventsParams) {
+	var request ListCalendarEventsRequestObject
+
+	request.MemberId = memberId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCalendarEvents(ctx, request.(ListCalendarEventsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCalendarEvents")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCalendarEventsResponseObject); ok {
+		if err := validResponse.VisitListCalendarEventsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCalendarEvent operation middleware
+func (sh *strictHandler) CreateCalendarEvent(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateCalendarEventRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateCalendarEventJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCalendarEvent(ctx, request.(CreateCalendarEventRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCalendarEvent")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCalendarEventResponseObject); ok {
+		if err := validResponse.VisitCreateCalendarEventResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListCareLogEntries operation middleware
+func (sh *strictHandler) ListCareLogEntries(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListCareLogEntriesParams) {
+	var request ListCareLogEntriesRequestObject
+
+	request.MemberId = memberId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCareLogEntries(ctx, request.(ListCareLogEntriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCareLogEntries")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCareLogEntriesResponseObject); ok {
+		if err := validResponse.VisitListCareLogEntriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCareLogEntry operation middleware
+func (sh *strictHandler) CreateCareLogEntry(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateCareLogEntryRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateCareLogEntryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCareLogEntry(ctx, request.(CreateCareLogEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCareLogEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCareLogEntryResponseObject); ok {
+		if err := validResponse.VisitCreateCareLogEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCheckoutSession operation middleware
+func (sh *strictHandler) CreateCheckoutSession(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateCheckoutSessionRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateCheckoutSessionJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCheckoutSession(ctx, request.(CreateCheckoutSessionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCheckoutSession")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCheckoutSessionResponseObject); ok {
+		if err := validResponse.VisitCreateCheckoutSessionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCheckoutSession operation middleware
+func (sh *strictHandler) GetCheckoutSession(w http.ResponseWriter, r *http.Request, memberId MemberId, sessionId string) {
+	var request GetCheckoutSessionRequestObject
+
+	request.MemberId = memberId
+	request.SessionId = sessionId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCheckoutSession(ctx, request.(GetCheckoutSessionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCheckoutSession")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCheckoutSessionResponseObject); ok {
+		if err := validResponse.VisitGetCheckoutSessionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetChildPassport operation middleware
+func (sh *strictHandler) GetChildPassport(w http.ResponseWriter, r *http.Request, memberId MemberId, childId openapi_types.UUID) {
+	var request GetChildPassportRequestObject
+
+	request.MemberId = memberId
+	request.ChildId = childId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetChildPassport(ctx, request.(GetChildPassportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetChildPassport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetChildPassportResponseObject); ok {
+		if err := validResponse.VisitGetChildPassportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateFamily operation middleware
+func (sh *strictHandler) UpdateFamily(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request UpdateFamilyRequestObject
+
+	request.MemberId = memberId
+
+	var body UpdateFamilyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateFamily(ctx, request.(UpdateFamilyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateFamily")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateFamilyResponseObject); ok {
+		if err := validResponse.VisitUpdateFamilyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGuides operation middleware
+func (sh *strictHandler) ListGuides(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListGuidesParams) {
+	var request ListGuidesRequestObject
+
+	request.MemberId = memberId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGuides(ctx, request.(ListGuidesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGuides")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGuidesResponseObject); ok {
+		if err := validResponse.VisitListGuidesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListHandoffs operation middleware
+func (sh *strictHandler) ListHandoffs(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListHandoffsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListHandoffs(ctx, request.(ListHandoffsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListHandoffs")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListHandoffsResponseObject); ok {
+		if err := validResponse.VisitListHandoffsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateHandoff operation middleware
+func (sh *strictHandler) CreateHandoff(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateHandoffRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateHandoffJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateHandoff(ctx, request.(CreateHandoffRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateHandoff")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateHandoffResponseObject); ok {
+		if err := validResponse.VisitCreateHandoffResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptHandoff operation middleware
+func (sh *strictHandler) AcceptHandoff(w http.ResponseWriter, r *http.Request, memberId MemberId, handoffId openapi_types.UUID) {
+	var request AcceptHandoffRequestObject
+
+	request.MemberId = memberId
+	request.HandoffId = handoffId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptHandoff(ctx, request.(AcceptHandoffRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptHandoff")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptHandoffResponseObject); ok {
+		if err := validResponse.VisitAcceptHandoffResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListInvitations operation middleware
+func (sh *strictHandler) ListInvitations(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListInvitationsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListInvitations(ctx, request.(ListInvitationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListInvitations")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListInvitationsResponseObject); ok {
+		if err := validResponse.VisitListInvitationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateInvitation operation middleware
+func (sh *strictHandler) CreateInvitation(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateInvitationRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateInvitationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateInvitation(ctx, request.(CreateInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateInvitationResponseObject); ok {
+		if err := validResponse.VisitCreateInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeInvitation operation middleware
+func (sh *strictHandler) RevokeInvitation(w http.ResponseWriter, r *http.Request, memberId MemberId, invitationId InvitationId) {
+	var request RevokeInvitationRequestObject
+
+	request.MemberId = memberId
+	request.InvitationId = invitationId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeInvitation(ctx, request.(RevokeInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeInvitationResponseObject); ok {
+		if err := validResponse.VisitRevokeInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLiveUpdates operation middleware
+func (sh *strictHandler) GetLiveUpdates(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request GetLiveUpdatesRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLiveUpdates(ctx, request.(GetLiveUpdatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLiveUpdates")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLiveUpdatesResponseObject); ok {
+		if err := validResponse.VisitGetLiveUpdatesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -3209,6 +10218,33 @@ func (sh *strictHandler) SetPlanItemProgress(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// GetPregnancyWeek operation middleware
+func (sh *strictHandler) GetPregnancyWeek(w http.ResponseWriter, r *http.Request, memberId MemberId, week int) {
+	var request GetPregnancyWeekRequestObject
+
+	request.MemberId = memberId
+	request.Week = week
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPregnancyWeek(ctx, request.(GetPregnancyWeekRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPregnancyWeek")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPregnancyWeekResponseObject); ok {
+		if err := validResponse.VisitGetPregnancyWeekResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetPsychologistAgenda operation middleware
 func (sh *strictHandler) GetPsychologistAgenda(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request GetPsychologistAgendaRequestObject
@@ -3327,6 +10363,393 @@ func (sh *strictHandler) CreateSessionNote(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// ListShifts operation middleware
+func (sh *strictHandler) ListShifts(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListShiftsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListShifts(ctx, request.(ListShiftsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListShifts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListShiftsResponseObject); ok {
+		if err := validResponse.VisitListShiftsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateShift operation middleware
+func (sh *strictHandler) CreateShift(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateShiftRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateShiftJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateShift(ctx, request.(CreateShiftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateShift")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateShiftResponseObject); ok {
+		if err := validResponse.VisitCreateShiftResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSimulatorProgress operation middleware
+func (sh *strictHandler) GetSimulatorProgress(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request GetSimulatorProgressRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSimulatorProgress(ctx, request.(GetSimulatorProgressRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSimulatorProgress")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSimulatorProgressResponseObject); ok {
+		if err := validResponse.VisitGetSimulatorProgressResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateSimulatorRound operation middleware
+func (sh *strictHandler) CreateSimulatorRound(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateSimulatorRoundRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateSimulatorRoundJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateSimulatorRound(ctx, request.(CreateSimulatorRoundRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateSimulatorRound")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateSimulatorRoundResponseObject); ok {
+		if err := validResponse.VisitCreateSimulatorRoundResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSimulatorRound operation middleware
+func (sh *strictHandler) GetSimulatorRound(w http.ResponseWriter, r *http.Request, memberId MemberId, roundId RoundId) {
+	var request GetSimulatorRoundRequestObject
+
+	request.MemberId = memberId
+	request.RoundId = roundId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSimulatorRound(ctx, request.(GetSimulatorRoundRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSimulatorRound")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSimulatorRoundResponseObject); ok {
+		if err := validResponse.VisitGetSimulatorRoundResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateSimulatorAnswer operation middleware
+func (sh *strictHandler) CreateSimulatorAnswer(w http.ResponseWriter, r *http.Request, memberId MemberId, roundId RoundId) {
+	var request CreateSimulatorAnswerRequestObject
+
+	request.MemberId = memberId
+	request.RoundId = roundId
+
+	var body CreateSimulatorAnswerJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateSimulatorAnswer(ctx, request.(CreateSimulatorAnswerRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateSimulatorAnswer")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateSimulatorAnswerResponseObject); ok {
+		if err := validResponse.VisitCreateSimulatorAnswerResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListTasks operation middleware
+func (sh *strictHandler) ListTasks(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListTasksParams) {
+	var request ListTasksRequestObject
+
+	request.MemberId = memberId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListTasks(ctx, request.(ListTasksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListTasks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListTasksResponseObject); ok {
+		if err := validResponse.VisitListTasksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTask operation middleware
+func (sh *strictHandler) CreateTask(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateTaskRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateTaskJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTask(ctx, request.(CreateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTaskResponseObject); ok {
+		if err := validResponse.VisitCreateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateTask operation middleware
+func (sh *strictHandler) UpdateTask(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request UpdateTaskRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	var body UpdateTaskJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateTask(ctx, request.(UpdateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateTaskResponseObject); ok {
+		if err := validResponse.VisitUpdateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ProposeTaskReassignment operation middleware
+func (sh *strictHandler) ProposeTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request ProposeTaskReassignmentRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	var body ProposeTaskReassignmentJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ProposeTaskReassignment(ctx, request.(ProposeTaskReassignmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ProposeTaskReassignment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ProposeTaskReassignmentResponseObject); ok {
+		if err := validResponse.VisitProposeTaskReassignmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptTaskReassignment operation middleware
+func (sh *strictHandler) AcceptTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request AcceptTaskReassignmentRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptTaskReassignment(ctx, request.(AcceptTaskReassignmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptTaskReassignment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptTaskReassignmentResponseObject); ok {
+		if err := validResponse.VisitAcceptTaskReassignmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeclineTaskReassignment operation middleware
+func (sh *strictHandler) DeclineTaskReassignment(w http.ResponseWriter, r *http.Request, memberId MemberId, taskId TaskId) {
+	var request DeclineTaskReassignmentRequestObject
+
+	request.MemberId = memberId
+	request.TaskId = taskId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeclineTaskReassignment(ctx, request.(DeclineTaskReassignmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeclineTaskReassignment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeclineTaskReassignmentResponseObject); ok {
+		if err := validResponse.VisitDeclineTaskReassignmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetToday operation middleware
+func (sh *strictHandler) GetToday(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request GetTodayRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetToday(ctx, request.(GetTodayRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetToday")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTodayResponseObject); ok {
+		if err := validResponse.VisitGetTodayResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMemberWeeklyPlan operation middleware
 func (sh *strictHandler) GetMemberWeeklyPlan(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request GetMemberWeeklyPlanRequestObject
@@ -3384,123 +10807,352 @@ func (sh *strictHandler) ListProviders(w http.ResponseWriter, r *http.Request, p
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"b/J5KsoSZ/3Hh/8dAAD//w==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
