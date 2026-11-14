@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import type { AppointmentQuestionList, Family, MoodPattern, Parent, Plan, Task } from "@/lib/api/types";
 import { familyNow } from "@/lib/clock";
-import { dayKey, daysUntilInstant, firstSentence, formatClock, formatShortDate } from "@/lib/format";
+import { dayKey, daysUntilInstant, formatClock, formatShortDate } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
@@ -258,7 +258,7 @@ function calmRows({
       status: item.status,
       title: item.title,
       when,
-      why: `${firstSentence(item.detail)} ${item.reason}`,
+      why: item.reason,
       source: item.source,
     });
   }

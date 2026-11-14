@@ -113,11 +113,21 @@ type CalendarEvent struct {
 	AllDay        bool
 	Location      *string
 	CreatedAt     time.Time
+	NeutralTitle  bool
 }
 
 type CalendarEventAttendee struct {
 	EventID  uuid.UUID
 	MemberID uuid.UUID
+}
+
+type CalendarFeed struct {
+	FamilyID      uuid.UUID
+	MemberID      uuid.UUID
+	TokenHash     []byte
+	Scope         string
+	CreatedAt     time.Time
+	LastFetchedAt pgtype.Timestamptz
 }
 
 type CareLogEntry struct {
@@ -445,6 +455,24 @@ type PlanItemProgress struct {
 	RuleID    string
 	Status    string
 	UpdatedAt time.Time
+}
+
+type PostcardLine struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	PeriodKey      string
+	AuthorMemberID uuid.NullUUID
+	AuthorName     string
+	Body           string
+	UpdatedAt      time.Time
+}
+
+type PostcardLofe struct {
+	ID           uuid.UUID
+	FamilyID     uuid.UUID
+	FromMemberID uuid.UUID
+	Message      *string
+	CreatedAt    time.Time
 }
 
 type Provider struct {

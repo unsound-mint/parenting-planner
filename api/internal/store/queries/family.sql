@@ -83,3 +83,8 @@ VALUES (@family_id, @role, @name, @clinic, @phone, @subject_member_id, @subject_
 
 -- name: DeleteFamily :exec
 DELETE FROM families WHERE id = $1;
+
+-- name: UpdateCaregiverPermissions :one
+UPDATE members SET permissions = $3
+WHERE id = $2 AND family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL
+RETURNING *;
