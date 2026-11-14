@@ -11,6 +11,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AgendaTopicPref struct {
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	TopicID   uuid.UUID
+	Position  pgtype.Int4
+	RemovedAt pgtype.Timestamptz
+}
+
 type Allergy struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -71,6 +79,26 @@ type Child struct {
 	FamilyID  uuid.UUID
 	Name      string
 	BirthDate time.Time
+}
+
+type ContentOverride struct {
+	FamilyID  uuid.UUID
+	Kind      string
+	ItemID    string
+	Title     *string
+	Body      *string
+	UpdatedAt time.Time
+}
+
+type DiaryEntry struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	WrittenAt     time.Time
+	BodySealed    []byte
+	AgendaTopic   *string
+	CreatedAt     time.Time
 }
 
 type Family struct {
@@ -157,6 +185,53 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type MoodScreening struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	TakenAt       time.Time
+	Instrument    string
+	Answers       []int16
+	Score         int16
+	Band          string
+	Urgent        bool
+}
+
+type Notification struct {
+	ID                uuid.UUID
+	FamilyID          uuid.UUID
+	RecipientMemberID uuid.UUID
+	Kind              string
+	EntityID          *string
+	ActorMemberID     uuid.NullUUID
+	Title             string
+	OnDay             *time.Time
+	CreatedAt         time.Time
+	ReadAt            pgtype.Timestamptz
+}
+
+type PartnerOffer struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	PartnerName string
+	Title       string
+	Detail      string
+	Url         string
+	Stages      []string
+	Audience    []string
+	Active      bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type PartnerOfferClick struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	OfferID   uuid.UUID
+	ClickedAt time.Time
+}
+
 type PlanItemProgress struct {
 	ID        uuid.UUID
 	FamilyID  uuid.UUID
@@ -195,6 +270,7 @@ type Session struct {
 	FamilyID  uuid.UUID
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	MemberID  uuid.NullUUID
 }
 
 type SessionNote struct {
@@ -221,4 +297,16 @@ type VaccineSchedule struct {
 	Vaccine         string
 	Dose            string
 	DueOn           time.Time
+}
+
+type VoiceNote struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	UploaderMemberID uuid.UUID
+	HandoffID        uuid.NullUUID
+	ContentType      string
+	SizeBytes        int32
+	DurationSeconds  pgtype.Int4
+	Audio            []byte
+	CreatedAt        time.Time
 }
