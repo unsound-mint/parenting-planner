@@ -55,6 +55,8 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     calendar: calendar.response.status,
     // Newborn practice is baby prep: none of it while the family is in pregnancy loss support.
     simulator: inLossSupport(family) ? 404 : simulator.response.status,
+    // Stage lessons give way to the support card in loss support (the page does the same).
+    ...(inLossSupport(family) ? { learn: 404 } : {}),
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
     ...(invitations ? { people: invitations.response.status } : {}),
   });
