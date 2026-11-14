@@ -1,0 +1,1074 @@
+{
+  "about": "Baby size and development for pregnancy weeks 4 to 40. Lengths and development from each week's NHS page; weights from the WHO fetal growth chart (weeks 14 to 40 only). Nothing interpolated. Development text is our paraphrase, not a quote.",
+  "checkedAt": "2026-11-14",
+  "sources": {
+    "nhs-week-4": {
+      "title": "NHS Start for Life: Week 4, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-4/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-5": {
+      "title": "NHS Start for Life: Week 5, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-5/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-6": {
+      "title": "NHS Start for Life: Week 6, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-6/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-7": {
+      "title": "NHS Start for Life: Week 7, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-7/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-8": {
+      "title": "NHS Start for Life: Week 8, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-8/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-9": {
+      "title": "NHS Start for Life: Week 9, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-9/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-10": {
+      "title": "NHS Start for Life: Week 10, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-10/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-11": {
+      "title": "NHS Start for Life: Week 11, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-11/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-12": {
+      "title": "NHS Start for Life: Week 12, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-12/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-13": {
+      "title": "NHS Start for Life: Week 13, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-13/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-14": {
+      "title": "NHS Start for Life: Week 14, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-14/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-15": {
+      "title": "NHS Start for Life: Week 15, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-15/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-16": {
+      "title": "NHS Start for Life: Week 16, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-16/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-17": {
+      "title": "NHS Start for Life: Week 17, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-17/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-18": {
+      "title": "NHS Start for Life: Week 18, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-18/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-19": {
+      "title": "NHS Start for Life: Week 19, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-19/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-20": {
+      "title": "NHS Start for Life: Week 20, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-20/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-21": {
+      "title": "NHS Start for Life: Week 21, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-21/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-22": {
+      "title": "NHS Start for Life: Week 22, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-22/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-23": {
+      "title": "NHS Start for Life: Week 23, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-23/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-24": {
+      "title": "NHS Start for Life: Week 24, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-24/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-25": {
+      "title": "NHS Start for Life: Week 25, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-25/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-26": {
+      "title": "NHS Start for Life: Week 26, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-26/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-27": {
+      "title": "NHS Start for Life: Week 27, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-27/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-28": {
+      "title": "NHS Start for Life: Week 28, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-28/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-29": {
+      "title": "NHS Start for Life: Week 29, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-29/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-30": {
+      "title": "NHS Start for Life: Week 30, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-30/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-31": {
+      "title": "NHS Start for Life: Week 31, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-31/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-32": {
+      "title": "NHS Start for Life: Week 32, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-32/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-33": {
+      "title": "NHS Start for Life: Week 33, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-33/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-34": {
+      "title": "NHS Start for Life: Week 34, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-34/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-35": {
+      "title": "NHS Start for Life: Week 35, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-35/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-36": {
+      "title": "NHS Start for Life: Week 36, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-36/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-37": {
+      "title": "NHS Start for Life: Week 37, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-37/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-38": {
+      "title": "NHS Start for Life: Week 38, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-38/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-39": {
+      "title": "NHS Start for Life: Week 39, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-39/",
+      "checkedAt": "2026-11-14"
+    },
+    "nhs-week-40": {
+      "title": "NHS Start for Life: Week 40, week-by-week guide to pregnancy",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-40/",
+      "checkedAt": "2026-11-14"
+    },
+    "who-efw-2017": {
+      "title": "Kiserud T et al. (2017) The WHO Fetal Growth Charts, PLOS Medicine 14(1): e1002220, Table 11 and S1 File (EFW, all fetuses)",
+      "url": "https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1002220",
+      "checkedAt": "2026-11-14"
+    },
+    "cdc-hearher": {
+      "title": "CDC Hear Her: Maternal Warning Signs",
+      "url": "https://www.cdc.gov/hearher/maternal-warning-signs/index.html",
+      "checkedAt": "2026-11-14"
+    }
+  },
+  "weeks": [
+    {
+      "week": 4,
+      "lengthCm": 0.2,
+      "lengthStated": "2mm",
+      "lengthMeasure": "embryo",
+      "lengthMeasureLabel": "length of the embryo; NHS does not say how it is measured",
+      "lengthSource": "nhs-week-4",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "poppy seed",
+        "kind": "seed",
+        "nhsWording": "poppy seed",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The tiny embryo is cushioned inside a fluid-filled sac, and its outer layer of cells will go on to become the placenta.",
+      "developmentSource": "nhs-week-4"
+    },
+    {
+      "week": 5,
+      "lengthCm": 0.2,
+      "lengthStated": "2mm",
+      "lengthMeasure": "embryo",
+      "lengthMeasureLabel": "length of the embryo; NHS does not say how it is measured",
+      "lengthSource": "nhs-week-5",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "sesame seed",
+        "kind": "seed",
+        "nhsWording": "sesame seed",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The brain and spinal cord are forming quickly, and the first blood vessels are appearing, some of which will make up the umbilical cord.",
+      "developmentSource": "nhs-week-5"
+    },
+    {
+      "week": 6,
+      "lengthCm": 0.6,
+      "lengthStated": "6mm",
+      "lengthMeasure": "embryo",
+      "lengthMeasureLabel": "length of the embryo; NHS does not say how it is measured",
+      "lengthSource": "nhs-week-6",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "pea",
+        "kind": "vegetable",
+        "nhsWording": "pea",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Little buds that will become arms and legs are starting to form, and there are tiny dents where the ears will be.",
+      "developmentSource": "nhs-week-6"
+    },
+    {
+      "week": 7,
+      "lengthCm": 1.0,
+      "lengthStated": "10mm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-7",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "grape",
+        "kind": "fruit",
+        "nhsWording": "grape",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The brain is growing faster than the rest of the body, and the arm buds are getting longer, with flat ends that will become hands.",
+      "developmentSource": "nhs-week-7"
+    },
+    {
+      "week": 8,
+      "lengthCm": 1.6,
+      "lengthStated": "16mm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-8",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "raspberry",
+        "kind": "fruit",
+        "nhsWording": "raspberry",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The arms are growing faster than the legs, and the head has started to uncurl a little.",
+      "developmentSource": "nhs-week-8"
+    },
+    {
+      "week": 9,
+      "lengthCm": 2.2,
+      "lengthStated": "22mm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-9",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "strawberry",
+        "kind": "fruit",
+        "nhsWording": "strawberry",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The face is becoming recognizable, with eyelids, a little mouth and a tongue with tiny taste buds. The heart, brain, lungs, kidneys and gut are all developing.",
+      "developmentSource": "nhs-week-9"
+    },
+    {
+      "week": 10,
+      "lengthCm": 3.0,
+      "lengthStated": "30mm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-10",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "apricot",
+        "kind": "fruit",
+        "nhsWording": "apricot",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The face is coming into proportion, with two little nostrils and an upper lip, and the jaw already holds tiny versions of the baby teeth.",
+      "developmentSource": "nhs-week-10"
+    },
+    {
+      "week": 11,
+      "lengthCm": 4.1,
+      "lengthStated": "41mm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-11",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "fig",
+        "kind": "fruit",
+        "nhsWording": "fig",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Fingers and toes are separating, and tiny fingernails and ears are forming. The baby is moving, though it is far too early to feel it.",
+      "developmentSource": "nhs-week-11"
+    },
+    {
+      "week": 12,
+      "lengthCm": 5.4,
+      "lengthStated": "5.4cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-12",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "plum",
+        "kind": "fruit",
+        "nhsWording": "plum",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The internal organs and muscles have grown, and the skeleton is starting to harden into bone.",
+      "developmentSource": "nhs-week-12"
+    },
+    {
+      "week": 13,
+      "lengthCm": 7.4,
+      "lengthStated": "7.4cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-13",
+      "weightNote": "No weight: the WHO chart starts at week 14 and NHS gives no weights. Left out, not interpolated.",
+      "comparison": {
+        "name": "peach",
+        "kind": "fruit",
+        "nhsWording": "peach",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Movements are turning from jerky to more deliberate, and some babies start sucking a thumb, which is practice for feeding later.",
+      "developmentSource": "nhs-week-13"
+    },
+    {
+      "week": 14,
+      "lengthCm": 8.5,
+      "lengthStated": "8.5cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-14",
+      "weightG": 90,
+      "weightRangeG": [
+        78,
+        104
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "kiwi",
+        "kind": "fruit",
+        "nhsWording": "kiwi fruit",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The head is getting rounder and more in proportion with the body. The baby swallows small amounts of fluid, and the kidneys are already at work.",
+      "developmentSource": "nhs-week-14"
+    },
+    {
+      "week": 15,
+      "lengthCm": 10.1,
+      "lengthStated": "10.1cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-15",
+      "weightG": 114,
+      "weightRangeG": [
+        99,
+        132
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "apple",
+        "kind": "fruit",
+        "nhsWording": "apple",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Eyebrows and eyelashes are starting to grow, and the eyes are now sensitive to light.",
+      "developmentSource": "nhs-week-15"
+    },
+    {
+      "week": 16,
+      "lengthCm": 11.6,
+      "lengthStated": "11.6cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-16",
+      "weightG": 144,
+      "weightRangeG": [
+        124,
+        166
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "avocado",
+        "kind": "fruit",
+        "nhsWording": "avocado",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is starting to pull faces at random and can make little fists as the nervous system develops.",
+      "developmentSource": "nhs-week-16"
+    },
+    {
+      "week": 17,
+      "lengthCm": 12.0,
+      "lengthStated": "12cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-17",
+      "weightG": 179,
+      "weightRangeG": [
+        155,
+        207
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "pomegranate",
+        "kind": "fruit",
+        "nhsWording": "pomegranate",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Fingernails are growing, and the fingertips carry fingerprints that are unique, even between identical twins.",
+      "developmentSource": "nhs-week-17"
+    },
+    {
+      "week": 18,
+      "lengthCm": 14.2,
+      "lengthStated": "14.2cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-18",
+      "weightG": 222,
+      "weightRangeG": [
+        192,
+        255
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "bell pepper",
+        "kind": "vegetable",
+        "nhsWording": "bell pepper",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Hearing, swallowing and sucking reflexes are developing, and there is a lot of wriggling going on.",
+      "developmentSource": "nhs-week-18"
+    },
+    {
+      "week": 19,
+      "lengthCm": 15.3,
+      "lengthStated": "15.3cm",
+      "lengthMeasure": "crown-rump",
+      "lengthMeasureLabel": "head to bottom (crown-rump), used while the legs are curled up",
+      "lengthSource": "nhs-week-19",
+      "weightG": 272,
+      "weightRangeG": [
+        235,
+        313
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "beefsteak tomato",
+        "kind": "vegetable",
+        "nhsWording": "beef tomato",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The adult teeth are starting to form, lined up behind the first set, and the baby keeps putting on weight.",
+      "developmentSource": "nhs-week-19"
+    },
+    {
+      "week": 20,
+      "lengthCm": 25.6,
+      "lengthStated": "25.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-20",
+      "weightG": 330,
+      "weightRangeG": [
+        286,
+        380
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "banana",
+        "kind": "fruit",
+        "nhsWording": "banana",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "From this week length is measured head to heel, because the legs are no longer curled out of view. The first flutters of movement may be felt around now.",
+      "developmentSource": "nhs-week-20"
+    },
+    {
+      "week": 21,
+      "lengthCm": 26.7,
+      "lengthStated": "26.7cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-21",
+      "weightG": 398,
+      "weightRangeG": [
+        345,
+        458
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "carrot",
+        "kind": "vegetable",
+        "nhsWording": "carrot",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is now heavier than the placenta and can hear voices from outside, so singing to the bump counts.",
+      "developmentSource": "nhs-week-21"
+    },
+    {
+      "week": 22,
+      "lengthCm": 27.8,
+      "lengthStated": "27.8cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-22",
+      "weightG": 476,
+      "weightRangeG": [
+        412,
+        548
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "sweet potato",
+        "kind": "vegetable",
+        "nhsWording": "sweet potato",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The lungs are developing, and the baby practices breathing movements and swallows small amounts of fluid.",
+      "developmentSource": "nhs-week-22"
+    },
+    {
+      "week": 23,
+      "lengthCm": 28.9,
+      "lengthStated": "28.9cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-23",
+      "weightG": 565,
+      "weightRangeG": [
+        489,
+        650
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "large mango",
+        "kind": "fruit",
+        "nhsWording": "large mango",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The arms and legs are now in proportion, and over the next weeks you may see the bump move when the baby kicks.",
+      "developmentSource": "nhs-week-23",
+      "careNote": "If the baby's movements slow down or stop, contact your care team right away; CDC lists this as an urgent warning sign.",
+      "careNoteSource": "cdc-hearher"
+    },
+    {
+      "week": 24,
+      "lengthCm": 30.0,
+      "lengthStated": "30cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-24",
+      "weightG": 665,
+      "weightRangeG": [
+        576,
+        765
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "ear of corn",
+        "kind": "vegetable",
+        "nhsWording": "corn on the cob",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Everything is in proportion now. From here on, most of the work is growing and maturing.",
+      "developmentSource": "nhs-week-24"
+    },
+    {
+      "week": 25,
+      "lengthCm": 34.6,
+      "lengthStated": "34.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-25",
+      "weightG": 778,
+      "weightRangeG": [
+        673,
+        894
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "zucchini",
+        "kind": "vegetable",
+        "nhsWording": "courgette",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "This is an active time: a loud noise may make the baby jump, and the occasional hiccup may be felt.",
+      "developmentSource": "nhs-week-25"
+    },
+    {
+      "week": 26,
+      "lengthCm": 35.6,
+      "lengthStated": "35.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-26",
+      "weightG": 902,
+      "weightRangeG": [
+        780,
+        1038
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "cucumber",
+        "kind": "vegetable",
+        "nhsWording": "cucumber",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Around now the eyes open and the baby learns to blink. Eye color can keep changing after birth, so the final shade is a surprise for later.",
+      "developmentSource": "nhs-week-26"
+    },
+    {
+      "week": 27,
+      "lengthCm": 36.6,
+      "lengthStated": "36.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-27",
+      "weightG": 1039,
+      "weightRangeG": [
+        898,
+        1196
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "head of cauliflower",
+        "kind": "vegetable",
+        "nhsWording": "head of cauliflower",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Fat is starting to fill out the folds of skin, and the organs keep maturing for life outside the womb.",
+      "developmentSource": "nhs-week-27"
+    },
+    {
+      "week": 28,
+      "lengthCm": 37.6,
+      "lengthStated": "37.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-28",
+      "weightG": 1189,
+      "weightRangeG": [
+        1026,
+        1368
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "eggplant",
+        "kind": "vegetable",
+        "nhsWording": "aubergine",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The heart beats around 140 times a minute, much faster than an adult's. A partner may be able to hear it with an ear on the bump, though the right spot is hard to find.",
+      "developmentSource": "nhs-week-28"
+    },
+    {
+      "week": 29,
+      "lengthCm": 38.6,
+      "lengthStated": "38.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-29",
+      "weightG": 1350,
+      "weightRangeG": [
+        1165,
+        1554
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "butternut squash",
+        "kind": "vegetable",
+        "nhsWording": "butternut squash",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "All the parts are formed. The weeks ahead are about maturing organs and gaining fat.",
+      "developmentSource": "nhs-week-29"
+    },
+    {
+      "week": 30,
+      "lengthCm": 39.9,
+      "lengthStated": "39.9cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-30",
+      "weightG": 1523,
+      "weightRangeG": [
+        1313,
+        1753
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "cabbage",
+        "kind": "vegetable",
+        "nhsWording": "cabbage",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The eyes can now focus. After birth, a newborn sees a face best from about 20 to 25 cm away.",
+      "developmentSource": "nhs-week-30"
+    },
+    {
+      "week": 31,
+      "lengthCm": 41.1,
+      "lengthStated": "41.1cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-31",
+      "weightG": 1707,
+      "weightRangeG": [
+        1470,
+        1964
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "coconut",
+        "kind": "fruit",
+        "nhsWording": "coconut",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is busy sucking fingers and turning the odd somersault, and is starting to recognize voices, so everyone can talk to the bump.",
+      "developmentSource": "nhs-week-31"
+    },
+    {
+      "week": 32,
+      "lengthCm": 42.4,
+      "lengthStated": "42.4cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-32",
+      "weightG": 1901,
+      "weightRangeG": [
+        1635,
+        2187
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "bunch of celery",
+        "kind": "vegetable",
+        "nhsWording": "bunch of celery",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is fully formed and spends the coming weeks putting on weight.",
+      "developmentSource": "nhs-week-32"
+    },
+    {
+      "week": 33,
+      "lengthCm": 43.7,
+      "lengthStated": "43.7cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-33",
+      "weightG": 2103,
+      "weightRangeG": [
+        1807,
+        2419
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "pineapple",
+        "kind": "fruit",
+        "nhsWording": "pineapple",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The bones are hardening, except the skull bones, which stay soft and slightly flexible to make the journey through birth easier.",
+      "developmentSource": "nhs-week-33"
+    },
+    {
+      "week": 34,
+      "lengthCm": 45.0,
+      "lengthStated": "45cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-34",
+      "weightG": 2312,
+      "weightRangeG": [
+        1985,
+        2659
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "cantaloupe",
+        "kind": "fruit",
+        "nhsWording": "cantaloupe melon",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is curled up with legs bent toward the chest. Space is tight, but the bump still shifts shape as the baby moves.",
+      "developmentSource": "nhs-week-34"
+    },
+    {
+      "week": 35,
+      "lengthCm": 46.2,
+      "lengthStated": "46.2cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-35",
+      "weightG": 2527,
+      "weightRangeG": [
+        2167,
+        2904
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "honeydew melon",
+        "kind": "fruit",
+        "nhsWording": "honeydew melon",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is getting chubbier, which will help with keeping warm after birth.",
+      "developmentSource": "nhs-week-35",
+      "careNote": "If the baby's movements slow down or stop, contact your care team right away; CDC lists this as an urgent warning sign.",
+      "careNoteSource": "cdc-hearher"
+    },
+    {
+      "week": 36,
+      "lengthCm": 47.4,
+      "lengthStated": "47.4cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-36",
+      "weightG": 2745,
+      "weightRangeG": [
+        2352,
+        3153
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "head of romaine lettuce",
+        "kind": "vegetable",
+        "nhsWording": "romaine lettuce",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The lungs are probably mature enough to breathe without help, and the baby can now suck and digest milk.",
+      "developmentSource": "nhs-week-36"
+    },
+    {
+      "week": 37,
+      "lengthCm": 48.6,
+      "lengthStated": "48.6cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-37",
+      "weightG": 2966,
+      "weightRangeG": [
+        2537,
+        3403
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "leek",
+        "kind": "vegetable",
+        "nhsWording": "leek",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The baby is trying out facial expressions like frowning and smiling, at random for now.",
+      "developmentSource": "nhs-week-37"
+    },
+    {
+      "week": 38,
+      "lengthCm": 49.8,
+      "lengthStated": "49.8cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-38",
+      "weightG": 3186,
+      "weightRangeG": [
+        2723,
+        3652
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "stalk of rhubarb",
+        "kind": "vegetable",
+        "nhsWording": "stick of rhubarb",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "Most of the fine body hair is gone, and the bowels are storing meconium, which becomes the baby's dark first poo.",
+      "developmentSource": "nhs-week-38"
+    },
+    {
+      "week": 39,
+      "lengthCm": 50.7,
+      "lengthStated": "50.7cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-39",
+      "weightG": 3403,
+      "weightRangeG": [
+        2905,
+        3897
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "small watermelon",
+        "kind": "fruit",
+        "nhsWording": "small watermelon",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "The skin is growing a tougher outer layer that protects the organs and helps with temperature control.",
+      "developmentSource": "nhs-week-39"
+    },
+    {
+      "week": 40,
+      "lengthCm": 51.2,
+      "lengthStated": "51.2cm",
+      "lengthMeasure": "crown-heel",
+      "lengthMeasureLabel": "head to heel (crown-heel)",
+      "lengthSource": "nhs-week-40",
+      "weightG": 3617,
+      "weightRangeG": [
+        3084,
+        4135
+      ],
+      "weightLabel": "median estimated fetal weight from ultrasound; the range is the 10th to 90th percentile. Babies vary.",
+      "weightSource": "who-efw-2017",
+      "comparison": {
+        "name": "pumpkin",
+        "kind": "vegetable",
+        "nhsWording": "pumpkin",
+        "illustrative": true,
+        "origin": "nhs",
+        "note": "A friendly size picture, not a measurement. Taken from the NHS week page, US word used where NHS uses a UK one."
+      },
+      "development": "This is the due date week. The baby is snug but keeps moving in their usual pattern.",
+      "developmentSource": "nhs-week-40",
+      "careNote": "If the baby's movements slow down or stop, contact your care team right away; CDC lists this as an urgent warning sign.",
+      "careNoteSource": "cdc-hearher"
+    }
+  ]
+}

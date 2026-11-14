@@ -13,9 +13,7 @@ const (
 
 // Card is the weekly pregnancy card for one viewer.
 //
-// There is no baby size or development text: no source in docs/guidelines
-// gives week-by-week length, weight or development, so the API omits both
-// fields. Add them only with an opened source in the docs.
+// Size and Development come from size.go and are sourced from NHS and WHO.
 type Card struct {
 	Week         int
 	WhyItMatters string
@@ -23,6 +21,8 @@ type Card struct {
 	Questions    []string
 	BirthPrep    []Entry
 	Source       Source
+	Size         Size
+	Development  string
 }
 
 // window is a run of weeks that share one action and its source.
@@ -104,6 +104,7 @@ func WeekCard(week int, v Viewer, familyWeek int) (Card, bool) {
 			continue
 		}
 		c := Card{Week: week, WhyItMatters: w.whyFor(week), Tasks: []string{}, Questions: w.asks, BirthPrep: []Entry{}, Source: w.source}
+		c.Size, c.Development, _ = SizeFor(week)
 		switch v.audience() {
 		case Mother:
 			c.Tasks = []string{w.mother}
