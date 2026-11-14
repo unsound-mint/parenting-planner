@@ -55,6 +55,7 @@ type CalendarEvent struct {
 	AllDay        bool
 	Location      *string
 	CreatedAt     time.Time
+	NeutralTitle  bool
 }
 
 type CalendarEventAttendee struct {

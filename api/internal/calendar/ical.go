@@ -36,8 +36,21 @@ func EncodeFeed(events []Event, now time.Time) string {
 				writeLine(&out, "DTEND:"+event.EndsAt.UTC().Format(icalTimestamp))
 			}
 		}
-		writeLine(&out, "SUMMARY:"+icalEscape.Replace(event.Title))
-		if event.Location != nil {
+		title := event.Title
+		if event.NeutralTitle {
+			switch event.Kind {
+			case "appointment":
+				title = "Appointment"
+			case "class":
+				title = "Class"
+			case "reminder":
+				title = "Reminder"
+			default:
+				title = "Event"
+			}
+		}
+		writeLine(&out, "SUMMARY:"+icalEscape.Replace(title))
+		if event.Location != nil && !event.NeutralTitle {
 			writeLine(&out, "LOCATION:"+icalEscape.Replace(*event.Location))
 		}
 		out.WriteString("END:VEVENT\r\n")
