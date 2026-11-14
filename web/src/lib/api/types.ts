@@ -137,7 +137,6 @@ export type ParentRole = S["ParentRole"];
 export type CalendarEventInput = S["CalendarEventInput"];
 export type CalendarEventUpdate = S["CalendarEventUpdate"];
 export type CalendarVisibility = S["CalendarVisibility"];
-export type Source = S["Source"];
 export type GuideAudience = S["GuideAudience"];
 export type SimulatorChoice = S["SimulatorChoice"];
 export type LearningPathList = S["LearningPathList"];

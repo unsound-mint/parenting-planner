@@ -20,6 +20,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/offers"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
 
 const SessionTTL = 30 * 24 * time.Hour
@@ -199,6 +200,15 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedPlanTasks(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil
