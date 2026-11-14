@@ -62,6 +62,35 @@ export function daysUntil(isoDate: string, now = new Date()): number {
   return Math.round((new Date(isoDate).getTime() - today) / 86_400_000);
 }
 
+// Session times are real instants. Families are in the US (api/internal/httpapi
+// server.go), so show Eastern time; a fixed zone also keeps server and browser
+// renders identical.
+const ZONE = "America/New_York";
+const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone: ZONE });
+const weekdayFmt = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: ZONE });
+const monthFmt = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: ZONE });
+const dayNumFmt = new Intl.DateTimeFormat("en-US", { day: "numeric", timeZone: ZONE });
+const dayKeyFmt = new Intl.DateTimeFormat("en-CA", { timeZone: ZONE });
+
+/** "10:30 AM" in Eastern time. */
+export const formatClock = (iso: string) => timeFmt.format(new Date(iso));
+export const formatWeekday = (iso: string) => weekdayFmt.format(new Date(iso));
+export const formatMonth = (iso: string) => monthFmt.format(new Date(iso));
+export const formatDayNumber = (iso: string) => dayNumFmt.format(new Date(iso));
+/** "2026-11-17": groups instants by calendar day in Eastern time. */
+export const dayKey = (iso: string) => dayKeyFmt.format(new Date(iso));
+
+/** Whole calendar days from today to an instant, in Eastern time. */
+export function daysUntilInstant(iso: string, now = new Date()): number {
+  return Math.round((Date.parse(dayKey(iso)) - Date.parse(dayKey(now.toISOString()))) / 86_400_000);
+}
+
+/** "today", "tomorrow", "in 3 days". */
+export function whenWords(days: number): string {
+  if (days <= 0) return "today";
+  return days === 1 ? "tomorrow" : `in ${days} days`;
+}
+
 /** The first sentence of a longer guideline text: the one-line action for a card. */
 export function firstSentence(text: string): string {
   const m = text.match(/^[\s\S]*?[.!?](?=\s|$)/);

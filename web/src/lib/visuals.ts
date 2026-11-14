@@ -5,6 +5,7 @@ import {
   Blocks,
   BookOpen,
   Brain,
+  CalendarClock,
   CircleHelp,
   ContactRound,
   HandHeart,
@@ -16,11 +17,13 @@ import {
   GraduationCap,
   HeartHandshake,
   HeartPulse,
+  ListChecks,
   Leaf,
   Lock,
   MessagesSquare,
   MessageCircleHeart,
   Milk,
+  NotebookPen,
   Ruler,
   ShieldAlert,
   ShieldCheck,
@@ -33,6 +36,7 @@ import {
   Stethoscope,
   Syringe,
   TestTube,
+  UserRound,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -93,6 +97,14 @@ export const statusTint: Record<PlanItemStatus, string> = {
   upcoming: "bg-status-up-soft text-status-up",
 };
 
+/** Psychologist flow concepts (docs/product.md, must-have 7). */
+export const careIcon = {
+  diary: NotebookPen,
+  agenda: ListChecks,
+  session: CalendarClock,
+  note: PenLine,
+  provider: UserRound,
+} satisfies Record<string, LucideIcon>;
 export const visibilityLabel: Record<Visibility, string> = {
   private: "Only you",
   partner: "Shared with your partner",
