@@ -18,6 +18,7 @@ tags:
   - name: family
   - name: plan
   - name: wellbeing
+  - name: passport
 paths:
   /healthz:
     get:
@@ -103,6 +104,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Plan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/passport:
+    get:
+      operationId: getPassport
+      tags: [passport]
+      summary: The health passport of the family as the acting parent may see it
+      description: |
+        One entry per person: the acting parent, the other parent and the
+        child (when there is one). The acting parent sees all of their own
+        records and everything recorded for the child. For the other parent
+        only records shared with the acting parent come back (visibility
+        partner or family, the rule in access.CanParentRead); private and
+        care_team records are left out, and their count is not revealed.
+        Reading labs and allergies is audited like any sensitive read.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passport"
         "401":
           description: Error
           content:
@@ -412,3 +448,187 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/MoodCheckin"
+
+    Passport:
+      type: object
+      required: [memberId, people]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+          description: The acting parent.
+        people:
+          type: array
+          description: The acting parent first, then the other parent, then the child.
+          items:
+            $ref: "#/components/schemas/PassportPerson"
+
+    PassportPerson:
+      type: object
+      required: [id, kind, name, isActingParent, labs, vaccines, allergies, growth, careTeam]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [parent, child]
+        name:
+          type: string
+        role:
+          $ref: "#/components/schemas/ParentRole"
+        ageMonths:
+          type: integer
+          description: Set for the child.
+        isActingParent:
+          type: boolean
+        labs:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/LabResult"
+        vaccines:
+          type: array
+          description: Ordered by date, given or due.
+          items:
+            $ref: "#/components/schemas/VaccineDose"
+        allergies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Allergy"
+        growth:
+          type: array
+          description: Child only, oldest first. Empty for parents.
+          items:
+            $ref: "#/components/schemas/GrowthPoint"
+        careTeam:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareTeamMember"
+
+    LabResult:
+      type: object
+      required: [id, name, value, unit, takenOn, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Ferritin
+        value:
+          type: number
+        unit:
+          type: string
+          example: ng/mL
+        refLow:
+          type: number
+          description: Lower end of the reference range, when the lab gives one.
+        refHigh:
+          type: number
+          description: Upper end of the reference range, when the lab gives one.
+        takenOn:
+          type: string
+          format: date
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    VaccineStatus:
+      type: string
+      enum: [done, overdue, due, upcoming]
+
+    VaccineDose:
+      type: object
+      required: [id, name, dose, status, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: DTaP
+        dose:
+          type: string
+          example: Dose 2 of 5
+        status:
+          $ref: "#/components/schemas/VaccineStatus"
+        givenOn:
+          type: string
+          format: date
+          description: Set when status is done.
+        dueOn:
+          type: string
+          format: date
+          description: Set when status is not done.
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    AllergyCertainty:
+      type: string
+      description: confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
+      enum: [suspected, confirmed]
+
+    Allergy:
+      type: object
+      required: [id, substance, certainty, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        substance:
+          type: string
+          example: Peanut
+        certainty:
+          $ref: "#/components/schemas/AllergyCertainty"
+        reaction:
+          type: string
+          example: Hives within minutes
+        notedOn:
+          type: string
+          format: date
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    GrowthPoint:
+      type: object
+      required: [measuredOn, ageMonths, weightKg, heightCm]
+      properties:
+        measuredOn:
+          type: string
+          format: date
+        ageMonths:
+          type: integer
+        weightKg:
+          type: number
+        heightCm:
+          type: number
+        weightPercentile:
+          type: integer
+          minimum: 1
+          maximum: 99
+          description: Against the WHO or CDC chart for the child's age and sex, computed by the server.
+        heightPercentile:
+          type: integer
+          minimum: 1
+          maximum: 99
+
+    CareRole:
+      type: string
+      enum: [obstetrician, pediatrician, primary_care, psychologist, lactation_consultant, midwife, dentist]
+
+    CareTeamMember:
+      type: object
+      required: [id, name, role, clinic]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Dr. Maya Reyes
+        role:
+          $ref: "#/components/schemas/CareRole"
+        clinic:
+          type: string
+        phone:
+          type: string

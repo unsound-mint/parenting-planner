@@ -76,6 +76,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/passport": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The health passport of the family as the acting parent may see it
+         * @description One entry per person: the acting parent, the other parent and the
+         *     child (when there is one). The acting parent sees all of their own
+         *     records and everything recorded for the child. For the other parent
+         *     only records shared with the acting parent come back (visibility
+         *     partner or family, the rule in access.CanParentRead); private and
+         *     care_team records are left out, and their count is not revealed.
+         *     Reading labs and allergies is audited like any sensitive read.
+         */
+        get: operations["getPassport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/mood-checkins": {
         parameters: {
             query?: never;
@@ -224,6 +250,110 @@ export interface components {
             /** @description Newest first. */
             items: components["schemas"]["MoodCheckin"][];
         };
+        Passport: {
+            /**
+             * Format: uuid
+             * @description The acting parent.
+             */
+            memberId: string;
+            /** @description The acting parent first, then the other parent, then the child. */
+            people: components["schemas"]["PassportPerson"][];
+        };
+        PassportPerson: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "parent" | "child";
+            name: string;
+            role?: components["schemas"]["ParentRole"];
+            /** @description Set for the child. */
+            ageMonths?: number;
+            isActingParent: boolean;
+            /** @description Newest first. */
+            labs: components["schemas"]["LabResult"][];
+            /** @description Ordered by date, given or due. */
+            vaccines: components["schemas"]["VaccineDose"][];
+            allergies: components["schemas"]["Allergy"][];
+            /** @description Child only, oldest first. Empty for parents. */
+            growth: components["schemas"]["GrowthPoint"][];
+            careTeam: components["schemas"]["CareTeamMember"][];
+        };
+        LabResult: {
+            /** Format: uuid */
+            id: string;
+            /** @example Ferritin */
+            name: string;
+            value: number;
+            /** @example ng/mL */
+            unit: string;
+            /** @description Lower end of the reference range, when the lab gives one. */
+            refLow?: number;
+            /** @description Upper end of the reference range, when the lab gives one. */
+            refHigh?: number;
+            /** Format: date */
+            takenOn: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        /** @enum {string} */
+        VaccineStatus: "done" | "overdue" | "due" | "upcoming";
+        VaccineDose: {
+            /** Format: uuid */
+            id: string;
+            /** @example DTaP */
+            name: string;
+            /** @example Dose 2 of 5 */
+            dose: string;
+            status: components["schemas"]["VaccineStatus"];
+            /**
+             * Format: date
+             * @description Set when status is done.
+             */
+            givenOn?: string;
+            /**
+             * Format: date
+             * @description Set when status is not done.
+             */
+            dueOn?: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        /**
+         * @description confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
+         * @enum {string}
+         */
+        AllergyCertainty: "suspected" | "confirmed";
+        Allergy: {
+            /** Format: uuid */
+            id: string;
+            /** @example Peanut */
+            substance: string;
+            certainty: components["schemas"]["AllergyCertainty"];
+            /** @example Hives within minutes */
+            reaction?: string;
+            /** Format: date */
+            notedOn?: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        GrowthPoint: {
+            /** Format: date */
+            measuredOn: string;
+            ageMonths: number;
+            weightKg: number;
+            heightCm: number;
+            /** @description Against the WHO or CDC chart for the child's age and sex, computed by the server. */
+            weightPercentile?: number;
+            heightPercentile?: number;
+        };
+        /** @enum {string} */
+        CareRole: "obstetrician" | "pediatrician" | "primary_care" | "psychologist" | "lactation_consultant" | "midwife" | "dentist";
+        CareTeamMember: {
+            /** Format: uuid */
+            id: string;
+            /** @example Dr. Maya Reyes */
+            name: string;
+            role: components["schemas"]["CareRole"];
+            clinic: string;
+            phone?: string;
+        };
     };
     responses: never;
     parameters: {
@@ -347,6 +477,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Plan"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPassport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Passport"];
                 };
             };
             /** @description Error */

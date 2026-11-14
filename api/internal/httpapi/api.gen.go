@@ -23,6 +23,57 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AllergyCertainty.
+const (
+	Confirmed AllergyCertainty = "confirmed"
+	Suspected AllergyCertainty = "suspected"
+)
+
+// Valid indicates whether the value is a known member of the AllergyCertainty enum.
+func (e AllergyCertainty) Valid() bool {
+	switch e {
+	case Confirmed:
+		return true
+	case Suspected:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CareRole.
+const (
+	Dentist             CareRole = "dentist"
+	LactationConsultant CareRole = "lactation_consultant"
+	Midwife             CareRole = "midwife"
+	Obstetrician        CareRole = "obstetrician"
+	Pediatrician        CareRole = "pediatrician"
+	PrimaryCare         CareRole = "primary_care"
+	Psychologist        CareRole = "psychologist"
+)
+
+// Valid indicates whether the value is a known member of the CareRole enum.
+func (e CareRole) Valid() bool {
+	switch e {
+	case Dentist:
+		return true
+	case LactationConsultant:
+		return true
+	case Midwife:
+		return true
+	case Obstetrician:
+		return true
+	case Pediatrician:
+		return true
+	case PrimaryCare:
+		return true
+	case Psychologist:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DemoTemplate.
 const (
 	DemoTemplatePregnancy DemoTemplate = "pregnancy"
@@ -50,6 +101,24 @@ func (e ParentRole) Valid() bool {
 	case ParentRoleMother:
 		return true
 	case ParentRolePartner:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PassportPersonKind.
+const (
+	PassportPersonKindChild  PassportPersonKind = "child"
+	PassportPersonKindParent PassportPersonKind = "parent"
+)
+
+// Valid indicates whether the value is a known member of the PassportPersonKind enum.
+func (e PassportPersonKind) Valid() bool {
+	switch e {
+	case PassportPersonKindChild:
+		return true
+	case PassportPersonKindParent:
 		return true
 	default:
 		return false
@@ -91,19 +160,19 @@ func (e PlanCategory) Valid() bool {
 
 // Defines values for PlanItemStatus.
 const (
-	Due      PlanItemStatus = "due"
-	Overdue  PlanItemStatus = "overdue"
-	Upcoming PlanItemStatus = "upcoming"
+	PlanItemStatusDue      PlanItemStatus = "due"
+	PlanItemStatusOverdue  PlanItemStatus = "overdue"
+	PlanItemStatusUpcoming PlanItemStatus = "upcoming"
 )
 
 // Valid indicates whether the value is a known member of the PlanItemStatus enum.
 func (e PlanItemStatus) Valid() bool {
 	switch e {
-	case Due:
+	case PlanItemStatusDue:
 		return true
-	case Overdue:
+	case PlanItemStatusOverdue:
 		return true
-	case Upcoming:
+	case PlanItemStatusUpcoming:
 		return true
 	default:
 		return false
@@ -146,6 +215,30 @@ func (e Stage) Valid() bool {
 	}
 }
 
+// Defines values for VaccineStatus.
+const (
+	VaccineStatusDone     VaccineStatus = "done"
+	VaccineStatusDue      VaccineStatus = "due"
+	VaccineStatusOverdue  VaccineStatus = "overdue"
+	VaccineStatusUpcoming VaccineStatus = "upcoming"
+)
+
+// Valid indicates whether the value is a known member of the VaccineStatus enum.
+func (e VaccineStatus) Valid() bool {
+	switch e {
+	case VaccineStatusDone:
+		return true
+	case VaccineStatusDue:
+		return true
+	case VaccineStatusOverdue:
+		return true
+	case VaccineStatusUpcoming:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Visibility.
 const (
 	VisibilityCareTeam Visibility = "care_team"
@@ -168,6 +261,42 @@ func (e Visibility) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// Allergy defines model for Allergy.
+type Allergy struct {
+	// Certainty confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
+	Certainty AllergyCertainty    `json:"certainty"`
+	Id        openapi_types.UUID  `json:"id"`
+	NotedOn   *openapi_types.Date `json:"notedOn,omitempty"`
+
+	// Reaction Example: Hives within minutes
+	Reaction *string `json:"reaction,omitempty"`
+
+	// Substance Example: Peanut
+	Substance string `json:"substance"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// AllergyCertainty confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
+type AllergyCertainty string
+
+// CareRole defines model for CareRole.
+type CareRole string
+
+// CareTeamMember defines model for CareTeamMember.
+type CareTeamMember struct {
+	Clinic string             `json:"clinic"`
+	Id     openapi_types.UUID `json:"id"`
+
+	// Name Example: Dr. Maya Reyes
+	Name  string   `json:"name"`
+	Phone *string  `json:"phone,omitempty"`
+	Role  CareRole `json:"role"`
 }
 
 // Child defines model for Child.
@@ -211,6 +340,42 @@ type Family struct {
 
 	// Template Which synthetic family to copy. Add a value here when its seed exists.
 	Template DemoTemplate `json:"template"`
+}
+
+// GrowthPoint defines model for GrowthPoint.
+type GrowthPoint struct {
+	AgeMonths        int                `json:"ageMonths"`
+	HeightCm         float32            `json:"heightCm"`
+	HeightPercentile *int               `json:"heightPercentile,omitempty"`
+	MeasuredOn       openapi_types.Date `json:"measuredOn"`
+	WeightKg         float32            `json:"weightKg"`
+
+	// WeightPercentile Against the WHO or CDC chart for the child's age and sex, computed by the server.
+	WeightPercentile *int `json:"weightPercentile,omitempty"`
+}
+
+// LabResult defines model for LabResult.
+type LabResult struct {
+	Id openapi_types.UUID `json:"id"`
+
+	// Name Example: Ferritin
+	Name string `json:"name"`
+
+	// RefHigh Upper end of the reference range, when the lab gives one.
+	RefHigh *float32 `json:"refHigh,omitempty"`
+
+	// RefLow Lower end of the reference range, when the lab gives one.
+	RefLow  *float32           `json:"refLow,omitempty"`
+	TakenOn openapi_types.Date `json:"takenOn"`
+
+	// Unit Example: ng/mL
+	Unit  string  `json:"unit"`
+	Value float32 `json:"value"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
 }
 
 // MoodCheckin defines model for MoodCheckin.
@@ -262,6 +427,40 @@ type Parent struct {
 // ParentRole defines model for ParentRole.
 type ParentRole string
 
+// Passport defines model for Passport.
+type Passport struct {
+	// MemberId The acting parent.
+	MemberId openapi_types.UUID `json:"memberId"`
+
+	// People The acting parent first, then the other parent, then the child.
+	People []PassportPerson `json:"people"`
+}
+
+// PassportPerson defines model for PassportPerson.
+type PassportPerson struct {
+	// AgeMonths Set for the child.
+	AgeMonths *int             `json:"ageMonths,omitempty"`
+	Allergies []Allergy        `json:"allergies"`
+	CareTeam  []CareTeamMember `json:"careTeam"`
+
+	// Growth Child only, oldest first. Empty for parents.
+	Growth         []GrowthPoint      `json:"growth"`
+	Id             openapi_types.UUID `json:"id"`
+	IsActingParent bool               `json:"isActingParent"`
+	Kind           PassportPersonKind `json:"kind"`
+
+	// Labs Newest first.
+	Labs []LabResult `json:"labs"`
+	Name string      `json:"name"`
+	Role *ParentRole `json:"role,omitempty"`
+
+	// Vaccines Ordered by date, given or due.
+	Vaccines []VaccineDose `json:"vaccines"`
+}
+
+// PassportPersonKind defines model for PassportPerson.Kind.
+type PassportPersonKind string
+
 // Plan defines model for Plan.
 type Plan struct {
 	GeneratedAt time.Time `json:"generatedAt"`
@@ -306,6 +505,31 @@ type Source struct {
 // Stage Where the family is on the journey from planning to age 9.
 type Stage string
 
+// VaccineDose defines model for VaccineDose.
+type VaccineDose struct {
+	// Dose Example: Dose 2 of 5
+	Dose string `json:"dose"`
+
+	// DueOn Set when status is not done.
+	DueOn *openapi_types.Date `json:"dueOn,omitempty"`
+
+	// GivenOn Set when status is done.
+	GivenOn *openapi_types.Date `json:"givenOn,omitempty"`
+	Id      openapi_types.UUID  `json:"id"`
+
+	// Name Example: DTaP
+	Name   string        `json:"name"`
+	Status VaccineStatus `json:"status"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// VaccineStatus defines model for VaccineStatus.
+type VaccineStatus string
+
 // Visibility Who besides the author may see a sensitive record.
 // private = author only; partner = author and the other parent;
 // care_team = author and their professionals, not the partner; family = both parents.
@@ -337,6 +561,9 @@ type ServerInterface interface {
 	// CreateMoodCheckin The acting parent records how they feel today
 	// (POST /members/{memberId}/mood-checkins)
 	CreateMoodCheckin(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// GetPassport The health passport of the family as the acting parent may see it
+	// (GET /members/{memberId}/passport)
+	GetPassport(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// GetMemberPlan This week's plan for one parent
 	// (GET /members/{memberId}/plan)
 	GetMemberPlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -436,6 +663,32 @@ func (siw *ServerInterfaceWrapper) CreateMoodCheckin(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateMoodCheckin(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPassport operation middleware
+func (siw *ServerInterfaceWrapper) GetPassport(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPassport(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -595,6 +848,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/demo/sessions", wrapper.CreateDemoSession)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/family", wrapper.GetFamily)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/plan", wrapper.GetMemberPlan)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/passport", wrapper.GetPassport)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.ListMoodCheckins)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.CreateMoodCheckin)
 
@@ -821,6 +1075,56 @@ func (response CreateMoodCheckin404JSONResponse) VisitCreateMoodCheckinResponse(
 	return err
 }
 
+type GetPassportRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type GetPassportResponseObject interface {
+	VisitGetPassportResponse(w http.ResponseWriter) error
+}
+
+type GetPassport200JSONResponse Passport
+
+func (response GetPassport200JSONResponse) VisitGetPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPassport401JSONResponse Error
+
+func (response GetPassport401JSONResponse) VisitGetPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetPassport404JSONResponse Error
+
+func (response GetPassport404JSONResponse) VisitGetPassportResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMemberPlanRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -888,6 +1192,9 @@ type StrictServerInterface interface {
 	// CreateMoodCheckin The acting parent records how they feel today
 	// (POST /members/{memberId}/mood-checkins)
 	CreateMoodCheckin(ctx context.Context, request CreateMoodCheckinRequestObject) (CreateMoodCheckinResponseObject, error)
+	// GetPassport The health passport of the family as the acting parent may see it
+	// (GET /members/{memberId}/passport)
+	GetPassport(ctx context.Context, request GetPassportRequestObject) (GetPassportResponseObject, error)
 	// GetMemberPlan This week's plan for one parent
 	// (GET /members/{memberId}/plan)
 	GetMemberPlan(ctx context.Context, request GetMemberPlanRequestObject) (GetMemberPlanResponseObject, error)
@@ -1070,6 +1377,32 @@ func (sh *strictHandler) CreateMoodCheckin(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// GetPassport operation middleware
+func (sh *strictHandler) GetPassport(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request GetPassportRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetPassport(ctx, request.(GetPassportRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetPassport")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetPassportResponseObject); ok {
+		if err := validResponse.VisitGetPassportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMemberPlan operation middleware
 func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request GetMemberPlanRequestObject
@@ -1101,45 +1434,62 @@ func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, m
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"5Flfb9w2Ev8qA90BbQFl12mSh7ORh8Rpr0aTxoh97UNspFxpVmJMkSo58kYX7Hc/DEmtJEvO7qFJ7oC+",
-	"GF6Jf2Z+8+83o49JZqraaNTkkuOPSS2sqJDQ+l+vsFqhPcv5/xxdZmVN0ujkOLksEURGUhdQC4uaFnBZ",
-	"okWQDrQBZQqpU3AGqET41xk40TrYlDIr43qQ7ko3jg/gJaKuT/w/z87PICsxu3FApSCgUrpuywqV0YUD",
-	"Csc6dE4a/Y2DtaikahdXOkkTyeLVgsokTbSoMDlOqk6NNLH4RyMt5skx2QbTxGUlVoL1WxtbCUqOk6aR",
-	"vJLamvc6slIXyXa77RZ7ZE5LqTwstTU1WpLoH4sCXxlNpf8RT5CasECbbNNkJS2VLwTh6MKcH0wuTBOZ",
-	"HyBXp+THicBDZd8mfq9fOhQjHUh8vTvbrN5jRnz2qUVB+AIrcxHAfoN/NOhoqjlhVauo2d8trpPj5G/L",
-	"3reWEbsln3XZrb0r5O6QOVlGOycO+Zv3LddqKpFkFl2CXSUzdbuAZ3kOAm6FahC8o25K1CDJgUPMAT9I",
-	"R26RpAnqpmJZaouFFjprB8L0oP9grbFTFDKTe9nwg6hqxVu0oXdr0+hZ01XonCgOsJ4/t18/B8+PXuEZ",
-	"kdhTLWr+XxJWbp+Fgmtvd1cIa0XLv/MGX8xif4EEeWN9MuhQYyj3eniBjgQfItRviDfTk08Nw0iYwwbx",
-	"xoFZ9zcAmVy0KeRo5S3msLamgijjor9tEH4HBlTINu5gwM79+jnEHEXrfmr7hV/Euz9HCAWVuredCL1S",
-	"ae8Qc170ypj8lNOv1DPZraHSxHKwF0XUaIt2Pg8eaIjKmHz+AG1oLmoYiszYHPNnNEmxD0hWs17oFGL9",
-	"k2nsMGvrhmsGv76VTq6kktTuM8yv/cpZs+zwG8kZ9dwhNhJodP0eg53pupnJzL0hKvFBVpzdnqRJJXX4",
-	"/+FcpHTIj6PxITyFW7QtKLNJ4Un3qzAm54A7/PjOfJX48BJ1QWVy/OToaK9pxtL4x+AU1gRSe0aghCP4",
-	"/jGU/Gok0vePBzL1N31mK38mQ76UcxV2l4vGMPyCG3QEa2kdscoHpaxhmE/y1l3X9QfOiRwT30TSXLpa",
-	"ifaXeWJycPhbo/Cw3PuGV86GnD8jHUl0vyZv4oUdBagMlWhD8iSNdpYJnCsxkyoL9gFB/10iusfCF8Zy",
-	"BVy1wNWycfCtuUWbN5iC/9PUmamkLr5LOQg0P4Q8FsHDCpgS+oywmith1aAF2EeR7wRDz7qHaKSfcigl",
-	"9KkgLIxth4ZwmUXUfEma3IoskxpjQPn0iZqEeleiUJ71c/PhSGa+2Jmm9h6gUFh/wn029ABM2dNAmn0Q",
-	"7iRnroQkpJqjqdzTGMhNykmrVkJqUEIXjSiGrKWXLW/weXtQv2BROKPn7mxDGyXqWkmM/VPfVmnO5ivh",
-	"MAfj86i07D9iVhzbKAze0HPcQjWZcfggmGm2xJrGZvuZUFgViBM1B/vtRVjN3itJHUCnoxLd+p25dhen",
-	"veF3uO60uM9zB6IMfDfGauItmaRJF62zjnixw+kuicfspksmd62LGpyp0OhYADOj19JWmPuaWDQyRyU1",
-	"giOpVOjE2fwHMfT7AE2Txqr9QHf48uJ0oMUchBcdWZ7oZ9FrEls66aKbwnvTWI1tYP61Elr7cYIBUSD8",
-	"Y9TMxZesom3DP32Dlya1ccRJvqn8BGEtNCcWMnmuQgGw6LLSGO8i/p934z6sx+XXEZG4q4uBFTqZcxCW",
-	"CIEQQiVa7kJBgEPtJMlbhEAQF1e6tvJWEMLTbrXRqj2BWJL6x0IHe/uaFUP75EpnwuI7QlFNVkoLtTXr",
-	"0NcL5VLQhvwR8eyTDvGnsDLUDW5cGLP0bbIXb1AkOXbinexhoS29nqsWDrPGSmovOJ6Do8eZjuc7jFhm",
-	"zI3EfpRT1++6JX2tquXP2IYRjdRrM9dGarIiI1ghbRA1bHC19DiIWi4X8JzVC2bpShVwyx08y+fKtVR4",
-	"pb/9vRI3yIt+/+4ENN6iBcwl7bblYd+qhVLofAGnpdAF9kcEnpZeaRmGD2aj4fwNGAtkCvSm20gqA+CS",
-	"86uvbqwHA3+lnzVUHrOVxrO2BZy/vriEZY6VWUaEHGR+fONAAD/vzCl0fqUdkgOhoSSqX2vVdtM0CIiH",
-	"4ZvLTI0O0NP84FiZUCoUEEGjuVvMFJFKcSByTmQXfXZ+xtUabbBscrR4uDjiUDE1alHL5Dh5tDhaPPI+",
-	"FGdnY0V8QjSBFHNa9HhwFZoOqOKMDx09N3kbZjKaIk31BTDzu5fvY63sJ4CfHIrcNwjbjlMe2Qb9A1cb",
-	"7YJPf3/08LPJEac8/taxj4c30eT5yXBC2tlUOnDom4QSRR5nvBdID05DlI2kmMw/t2ny+Ojos2kSJmgz",
-	"inQv+vyQHL+9ThPXVJVgJsaVwlLn1D5cBKwtutLP+sCsOZPemQSyh4rCccribck1X7Bc74ZmBc541z+R",
-	"fux23zHp0Vcw6eufEw/6w68K+g7my77mmrX3p6yxnjFGv0oD+LEu+Hy6Gy71cHcVwAMeSPq/70X8p/j+",
-	"T+I9Zk89m+w5q7nZ28DEbVOuMoXvMn65YAg4rTN9ZkYNwiI09WLizh6M0CG55ceuVdouK2PyB1nozN0A",
-	"pcl10vra4Zc+kNpBrRo3IQDfuMEKVwqLebAZlVhxIhij/1I6GowG3Jd0+7vzjv8L/+fbHv9vou10Z6dI",
-	"OiKbf3QEeaDsIrCz0We3jjsO4m2DSq3QdxhhmL37oPd2Xtx+yXL3wW97nX6y4g4HSF+m4k4Gm1+50o5G",
-	"ZFMTBhjy5CtXxb9MOEw+MMeOyEFpNhwHLawRVfgIdI/335Nj6zixm02t3MQ7yEyFfRz2LbRtFPNhXUiN",
-	"KeCtUI0n/aIQUjsatKlXmmvAaM4iHQilzIYbc8NBu4AfRFaCJKy6D+QtSNrNaTxRzyQzeP+h0g8HAtue",
-	"8JQQuX4Y+aeC/ovley/aXz3JX7I7bBBvvnF+YAFr39BjdJGBH3snvd7e4Q2DBvntNZvLob3tzOwnMsmS",
-	"Oyp+FU/62LXOnvZu093vyMsGT/ydg999LG2vt/8JAAD//w==",
+	"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",
+	"332mHS7qgtbV+r8BAAD//w==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
