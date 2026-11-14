@@ -16,7 +16,7 @@ import (
 
 func storiesPath(id uuid.UUID) string { return "/api/members/" + id.String() + "/stories" }
 
-func storyPath(member, story uuid.UUID) string { return storiesPath(member) + "/" + story.String() }
+func storybookPath(member, story uuid.UUID) string { return storiesPath(member) + "/" + story.String() }
 
 func storyInput(childID *uuid.UUID, theme, vis string, memories ...string) map[string]any {
 	ms := []map[string]string{}
@@ -94,32 +94,32 @@ func TestStoriesUseTheTemplateWithoutAKeyAndArePrivateUntilShared(t *testing.T) 
 	if _, ok := storyTitles(c, mom.Id)[made.Title]; ok {
 		t.Error("Mom sees Dad's private story")
 	}
-	c.Get(storyPath(mom.Id, made.Id), http.StatusNotFound, nil)
-	c.Patch(storyPath(mom.Id, made.Id), map[string]string{"visibility": "partner"}, http.StatusNotFound, nil)
-	c.Delete(storyPath(mom.Id, made.Id), http.StatusNotFound, nil)
-	c.Get(storyPath(dad.Id, made.Id), http.StatusOK, nil)
+	c.Get(storybookPath(mom.Id, made.Id), http.StatusNotFound, nil)
+	c.Patch(storybookPath(mom.Id, made.Id), map[string]string{"visibility": "partner"}, http.StatusNotFound, nil)
+	c.Delete(storybookPath(mom.Id, made.Id), http.StatusNotFound, nil)
+	c.Get(storybookPath(dad.Id, made.Id), http.StatusOK, nil)
 
 	// Shared per story.
-	c.Patch(storyPath(dad.Id, made.Id), map[string]string{"visibility": "family"}, http.StatusBadRequest, nil)
-	c.Patch(storyPath(dad.Id, made.Id), map[string]string{"visibility": "partner"}, http.StatusOK, nil)
+	c.Patch(storybookPath(dad.Id, made.Id), map[string]string{"visibility": "family"}, http.StatusBadRequest, nil)
+	c.Patch(storybookPath(dad.Id, made.Id), map[string]string{"visibility": "partner"}, http.StatusOK, nil)
 	var got httpapi.StorybookStory
-	c.Get(storyPath(mom.Id, made.Id), http.StatusOK, &got)
+	c.Get(storybookPath(mom.Id, made.Id), http.StatusOK, &got)
 	if got.Title != made.Title || len(got.Pages) != len(made.Pages) {
 		t.Errorf("Mom reads the shared story: %+v", got)
 	}
 	// Still only the author may change or delete it.
-	c.Patch(storyPath(mom.Id, made.Id), map[string]string{"visibility": "private"}, http.StatusNotFound, nil)
-	c.Delete(storyPath(mom.Id, made.Id), http.StatusNotFound, nil)
+	c.Patch(storybookPath(mom.Id, made.Id), map[string]string{"visibility": "private"}, http.StatusNotFound, nil)
+	c.Delete(storybookPath(mom.Id, made.Id), http.StatusNotFound, nil)
 
 	// Caregivers never see stories.
 	for _, cg := range fam.Caregivers {
 		c.Get(storiesPath(cg.Id), http.StatusNotFound, nil)
-		c.Get(storyPath(cg.Id, made.Id), http.StatusNotFound, nil)
+		c.Get(storybookPath(cg.Id, made.Id), http.StatusNotFound, nil)
 		c.Post(storiesPath(cg.Id), storyInput(&leo, "bedtime", "private", "a walk"), http.StatusNotFound, nil)
 	}
 
-	c.Delete(storyPath(dad.Id, made.Id), http.StatusNoContent, nil)
-	c.Get(storyPath(dad.Id, made.Id), http.StatusNotFound, nil)
+	c.Delete(storybookPath(dad.Id, made.Id), http.StatusNoContent, nil)
+	c.Get(storybookPath(dad.Id, made.Id), http.StatusNotFound, nil)
 
 	for _, action := range []string{"create", "read", "update", "delete"} {
 		if c.AuditCount(fam.Id, action, "story") == 0 {
