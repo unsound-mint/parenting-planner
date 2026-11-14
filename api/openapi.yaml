@@ -33,6 +33,8 @@ tags:
   - name: simulator
   - name: learn
   - name: together
+  - name: couplelab
+  - name: timecapsule
   - name: shifts
   - name: carelog
   - name: live
@@ -4782,6 +4784,229 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/BabyName"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/lab:
+    get:
+      operationId: getCoupleLab
+      tags: [couplelab]
+      summary: The Parenting Compatibility Lab's cards for the acting parent
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Scenario cards each parent answers on their own.
+        The other parent's choice is never in the response until the acting parent has answered the same
+        card too (partnerAnswered says only that they did); then the card carries a reveal. There is no
+        score, percentage or ranking. A card whose answers differ has a conversation prompt that also
+        appears in the couple talks list (id lab:<cardId>, see getTogether and createCoupleTalk).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoupleLab"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/lab-answers:
+    post:
+      operationId: createLabAnswer
+      tags: [couplelab]
+      summary: Answer one scenario card
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Saves the acting parent's answer; sending a
+        second answer to a card before the other parent answered it replaces the first. 409 revealed once
+        both parents answered the card. 404 unknown_card, 400 for a choice that is not on the card.
+        otherText goes only with choiceId other.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LabAnswerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LabCard"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/letters:
+    get:
+      operationId: listLetters
+      tags: [timecapsule]
+      summary: The family's letters to the child, soonest opening first
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Every letter of the family is listed so a parent
+        sees that the other one wrote one, with its occasion and opening date. body is present only on the
+        viewer's own letters and on letters the author shared with the partner. Audited.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LetterList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createLetter
+      tags: [timecapsule]
+      summary: Seal a letter to open on a chosen date
+      description: |
+        Both parents only; a grandparent or nanny gets 404. opensOn must be after today (400 otherwise).
+        visibility is private or partner; the client sends it explicitly and defaults to private. Audited.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LetterInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Letter"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/letters/{letterId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: letterId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateLetter
+      tags: [timecapsule]
+      summary: The author edits their letter
+      description: |
+        Only the author. Any other letter id, including the partner's, is 404. Replaces occasion, opening
+        date, text and who may read it. A date that did not change is not checked, so an opened letter can
+        still be edited. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LetterInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Letter"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteLetter
+      tags: [timecapsule]
+      summary: The author deletes their letter
+      description: Only the author; any other letter id is 404. Audited.
+      responses:
+        "204":
+          description: Deleted
         "401":
           description: Error
           content:
@@ -12246,6 +12471,152 @@ components:
           type: string
           format: uuid
           description: The parent who marked it.
+
+    LabChoice:
+      type: object
+      required: [id, label]
+      properties:
+        id:
+          type: string
+          enum: [a, b, c, d]
+        label:
+          type: string
+
+    LabAnswer:
+      type: object
+      required: [choiceId]
+      properties:
+        choiceId:
+          type: string
+          enum: [a, b, c, d, other]
+        otherText:
+          type: string
+          description: What the parent wrote for "Something else".
+
+    LabAnswerInput:
+      type: object
+      required: [cardId, choiceId]
+      properties:
+        cardId:
+          type: string
+          maxLength: 60
+        choiceId:
+          type: string
+          enum: [a, b, c, d, other]
+        otherText:
+          type: string
+          maxLength: 300
+
+    LabReveal:
+      type: object
+      required: [theirs, agree, talkPrompt]
+      description: Present only when both parents answered the card.
+      properties:
+        theirs:
+          $ref: "#/components/schemas/LabAnswer"
+        agree:
+          type: boolean
+          description: Both chose the same listed answer. "Something else" never counts as agreeing.
+        talkPrompt:
+          $ref: "#/components/schemas/TalkPrompt"
+
+    LabCard:
+      type: object
+      required: [id, topic, situation, choices, partnerAnswered]
+      properties:
+        id:
+          type: string
+          example: night-split
+        topic:
+          type: string
+          example: Night shifts
+        situation:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/LabChoice"
+        mine:
+          $ref: "#/components/schemas/LabAnswer"
+        partnerAnswered:
+          type: boolean
+          description: The other parent answered. Their choice stays hidden until the acting parent answers.
+        reveal:
+          $ref: "#/components/schemas/LabReveal"
+
+    CoupleLab:
+      type: object
+      required: [cards]
+      properties:
+        cards:
+          type: array
+          description: In the order the screen offers them. No score or percentage is computed.
+          items:
+            $ref: "#/components/schemas/LabCard"
+
+    LetterInput:
+      type: object
+      required: [occasion, opensOn, body, visibility]
+      properties:
+        occasion:
+          type: string
+          minLength: 1
+          maxLength: 60
+          example: 18th birthday
+        opensOn:
+          type: string
+          format: date
+        body:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        visibility:
+          type: string
+          enum: [private, partner]
+        childId:
+          type: string
+          format: uuid
+          description: The child the letter is for; absent for a baby not born yet. Ignored by updateLetter.
+
+    Letter:
+      type: object
+      required: [id, authorId, occasion, opensOn, visibility, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        childId:
+          type: string
+          format: uuid
+        occasion:
+          type: string
+        opensOn:
+          type: string
+          format: date
+        visibility:
+          type: string
+          enum: [private, partner]
+        body:
+          type: string
+          description: Present only for the author and, when shared, the partner.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LetterList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Letter"
 
     Together:
       type: object

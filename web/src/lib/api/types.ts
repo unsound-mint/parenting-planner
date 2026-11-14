@@ -219,6 +219,11 @@ export type ChildcareOptionInput = S["ChildcareOptionInput"];
 export type ChildcareOptionList = S["ChildcareOptionList"];
 export type ChildcareStatus = S["ChildcareStatus"];
 export type ChildcareKind = S["ChildcareKind"];
+export type CoupleLab = S["CoupleLab"];
+export type LabCard = S["LabCard"];
+export type LabAnswer = S["LabAnswer"];
+export type Letter = S["Letter"];
+export type LetterInput = S["LetterInput"];
 
 // Money pack
 export type Budget = S["Budget"];

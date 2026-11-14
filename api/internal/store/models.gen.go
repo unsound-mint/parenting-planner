@@ -350,6 +350,15 @@ type Invitation struct {
 	RevokedAt   pgtype.Timestamptz
 }
 
+type LabAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	CardID     string
+	ChoiceID   string
+	OtherText  *string
+	AnsweredAt time.Time
+}
+
 type LabResult struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -731,6 +740,19 @@ type Thank struct {
 	Body          string
 	SuggestionKey *string
 	CreatedAt     time.Time
+}
+
+type TimeCapsuleLetter struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	ChildID       uuid.NullUUID
+	Visibility    string
+	Occasion      string
+	OpensOn       time.Time
+	BodySealed    []byte
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type UpgradeIntent struct {
