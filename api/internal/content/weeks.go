@@ -103,11 +103,7 @@ func WeekCard(week int, v Viewer, familyWeek int) (Card, bool) {
 		if week < w.from || week > w.to {
 			continue
 		}
-		why := w.why
-		if w.closes > week {
-			why += fmt.Sprintf(" It closes at week %d, in %d weeks.", w.closes, w.closes-week)
-		}
-		c := Card{Week: week, WhyItMatters: why, Tasks: []string{}, Questions: w.asks, BirthPrep: []Entry{}, Source: w.source}
+		c := Card{Week: week, WhyItMatters: w.whyFor(week), Tasks: []string{}, Questions: w.asks, BirthPrep: []Entry{}, Source: w.source}
 		switch v.audience() {
 		case Mother:
 			c.Tasks = []string{w.mother}
@@ -124,4 +120,23 @@ func WeekCard(week int, v Viewer, familyWeek int) (Card, bool) {
 		return c, true
 	}
 	return Card{}, false
+}
+
+// windowFor returns the window that covers week.
+func windowFor(week int) (window, bool) {
+	for _, w := range windows {
+		if week >= w.from && week <= w.to {
+			return w, true
+		}
+	}
+	return window{}, false
+}
+
+// whyFor is the card's "why it matters" text for one week of the window.
+func (w window) whyFor(week int) string {
+	why := w.why
+	if w.closes > week {
+		why += fmt.Sprintf(" It closes at week %d, in %d weeks.", w.closes, w.closes-week)
+	}
+	return why
 }

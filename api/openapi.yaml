@@ -2176,6 +2176,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/calendar-events/{eventId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/EventId"
+    patch:
+      operationId: updateCalendarEvent
+      tags: [calendar]
+      summary: The owner edits an appointment, class or reminder
+      description: |
+        Only the acting parent who owns a stored event (kind appointment,
+        class, reminder or other); the partner gets 404 for it, a grandparent
+        or nanny gets 403. Shifts, task due dates and psychologist sessions
+        are not edited here (404). Every field is optional; only the fields
+        sent change. Moving an event to private removes attendees from it.
+        Sends a live update of kind calendar_event.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEventUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEvent"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/appointment-questions:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -4592,6 +4651,14 @@ components:
         type: string
         format: uuid
 
+    EventId:
+      name: eventId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     TaskId:
       name: taskId
       in: path
@@ -6312,6 +6379,48 @@ components:
             format: uuid
         visibility:
           $ref: "#/components/schemas/CalendarVisibility"
+        neutralTitle:
+          type: boolean
+          description: |
+            When true, calendar subscription links and exported .ics files show
+            only the kind ("Appointment") with no location, never the title.
+            Default false for class, reminder and other; the UI defaults it to
+            true for appointments. In the app the owner still sees the title.
+
+    CalendarEventUpdate:
+      type: object
+      description: Same fields as CalendarEventInput, all optional. kind cannot change.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        allDay:
+          type: boolean
+        location:
+          type: string
+          maxLength: 200
+        attendeeIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        visibility:
+          $ref: "#/components/schemas/CalendarVisibility"
+        neutralTitle:
+          type: boolean
+          description: |
+            When true, calendar subscription links and exported .ics files show
+            only the kind ("Appointment") with no location, never the title.
+            Default false for class, reminder and other; the UI defaults it to
+            true for appointments. In the app the owner still sees the title.
 
     CalendarEvent:
       type: object
@@ -6347,6 +6456,13 @@ components:
             format: uuid
         visibility:
           $ref: "#/components/schemas/CalendarVisibility"
+        neutralTitle:
+          type: boolean
+          description: |
+            When true, calendar subscription links and exported .ics files show
+            only the kind ("Appointment") with no location, never the title.
+            Default false for class, reminder and other; the UI defaults it to
+            true for appointments. In the app the owner still sees the title.
         shiftId:
           type: string
           format: uuid

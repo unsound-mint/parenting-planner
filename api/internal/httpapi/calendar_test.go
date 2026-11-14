@@ -16,6 +16,7 @@ func TestCalendarIsNotImplementedYet(t *testing.T) {
 	for _, call := range []stubCall{
 		{"GET", m + "/calendar-events", nil},
 		{"POST", m + "/calendar-events", map[string]any{"kind": "appointment", "title": "OB visit", "startsAt": "2026-11-20T15:00:00Z", "visibility": "family"}},
+		{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}},
 		{"POST", m + "/appointment-questions", map[string]any{"text": "Is my iron level fine?", "visibility": "private"}},
 		{"GET", m + "/appointment-questions", nil},
 		{"PATCH", m + "/appointment-questions/00000000-0000-4000-8000-000000000001", map[string]any{"answered": true}},
