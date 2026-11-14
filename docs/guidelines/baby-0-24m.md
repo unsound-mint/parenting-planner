@@ -175,3 +175,12 @@ Screening tools. The Bright Futures schedule names the ages (9, 18 and 30 months
 Peanut introduction. research.md gives 4 to 6 months for high-risk infants. The NIAID addendum tiers the start age by eczema and egg allergy status (verify on the NIAID page; not opened).
 
 Bright Futures edition. The periodicity schedule is the February 2025 update of the 4th edition guidelines. The evidence rationale is the 4th edition document ([Bright Futures schedule](https://downloads.aap.org/aap/pdf/periodicity_schedule.pdf); [Bright Futures evidence](https://downloads.aap.org/AAP/PDF/Bright%20Futures/BF4_Evidence_Rationale.pdf)).
+
+## Sources for newborn-care practice
+
+| Topic | Source | Checked |
+| --- | --- | --- |
+| Recognize early feeding cues such as lip smacking and turning toward a breast or bottle. | [CDC: Signs Your Child Is Hungry or Full](https://www.cdc.gov/infant-toddler-nutrition/mealtime/signs-your-child-is-hungry-or-full.html) | 2026-11-14 |
+| Place the baby on their back on an empty, firm, flat and level sleep surface. | [NICHD: Safe Sleep Environment](https://safetosleep.nichd.nih.gov/reduce-risk/safe-sleep-environment) | 2026-11-14 |
+| Call the pediatrician immediately about a rectal temperature of at least 100.4 °F (38 °C) in a baby 3 months old or younger. | [AAP: Fever and Your Baby](https://www.healthychildren.org/English/health-issues/conditions/fever/pages/fever-and-your-baby.aspx) | 2026-11-14 |
+| Put the baby in a safe place and take a short break when overwhelmed by crying. Keep checking on the baby. | [CDC: About Abusive Head Trauma](https://www.cdc.gov/child-abuse-neglect/about/about-abusive-head-trauma.html) | 2026-11-14 |
