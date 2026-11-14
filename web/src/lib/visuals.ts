@@ -1,6 +1,7 @@
 import {
   Activity,
   Baby,
+  Armchair,
   Backpack,
   Blocks,
   BookOpen,
@@ -15,6 +16,7 @@ import {
   Flower2,
   Footprints,
   GraduationCap,
+  Heart,
   HeartHandshake,
   HeartPulse,
   ListChecks,
@@ -40,6 +42,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import type { Role } from "@/lib/roles";
 import type { AllergyCertainty, CareRole, PlanCategory, PlanItemStatus, ProviderType, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
@@ -95,6 +98,28 @@ export const statusTint: Record<PlanItemStatus, string> = {
   overdue: "bg-status-late-soft text-status-late",
   due: "bg-status-due-soft text-status-due",
   upcoming: "bg-status-up-soft text-status-up",
+};
+
+/** Who is acting: icon, short label and the accent for the avatar (tokens in globals.css). */
+export const roleIcon: Record<Role, LucideIcon> = {
+  mother: Heart,
+  partner: HeartHandshake,
+  grandparent: Armchair,
+  nanny: HandHeart,
+};
+
+export const roleLabel: Record<Role, string> = {
+  mother: "Mom",
+  partner: "Partner",
+  grandparent: "Grandparent",
+  nanny: "Nanny",
+};
+
+export const roleAccent: Record<Role, { bg: string; text: string }> = {
+  mother: { bg: "bg-mom", text: "text-mom" },
+  partner: { bg: "bg-partner", text: "text-partner" },
+  grandparent: { bg: "bg-grandparent", text: "text-grandparent" },
+  nanny: { bg: "bg-nanny", text: "text-nanny" },
 };
 
 /** Psychologist flow concepts (docs/product.md, must-have 7). */

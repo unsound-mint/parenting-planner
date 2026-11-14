@@ -3,25 +3,27 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarCheck, Route, type LucideIcon } from "lucide-react";
+import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 // Only screens that work are listed (organizer rule: hide what does not work).
 // Add an entry here when its route lands.
-const items: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "", label: "This week", icon: CalendarCheck },
-  { href: "/journey", label: "Journey", icon: Route },
+// Each role sees only the screens canOpen() allows (lib/roles.ts).
+const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
+  { href: "", screen: "", label: "This week", icon: CalendarCheck },
+  { href: "/journey", screen: "journey", label: "Journey", icon: Route },
   // Enable when the API lands (#174; also import Brain from lucide-react). The route /family/[memberId]/care exists.
   // { href: "/care", label: "Care", icon: Brain },
   // Enable when the API lands (#172): { href: "/passport", label: "Passport", icon: IdCard },
   // enable when the API lands (#175): { href: "/directory", label: "Find help", icon: Users },
 ];
 
-export function FamilyNav({ memberId }: { memberId: string }) {
+export function FamilyNav({ memberId, role }: { memberId: string; role: Role }) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
   return (
     <nav aria-label="Family" className="flex gap-1 md:flex-col">
-      {items.map((item) => {
+      {items.filter((item) => canOpen(role, item.screen)).map((item) => {
         const href = base + item.href;
         const active = pathname === href;
         return (
@@ -35,7 +37,7 @@ export function FamilyNav({ memberId }: { memberId: string }) {
             )}
           >
             <item.icon className="size-4.5 shrink-0" aria-hidden />
-            {item.label}
+            {item.href === "" && isCaregiver(role) ? "Baby's care" : item.label}
           </Link>
         );
       })}
