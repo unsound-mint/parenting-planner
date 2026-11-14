@@ -54,6 +54,15 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ContentOverride struct {
+	FamilyID  uuid.UUID
+	Kind      string
+	ItemID    string
+	Title     *string
+	Body      *string
+	UpdatedAt time.Time
+}
+
 type Family struct {
 	ID             uuid.UUID
 	Template       string
