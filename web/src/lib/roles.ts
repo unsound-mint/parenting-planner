@@ -10,16 +10,16 @@ export type Role = Parent["role"] | Caregiver["role"];
 export type Person = { id: string; role: Role; displayName: string };
 
 /** First path segment under /family/<id>: "" is the home screen. */
-export type Screen = "" | "journey" | "care" | "passport" | "directory" | "plan" | "calendar" | "simulator" | "baby" | "people" | "hospital" | "appointments" | "learn" | "settings" | "story" | "postcard";
+export type Screen = "" | "journey" | "care" | "passport" | "directory" | "plan" | "calendar" | "simulator" | "baby" | "people" | "hospital" | "appointments" | "learn" | "privacy" | "settings" | "story" | "postcard";
 
 const screens: Record<Role, readonly Screen[]> = {
-  mother: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "hospital", "appointments", "learn", "settings", "story", "postcard"],
-  partner: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "hospital", "appointments", "learn", "settings", "story", "postcard"],
+  mother: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "hospital", "appointments", "learn", "privacy", "settings", "story", "postcard"],
+  partner: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "hospital", "appointments", "learn", "privacy", "settings", "story", "postcard"],
   // Their calendar shows only their own shifts, and only with the schedule permission.
   // The family layout hides the entry when the API refuses (see unavailableScreens).
   // Our story has a caregiver edition: the arrival, age lines and their own handoffs.
-  grandparent: ["", "calendar", "simulator", "settings", "story", "postcard"],
-  nanny: ["", "calendar", "simulator", "settings", "story"],
+  grandparent: ["", "calendar", "simulator", "privacy", "settings", "story", "postcard"],
+  nanny: ["", "calendar", "simulator", "privacy", "settings", "story"],
 };
 
 export function canOpen(role: Role, screen: string): boolean {
