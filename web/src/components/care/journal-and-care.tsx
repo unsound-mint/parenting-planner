@@ -13,7 +13,8 @@ import { spring } from "@/components/joy/motion";
 import { Composer } from "@/components/diary/composer";
 import { EntryRow } from "@/components/diary/entry-row";
 import type { Partner } from "@/components/diary/audience";
-import { AgendaCard, shortName, topicKey, type Flights } from "./agenda-card";
+import { AgendaCard, topicKey, type Flights } from "./agenda-card";
+import { shortName } from "./names";
 import { SessionNoteCard } from "./session-note-card";
 
 /**
@@ -70,6 +71,7 @@ export function JournalAndCare({
 
   const psychologist = slots?.provider ?? agenda?.nextSession?.provider ?? agenda?.noteDue?.provider;
   const short = psychologist ? shortName(psychologist.name) : "your psychologist";
+  const offerId = entries.find((e) => e.authorId === memberId && !e.agendaTopic)?.id;
   const byId = new Map(entries.map((e) => [e.id, e]));
 
   function flashEntry(id: string) {
@@ -211,6 +213,7 @@ export function JournalAndCare({
                     partner={partner}
                     psychologist={short}
                     flash={flash === e.id}
+                    offer={e.id === offerId}
                     onVisibility={(v) => changeVisibility(e, v)}
                     onBring={(title, from) => bring(e, title, from)}
                   />

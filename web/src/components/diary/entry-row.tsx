@@ -27,6 +27,9 @@ export function entryDay(iso: string): string {
  * title field. Only that title goes to the agenda, never the entry; the field
  * starts empty on purpose so no private words travel by accident.
  * The partner's shared entries carry their chip and nothing to change.
+ * Only the newest entry not yet on the agenda shows "Bring to" outright; on
+ * the others it appears on hover or focus (always on touch screens), so the
+ * list reads as moments, not a wall of buttons.
  */
 export function EntryRow({
   entry,
@@ -34,6 +37,7 @@ export function EntryRow({
   partner,
   psychologist,
   flash,
+  offer,
   onVisibility,
   onBring,
 }: {
@@ -43,6 +47,8 @@ export function EntryRow({
   /** Short name, "Dr. Ellison". */
   psychologist: string;
   flash: boolean;
+  /** Show "Bring to" without hover: the newest entry not yet on the agenda. */
+  offer: boolean;
   onVisibility: (v: Visibility) => Promise<boolean>;
   /** Resolves true once saved. from is where the title field was, so the topic can fly from it. */
   onBring: (title: string, from: DOMRect | undefined) => Promise<boolean>;
@@ -72,6 +78,7 @@ export function EntryRow({
       id={`entry-${entry.id}`}
       aria-label={`Entry from ${entryDay(entry.writtenAt)}`}
       className={cn(
+        "group/entry",
         "grid scroll-mt-24 grid-cols-[2.75rem_1fr] gap-x-4 gap-y-3 rounded-3xl border border-line p-4.5 transition-colors duration-(--duration-slow) ease-(--ease-out) md:grid-cols-[3rem_1fr_auto] md:gap-x-5 md:px-5.5 md:py-5",
         flash ? "bg-sun" : "bg-card",
       )}
@@ -138,6 +145,15 @@ export function EntryRow({
               )}
             </AnimatePresence>
 
+            {/* The quiet offer hides on a wrapper: motion sets the button's own opacity inline. */}
+            <div
+              className={cn(
+                !offer &&
+                  !entry.agendaTopic &&
+                  editing !== "bring" &&
+                  "transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-focus-within/entry:opacity-100 pointer-fine:group-hover/entry:opacity-100",
+              )}
+            >
             <AnimatePresence mode="popLayout" initial={false}>
               {entry.agendaTopic ? (
                 <motion.span
@@ -204,6 +220,7 @@ export function EntryRow({
                 </motion.button>
               )}
             </AnimatePresence>
+            </div>
           </motion.div>
         )}
       </div>

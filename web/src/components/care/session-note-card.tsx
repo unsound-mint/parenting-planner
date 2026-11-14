@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Lock } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PsychologistBooking } from "@/lib/api/types";
-import { formatWeekday } from "@/lib/format";
+import { formatWeekdayLong } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 // One line after a session. Always private to the author (the API has no
@@ -37,7 +37,7 @@ export function SessionNoteCard({ memberId, booking }: { memberId: string; booki
   return (
     <section aria-labelledby="note-title" className="min-w-0 rounded-3xl border border-line bg-card p-5.5 md:rounded-[1.75rem] md:p-7">
       <h2 id="note-title" className="text-title font-semibold">
-        After {formatWeekday(booking.startsAt)}&apos;s session
+        After {formatWeekdayLong(booking.startsAt)}&apos;s session
       </h2>
       <p className="mt-1 text-label font-normal text-muted-foreground">One line on what helped makes the next plan kinder.</p>
       <form onSubmit={submit} className="mt-4 flex items-center gap-2 rounded-full border border-line-2 bg-paper p-1 pl-5 focus-within:ring-3 focus-within:ring-ring/50">

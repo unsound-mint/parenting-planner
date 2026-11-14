@@ -169,7 +169,12 @@ export function Composer({
             first ? "bg-butter font-semibold text-ink" : "bg-card/70 text-ink-2 hover:bg-card",
           )}
         >
-          <motion.span animate={first ? { rotate: [0, -18, 0], scale: [1, 1.25, 1] } : { rotate: 0, scale: 1 }} transition={spring.playful} className="inline-flex">
+          {/* A small wiggle when a first is marked. Three keyframes, so a tween: springs take two. */}
+          <motion.span
+            animate={first ? { rotate: [0, -18, 0], scale: [1, 1.25, 1] } : { rotate: 0, scale: 1 }}
+            transition={{ duration: duration.enter, ease: ease.out }}
+            className="inline-flex"
+          >
             <Star className={cn("size-4", first && "fill-current")} aria-hidden />
           </motion.span>
           First!

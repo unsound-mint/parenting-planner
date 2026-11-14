@@ -12,18 +12,10 @@ import { duration, ease, spring } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { icsHref } from "./ics";
+import { cleanName, shortName } from "./names";
 
 /** The key a topic keeps from its optimistic copy to the server's: the entry it came from, else its id. */
 export const topicKey = (t: AgendaTopic) => t.diaryEntryId ?? t.id;
-
-/** "Dr. Maya Ellison (demo)" without the bracket. */
-export const cleanName = (name: string) => name.replace(/\s*\(.*\)\s*$/, "").trim();
-
-/** "Dr. Maya Ellison (demo)" reads as "Dr. Ellison" in buttons and chips. */
-export function shortName(name: string): string {
-  const parts = cleanName(name).split(/\s+/);
-  return /^dr\.?$/i.test(parts[0]) && parts.length > 1 ? `Dr. ${parts.at(-1)}` : parts[0];
-}
 
 const initials = (name: string) =>
   cleanName(name)
@@ -185,12 +177,17 @@ function TopicRow({
   // (spring.gentle, transform and opacity only); one from the suggestion drops
   // in. When the card is out of view (phones) the flight is skipped and the row
   // just lands. Reduced motion: a fade.
+  // The flight is read once and kept in a ref: in dev, Strict Mode runs this
+  // effect twice and the first cleanup stops the animation, so the second run
+  // must be able to start it again.
+  const landing = useRef<{ from?: DOMRect; fresh: boolean } | null>(null);
   useLayoutEffect(() => {
     const el = inner.current;
     if (!el) return;
     const key = topicKey(topic);
-    const from = flights.take(key);
-    if (!from && !flights.fresh(key)) return;
+    landing.current ??= { from: flights.take(key), fresh: flights.fresh(key) };
+    const { from, fresh } = landing.current;
+    if (!from && !fresh) return;
     if (reduce) {
       const c = animate(el, { opacity: [0, 1] }, { duration: duration.base });
       return () => c.stop();
@@ -200,7 +197,10 @@ function TopicRow({
       el.style.zIndex = "20";
       const c = animate(el, { x: [from.left - to.left, 0], y: [from.top - to.top, 0], scale: [0.96, 1], opacity: [0.6, 1] }, spring.gentle);
       c.then(() => (el.style.zIndex = ""));
-      return () => c.stop();
+      return () => {
+        c.stop();
+        el.style.zIndex = "";
+      };
     }
     const c = animate(el, { y: [-16, 0], scale: [0.97, 1], opacity: [0, 1] }, { duration: duration.enter, ease: ease.out });
     return () => c.stop();

@@ -7,7 +7,7 @@ import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { JournalAndCare } from "@/components/care/journal-and-care";
 import { CareTeamCard, FindHelpCard, ScreeningCard } from "@/components/care/care-rows";
-import { shortName } from "@/components/care/agenda-card";
+import { shortName } from "@/components/care/names";
 import { recommend } from "@/components/directory/recommend";
 import { startersFor } from "@/components/diary/starters";
 

@@ -66,7 +66,7 @@ export function CareTeamCard({ memberId, team }: { memberId: string; team: CareT
           >
             <p className="truncate text-body font-medium">{m.name}</p>
             <p className="truncate text-caption text-muted-foreground">
-              {careRoleLabel[m.role]} · {m.clinic}
+              {[careRoleLabel[m.role], m.clinic].filter(Boolean).join(" · ")}
             </p>
           </Row>
         ))
@@ -133,7 +133,7 @@ export function FindHelpCard({ memberId, picks, requests, now }: { memberId: str
         </Row>
       ) : (
         picks.map((p) => (
-          <Row key={p.id} icon={providerTypeIcon[p.type]} tint="bg-them-soft text-them" side={<div className="w-32 shrink-0"><BookButton memberId={memberId} providerId={p.id} providerName={p.name} requested={asked.has(p.id)} compact /></div>}>
+          <Row key={p.id} icon={providerTypeIcon[p.type]} tint="bg-them-soft text-them" side={<div className="@container w-40 shrink-0"><BookButton memberId={memberId} providerId={p.id} providerName={p.name} requested={asked.has(p.id)} compact /></div>}>
             <p className="truncate text-body font-medium">{p.name}</p>
             <p className="truncate text-caption text-muted-foreground">
               {providerTypeLabel[p.type].one} · free {whenLabel(p.nextAvailable, now)}
