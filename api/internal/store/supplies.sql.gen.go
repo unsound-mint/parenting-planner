@@ -326,7 +326,7 @@ func (q *Queries) ListSupplyItems(ctx context.Context, familyID uuid.UUID) ([]Su
 }
 
 const setMemberEssentialsOnly = `-- name: SetMemberEssentialsOnly :one
-UPDATE members SET essentials_only = $1 WHERE id = $2 AND family_id = $3 RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, essentials_only
+UPDATE members SET essentials_only = $1 WHERE id = $2 AND family_id = $3 RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, phone, essentials_only
 `
 
 type SetMemberEssentialsOnlyParams struct {
@@ -346,6 +346,7 @@ func (q *Queries) SetMemberEssentialsOnly(ctx context.Context, arg SetMemberEsse
 		&i.BirthDate,
 		&i.Permissions,
 		&i.RevokedAt,
+		&i.Phone,
 		&i.EssentialsOnly,
 	)
 	return i, err
