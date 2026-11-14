@@ -237,3 +237,23 @@ func TestNextPsychologistSession(t *testing.T) {
 		}
 	}
 }
+
+// Pregnancy loss support sets the stage to planning; the trying-for-a-baby
+// nudges must stay off while it is on.
+func TestPlanningNudgesStayOffInPregnancyLoss(t *testing.T) {
+	f := Facts{Today: today, Viewer: Mother, Stage: "planning", MotherRubella: "not immune", Immunizations: map[Role]map[string]time.Time{Mother: {}, Partner: {}}, CareTeam: map[string]bool{}}
+	ids := func(f Facts) map[string]bool {
+		out := map[string]bool{}
+		for _, it := range Plan(All(), f) {
+			out[it.RuleID] = true
+		}
+		return out
+	}
+	if got := ids(f); !got["folic-acid"] || !got["mmr-before-pregnancy"] {
+		t.Fatalf("setup: a planning family gets both nudges: %v", got)
+	}
+	f.PregnancyLoss = true
+	if got := ids(f); got["folic-acid"] || got["mmr-before-pregnancy"] {
+		t.Errorf("planning nudges must be off in loss support: %v", got)
+	}
+}

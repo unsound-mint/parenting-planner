@@ -381,8 +381,12 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 		{next, "When should I schedule the glucose screening?", "private", nil},
 		{next, "Which vaccines does Jake need before the birth?", "family", nil},
 	} {
+		createdAt := today.AddDate(0, 0, -1)
+		if aq.event == past {
+			createdAt = today.AddDate(0, 0, -15)
+		}
 		created, err := q.CreateAppointmentQuestion(ctx, store.CreateAppointmentQuestionParams{
-			FamilyID: familyID, OwnerMemberID: mom, Visibility: aq.vis, AskedForEventID: aq.event, Body: aq.text,
+			FamilyID: familyID, OwnerMemberID: mom, Visibility: aq.vis, AskedForEventID: aq.event, Body: aq.text, CreatedAt: createdAt,
 		})
 		if err != nil {
 			return err
