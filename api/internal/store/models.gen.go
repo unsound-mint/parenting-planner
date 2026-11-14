@@ -423,6 +423,20 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
+type Portrait struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	ChildID          uuid.NullUUID
+	Month            pgtype.Int2
+	Week             pgtype.Int2
+	Kind             string
+	UploaderMemberID uuid.NullUUID
+	Width            pgtype.Int4
+	Height           pgtype.Int4
+	Image            []byte
+	CreatedAt        time.Time
+}
+
 type PostcardLine struct {
 	ID             uuid.UUID
 	FamilyID       uuid.UUID

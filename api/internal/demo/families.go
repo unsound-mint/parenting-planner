@@ -255,6 +255,14 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	if err := seedRecovery(ctx, q, fam, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
+	// From bump to baby: Aisha's bump, then Leo at birth and at one month. His
+	// two-month portrait, due in under two weeks, is the next one to take.
+	if err := bumpWeeks(ctx, q, fam, born, 12, 20, 28, 36); err != nil {
+		return uuid.Nil, err
+	}
+	if err := childMonths(ctx, q, fam, leo, born, 0, 1); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedChildcare(ctx, q, fam, today); err != nil {
 		return uuid.Nil, err
 	}
@@ -473,7 +481,15 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	}
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
 	s.learning(Preschool, rachel, tom)
-	return s.done()
+	fam, err := s.done()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	// Ava at birth, six months and every birthday so far.
+	if err := childMonths(ctx, q, fam, ava, born, 0, 6, 12, 24, 36, 48); err != nil {
+		return uuid.Nil, err
+	}
+	return fam, nil
 }
 
 // seedRecovery gives Aisha five recovery check-ins over the last two weeks, getting
