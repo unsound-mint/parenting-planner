@@ -352,3 +352,22 @@ func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 func LatestSummary(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) (Summary, error) {
 	return summary(ctx, store.New(pool), familyID, now)
 }
+
+// PendingFor lists handoffs to a person that they have not accepted yet. It is
+// the person's own inbox, so it is not written to the access log.
+func PendingFor(ctx context.Context, pool *pgxpool.Pool, familyID, person uuid.UUID, now time.Time) ([]Handoff, error) {
+	q := store.New(pool)
+	all, err := q.ListHandoffs(ctx, store.ListHandoffsParams{
+		FamilyID: familyID, Since: now.Add(-Window), Involving: uuid.NullUUID{UUID: person, Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var pending []store.Handoff
+	for _, h := range all {
+		if h.ToMemberID == person && h.Status == "pending" {
+			pending = append(pending, h)
+		}
+	}
+	return withNotes(ctx, q, familyID, pending)
+}
