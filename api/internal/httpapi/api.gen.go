@@ -38,6 +38,24 @@ func (e DemoTemplate) Valid() bool {
 	}
 }
 
+// Defines values for MoodPatternKind.
+const (
+	LowMood         MoodPatternKind = "low_mood"
+	LowMoodAndSleep MoodPatternKind = "low_mood_and_sleep"
+)
+
+// Valid indicates whether the value is a known member of the MoodPatternKind enum.
+func (e MoodPatternKind) Valid() bool {
+	switch e {
+	case LowMood:
+		return true
+	case LowMoodAndSleep:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ParentRole.
 const (
 	ParentRoleMother  ParentRole = "mother"
@@ -104,6 +122,24 @@ func (e PlanItemStatus) Valid() bool {
 	case Overdue:
 		return true
 	case Upcoming:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProviderType.
+const (
+	PerinatalTherapist ProviderType = "perinatal_therapist"
+	Psychologist       ProviderType = "psychologist"
+)
+
+// Valid indicates whether the value is a known member of the ProviderType enum.
+func (e ProviderType) Valid() bool {
+	switch e {
+	case PerinatalTherapist:
+		return true
+	case Psychologist:
 		return true
 	default:
 		return false
@@ -252,6 +288,38 @@ type MoodCheckinList struct {
 	Items []MoodCheckin `json:"items"`
 }
 
+// MoodPattern defines model for MoodPattern.
+type MoodPattern struct {
+	// CheckinIds The acting parent's check-ins that make up the pattern, oldest first.
+	CheckinIds []openapi_types.UUID `json:"checkinIds"`
+
+	// Days Number of check-in days in the pattern.
+	Days int `json:"days"`
+
+	// Kind low_mood = mood at or below 2 on several days; low_mood_and_sleep = the
+	// same days also had under 6 hours of sleep.
+	Kind MoodPatternKind `json:"kind"`
+
+	// Message Plain, kind and non-diagnostic. Describes what the check-ins show and suggests talking to someone.
+	Message string `json:"message"`
+
+	// ProviderType Which kind of provider in the directory fits the pattern.
+	ProviderType ProviderType `json:"providerType"`
+	Source       Source       `json:"source"`
+
+	// StartedOn Date of the first check-in in the pattern.
+	StartedOn openapi_types.Date `json:"startedOn"`
+}
+
+// MoodPatternKind low_mood = mood at or below 2 on several days; low_mood_and_sleep = the
+// same days also had under 6 hours of sleep.
+type MoodPatternKind string
+
+// MoodPatternList defines model for MoodPatternList.
+type MoodPatternList struct {
+	Items []MoodPattern `json:"items"`
+}
+
 // Parent defines model for Parent.
 type Parent struct {
 	DisplayName string             `json:"displayName"`
@@ -295,6 +363,9 @@ type PlanItem struct {
 // PlanItemStatus defines model for PlanItemStatus.
 type PlanItemStatus string
 
+// ProviderType Which kind of provider in the directory fits the pattern.
+type ProviderType string
+
 // Source defines model for Source.
 type Source struct {
 	// CheckedAt When someone last confirmed the guideline still says this.
@@ -337,6 +408,9 @@ type ServerInterface interface {
 	// CreateMoodCheckin The acting parent records how they feel today
 	// (POST /members/{memberId}/mood-checkins)
 	CreateMoodCheckin(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListMoodPatterns Patterns detected in the acting parent's own recent check-ins
+	// (GET /members/{memberId}/mood-patterns)
+	ListMoodPatterns(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// GetMemberPlan This week's plan for one parent
 	// (GET /members/{memberId}/plan)
 	GetMemberPlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -436,6 +510,32 @@ func (siw *ServerInterfaceWrapper) CreateMoodCheckin(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateMoodCheckin(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListMoodPatterns operation middleware
+func (siw *ServerInterfaceWrapper) ListMoodPatterns(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMoodPatterns(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -597,6 +697,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/plan", wrapper.GetMemberPlan)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.ListMoodCheckins)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.CreateMoodCheckin)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-patterns", wrapper.ListMoodPatterns)
 
 	return m
 }
@@ -821,6 +922,56 @@ func (response CreateMoodCheckin404JSONResponse) VisitCreateMoodCheckinResponse(
 	return err
 }
 
+type ListMoodPatternsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListMoodPatternsResponseObject interface {
+	VisitListMoodPatternsResponse(w http.ResponseWriter) error
+}
+
+type ListMoodPatterns200JSONResponse MoodPatternList
+
+func (response ListMoodPatterns200JSONResponse) VisitListMoodPatternsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMoodPatterns401JSONResponse Error
+
+func (response ListMoodPatterns401JSONResponse) VisitListMoodPatternsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMoodPatterns404JSONResponse Error
+
+func (response ListMoodPatterns404JSONResponse) VisitListMoodPatternsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMemberPlanRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -888,6 +1039,9 @@ type StrictServerInterface interface {
 	// CreateMoodCheckin The acting parent records how they feel today
 	// (POST /members/{memberId}/mood-checkins)
 	CreateMoodCheckin(ctx context.Context, request CreateMoodCheckinRequestObject) (CreateMoodCheckinResponseObject, error)
+	// ListMoodPatterns Patterns detected in the acting parent's own recent check-ins
+	// (GET /members/{memberId}/mood-patterns)
+	ListMoodPatterns(ctx context.Context, request ListMoodPatternsRequestObject) (ListMoodPatternsResponseObject, error)
 	// GetMemberPlan This week's plan for one parent
 	// (GET /members/{memberId}/plan)
 	GetMemberPlan(ctx context.Context, request GetMemberPlanRequestObject) (GetMemberPlanResponseObject, error)
@@ -1070,6 +1224,32 @@ func (sh *strictHandler) CreateMoodCheckin(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// ListMoodPatterns operation middleware
+func (sh *strictHandler) ListMoodPatterns(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListMoodPatternsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMoodPatterns(ctx, request.(ListMoodPatternsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMoodPatterns")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMoodPatternsResponseObject); ok {
+		if err := validResponse.VisitListMoodPatternsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMemberPlan operation middleware
 func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request GetMemberPlanRequestObject
@@ -1101,45 +1281,54 @@ func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, m
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

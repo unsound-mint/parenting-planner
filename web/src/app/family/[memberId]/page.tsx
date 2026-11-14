@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
 import { PlanBoard } from "@/components/week/plan-board";
+import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
 import { SleepChart } from "@/components/week/sleep-chart";
 
@@ -20,15 +21,19 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: plan }, { data: checkins }] = await Promise.all([
+  const [{ data: family }, { data: plan }, { data: checkins }, { data: patterns }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
+    // Answers 501 until the API lands; no data means no card.
+    api.GET("/members/{memberId}/mood-patterns", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
   const own = (checkins?.items ?? []).filter((c) => c.authorId === memberId);
+
+  const pattern = patterns?.items[0];
 
   const overdue = plan.items.filter((i) => i.status === "overdue").length;
   const attention = overdue + plan.items.filter((i) => i.status === "due").length;
@@ -53,6 +58,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       </section>
 
       <aside className="flex flex-col gap-6 lg:pt-1">
+        {pattern && <MoodPatternCard pattern={pattern} checkins={own} memberId={memberId} />}
         <SleepChart checkins={own} />
         <MoodCheckinCard memberId={memberId} partnerName={partner?.displayName} />
       </aside>

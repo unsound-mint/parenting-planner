@@ -179,6 +179,40 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/mood-patterns:
+    get:
+      operationId: listMoodPatterns
+      tags: [wellbeing]
+      summary: Patterns detected in the acting parent's own recent check-ins
+      description: |
+        Detected from the acting parent's own check-ins of the last 7 days, for
+        example low mood on three days. Check-ins are private by default, so a
+        pattern is computed only from the acting parent's own entries and is
+        returned only to them. Nothing from the other parent's check-ins is
+        used, even when those were shared. Empty list when there is no pattern.
+        Wording is never diagnostic (docs/product.md, principle 3).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodPatternList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MemberId:
@@ -412,3 +446,51 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/MoodCheckin"
+
+    MoodPatternKind:
+      type: string
+      description: |
+        low_mood = mood at or below 2 on several days; low_mood_and_sleep = the
+        same days also had under 6 hours of sleep.
+      enum: [low_mood, low_mood_and_sleep]
+
+    ProviderType:
+      type: string
+      description: Which kind of provider in the directory fits the pattern.
+      enum: [perinatal_therapist, psychologist]
+
+    MoodPattern:
+      type: object
+      required: [kind, startedOn, days, checkinIds, message, providerType, source]
+      properties:
+        kind:
+          $ref: "#/components/schemas/MoodPatternKind"
+        startedOn:
+          type: string
+          format: date
+          description: Date of the first check-in in the pattern.
+        days:
+          type: integer
+          description: Number of check-in days in the pattern.
+        checkinIds:
+          type: array
+          description: The acting parent's check-ins that make up the pattern, oldest first.
+          items:
+            type: string
+            format: uuid
+        message:
+          type: string
+          description: Plain, kind and non-diagnostic. Describes what the check-ins show and suggests talking to someone.
+        providerType:
+          $ref: "#/components/schemas/ProviderType"
+        source:
+          $ref: "#/components/schemas/Source"
+
+    MoodPatternList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoodPattern"

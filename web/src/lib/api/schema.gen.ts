@@ -103,6 +103,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/mood-patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Patterns detected in the acting parent's own recent check-ins
+         * @description Detected from the acting parent's own check-ins of the last 7 days, for
+         *     example low mood on three days. Check-ins are private by default, so a
+         *     pattern is computed only from the acting parent's own entries and is
+         *     returned only to them. Nothing from the other parent's check-ins is
+         *     used, even when those were shared. Empty list when there is no pattern.
+         *     Wording is never diagnostic (docs/product.md, principle 3).
+         */
+        get: operations["listMoodPatterns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -223,6 +248,36 @@ export interface components {
         MoodCheckinList: {
             /** @description Newest first. */
             items: components["schemas"]["MoodCheckin"][];
+        };
+        /**
+         * @description low_mood = mood at or below 2 on several days; low_mood_and_sleep = the
+         *     same days also had under 6 hours of sleep.
+         * @enum {string}
+         */
+        MoodPatternKind: "low_mood" | "low_mood_and_sleep";
+        /**
+         * @description Which kind of provider in the directory fits the pattern.
+         * @enum {string}
+         */
+        ProviderType: "perinatal_therapist" | "psychologist";
+        MoodPattern: {
+            kind: components["schemas"]["MoodPatternKind"];
+            /**
+             * Format: date
+             * @description Date of the first check-in in the pattern.
+             */
+            startedOn: string;
+            /** @description Number of check-in days in the pattern. */
+            days: number;
+            /** @description The acting parent's check-ins that make up the pattern, oldest first. */
+            checkinIds: string[];
+            /** @description Plain, kind and non-diagnostic. Describes what the check-ins show and suggests talking to someone. */
+            message: string;
+            providerType: components["schemas"]["ProviderType"];
+            source: components["schemas"]["Source"];
+        };
+        MoodPatternList: {
+            items: components["schemas"]["MoodPattern"][];
         };
     };
     responses: never;
@@ -448,6 +503,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listMoodPatterns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodPatternList"];
                 };
             };
             /** @description Error */

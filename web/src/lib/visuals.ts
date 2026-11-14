@@ -1,4 +1,5 @@
 import {
+  Activity,
   Baby,
   Backpack,
   Blocks,
@@ -9,6 +10,7 @@ import {
   HeartHandshake,
   HeartPulse,
   Lock,
+  MessageCircleHeart,
   Milk,
   Sparkles,
   Sprout,
@@ -68,3 +70,9 @@ export const statusTint: Record<PlanItemStatus, string> = {
   due: "bg-status-due-soft text-status-due",
   upcoming: "bg-status-up-soft text-status-up",
 };
+
+/** A detected pattern in the parent's own check-ins. */
+export const patternIcon = Activity;
+
+/** "Talk to someone": the link from a pattern to the provider directory. */
+export const talkIcon = MessageCircleHeart;
