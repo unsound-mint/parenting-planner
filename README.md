@@ -68,7 +68,7 @@ No API keys are needed. The only optional setting is `SENTRY_DSN` for error repo
 | Web | Lucide icons | ISC |
 | Hosting | Caddy, Docker Compose | Apache-2.0 |
 
-Exact versions are in `api/go.mod` and `web/pnpm-lock.yaml`. The repository does not have a licence file for our own code yet.
+Exact versions are in `api/go.mod` and `web/pnpm-lock.yaml`. Our own code is under the MIT licence (`LICENSE`).
 
 ## Health guidance
 
