@@ -143,6 +143,14 @@ type MoodScreening struct {
 	Urgent        bool
 }
 
+type MoodScreeningDraft struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Instrument    string
+	Answers       []int16
+	UpdatedAt     time.Time
+}
+
 type Notification struct {
 	ID                uuid.UUID
 	FamilyID          uuid.UUID
