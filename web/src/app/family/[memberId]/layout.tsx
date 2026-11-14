@@ -6,6 +6,7 @@ import { familyContext } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
+import { ResetDemo } from "@/components/shell/reset-demo";
 import { DemoClock } from "@/components/shell/demo-clock";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
@@ -86,6 +87,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
             Demo data
           </span>
+          <ResetDemo />
           <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} />
           <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
             {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}

@@ -10,11 +10,11 @@ export type Role = Parent["role"] | Caregiver["role"];
 export type Person = { id: string; role: Role; displayName: string };
 
 /** First path segment under /family/<id>: "" is the home screen. */
-export type Screen = "" | "journey" | "care" | "passport" | "directory" | "plan" | "calendar" | "simulator" | "baby" | "people" | "learn";
+export type Screen = "" | "journey" | "care" | "passport" | "directory" | "plan" | "calendar" | "simulator" | "baby" | "people" | "hospital" | "appointments" | "learn";
 
 const screens: Record<Role, readonly Screen[]> = {
-  mother: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "learn"],
-  partner: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "learn"],
+  mother: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "hospital", "appointments", "learn"],
+  partner: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator", "baby", "people", "hospital", "appointments", "learn"],
   // Their calendar shows only their own shifts, and only with the schedule permission.
   // The family layout hides the entry when the API refuses (see unavailableScreens).
   grandparent: ["", "calendar", "simulator"],
