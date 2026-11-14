@@ -47,6 +47,23 @@ func lowMoodRule(f Facts) (Result, bool) {
 	return Result{Status: Due, Reason: fmt.Sprintf("You logged a low mood %d times in the last %d days.", n, lowMoodWindow)}, true
 }
 
+// sessionFollowUpDays is how long after a session note the plan suggests
+// booking the next session.
+const sessionFollowUpDays = 14
+
+// nextSessionRule applies after the viewer wrote a note about a psychologist
+// session and has no next session booked. The source: counseling runs over
+// several meetings ("Counseling interventions lasted a median of 8 weeks").
+func nextSessionRule(f Facts) (Result, bool) {
+	if !perinatalStages[f.Stage] || f.LastSessionNoteAt == nil || f.NextSessionBooked {
+		return Result{}, false
+	}
+	if f.LastSessionNoteAt.Before(f.Today.AddDate(0, 0, -sessionFollowUpDays)) {
+		return Result{}, false
+	}
+	return Result{Status: Due, Reason: fmt.Sprintf("You wrote a note after your session on %s and have no next session booked.", f.LastSessionNoteAt.Format("Jan 2"))}, true
+}
+
 // These rules only read the viewer's own check-ins, so they never reveal
 // another person's private data. They suggest talking to someone; they never
 // assess or diagnose. Urgent help is a fixed screen in the UI, not a rule.
@@ -68,5 +85,14 @@ var wellbeingRules = []Rule{
 		Audience: ForPartner,
 		Source:   srcPSIDads,
 		Evaluate: lowMoodRule,
+	},
+	{
+		ID:       "psychologist-next-session",
+		Title:    "Book your next session with your psychologist",
+		Detail:   "Counseling usually helps over several meetings, not one. Picking the next time now keeps it going; bring what you noted.",
+		Category: MentalHealth,
+		Audience: ForBoth,
+		Source:   srcUSPSTFPerinatalDepression,
+		Evaluate: nextSessionRule,
 	},
 }
