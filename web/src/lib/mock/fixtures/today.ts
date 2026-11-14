@@ -10,7 +10,7 @@ type CalendarEvent = components["schemas"]["CalendarEvent"];
 // so every person gets the same body; the real API sends each role its own.
 
 const DEMO_WEEK = 25;
-const source = { title: "Demo content, based on ACOG patient education", url: "https://www.acog.org/womens-health", checkedAt: "2026-11-10" };
+const source = { title: "ACOG patient education (summarized)", url: "https://www.acog.org/womens-health", checkedAt: "2026-11-10" };
 
 const days = (n: number, hour = 9, minute = 30) => {
   const d = new Date();
