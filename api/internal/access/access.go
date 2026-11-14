@@ -40,3 +40,30 @@ func CanParentRead(viewer, owner uuid.UUID, v Visibility) bool {
 func CanParentReadHealthRecord(viewer, owner uuid.UUID, v Visibility, aboutChild bool) bool {
 	return aboutChild || CanParentRead(viewer, owner, v)
 }
+
+// CanSessionActAs reports whether a pp_session may act as member in a
+// /members/{memberId} path. A demo session is not bound to anyone (bound is
+// not Valid) and acts as either parent of its family. A session opened by
+// accepting an invitation is bound to that caregiver and acts only as them,
+// so a nanny can never read a parent's diary or mood by putting the parent's
+// id in the path. The family and role checks (GetMember, GetPerson) still
+// apply on top of this.
+func CanSessionActAs(bound uuid.NullUUID, member uuid.UUID) bool {
+	return !bound.Valid || bound.UUID == member
+}
+
+// SessionIsLive reports whether a session still works. A session bound to a
+// member ends once that member's access is revoked; a demo session lives
+// until it expires. GetSessionFamily applies the same rule in SQL.
+func SessionIsLive(bound, memberRevoked bool) bool {
+	return !bound || !memberRevoked
+}
+
+// CanManageFamily reports whether a session may act on the family as a whole:
+// delete it, skip demo time, request an upgrade, edit content or offers, and
+// open the analytics dashboard. boundRole is the role of the member the
+// session is bound to, "" for a demo session, which acts as a parent. A
+// caregiver's session may not.
+func CanManageFamily(boundRole string) bool {
+	return boundRole == "" || boundRole == "mother" || boundRole == "partner"
+}

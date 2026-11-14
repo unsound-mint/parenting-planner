@@ -9,7 +9,8 @@ import { permissionIcon, permissionLabel } from "@/lib/visuals";
 // One permission as an icon, a name and a switch. The invite form edits it;
 // the privacy centre shows the same row read-only (no onChange), because the
 // contract has no call to change a caregiver's permissions after the invite.
-export function PermissionRow({ permission, on, onChange, idPrefix = "perm" }: { permission: CaregiverPermission; on: boolean; onChange?: (on: boolean) => void; idPrefix?: string }) {
+export function PermissionRow({ permission, on, onChange, idPrefix = "perm", text }: { permission: CaregiverPermission; on: boolean; onChange?: (on: boolean) => void; idPrefix?: string; text?: { name: string; hint: string } | null }) {
+  const label = text ?? permissionLabel[permission];
   const Icon = permissionIcon[permission];
   const id = `${idPrefix}-${permission}`;
   return (
@@ -19,9 +20,9 @@ export function PermissionRow({ permission, on, onChange, idPrefix = "perm" }: {
       </span>
       <span className="min-w-0 flex-1">
         <span id={id} className="block text-label font-medium">
-          {permissionLabel[permission].name}
+          {label.name}
         </span>
-        <span className="block text-caption text-muted-foreground">{permissionLabel[permission].hint}</span>
+        <span className="block text-caption text-muted-foreground">{label.hint}</span>
       </span>
       {onChange ? (
         <Switch.Root

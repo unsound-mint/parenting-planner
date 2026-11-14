@@ -25,11 +25,15 @@ var (
 )
 
 // GetAnalytics is the one handler that reads across families. It needs a
-// session (any demo family may open the dashboard) but does not filter by it;
-// internal/analytics returns counts only, from non-health tables.
+// parent's session (any demo family may open the dashboard, a caregiver may
+// not) but does not filter by it; internal/analytics returns counts only, from
+// non-health tables.
 func (s *Server) GetAnalytics(ctx context.Context, req GetAnalyticsRequestObject) (GetAnalyticsResponseObject, error) {
-	if _, ok := familyFrom(ctx); !ok {
+	switch _, kind := managingFamily(ctx); kind {
+	case errUnauthorized:
 		return GetAnalytics401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return GetAnalytics403JSONResponse(errForbidden), nil
 	}
 	days := 7
 	if req.Params.Days != nil {

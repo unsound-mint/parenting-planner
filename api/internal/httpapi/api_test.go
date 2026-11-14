@@ -146,3 +146,53 @@ func TestDemoTimeSkipIsPerFamilyAndResets(t *testing.T) {
 		t.Errorf("reset family: week %d, days ahead %d", *fam.GestationalWeek, *fam.DemoDaysAhead)
 	}
 }
+
+// "Skip ahead a week" must not empty the This week mood chart or lose the low-mood pattern
+// the demo story relies on: the last week of check-ins is carried forward with the clock.
+func TestDemoTimeSkipKeepsTheLastWeekOfMoodCheckins(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("newborn") // Aisha's low days make a pattern
+	var parent httpapi.Parent
+	patterns := func() int {
+		var p httpapi.MoodPatternList
+		c.Get("/api/members/"+parent.Id.String()+"/mood-patterns", http.StatusOK, &p)
+		return len(p.Items)
+	}
+	for _, role := range []httpapi.ParentRole{httpapi.ParentRoleMother, httpapi.ParentRolePartner} {
+		parent = testutil.Parent(t, fam, role)
+		if patterns() > 0 {
+			break
+		}
+	}
+	lastWeek := func(daysAhead int) int {
+		var l httpapi.MoodCheckinList
+		c.Get("/api/members/"+parent.Id.String()+"/mood-checkins", http.StatusOK, &l)
+		now := testutil.Now.AddDate(0, 0, daysAhead)
+		n := 0
+		for _, it := range l.Items {
+			if it.RecordedAt.After(now.AddDate(0, 0, -7)) && !it.RecordedAt.After(now) {
+				n++
+			}
+		}
+		return n
+	}
+	before, patternBefore := lastWeek(0), patterns()
+	if before == 0 || patternBefore == 0 {
+		t.Fatalf("setup: the seeded family has check-ins and a pattern (%d, %d)", before, patternBefore)
+	}
+	for skip := 1; skip <= 3; skip++ {
+		c.Post("/api/family/demo-time-skips", nil, http.StatusOK, nil)
+		if got := lastWeek(7 * skip); got != before {
+			t.Errorf("after %d skips the last 7 days hold %d check-ins, want %d", skip, got, before)
+		}
+		if got := patterns(); got != patternBefore {
+			t.Errorf("after %d skips there are %d patterns, want %d", skip, got, patternBefore)
+		}
+	}
+	// Only the skipping family changes: a new demo starts from the seed.
+	other := c.StartDemo("newborn")
+	parent = testutil.Parent(t, other, parent.Role)
+	if got := lastWeek(0); got != before {
+		t.Errorf("a new demo has the seeded %d check-ins in its last week, got %d", before, got)
+	}
+}

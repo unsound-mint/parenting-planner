@@ -83,6 +83,16 @@ func (s *seeder) lab(sub subject, owner uuid.UUID, visibility, kind string, take
 	})
 }
 
+// scheduledDose is a dose that is not given yet; the passport lists it as due
+// or upcoming from its due date.
+func (s *seeder) scheduledDose(sub subject, vaccine, dose string, dueOn time.Time) {
+	if s.err != nil {
+		return
+	}
+	m, c := sub.ids()
+	_, s.err = s.q.CreateScheduledDose(s.ctx, store.CreateScheduledDoseParams{FamilyID: s.fam, SubjectMemberID: m, SubjectChildID: c, Vaccine: vaccine, Dose: dose, DueOn: dueOn})
+}
+
 func (s *seeder) vaccine(sub subject, vaccine string, givenOn time.Time) {
 	if s.err != nil {
 		return
@@ -130,6 +140,9 @@ func (s *seeder) moodScreening(owner uuid.UUID, visibility, instrument string, d
 }
 
 func (s *seeder) done() (uuid.UUID, error) {
+	if s.err == nil {
+		s.err = seedCaregivers(s.ctx, s.q, s.fam)
+	}
 	if s.err != nil {
 		return uuid.Nil, s.err
 	}
@@ -183,6 +196,11 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.vaccine(parent(aisha), "tdap", born.AddDate(0, 0, -70))
 	s.vaccine(parent(marcus), "tdap", born.AddDate(0, 0, -40))
 	s.vaccine(childOf(leo), "hepb", born)
+	// The 2-month visit, so the passport lists the same doses the plan item
+	// "infant-2-month-vaccines" asks the parents to book.
+	for _, v := range []string{"dtap", "ipv", "hib", "pcv", "rotavirus"} {
+		s.scheduledDose(childOf(leo), v, "Dose 1", born.AddDate(0, 2, 0))
+	}
 	for _, m := range []struct{ daysAgo, mood, energy int }{{1, 3, 2}, {3, 3, 2}, {5, 4, 3}} {
 		s.mood(aisha, "partner", m.daysAgo, m.mood, m.energy, 5.5, "")
 	}
