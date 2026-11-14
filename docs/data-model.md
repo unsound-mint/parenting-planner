@@ -167,9 +167,10 @@ erDiagram
     members |o--o{ tasks : "pending assignee (#258)"
     families ||--o{ diary_entries : "has (#202)"
     members ||--o{ diary_entries : "owns (#202)"
-    providers ||--o{ booking_requests : "requested (#336)"
-    families ||--o{ booking_requests : "has (#336)"
-    members ||--o{ booking_requests : "owns (#336)"
+    providers ||--o{ provider_slots : "open times"
+    families ||--o{ provider_slots : "has"
+    provider_slots ||--o{ provider_bookings : "booked as"
+    members ||--o{ provider_bookings : "owns"
     families ||--o{ vaccine_schedule : "has (#342)"
     families ||--o{ allergies : "has (#342)"
     members ||--o{ allergies : "owns (#342)"
@@ -225,13 +226,19 @@ erDiagram
         integer price_usd
         text summary
     }
-    booking_requests {
+    provider_slots {
+        uuid id PK
+        uuid family_id FK
+        uuid provider_id FK
+        timestamptz starts_at
+        integer duration_minutes
+    }
+    provider_bookings {
         uuid id PK
         uuid family_id FK
         uuid owner_member_id FK
-        text visibility "default private"
-        uuid provider_id FK
-        text status "requested"
+        text visibility "private or family"
+        uuid slot_id FK
         text note
         timestamptz created_at
     }
@@ -351,7 +358,7 @@ Overlapping PRs:
 | `tasks` (#258) | Family-wide. One assignee, plus a pending assignee until accepted. | none (deliberately not private) | `.../tasks`, reassignment accept/decline |
 | `diary_entries` (#202) | Owner | `visibility` per entry | Diary, psychologist agenda |
 | `providers` (#336) | Global demo catalogue | n/a | Directory: `GET /providers` |
-| `booking_requests` (#336) | Owner | Always `private` | Directory: `.../booking-requests` |
+| `provider_bookings` | Owner | `private` or `family`; a private one does not hide its slot from the partner | Directory: `.../provider-bookings`, calendar (`provider_visit`) |
 | `vaccine_schedule` (#342) | Subject only | none | Passport vaccine timeline |
 | `allergies` (#342) | Owner plus subject | `visibility` | Passport allergies card |
 | `growth_measurements` (#342) | Child | none | Passport growth card |
@@ -383,7 +390,7 @@ Screens come from `docs/demo-script.md`, the pages in `web/src/app/`, and the co
 | Journey (`/journey`) | `families`, `children`, plan | `GET .../journey` (stub; #364 builds it) | main (no new table) |
 | Care: psychologist slots, booking, agenda, notes (`/care`) | `psychologists`, `psychologist_slots`, `psychologist_bookings`, `session_notes` (+ `diary_entries` for the agenda) | `.../psychologist-*`, `.../session-notes` | main; diary topics #202 |
 | Diary with per-entry sharing | `diary_entries` | in #202 | #202 |
-| Directory and booking requests (`/directory`) | `providers`, `booking_requests` | `GET /providers`, `.../booking-requests` (stubs on main) | #336 |
+| Directory and bookings (`/directory`) | `providers`, `provider_slots`, `provider_bookings` | `GET /providers`, `.../provider-slots`, `.../provider-bookings` | #336 |
 | Health passport (`/passport`) | `lab_results`, `immunizations`, `vaccine_schedule`, `allergies`, `growth_measurements`, `care_team` | `GET .../passport` (stub on main) | #342 |
 | Child passport | same, child subject | `GET .../children/{childId}/passport` (stub) | #342 (tables) |
 | Plan: family tasks and reassignment | `tasks` | `.../tasks...` (stubs on main) | #258 |
@@ -410,4 +417,4 @@ Screens come from `docs/demo-script.md`, the pages in `web/src/app/`, and the co
 | Stage | `families.stage` CHECK enum (`planning` .. `school_age`), changed with `PATCH .../family`. Stage groups such as `perinatalStages` are in Go (`internal/rules`). | Per family, not per child. No stage history. Baby arrival is a stub. |
 | PlanItem | Not stored. `rules.Plan` computes `rules.Item` (status, due, reason, source) from the data on each request. The stored to-dos are `tasks` (#258), `paperwork_items` (#353) and `bag_items` (#349). | Progress on an item ("booked", "done") is a `plan_item_progress` row keyed by family, member and rule id, set with `PUT .../plan/{ruleId}/status` and shown only on that parent's plan. |
 | Template | `families.template` text, filled from the Go `demo.Template` constants (`pregnancy`, `planning`, `newborn`, `preschool`) in `internal/demo`. The paperwork catalogue is also Go (#353). | No `templates` table. Seeds are Go code, which keeps their dates relative to today. |
-| Visibility | A `visibility` column with a CHECK on `lab_results`, `mood_checkins`, `psychologist_bookings` and `session_notes`, and in flight on `diary_entries`, `allergies`, `booking_requests`, `calendar_events` (only `private` or `family`) and `appointment_questions`. The policy is in `internal/access`, mirrored in SQL. | The `care_team` level is stored but has no viewer yet, since professionals cannot log in. Some health tables have no visibility (see above). |
+| Visibility | A `visibility` column with a CHECK on `lab_results`, `mood_checkins`, `psychologist_bookings` and `session_notes`, and in flight on `diary_entries`, `allergies`, `provider_bookings`, `calendar_events` (only `private` or `family`) and `appointment_questions`. The policy is in `internal/access`, mirrored in SQL. | The `care_team` level is stored but has no viewer yet, since professionals cannot log in. Some health tables have no visibility (see above). |
