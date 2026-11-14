@@ -5,6 +5,7 @@ import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
+import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
@@ -30,12 +31,26 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     api.GET("/members/{memberId}/simulator", path),
   ]);
   if (response.status === 401 || !family) redirect("/");
-  const hidden = unavailableScreens({ calendar: calendar.response.status, simulator: simulator.response.status });
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
   if (!person) notFound();
   // The Plan entry shows only once tasks work: the API answers 501 until then.
   const hasPlan = !isCaregiver(person.role) && (await api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } })).response.ok;
+
+  // Parents only: a caregiver's nav has neither entry, and probing the care log as a caregiver would be an extra audited read.
+  // Baby needs a child and a working care log; People needs the invitations endpoint.
+  const [care, invitations] = isCaregiver(person.role)
+    ? []
+    : await Promise.all([
+        family.children.length > 0 ? api.GET("/members/{memberId}/care-log", path) : undefined,
+        api.GET("/members/{memberId}/invitations", path),
+      ]);
+  const hidden = unavailableScreens({
+    calendar: calendar.response.status,
+    simulator: simulator.response.status,
+    ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
+    ...(invitations ? { people: invitations.response.status } : {}),
+  });
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
@@ -68,6 +83,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink />
           </div>
         </header>
+        <LiveUpdates memberId={memberId} />
         <ViewTransition>{children}</ViewTransition>
       </div>
     </div>

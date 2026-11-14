@@ -197,3 +197,54 @@ func TestPassportChild(t *testing.T) {
 		t.Errorf("pediatrician belongs to the child: %+v", ava.CareTeam)
 	}
 }
+
+// Out-of-range values are flagged from the stored reference range, with the
+// fixed wording, and only on labs the viewer may read.
+func TestPassportFlagsOutOfRangeLabs(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, partner := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+
+	flags := func(labs []httpapi.LabResult) map[string]httpapi.LabFlagDirection {
+		out := map[string]httpapi.LabFlagDirection{}
+		for _, l := range labs {
+			if l.Flag == nil {
+				continue
+			}
+			if l.Flag.Message != "Outside the usual range. Discuss with your doctor." || l.Flag.Basis == "" {
+				t.Errorf("%s: unexpected flag wording %+v", l.Name, l.Flag)
+			}
+			out[l.Name] = l.Flag.Direction
+		}
+		return out
+	}
+
+	// Emily sees her shared low ferritin and her private low vitamin D; the
+	// values inside their range (hemoglobin, TSH) carry no flag.
+	own := flags(person(t, getPassport(t, c, mom.Id), mom.Id).Labs)
+	if len(own) != 2 || own["Ferritin"] != httpapi.Low || own["Vitamin D"] != httpapi.Low {
+		t.Errorf("Emily's flags = %v, want Ferritin and Vitamin D low", own)
+	}
+	// Jake sees the flag on the shared ferritin only; the private vitamin D
+	// and its flag never reach him.
+	seen := flags(person(t, getPassport(t, c, partner.Id), mom.Id).Labs)
+	if len(seen) != 1 || seen["Ferritin"] != httpapi.Low {
+		t.Errorf("Jake's view of Emily's flags = %v, want only Ferritin low", seen)
+	}
+
+	// A value above the range is flagged high; one equal to the bound is not.
+	if _, err := c.Pool.Exec(context.Background(),
+		`INSERT INTO lab_results (family_id, subject_member_id, owner_member_id, visibility, kind, taken_on, name, value, unit, ref_low, ref_high)
+		 VALUES ($1, $2, $2, 'partner', 'ldl', '2026-11-01', 'LDL', 160, 'mg/dL', NULL, 130),
+		        ($1, $2, $2, 'partner', 'hdl', '2026-11-01', 'HDL', 40, 'mg/dL', 40, NULL)`,
+		fam.Id, partner.Id); err != nil {
+		t.Fatal(err)
+	}
+	jake := flags(person(t, getPassport(t, c, partner.Id), partner.Id).Labs)
+	if jake["LDL"] != httpapi.High {
+		t.Errorf("LDL above the range must be flagged high, got %v", jake)
+	}
+	if _, ok := jake["HDL"]; ok {
+		t.Errorf("HDL equal to the bound must not be flagged, got %v", jake)
+	}
+}

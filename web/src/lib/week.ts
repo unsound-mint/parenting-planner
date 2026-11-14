@@ -48,13 +48,15 @@ export function guideRepeatsPlan(guide: Guide, items: PlanItem[]): boolean {
 }
 
 /**
- * The weekly card without what the plan already says. When the card cites the
- * same guideline as a plan item, its task, reason and questions are that item
- * again. Returns undefined when nothing new is left.
+ * The weekly card as context only: the plan owns every to-do on This week, so
+ * the card's tasks and suggested questions go, and so does its reason when it
+ * cites the same guideline as a plan item (it is that item again). What stays
+ * is the baby's week: size, development, why the week matters, birth prep.
+ * Returns undefined when nothing is left.
  */
 export function weekCardBeyondPlan(card: PregnancyWeek, items: PlanItem[]): PregnancyWeek | undefined {
   const repeats = items.some((i) => i.source.url === card.source.url);
-  const left: PregnancyWeek = repeats ? { ...card, tasks: [], questions: [], whyItMatters: "" } : card;
-  const hasContent = left.size || left.development || left.whyItMatters || left.tasks.length || left.questions.length || left.birthPrep.length;
+  const left: PregnancyWeek = { ...card, tasks: [], questions: [], whyItMatters: repeats ? "" : card.whyItMatters };
+  const hasContent = left.size || left.development || left.whyItMatters || left.birthPrep.length;
   return hasContent ? left : undefined;
 }

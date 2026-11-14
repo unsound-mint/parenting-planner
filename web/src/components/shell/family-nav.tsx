@@ -3,26 +3,30 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, CalendarDays, Ellipsis, HeartHandshake, IdCard, Route, Search, Target, type LucideIcon } from "lucide-react";
+import { Baby, CalendarCheck, CalendarDays, Ellipsis, HeartHandshake, IdCard, Route, Search, Target, UsersRound, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 
-type Item = { href: string; screen: string; label: string; icon: LucideIcon; /** In the phone bar; the rest sit behind More. */ phone?: boolean };
+type Group = "daily" | "care" | "more";
+type Item = { href: string; screen: string; label: string; icon: LucideIcon; group: Group };
 
-// Ordered by how often a parent needs them: this week first, then the weekly
-// care session, the records they pull up at a visit, the directory, and the
-// long view last. Each role sees only the screens canOpen() allows (lib/roles.ts).
+// Grouped by how often a parent opens them: the daily screens, then care and
+// records, then the rest. On phones the daily group is the bar and the rest
+// sit behind More. Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: Item[] = [
-  { href: "", screen: "", label: "This week", icon: CalendarCheck, phone: true },
-  { href: "/plan", screen: "plan", label: "Plan", icon: planIcon, phone: true },
-  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake, phone: true },
-  { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
-  { href: "/directory", screen: "directory", label: "Find help", icon: Search },
-  { href: "/journey", screen: "journey", label: "Journey", icon: Route },
-  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, phone: true },
-  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target },
+  { href: "", screen: "", label: "This week", icon: CalendarCheck, group: "daily" },
+  { href: "/plan", screen: "plan", label: "Plan", icon: planIcon, group: "daily" },
+  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "daily" },
+  { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "daily" },
+  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake, group: "care" },
+  { href: "/passport", screen: "passport", label: "Passport", icon: IdCard, group: "care" },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Search, group: "care" },
+  { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "more" },
+  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more" },
+  { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
 ];
+const GROUPS: Group[] = ["daily", "care", "more"];
 
 // A phone bar fits five entries at 390px without wrapping or scrolling.
 const PHONE_SLOTS = 5;
@@ -46,7 +50,7 @@ export function FamilyNav({ memberId, role, hasPlan, hidden = [] }: { memberId: 
   const isActive = (item: Item) => (item.href === "" ? pathname === base : pathname.startsWith(base + item.href));
   const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.label);
   const fits = visible.length <= PHONE_SLOTS;
-  const bar = fits ? visible : visible.filter((i) => i.phone).slice(0, PHONE_SLOTS - 1);
+  const bar = fits ? visible : visible.filter((i) => i.group === "daily").slice(0, PHONE_SLOTS - 1);
   const more = fits ? [] : visible.filter((i) => !bar.includes(i));
   const moreActive = more.some(isActive);
 
@@ -59,7 +63,16 @@ export function FamilyNav({ memberId, role, hasPlan, hidden = [] }: { memberId: 
 
   return (
     <nav aria-label="Family">
-      <div className="hidden flex-col gap-1 md:flex">{visible.map((item) => link(item))}</div>
+      <div className="hidden flex-col md:flex">
+        {GROUPS.map((g) => {
+          const group = visible.filter((i) => i.group === g);
+          return group.length ? (
+            <div key={g} className="flex flex-col gap-1 border-border not-first:mt-3 not-first:border-t not-first:pt-3">
+              {group.map((item) => link(item))}
+            </div>
+          ) : null;
+        })}
+      </div>
       <div className="flex gap-1 md:hidden">
         {bar.map((item) => link(item))}
         {more.length > 0 && (

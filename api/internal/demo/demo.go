@@ -222,9 +222,9 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 	firstVisit := today.AddDate(0, 0, -(week-9)*7)
 	for _, l := range []store.CreateLabValueParams{
 		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "family", Kind: "hemoglobin", TakenOn: firstVisit, Name: ptr("Hemoglobin"), Value: ptr(12.4), Unit: ptr("g/dL"), RefLow: ptr(11.0), RefHigh: ptr(15.0)},
-		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "partner", Kind: "ferritin", TakenOn: firstVisit, Name: ptr("Ferritin"), Value: ptr(48.0), Unit: ptr("ng/mL"), RefLow: ptr(15.0), RefHigh: ptr(150.0)},
+		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "partner", Kind: "ferritin", TakenOn: firstVisit, Name: ptr("Ferritin"), Value: ptr(12.0), Unit: ptr("ng/mL"), RefLow: ptr(15.0), RefHigh: ptr(150.0)},
 		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "private", Kind: "tsh", TakenOn: firstVisit, Name: ptr("TSH"), Value: ptr(1.8), Unit: ptr("mIU/L"), RefLow: ptr(0.4), RefHigh: ptr(4.0)},
-		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "private", Kind: "vitamin_d", TakenOn: today.AddDate(0, 0, -30), Name: ptr("Vitamin D"), Value: ptr(36.0), Unit: ptr("ng/mL"), RefLow: ptr(30.0), RefHigh: ptr(100.0)},
+		{SubjectMemberID: member(mom), OwnerMemberID: mom, Visibility: "private", Kind: "vitamin_d", TakenOn: today.AddDate(0, 0, -30), Name: ptr("Vitamin D"), Value: ptr(24.0), Unit: ptr("ng/mL"), RefLow: ptr(30.0), RefHigh: ptr(100.0)},
 		{SubjectMemberID: member(partner), OwnerMemberID: partner, Visibility: "partner", Kind: "cholesterol", TakenOn: today.AddDate(0, -5, 0), Name: ptr("Total cholesterol"), Value: ptr(182.0), Unit: ptr("mg/dL"), RefLow: ptr(125.0), RefHigh: ptr(200.0)},
 		{SubjectMemberID: member(partner), OwnerMemberID: partner, Visibility: "private", Kind: "glucose_fasting", TakenOn: today.AddDate(0, -5, 0), Name: ptr("Fasting glucose"), Value: ptr(88.0), Unit: ptr("mg/dL"), RefLow: ptr(70.0), RefHigh: ptr(99.0)},
 	} {

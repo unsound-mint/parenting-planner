@@ -20,8 +20,8 @@ export function optional<T>(request: PromiseLike<{ data?: T }>): Promise<T | und
   );
 }
 
-// plan: on a parent's This week, the card drops what the plan already says and
-// the week number the top bar shows (lib/week.ts); it renders nothing when no
+// plan: on a parent's This week, the card keeps only the baby's week (no to-dos) and
+// drops the week number the top bar shows (lib/week.ts); it renders nothing when no
 // new fact is left.
 export function WeekCardSlot({ card, plan }: { card: Pending<PregnancyWeek>; plan?: PlanItem[] }) {
   return (
@@ -38,16 +38,16 @@ async function WeekCardLoader({ card, plan }: { card: Pending<PregnancyWeek>; pl
   return left ? <WeekCard card={left} withWeek={false} /> : null;
 }
 
-export function CaregiverTodaySlot({ today, names }: { today: Pending<Today>; names: Record<string, string> }) {
+export function CaregiverTodaySlot({ today, names, shiftOnly }: { today: Pending<Today>; names: Record<string, string>; shiftOnly?: boolean }) {
   return (
     <Suspense fallback={null}>
-      <CaregiverTodayLoader today={today} names={names} />
+      <CaregiverTodayLoader today={today} names={names} shiftOnly={shiftOnly} />
     </Suspense>
   );
 }
-async function CaregiverTodayLoader({ today, names }: { today: Pending<Today>; names: Record<string, string> }) {
+async function CaregiverTodayLoader({ today, names, shiftOnly }: { today: Pending<Today>; names: Record<string, string>; shiftOnly?: boolean }) {
   const data = await today;
-  return data ? <CaregiverToday today={data} names={names} /> : null;
+  return data ? <CaregiverToday today={data} names={names} shiftOnly={shiftOnly} /> : null;
 }
 
 // plan: leave out guides about a plan item; the item already says it.
