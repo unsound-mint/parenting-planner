@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
@@ -34,6 +35,8 @@ type New struct {
 	Body        string
 	Visibility  access.Visibility
 	AgendaTopic *string
+	Mood        *int // 1 to 5, optional; the contract bounds it
+	First       bool
 	WrittenAt   time.Time
 }
 
@@ -46,6 +49,13 @@ func topic(t *string) *string {
 		return nil
 	}
 	return &v
+}
+
+func mood(m *int) pgtype.Int2 {
+	if m == nil {
+		return pgtype.Int2{}
+	}
+	return pgtype.Int2{Int16: int16(*m), Valid: true}
 }
 
 func open(key crypt.Key, row store.DiaryEntry) (Entry, error) {
@@ -63,7 +73,7 @@ func Create(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 		q := store.New(tx)
 		row, err := q.CreateDiaryEntry(ctx, store.CreateDiaryEntryParams{
 			FamilyID: familyID, OwnerMemberID: actor, Visibility: string(in.Visibility), WrittenAt: in.WrittenAt,
-			BodySealed: sealed, AgendaTopic: topic(in.AgendaTopic),
+			BodySealed: sealed, AgendaTopic: topic(in.AgendaTopic), Mood: mood(in.Mood), IsFirst: in.First,
 		})
 		if err != nil {
 			return err
@@ -101,9 +111,10 @@ func List(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, view
 	return out, err
 }
 
-// Update lets the author change who may read an entry and its agenda topic.
-// agendaTopic nil keeps the topic; an empty string removes it.
-func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, actor, id uuid.UUID, v access.Visibility, agendaTopic *string) (Entry, error) {
+// Update lets the author change who may read an entry, its agenda topic and
+// whether it is a first. agendaTopic nil keeps the topic; an empty string
+// removes it. first nil keeps the mark.
+func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, actor, id uuid.UUID, v access.Visibility, agendaTopic *string, first *bool) (Entry, error) {
 	var out Entry
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -118,8 +129,12 @@ func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 		if agendaTopic != nil {
 			next = topic(agendaTopic)
 		}
+		isFirst := cur.IsFirst
+		if first != nil {
+			isFirst = *first
+		}
 		row, err := q.UpdateOwnDiaryEntryVisibleToParent(ctx, store.UpdateOwnDiaryEntryVisibleToParentParams{
-			ID: id, FamilyID: familyID, ViewerID: actor, Visibility: string(v), AgendaTopic: next,
+			ID: id, FamilyID: familyID, ViewerID: actor, Visibility: string(v), AgendaTopic: next, IsFirst: isFirst,
 		})
 		if err != nil {
 			return err

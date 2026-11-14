@@ -19,3 +19,15 @@ WHERE v.id = @id AND v.family_id = @family_id
 -- name: DeleteStaleVoiceNotes :execrows
 DELETE FROM voice_notes
 WHERE family_id = @family_id AND handoff_id IS NULL AND created_at < @before;
+
+-- An uploader keeps at most @keep notes waiting for a handoff; older ones go
+-- first. Bounds what a loop of uploads can store (docs/security-review.md).
+-- name: DeleteExcessUnattachedVoiceNotes :execrows
+DELETE FROM voice_notes v
+WHERE v.family_id = @family_id AND v.uploader_member_id = @uploader_member_id AND v.handoff_id IS NULL
+  AND v.id NOT IN (
+    SELECT k.id FROM voice_notes k
+    WHERE k.family_id = @family_id AND k.uploader_member_id = @uploader_member_id AND k.handoff_id IS NULL
+    ORDER BY k.created_at DESC, k.id DESC
+    LIMIT sqlc.arg(keep)::int
+  );
