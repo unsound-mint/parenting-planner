@@ -68,6 +68,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
+          <Link href="/admin" className="mt-1.5 inline-block underline underline-offset-2 hover:text-foreground">
+            Demo admin
+          </Link>
         </div>
       </aside>
 
