@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, ClipboardCheck, Search, type LucideIcon } from "lucide-react";
+import { ChevronRight, ClipboardCheck, HeartPulse, Search, type LucideIcon } from "lucide-react";
 import type { DiaryEntry, ScreeningQuestionnaire } from "@/lib/api/types";
 import { careIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { mergeDiary, useMockDiary } from "@/lib/mock/diary-store";
 // Doors from Care to the parent's own wellbeing, and to Find help (the
 // directory has no nav entry of its own). The first two hide when their
 // endpoint failed, so a missing backend never leaves a dead link.
-export function WellbeingLinks({ memberId, entries: server, questionnaires }: { memberId: string; entries?: DiaryEntry[]; questionnaires?: ScreeningQuestionnaire[] }) {
+export function WellbeingLinks({ memberId, entries: server, questionnaires, recovery }: { memberId: string; entries?: DiaryEntry[]; questionnaires?: ScreeningQuestionnaire[]; recovery?: boolean }) {
   // Entries saved while the diary is a mock come from the browser (see lib/mock/diary-store.ts).
   const remembered = useMockDiary(memberId);
   const entries = server && mergeDiary(server, remembered);
@@ -35,6 +35,7 @@ export function WellbeingLinks({ memberId, entries: server, questionnaires }: { 
           highlight={suggested}
         />
       )}
+      {recovery && <Door href={`/family/${memberId}/care/recovery`} icon={HeartPulse} title="Recovery after birth" hint="Your own check-ins, private" />}
       <Door href={`/family/${memberId}/directory`} icon={Search} title="Find help" hint="Specialists who can help" />
     </section>
   );

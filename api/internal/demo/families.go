@@ -232,6 +232,9 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedRecovery(ctx, q, fam, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
 	return fam, nil
 }
 
@@ -352,4 +355,79 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
 	s.learning(Preschool, rachel, tom)
 	return s.done()
+}
+
+// seedRecovery gives Aisha five recovery check-ins over the last two weeks, getting
+// better, and the baby supplies: diapers are low (about three days left by the care
+// log), the rest is fine. One check-in is shared with Marcus; the others are private.
+func seedRecovery(ctx context.Context, q *store.Queries, fam, aisha, marcus uuid.UUID, today time.Time) error {
+	mood := func(v int16) pgtype.Int2 { return pgtype.Int2{Int16: v, Valid: true} }
+	note := func(v string) *string { return &v }
+	for _, c := range []struct {
+		daysAgo                               int
+		vis, bleeding, wound, breasts, pelvic string
+		pain                                  int16
+		sleep                                 float32
+		mood                                  int16
+		note                                  *string
+	}{
+		{13, "private", "light", "sore", "sore", "leaking", 5, 4.5, 2, note("Sitting is still uncomfortable.")},
+		{9, "private", "light", "sore", "full", "leaking", 4, 5, 3, nil},
+		{6, "private", "spotting", "healing_well", "comfortable", "leaking", 3, 5.5, 3, nil},
+		{3, "partner", "spotting", "healing_well", "comfortable", "fine", 2, 6, 4, note("A good stretch of sleep. Marcus did the night shift.")},
+		{1, "private", "none", "healing_well", "comfortable", "fine", 2, 5.5, 4, nil},
+	} {
+		if _, err := q.CreateRecoveryCheckin(ctx, store.CreateRecoveryCheckinParams{
+			FamilyID: fam, OwnerMemberID: aisha, Visibility: c.vis, RecordedAt: today.AddDate(0, 0, -c.daysAgo).Add(20 * time.Hour),
+			Bleeding: c.bleeding, Pain: c.pain, Wound: c.wound, Breasts: c.breasts, PelvicFloor: c.pelvic,
+			SleepHours: c.sleep, Mood: mood(c.mood), WarningSigns: []string{}, Note: c.note,
+		}); err != nil {
+			return err
+		}
+	}
+	item := func(name, category string, qty, lowAt int32, unit string, perUse int16, size *string, expires *time.Time) (store.SupplyItem, error) {
+		return q.CreateSupplyItem(ctx, store.CreateSupplyItemParams{FamilyID: fam, Name: name, Category: category, Quantity: qty, Unit: unit, LowAt: lowAt, PerUse: perUse, Size: size, ExpiresOn: expires})
+	}
+	diapers, err := item("Diapers", "diapers", 11, 12, "diapers", 1, note("Size 2"), nil)
+	if err != nil {
+		return err
+	}
+	expires := today.AddDate(0, 5, 0)
+	for _, it := range []struct {
+		name, category, unit string
+		qty, lowAt           int32
+		perUse               int16
+		size                 *string
+		expires              *time.Time
+	}{
+		{"Wipes", "wipes", "wipes", 180, 60, 3, nil, nil},
+		{"Infant formula", "formula", "bottles", 9, 3, 1, nil, nil},
+		{"Vitamin D drops", "medicine", "bottle", 1, 0, 1, nil, &expires},
+		{"Diaper cream", "medicine", "tube", 1, 0, 1, nil, nil},
+		{"Onesies", "clothing", "pcs", 7, 0, 1, note("3-6 months"), nil},
+	} {
+		if _, err := item(it.name, it.category, it.qty, it.lowAt, it.unit, it.perUse, it.size, it.expires); err != nil {
+			return err
+		}
+	}
+	restock := pgtype.Int4{Int32: 40, Valid: true}
+	rows := []store.CreateShoppingItemParams{
+		{FamilyID: fam, Name: "Diapers, size 2", SupplyItemID: uuid.NullUUID{UUID: diapers.ID, Valid: true}, RestockQuantity: restock, AddedByMemberID: marcus},
+		{FamilyID: fam, Name: "Nursing pads", AddedByMemberID: aisha},
+		{FamilyID: fam, Name: "Burp cloths", AddedByMemberID: aisha},
+	}
+	for i, r := range rows {
+		row, err := q.CreateShoppingItem(ctx, r)
+		if err != nil {
+			return err
+		}
+		if i == 2 { // bought yesterday
+			if _, err := q.SetShoppingItemDone(ctx, store.SetShoppingItemDoneParams{
+				ID: row.ID, FamilyID: fam, DoneAt: pgtype.Timestamptz{Time: today.AddDate(0, 0, -1).Add(18 * time.Hour), Valid: true}, DoneBy: uuid.NullUUID{UUID: marcus, Valid: true},
+			}); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

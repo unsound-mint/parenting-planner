@@ -10,6 +10,8 @@ import { Card, CaregiverCard, FeedCard, NeverShared, NotificationsCard, PartnerC
 import { PermissionRow } from "@/components/people/permission-row";
 import type { CaregiverPermission } from "@/lib/api/types";
 import { ShieldCheck } from "lucide-react";
+import { EssentialsToggle } from "@/components/settings/essentials-toggle";
+import { getEssentialsOnly } from "@/lib/essentials";
 
 const allPermissions: CaregiverPermission[] = ["care_log", "baby_passport", "schedule", "family_plan", "pregnancy_updates"];
 
@@ -36,10 +38,11 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
   if (!family || !me) notFound();
   const caregiver = isCaregiver(me.role);
 
-  const [feed, notifications, invitations] = await Promise.all([
+  const [feed, notifications, invitations, essentialsOnly] = await Promise.all([
     api.GET("/members/{memberId}/calendar-feed", path),
     api.GET("/members/{memberId}/notifications", path),
     caregiver ? undefined : api.GET("/members/{memberId}/invitations", path),
+    caregiver ? false : getEssentialsOnly(memberId),
   ]);
 
   const partner = family.parents.find((p) => p.id !== memberId);
@@ -87,6 +90,7 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
             )}
           </StageCard>
         )}
+        {!caregiver && <EssentialsToggle memberId={memberId} initial={essentialsOnly} />}
         {!caregiver && invitations?.data && <WaitingInvitations memberId={memberId} count={waiting} />}
       </div>
     </main>

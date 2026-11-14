@@ -28,12 +28,14 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: agenda }, { data: slots }, { data: diary }, { data: questionnaires }] = await Promise.all([
+  const [{ data: family }, { data: agenda }, { data: slots }, { data: diary }, { data: questionnaires }, recovery] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
     api.GET("/members/{memberId}/diary-entries", path),
     api.GET("/members/{memberId}/screening-questionnaires", path),
+    // 200 only once a baby is on record (409 before), so the link never leads to an empty screen.
+    api.GET("/members/{memberId}/recovery-guidance", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
   // A person from another family (an old tab after a new session): open the current family.
@@ -48,6 +50,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       slots={slots}
       entries={diary?.items.filter((e) => e.authorId === memberId)}
       questionnaires={questionnaires?.items}
+      recovery={recovery.response.ok && parent.role === "mother"}
       now={familyNow(family)}
     />
   );
@@ -60,10 +63,11 @@ type ViewProps = {
   slots?: PsychologistSlots;
   entries?: DiaryEntry[];
   questionnaires?: ScreeningQuestionnaire[];
+  recovery?: boolean;
   now: Date;
 };
 
-function CareView({ memberId, name, agenda, slots, entries, questionnaires, now }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires, recovery, now }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
@@ -98,7 +102,7 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
               <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
             <AgendaCard memberId={memberId} topics={topics} />
-            <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
+            <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} recovery={recovery} />
           </PageGrid>
         )}
       </section>
