@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Allergy struct {
@@ -98,6 +99,18 @@ type LabResult struct {
 	Unit            *string
 	RefLow          *float64
 	RefHigh         *float64
+}
+
+type LeavePlan struct {
+	FamilyID          uuid.UUID
+	MemberID          uuid.UUID
+	State             string
+	EmployerEmployees int32
+	MonthsEmployed    int32
+	HoursLast12Months int32
+	StartsOn          *time.Time
+	WeeksWanted       pgtype.Int4
+	UpdatedAt         time.Time
 }
 
 type Member struct {
