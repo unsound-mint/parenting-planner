@@ -3,15 +3,16 @@ import { notFound } from "next/navigation";
 import { CloudOff, Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
-import type { PsychologistAgenda, PsychologistSlots } from "@/lib/api/types";
+import type { DiaryEntry, PsychologistAgenda, PsychologistSlots, ScreeningQuestionnaire } from "@/lib/api/types";
 import { daysUntilInstant, whenWords } from "@/lib/format";
 import { AgendaCard } from "@/components/care/agenda-card";
 import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
+import { WellbeingLinks } from "@/components/care/wellbeing-links";
 
 // "Care": the psychologist agenda, booking and the note after a session.
-// The private diary joins once its endpoints land (#202). Everything here belongs to the acting parent only.
+// Links to the private journal and the mood questionnaires sit under the agenda. Everything here belongs to the acting parent only.
 export default function CarePage({ params }: PageProps<"/family/[memberId]/care">) {
   return (
     <Suspense fallback={<CareFallback />}>
@@ -25,10 +26,12 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: agenda }, { data: slots }] = await Promise.all([
+  const [{ data: family }, { data: agenda }, { data: slots }, { data: diary }, { data: questionnaires }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
+    api.GET("/members/{memberId}/diary-entries", path),
+    api.GET("/members/{memberId}/screening-questionnaires", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent) notFound();
@@ -39,6 +42,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       name={parent.displayName}
       agenda={agenda}
       slots={slots}
+      entries={diary?.items.filter((e) => e.authorId === memberId)}
+      questionnaires={questionnaires?.items}
     />
   );
 }
@@ -48,9 +53,11 @@ type ViewProps = {
   name: string;
   agenda?: PsychologistAgenda;
   slots?: PsychologistSlots;
+  entries?: DiaryEntry[];
+  questionnaires?: ScreeningQuestionnaire[];
 };
 
-function CareView({ memberId, name, agenda, slots }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
@@ -85,6 +92,7 @@ function CareView({ memberId, name, agenda, slots }: ViewProps) {
               <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
             <AgendaCard memberId={memberId} topics={topics} />
+            <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
           </div>
         )}
       </section>
