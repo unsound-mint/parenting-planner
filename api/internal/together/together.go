@@ -44,6 +44,9 @@ const (
 )
 
 type Nudge struct {
+	// Key is stable for the same activity, so a parent can close the nudge
+	// (nudge_dismissals) and it stays closed.
+	Key      string
 	MemberID uuid.UUID
 	Kind     NudgeKind
 	At       time.Time
@@ -93,6 +96,16 @@ func GetCard(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, me uui
 			return Card{}, err
 		}
 		card.Nudge = nudge(other, reads, answers, names, today, now)
+		if card.Nudge != nil {
+			// A closed nudge stays closed; an older activity does not take its place.
+			closed, err := q.IsNudgeDismissed(ctx, store.IsNudgeDismissedParams{FamilyID: familyID, MemberID: me, NudgeKey: card.Nudge.Key})
+			if err != nil {
+				return Card{}, err
+			}
+			if closed {
+				card.Nudge = nil
+			}
+		}
 	}
 	card.Prompts = prompts(me, other.ID, st, reads, talks, now)
 	return card, nil
@@ -137,6 +150,7 @@ func nudge(other Other, reads []store.LessonRead, answers []store.QuizAnswer, na
 	if best == nil {
 		return nil
 	}
+	best.Key = fmt.Sprintf("%s:%s%s:%d", best.Kind, best.LessonID, best.Name, best.At.Unix())
 	when := relativeDay(best.At, today)
 	switch best.Kind {
 	case NudgeLessonFinished:
@@ -226,6 +240,11 @@ func prompts(me, other uuid.UUID, st content.State, reads []store.LessonRead, ta
 	}
 	slices.SortStableFunc(done, func(a, b Prompt) int { return b.TalkedAt.Compare(*a.TalkedAt) })
 	return append(open, done...)
+}
+
+// Dismiss closes a nudge for the acting parent. Repeating it is fine.
+func Dismiss(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, key string, now time.Time) error {
+	return store.New(pool).DismissNudge(ctx, store.DismissNudgeParams{FamilyID: familyID, MemberID: actor, NudgeKey: key, DismissedAt: now})
 }
 
 // Talk records that the couple talked about a prompt. The first record wins.

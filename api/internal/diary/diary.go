@@ -111,10 +111,19 @@ func List(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, view
 	return out, err
 }
 
-// Update lets the author change who may read an entry, its agenda topic and
-// whether it is a first. agendaTopic nil keeps the topic; an empty string
-// removes it. first nil keeps the mark.
-func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, actor, id uuid.UUID, v access.Visibility, agendaTopic *string, first *bool) (Entry, error) {
+// Change is what the author edits on an entry. Nil fields keep their value;
+// an empty AgendaTopic removes the topic.
+type Change struct {
+	Visibility  access.Visibility
+	AgendaTopic *string
+	First       *bool
+	Body        *string // trimmed and non-empty; the handler checks
+	Mood        *int
+}
+
+// Update lets the author change who may read an entry, its text and mood, its
+// agenda topic and whether it is a first.
+func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, actor, id uuid.UUID, c Change) (Entry, error) {
 	var out Entry
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -126,15 +135,31 @@ func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 			return err
 		}
 		next := cur.AgendaTopic
-		if agendaTopic != nil {
-			next = topic(agendaTopic)
+		if c.AgendaTopic != nil {
+			next = topic(c.AgendaTopic)
 		}
 		isFirst := cur.IsFirst
-		if first != nil {
-			isFirst = *first
+		if c.First != nil {
+			isFirst = *c.First
+		}
+		if c.Body != nil || c.Mood != nil {
+			sealed, m := cur.BodySealed, cur.Mood
+			if c.Body != nil {
+				if sealed, err = key.Seal(*c.Body); err != nil {
+					return err
+				}
+			}
+			if c.Mood != nil {
+				m = mood(c.Mood)
+			}
+			if _, err := q.UpdateOwnDiaryEntryContent(ctx, store.UpdateOwnDiaryEntryContentParams{
+				ID: id, FamilyID: familyID, ViewerID: actor, BodySealed: sealed, Mood: m,
+			}); err != nil {
+				return err
+			}
 		}
 		row, err := q.UpdateOwnDiaryEntryVisibleToParent(ctx, store.UpdateOwnDiaryEntryVisibleToParentParams{
-			ID: id, FamilyID: familyID, ViewerID: actor, Visibility: string(v), AgendaTopic: next, IsFirst: isFirst,
+			ID: id, FamilyID: familyID, ViewerID: actor, Visibility: string(c.Visibility), AgendaTopic: next, IsFirst: isFirst,
 		})
 		if err != nil {
 			return err
@@ -145,4 +170,25 @@ func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entity, id.String())
 	})
 	return out, err
+}
+
+// Delete removes one of the author's entries. Its topic leaves the agenda
+// with it, and briefs not sent yet stop carrying its text.
+func Delete(ctx context.Context, pool *pgxpool.Pool, familyID, actor, id uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		n, err := q.DeleteOwnDiaryEntry(ctx, store.DeleteOwnDiaryEntryParams{ID: id, FamilyID: familyID, ViewerID: actor})
+		if err != nil {
+			return err
+		}
+		if n == 0 {
+			return ErrNoEntry
+		}
+		if err := q.DropEntryFromSessionBriefs(ctx, store.DropEntryFromSessionBriefsParams{
+			EntryID: id, Now: now, FamilyID: familyID, OwnerMemberID: actor,
+		}); err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, actor, access.ActionDelete, entity, id.String())
+	})
 }

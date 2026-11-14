@@ -56,6 +56,25 @@ func (q *Queries) CreateDiaryEntry(ctx context.Context, arg CreateDiaryEntryPara
 	return i, err
 }
 
+const deleteOwnDiaryEntry = `-- name: DeleteOwnDiaryEntry :execrows
+DELETE FROM diary_entries WHERE id = $1 AND family_id = $2 AND owner_member_id = $3
+`
+
+type DeleteOwnDiaryEntryParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+}
+
+// Only the author can delete an entry.
+func (q *Queries) DeleteOwnDiaryEntry(ctx context.Context, arg DeleteOwnDiaryEntryParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOwnDiaryEntry, arg.ID, arg.FamilyID, arg.ViewerID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getOwnDiaryEntryVisibleToParent = `-- name: GetOwnDiaryEntryVisibleToParent :one
 SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries WHERE id = $1 AND family_id = $2 AND owner_member_id = $3 FOR UPDATE
 `
@@ -169,6 +188,87 @@ func (q *Queries) ListDiaryEntriesVisibleToParent(ctx context.Context, arg ListD
 		return nil, err
 	}
 	return items, nil
+}
+
+const listOwnDiaryEntriesByIDVisibleToParent = `-- name: ListOwnDiaryEntriesByIDVisibleToParent :many
+SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries
+WHERE family_id = $1 AND owner_member_id = $2 AND id = ANY($3::uuid[])
+`
+
+type ListOwnDiaryEntriesByIDVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+	Ids      []uuid.UUID
+}
+
+// Mirrors access.CanParentRead: the author's own entries, read to build their brief.
+func (q *Queries) ListOwnDiaryEntriesByIDVisibleToParent(ctx context.Context, arg ListOwnDiaryEntriesByIDVisibleToParentParams) ([]DiaryEntry, error) {
+	rows, err := q.db.Query(ctx, listOwnDiaryEntriesByIDVisibleToParent, arg.FamilyID, arg.ViewerID, arg.Ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DiaryEntry{}
+	for rows.Next() {
+		var i DiaryEntry
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.WrittenAt,
+			&i.BodySealed,
+			&i.AgendaTopic,
+			&i.CreatedAt,
+			&i.Mood,
+			&i.IsFirst,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateOwnDiaryEntryContent = `-- name: UpdateOwnDiaryEntryContent :one
+UPDATE diary_entries SET body_sealed = $1, mood = $2
+WHERE id = $3 AND family_id = $4 AND owner_member_id = $5 RETURNING id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first
+`
+
+type UpdateOwnDiaryEntryContentParams struct {
+	BodySealed []byte
+	Mood       pgtype.Int2
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	ViewerID   uuid.UUID
+}
+
+// Mirrors access.CanParentRead for a change: only the author.
+func (q *Queries) UpdateOwnDiaryEntryContent(ctx context.Context, arg UpdateOwnDiaryEntryContentParams) (DiaryEntry, error) {
+	row := q.db.QueryRow(ctx, updateOwnDiaryEntryContent,
+		arg.BodySealed,
+		arg.Mood,
+		arg.ID,
+		arg.FamilyID,
+		arg.ViewerID,
+	)
+	var i DiaryEntry
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.WrittenAt,
+		&i.BodySealed,
+		&i.AgendaTopic,
+		&i.CreatedAt,
+		&i.Mood,
+		&i.IsFirst,
+	)
+	return i, err
 }
 
 const updateOwnDiaryEntryVisibleToParent = `-- name: UpdateOwnDiaryEntryVisibleToParent :one
