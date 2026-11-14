@@ -154,3 +154,5 @@ export type Together = S["Together"];
 export type CoupleTalk = S["CoupleTalk"];
 export type BabyName = S["BabyName"];
 export type BabyNameList = S["BabyNameList"];
+export type Portrait = S["Portrait"];
+export type PortraitList = S["PortraitList"];
