@@ -40,6 +40,10 @@ func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UU
 		if _, err := q.CreateChild(ctx, store.CreateChildParams{FamilyID: familyID, Name: name, BirthDate: born}); err != nil {
 			return err
 		}
+		// Every agreed shift becomes active today, so it shows in everyone's calendar and Today.
+		if err := q.ActivateAgreedShifts(ctx, store.ActivateAgreedShiftsParams{FamilyID: familyID, StartsOn: &today}); err != nil {
+			return err
+		}
 		out, err = q.UpdateFamilyStage(ctx, store.UpdateFamilyStageParams{ID: familyID, Stage: "postpartum", DueDate: cur.DueDate})
 		if err != nil {
 			return err
