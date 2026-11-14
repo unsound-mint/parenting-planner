@@ -43,3 +43,6 @@ export type MoodPatternKind = S["MoodPatternKind"];
 export type Tier = S["Tier"];
 export type PaidTier = S["PaidTier"];
 export type UpgradeIntent = S["UpgradeIntent"];
+export type Task = S["Task"];
+export type TaskKind = S["TaskKind"];
+export type HospitalBag = S["HospitalBag"];
