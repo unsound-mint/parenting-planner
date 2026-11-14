@@ -120,6 +120,15 @@ type CalendarEventAttendee struct {
 	MemberID uuid.UUID
 }
 
+type CalendarFeed struct {
+	FamilyID      uuid.UUID
+	MemberID      uuid.UUID
+	TokenHash     []byte
+	Scope         string
+	CreatedAt     time.Time
+	LastFetchedAt pgtype.Timestamptz
+}
+
 type CareLogEntry struct {
 	ID             uuid.UUID
 	FamilyID       uuid.UUID
