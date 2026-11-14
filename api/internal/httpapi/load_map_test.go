@@ -129,3 +129,40 @@ func TestLoadMapIsForParentsOfTheFamily(t *testing.T) {
 	other.StartDemo("pregnancy")
 	other.Get(loadMapPath(testutil.Parent(t, fam, httpapi.ParentRoleMother).Id), http.StatusNotFound, nil)
 }
+
+func TestLoadMapListsItemsTakersAndWithdraw(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+
+	var m httpapi.LoadMap
+	c.Get(loadMapPath(mom.Id), http.StatusOK, &m)
+	if len(m.Takers) == 0 || m.Takers[0] != jake.Id {
+		t.Fatalf("takers = %v, want the other parent first", m.Takers)
+	}
+	for _, id := range m.Takers {
+		if id == mom.Id {
+			t.Errorf("the acting parent is not a taker")
+		}
+	}
+	appts, _ := areaOf(m, httpapi.LoadMapAreaKeyAppointments)
+	if len(appts.Items) != 3 {
+		t.Fatalf("items = %+v", appts.Items)
+	}
+	for _, it := range appts.Items {
+		if it.Title == "" || it.AssigneeId != mom.Id {
+			t.Errorf("item = %+v", it)
+		}
+	}
+	// Only the assignee can withdraw, and only an open offer.
+	planning, _ := areaOf(m, httpapi.LoadMapAreaKeyPlanning)
+	id := planning.OfferedByMeTaskIds[0].String()
+	c.Post(tasksPath(jake.Id)+"/"+id+"/reassignment/withdraw", nil, http.StatusConflict, nil)
+	c.Post(tasksPath(mom.Id)+"/"+appts.Items[0].TaskId.String()+"/reassignment/withdraw", nil, http.StatusConflict, nil)
+	c.Post(tasksPath(mom.Id)+"/"+id+"/reassignment/withdraw", nil, http.StatusOK, nil)
+	c.Get(loadMapPath(mom.Id), http.StatusOK, &m)
+	planning, _ = areaOf(m, httpapi.LoadMapAreaKeyPlanning)
+	if len(planning.OfferedByMeTaskIds) != 0 || len(planning.HandoverTaskIds) != 1 {
+		t.Errorf("after withdrawing, planning = %+v", planning)
+	}
+}

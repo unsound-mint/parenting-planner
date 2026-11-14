@@ -16,10 +16,11 @@ export const loadMapMocks = {
     const { mom, partner } = ids(await ctx.family());
     return {
       windowDays: 14,
+      takers: [partner],
       areas: [
-        { key: "appointments" as const, label: "Appointments", unit: "items" as const, owned: [{ memberId: mom, count: 3 }], started: [{ memberId: mom, count: 3 }], handoverTaskIds: ["00000000-0000-4000-8000-0000000000a1"], offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE },
-        { key: "shopping" as const, label: "Shopping", unit: "items" as const, owned: [{ memberId: partner, count: 2 }], started: [{ memberId: mom, count: 2 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE },
-        { key: "hospital_bag" as const, label: "Hospital bag", unit: "items" as const, owned: [{ memberId: mom, count: 4 }, { memberId: partner, count: 4 }], started: [{ memberId: mom, count: 8 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE },
+        { key: "appointments" as const, label: "Appointments", unit: "items" as const, owned: [{ memberId: mom, count: 3 }], started: [{ memberId: mom, count: 3 }], handoverTaskIds: ["00000000-0000-4000-8000-0000000000a1"], offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE, items: [] },
+        { key: "shopping" as const, label: "Shopping", unit: "items" as const, owned: [{ memberId: partner, count: 2 }], started: [{ memberId: mom, count: 2 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE, items: [] },
+        { key: "hospital_bag" as const, label: "Hospital bag", unit: "items" as const, owned: [{ memberId: mom, count: 4 }, { memberId: partner, count: 4 }], started: [{ memberId: mom, count: 8 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE, items: [] },
       ],
     };
   }),
