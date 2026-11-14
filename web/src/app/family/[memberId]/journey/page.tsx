@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { formatShortDate } from "@/lib/format";
+import { categoryIcon, statusTint } from "@/lib/visuals";
+import { cn } from "@/lib/utils";
 import { NextWeeks } from "@/components/journey/next-weeks";
 import { PathStrip } from "@/components/journey/path-strip";
 import { journeyHeadline, laneWindow } from "@/components/journey/stages";
@@ -28,7 +30,7 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
   const { headline, support } = journeyHeadline(family, lane);
 
   return (
-    <main className="flex min-w-0 max-w-5xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
+    <main className="flex min-w-0 max-w-4xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
       <header className="flex flex-col gap-4">
         <PathStrip family={family} />
         <div>
@@ -44,13 +46,21 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
           <h2 id="later" className="text-title">
             Later
           </h2>
-          <ul className="mt-3 flex flex-col gap-1">
-            {lane.later.map((i) => (
-              <li key={i.ruleId} className="text-body">
-                {i.title}
-                <span className="ml-2 text-caption text-muted-foreground">{i.dueBy ? `by ${formatShortDate(i.dueBy)}` : "no set date"}</span>
-              </li>
-            ))}
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {lane.later.map((i) => {
+              const Icon = categoryIcon[i.category];
+              return (
+                <li key={i.ruleId} className="flex items-center gap-2.5 rounded-xl border border-border bg-card py-2 pr-4 pl-2.5">
+                  <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-full", statusTint[i.status])}>
+                    <Icon className="size-4" aria-hidden />
+                  </span>
+                  <span>
+                    <span className="block text-body font-semibold">{i.title}</span>
+                    <span className="block font-mono text-caption text-muted-foreground">{i.dueBy ? `by ${formatShortDate(i.dueBy)}` : "no set date"}</span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
@@ -63,7 +73,7 @@ function JourneyFallback() {
     <main className="px-4 pt-6 md:px-8" aria-busy>
       <div className="h-6 w-2/3 max-w-xl animate-pulse rounded-full bg-muted" />
       <div className="mt-6 h-9 w-1/2 animate-pulse rounded-lg bg-muted" />
-      <div className="mt-8 h-56 max-w-5xl animate-pulse rounded-2xl bg-muted" />
+      <div className="mt-8 h-56 max-w-4xl animate-pulse rounded-2xl bg-muted" />
     </main>
   );
 }

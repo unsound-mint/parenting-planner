@@ -33,7 +33,7 @@ const MAX_WEEKS = 16;
 export type Lane = {
   weeks: number;
   days: number;
-  /** A tick every two weeks: days from today and a label (gestational week or date). */
+  /** A tick every two weeks: days from today and a plain relative label ("in 4 wk"). */
   ticks: { days: number; label: string }[];
   /** The baby's due date when it falls inside the window. */
   babyDue?: string;
@@ -61,11 +61,9 @@ export function laneWindow(family: Family, items: PlanItem[]): Lane {
   const weeks = Math.min(MAX_WEEKS, Math.max(MIN_WEEKS, Math.ceil((reach + 7) / 14) * 2));
   const days = weeks * 7;
 
-  const pregnancyWeek = family.stage === "pregnancy" ? family.gestationalWeek : undefined;
   const ticks: Lane["ticks"] = [];
   for (let d = 14; d < days; d += 14) {
-    const date = new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
-    ticks.push({ days: d, label: pregnancyWeek != null ? `wk ${pregnancyWeek + d / 7}` : formatShortDate(date) });
+    ticks.push({ days: d, label: `in ${d / 7} wk` });
   }
 
   return {

@@ -116,6 +116,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/plan/{ruleId}/status:
+    put:
+      operationId: setPlanItemProgress
+      tags: [plan]
+      summary: The acting parent marks a plan item as booked or done
+      description: |
+        Records progress on one plan item for this parent. A booked or done item
+        stays on the plan, shown as settled, so nothing disappears unseen.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: glucose-screen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanItemProgressInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/mood-checkins:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -333,6 +387,20 @@ components:
           description: Why this applies to this parent now, based on their data.
         source:
           $ref: "#/components/schemas/Source"
+        progress:
+          $ref: "#/components/schemas/PlanItemProgress"
+
+    PlanItemProgress:
+      type: string
+      description: What the parent has done about an item. Absent until they record something.
+      enum: [booked, done]
+
+    PlanItemProgressInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/PlanItemProgress"
 
     Source:
       type: object

@@ -76,6 +76,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/plan/{ruleId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The acting parent marks a plan item as booked or done
+         * @description Records progress on one plan item for this parent. A booked or done item
+         *     stays on the plan, shown as settled, so nothing disappears unseen.
+         */
+        put: operations["setPlanItemProgress"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/mood-checkins": {
         parameters: {
             query?: never;
@@ -181,6 +202,15 @@ export interface components {
             /** @description Why this applies to this parent now, based on their data. */
             reason: string;
             source: components["schemas"]["Source"];
+            progress?: components["schemas"]["PlanItemProgress"];
+        };
+        /**
+         * @description What the parent has done about an item. Absent until they record something.
+         * @enum {string}
+         */
+        PlanItemProgress: "booked" | "done";
+        PlanItemProgressInput: {
+            status: components["schemas"]["PlanItemProgress"];
         };
         Source: {
             title: string;
@@ -360,6 +390,74 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    setPlanItemProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                /** @example glucose-screen */
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanItemProgressInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };

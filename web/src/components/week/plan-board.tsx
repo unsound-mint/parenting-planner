@@ -1,20 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { BookOpen, CheckCircle2, ExternalLink, UserRound, type LucideIcon } from "lucide-react";
+import { toast } from "sonner";
+import { BookOpen, CalendarCheck, CheckCircle2, ChevronDown, ExternalLink, UserRound, type LucideIcon } from "lucide-react";
+import { api } from "@/lib/api/client";
 import type { PlanItem } from "@/lib/api/types";
-import { daysUntil, formatLongDate, formatShortDate } from "@/lib/format";
-import { categoryIcon, categoryLabel, statusTint } from "@/lib/visuals";
+import { BOOKING_ENABLED } from "@/lib/features";
+import { daysUntil, firstSentence, formatLongDate, formatShortDate } from "@/lib/format";
+import { categoryIcon, categoryLabel, statusBar, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { StatusPill } from "./status-pill";
 
 // The plan as one focus card plus a quieter list, and a "why" panel for the
 // selected item: the parent's data that triggered it, the guideline and its
 // source with the date it was checked (docs/design.md, rules 2 and 3).
-export function PlanBoard({ items }: { items: PlanItem[] }) {
+export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: string }) {
   const focus = items.find((i) => i.status !== "upcoming") ?? items[0];
   const [selectedId, setSelectedId] = useState(focus?.ruleId);
+  const [whyOpen, setWhyOpen] = useState(true);
+  const whyRef = useRef<HTMLElement>(null);
   const selected = items.find((i) => i.ruleId === selectedId) ?? focus;
 
   if (!focus) {
@@ -33,32 +40,51 @@ export function PlanBoard({ items }: { items: PlanItem[] }) {
 
   const rest = items.filter((i) => i.ruleId !== focus.ruleId);
 
-  return (
-    <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,300px)]">
-      <div className="flex min-w-0 flex-col gap-8">
-        <FocusCard item={focus} selected={selected?.ruleId === focus.ruleId} onSelect={() => setSelectedId(focus.ruleId)} />
-        {rest.length > 0 && (
-          <section aria-labelledby="also-title">
-            <h2 id="also-title" className="text-title">
-              Also on your plan
-            </h2>
-            <ul className="mt-3 flex flex-col gap-2">
-              {rest.map((item, i) => (
-                <motion.li
-                  key={item.ruleId}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.06 + i * 0.04 }}
-                >
-                  <ItemRow item={item} selected={selected?.ruleId === item.ruleId} onSelect={() => setSelectedId(item.ruleId)} />
-                </motion.li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </div>
+  // The why panel sits right under the focus card. Picking a row further down
+  // selects it there, so bring the panel into view when it is off screen.
+  function selectRow(id: string) {
+    setSelectedId(id);
+    setWhyOpen(true);
+    whyRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 
-      {selected && <WhyPanel item={selected} />}
+  function toggleWhy() {
+    if (selected?.ruleId === focus.ruleId) {
+      setWhyOpen((o) => !o);
+    } else {
+      setSelectedId(focus.ruleId);
+      setWhyOpen(true);
+    }
+  }
+
+  return (
+    <div className="mt-8 flex min-w-0 flex-col gap-6">
+      <FocusCard
+        item={focus}
+        memberId={memberId}
+        whyOpen={whyOpen && selected?.ruleId === focus.ruleId}
+        onToggleWhy={toggleWhy}
+      />
+      {selected && <WhyPanel ref={whyRef} item={selected} open={whyOpen} />}
+      {rest.length > 0 && (
+        <section aria-labelledby="also-title" className="mt-2">
+          <h2 id="also-title" className="text-title">
+            Also on your plan
+          </h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            {rest.map((item, i) => (
+              <motion.li
+                key={item.ruleId}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.06 + i * 0.04 }}
+              >
+                <ItemRow item={item} selected={whyOpen && selected?.ruleId === item.ruleId} onSelect={() => selectRow(item.ruleId)} />
+              </motion.li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
@@ -82,38 +108,126 @@ function ItemIcon({ item, size }: { item: PlanItem; size: "md" | "lg" }) {
   );
 }
 
-function FocusCard({ item, selected, onSelect }: { item: PlanItem; selected: boolean; onSelect: () => void }) {
+// Window for the countdown bar: items further out than this fill the track.
+const COUNTDOWN_DAYS = 56;
+
+function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; memberId: string; whyOpen: boolean; onToggleWhy: () => void }) {
+  const router = useRouter();
+  const [booked, setBooked] = useState(false);
+  const [pending, startTransition] = useTransition();
   const days = item.dueBy ? daysUntil(item.dueBy) : undefined;
+  const progress = booked ? "booked" : item.progress;
+
+  function markBooked() {
+    startTransition(async () => {
+      const { error } = await api.PUT("/members/{memberId}/plan/{ruleId}/status", {
+        params: { path: { memberId, ruleId: item.ruleId } },
+        body: { status: "booked" },
+      });
+      if (error) {
+        toast.error("Could not save that. Please try again.");
+        return;
+      }
+      setBooked(true);
+      router.refresh();
+    });
+  }
+
   return (
-    <motion.button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
+    <motion.article
+      layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn(selectable, "rounded-2xl p-6", selected ? selectedRing : "border-border hover:border-input")}
+      transition={{ type: "spring", duration: 0.32, bounce: 0 }}
+      aria-labelledby="focus-title"
+      className="rounded-2xl border border-primary bg-card p-6 shadow-[0_0_0_3px_var(--secondary)]"
     >
-      <span className="flex items-start gap-4">
+      <div className="flex items-start gap-4">
         <ItemIcon item={item} size="lg" />
-        <span className="min-w-0 flex-1">
-          <span className="block text-caption font-semibold tracking-[0.07em] text-primary uppercase">
+        <div className="min-w-0 flex-1">
+          <p className="text-caption font-semibold tracking-[0.07em] text-primary uppercase">
             {item.status === "upcoming" ? "Coming up" : "Your next step"}
-          </span>
-          <span className="mt-1 block text-title">{item.title}</span>
-        </span>
-        {days !== undefined && item.status !== "overdue" && (
-          <span className="shrink-0 text-right">
-            <span className="block text-headline tabular-nums">{Math.max(days, 0)}</span>
-            <span className="block text-caption text-muted-foreground">{days === 1 ? "day left" : "days left"}</span>
-          </span>
-        )}
-      </span>
-      <span className="mt-4 block text-body">{item.detail}</span>
-      <span className="mt-4 flex items-center gap-2">
-        <StatusPill status={item.status} dueBy={item.dueBy} />
+          </p>
+          <h2 id="focus-title" className="mt-1 text-title">
+            {item.title}
+          </h2>
+          <p className="mt-1 line-clamp-2 text-body">{firstSentence(item.detail)}</p>
+        </div>
+      </div>
+
+      {days !== undefined && item.status !== "overdue" && <Countdown item={item} days={Math.max(days, 0)} />}
+
+      <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-3">
+        <StatusPill status={item.status} />
         <span className="text-caption text-muted-foreground">{categoryLabel[item.category]}</span>
-      </span>
-    </motion.button>
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onToggleWhy}
+            aria-expanded={whyOpen}
+            aria-controls="why-panel"
+            className="h-11 px-3 text-label md:h-9"
+          >
+            Why?
+            <ChevronDown className={cn("size-4 transition-transform duration-220", whyOpen && "rotate-180")} aria-hidden />
+          </Button>
+          {BOOKING_ENABLED && !progress && (
+            <Button type="button" onClick={markBooked} disabled={pending} className="h-11 px-4 text-label md:h-9">
+              <CalendarCheck aria-hidden />
+              {pending ? "Saving..." : "Mark as booked"}
+            </Button>
+          )}
+          {progress && (
+            <motion.span
+              layout
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", duration: 0.32, bounce: 0 }}
+              className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-status-ok-soft px-3 text-label font-semibold text-status-ok md:h-9"
+            >
+              <CheckCircle2 className="size-4" aria-hidden />
+              {progress === "done" ? "Done" : "Booked"}
+            </motion.span>
+          )}
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+// A small lane like the ones on Journey: today on the left, the due date as a
+// marker, the bar as the time left. The number repeats it for screen readers.
+function Countdown({ item, days }: { item: PlanItem; days: number }) {
+  const Icon = categoryIcon[item.category];
+  const end = Math.max(0.04, Math.min(1, days / COUNTDOWN_DAYS));
+  return (
+    <div className="mt-5">
+      <div className="relative h-7" aria-hidden>
+        <span className="absolute inset-x-0 top-1/2 h-3.5 -translate-y-1/2 rounded-full bg-muted" />
+        <span className="absolute top-1/2 left-0 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
+        <motion.span
+          className={cn("absolute top-1/2 left-0 h-3.5 origin-left -translate-y-1/2 rounded-full opacity-80", statusBar[item.status])}
+          style={{ width: `${end * 100}%` }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.32, delay: 0.1 }}
+        />
+        <span
+          className={cn("absolute top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full ring-2 ring-card", statusTint[item.status])}
+          style={{ left: `calc(${end * 100}% - ${end * 28}px)` }}
+        >
+          <Icon className="size-3.5" />
+        </span>
+      </div>
+      <p className="mt-2 flex justify-between font-mono text-caption text-muted-foreground">
+        <span>Today</span>
+        <span>
+          {item.dueBy ? `${formatShortDate(item.dueBy)} · ` : ""}
+          {days} {days === 1 ? "day" : "days"}
+        </span>
+      </p>
+    </div>
   );
 }
 
@@ -133,48 +247,73 @@ function ItemRow({ item, selected, onSelect }: { item: PlanItem; selected: boole
           {item.dueBy ? ` · by ${formatShortDate(item.dueBy)}` : ""}
         </span>
       </span>
-      <StatusPill status={item.status} />
+      {item.progress ? (
+        <span className="inline-flex items-center gap-1 rounded-md bg-status-ok-soft px-2 py-0.5 text-caption font-semibold text-status-ok">
+          <CheckCircle2 className="size-3.5" aria-hidden />
+          {item.progress === "done" ? "Done" : "Booked"}
+        </span>
+      ) : (
+        <StatusPill status={item.status} />
+      )}
     </button>
   );
 }
 
-function WhyPanel({ item }: { item: PlanItem }) {
+// Opens and closes with a grid-rows transition (0fr to 1fr) plus a fade, so
+// the page below slides instead of jumping. Closed content is inert.
+function WhyPanel({ item, open, ref }: { item: PlanItem; open: boolean; ref: React.Ref<HTMLElement> }) {
   return (
-    <section aria-live="polite" aria-labelledby="why-title" className="self-start rounded-2xl border border-border bg-card p-5 xl:sticky xl:top-6">
-      <h2 id="why-title" className="text-title">
-        Why it&apos;s in your plan
-      </h2>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.ol
-          key={item.ruleId}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          className="mt-4 flex flex-col"
-        >
-          <Step icon={UserRound} label="Your data">
-            <p className="text-body">{item.reason}</p>
-          </Step>
-          <Step icon={BookOpen} label="The guideline">
-            <p className="text-body">{item.detail}</p>
-          </Step>
-          <Step icon={ExternalLink} label="Source" last>
-            <a
-              href={item.source.url}
-              target="_blank"
-              rel="noreferrer"
-              className="block font-mono text-caption underline-offset-2 hover:underline"
+    <section
+      ref={ref}
+      id="why-panel"
+      aria-live="polite"
+      aria-labelledby="why-title"
+      className={cn(
+        "grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out)",
+        open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+      )}
+      inert={!open}
+    >
+      <div className="min-h-0 overflow-hidden">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h2 id="why-title" className="text-title">
+            Why it&apos;s in your plan
+          </h2>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={item.ruleId}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
-              {item.source.title}
-            </a>
-            <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(item.source.checkedAt)}</p>
-          </Step>
-        </motion.ol>
-      </AnimatePresence>
-      <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
-        Guidance to discuss with your doctor, not a diagnosis.
-      </p>
+              <p className="mt-1 text-label text-muted-foreground">{item.title}</p>
+              <ol className="mt-4 flex flex-col">
+                <Step icon={UserRound} label="Your data">
+                  <p className="text-body">{item.reason}</p>
+                </Step>
+                <Step icon={BookOpen} label="The guideline">
+                  <p className="text-body">{item.detail}</p>
+                </Step>
+                <Step icon={ExternalLink} label="Source" last>
+                  <a
+                    href={item.source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block font-mono text-caption underline-offset-2 hover:underline"
+                  >
+                    {item.source.title}
+                  </a>
+                  <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(item.source.checkedAt)}</p>
+                </Step>
+              </ol>
+            </motion.div>
+          </AnimatePresence>
+          <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
+            Guidance to discuss with your doctor, not a diagnosis.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }
