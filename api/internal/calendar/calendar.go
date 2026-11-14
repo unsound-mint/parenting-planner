@@ -319,8 +319,19 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	if !to.After(from) || to.Sub(from) > MaxWindow {
 		return nil, ErrBadWindow
 	}
-	rows, err := store.New(pool).ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
-		FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+	// The events are parents' records a caregiver may see: the read goes in the
+	// access log in the same transaction, like a parent's List.
+	var rows []store.ListCaregiverCalendarEventsVisibleToParentRow
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		var err error
+		rows, err = q.ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+		})
+		if err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entity, "")
 	})
 	if err != nil {
 		return nil, err

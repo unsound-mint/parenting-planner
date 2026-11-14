@@ -6,11 +6,13 @@ import { birthPlanMocks } from "./fixtures/birth-prep";
 import { calendarEventMocks } from "./fixtures/calendar-events";
 import { calendarFeedMocks } from "./fixtures/calendar-feed";
 import { careMocks } from "./fixtures/care";
+import { childcareMocks } from "./fixtures/childcare";
 import { demoMocks } from "./fixtures/demo";
 import { directoryMocks } from "./fixtures/directory";
 import { insuranceMocks } from "./fixtures/insurance";
 import { leaveMocks } from "./fixtures/leave";
 import { learnMocks } from "./fixtures/learn";
+import { loadMapMocks } from "./fixtures/load-map";
 import { milestoneMocks } from "./fixtures/milestones";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { notificationMocks } from "./fixtures/notifications";
@@ -37,11 +39,13 @@ const tables: MockTable[] = [
   calendarEventMocks,
   calendarFeedMocks,
   careMocks,
+  childcareMocks,
   demoMocks,
   directoryMocks,
   insuranceMocks,
   leaveMocks,
   learnMocks,
+  loadMapMocks,
   milestoneMocks,
   moodPatternMocks,
   notificationMocks,
