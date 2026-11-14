@@ -15,6 +15,10 @@ func (s *Server) CreateCalendarEvent(_ context.Context, _ CreateCalendarEventReq
 	return CreateCalendarEvent501JSONResponse(Error{Code: "not_implemented", Message: "the calendar is not available yet"}), nil
 }
 
+func (s *Server) UpdateCalendarEvent(_ context.Context, _ UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
+	return UpdateCalendarEvent501JSONResponse(Error{Code: "not_implemented", Message: "the calendar is not available yet"}), nil
+}
+
 func (s *Server) CreateAppointmentQuestion(_ context.Context, _ CreateAppointmentQuestionRequestObject) (CreateAppointmentQuestionResponseObject, error) {
 	return CreateAppointmentQuestion501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
 }
