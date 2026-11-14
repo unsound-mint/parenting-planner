@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { Phone } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
+import { helpHref } from "@/components/shell/urgent-help-link";
 import { GuideList } from "@/components/today/guide-list";
 import { UndoLoss } from "./undo-loss";
 
@@ -26,13 +26,13 @@ async function LossSupportLoader({ memberId }: { memberId: string }) {
       guides={data?.items ?? []}
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Link
-            href="/help"
+          <a
+            href={helpHref(memberId)}
             className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-label font-medium text-foreground transition-colors duration-150 hover:bg-muted md:min-h-9"
           >
             <Phone aria-hidden className="size-4 text-muted-foreground" />
             Someone to talk to, any time
-          </Link>
+          </a>
           <UndoLoss memberId={memberId} />
         </div>
       }

@@ -13,7 +13,7 @@ function inDays(n: number): string {
   return n > 0 ? `in ${span}` : `${span} ago`;
 }
 
-function describe(item: FollowUp, who: string, now: Date): { title: string; line: string; late: boolean } {
+function describe(item: FollowUp, who: string, now: Date): { title: string; line: string; late: boolean; href?: string } {
   if (item.kind === "vaccine") {
     const late = item.vaccine.status === "overdue";
     return {
@@ -25,7 +25,8 @@ function describe(item: FollowUp, who: string, now: Date): { title: string; line
   if (item.kind === "lab") {
     return {
       title: `${item.lab.name} is ${item.lab.value > (item.lab.refHigh ?? Infinity) ? "above" : "below"} range`,
-      line: `Bring it up at ${who} next visit.`,
+      line: "",
+      href: `#lab-${item.lab.id}`,
       late: false,
     };
   }
@@ -74,8 +75,16 @@ export function NextStep({ person, items, onLogVaccine }: { person: PassportPers
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-title">{r.title}</p>
-                <p className="text-label font-normal">{r.line}</p>
+                {r.line && <p className="text-label font-normal">{r.line}</p>}
               </div>
+              {r.href && (
+                <a
+                  href={r.href}
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-card px-4 text-label font-semibold outline-none transition-colors duration-150 hover:bg-card/80 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  See result
+                </a>
+              )}
               {r.item.kind === "vaccine" && onLogVaccine && (
                 <button
                   type="button"

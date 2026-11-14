@@ -12,6 +12,34 @@ import (
 	"github.com/google/uuid"
 )
 
+const copyMoodCheckinsForwardVisibleToParent = `-- name: CopyMoodCheckinsForwardVisibleToParent :exec
+INSERT INTO mood_checkins (family_id, owner_member_id, visibility, recorded_at, mood, energy, sleep_hours, note)
+SELECT m.family_id, m.owner_member_id, m.visibility, m.recorded_at + make_interval(days => $1::int), m.mood, m.energy, m.sleep_hours, m.note
+FROM mood_checkins m
+WHERE m.family_id = $2 AND m.recorded_at >= $3 AND m.recorded_at < $4
+`
+
+type CopyMoodCheckinsForwardVisibleToParentParams struct {
+	Days     int32
+	FamilyID uuid.UUID
+	FromAt   time.Time
+	ToAt     time.Time
+}
+
+// Mirrors access.CanParentRead: not a read for a viewer. Demo maintenance for "Skip ahead a
+// week": each row is copied forward to the same owner with the same visibility, so nothing
+// is shown to anyone new, and the seeded story (a low-mood pattern in the last week) still
+// shows after the skip.
+func (q *Queries) CopyMoodCheckinsForwardVisibleToParent(ctx context.Context, arg CopyMoodCheckinsForwardVisibleToParentParams) error {
+	_, err := q.db.Exec(ctx, copyMoodCheckinsForwardVisibleToParent,
+		arg.Days,
+		arg.FamilyID,
+		arg.FromAt,
+		arg.ToAt,
+	)
+	return err
+}
+
 const createMoodCheckin = `-- name: CreateMoodCheckin :one
 INSERT INTO mood_checkins (family_id, owner_member_id, visibility, recorded_at, mood, energy, sleep_hours, note)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)

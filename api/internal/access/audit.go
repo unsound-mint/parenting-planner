@@ -13,6 +13,9 @@ const (
 	ActionRead   = "read"
 	ActionUpdate = "update"
 	ActionDelete = "delete"
+	// Invitation events, shown in the access log.
+	ActionAccept = "accept"
+	ActionRevoke = "revoke"
 )
 
 // Audit records that a parent read or changed sensitive data. Call it from the

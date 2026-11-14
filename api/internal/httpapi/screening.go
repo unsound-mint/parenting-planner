@@ -109,3 +109,90 @@ func questionnaireOut(q screening.Questionnaire) ScreeningQuestionnaire {
 	}
 	return out
 }
+
+var errScreeningVisibility = Error{Code: "invalid_request", Message: "a result can only be private or shared with the partner"}
+var errNoScreening = Error{Code: "not_found", Message: "no such result"}
+
+// UpdateMoodScreening lets the author share a result with the partner or take it back.
+func (s *Server) UpdateMoodScreening(ctx context.Context, req UpdateMoodScreeningRequestObject) (UpdateMoodScreeningResponseObject, error) {
+	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return UpdateMoodScreening401JSONResponse(errNoSession), nil
+	case kind == errNotFound || !isParent(m):
+		return UpdateMoodScreening404JSONResponse(errNoMember), nil
+	}
+	r, err := screening.Share(ctx, s.pool, familyID, req.MemberId, req.ScreeningId, access.Visibility(req.Body.Visibility))
+	switch {
+	case errors.Is(err, screening.ErrVisibility):
+		return UpdateMoodScreening400JSONResponse(errScreeningVisibility), nil
+	case errors.Is(err, screening.ErrNoResult):
+		return UpdateMoodScreening404JSONResponse(errNoScreening), nil
+	case err != nil:
+		return nil, err
+	}
+	return UpdateMoodScreening200JSONResponse(moodScreeningOut(r)), nil
+}
+
+func draftOut(d screening.Draft) MoodScreeningDraft {
+	return MoodScreeningDraft{Instrument: ScreeningInstrument(d.Instrument), Answers: d.Answers, UpdatedAt: d.UpdatedAt.UTC()}
+}
+
+func (s *Server) ListMoodScreeningDrafts(ctx context.Context, req ListMoodScreeningDraftsRequestObject) (ListMoodScreeningDraftsResponseObject, error) {
+	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return ListMoodScreeningDrafts401JSONResponse(errNoSession), nil
+	case kind == errNotFound || !isParent(m):
+		return ListMoodScreeningDrafts404JSONResponse(errNoMember), nil
+	}
+	rows, err := screening.ListDrafts(ctx, s.pool, familyID, req.MemberId, s.now(ctx))
+	if err != nil {
+		return nil, err
+	}
+	out := MoodScreeningDraftList{Items: make([]MoodScreeningDraft, 0, len(rows))}
+	for _, r := range rows {
+		out.Items = append(out.Items, draftOut(r))
+	}
+	return ListMoodScreeningDrafts200JSONResponse(out), nil
+}
+
+func (s *Server) SaveMoodScreeningDraft(ctx context.Context, req SaveMoodScreeningDraftRequestObject) (SaveMoodScreeningDraftResponseObject, error) {
+	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return SaveMoodScreeningDraft401JSONResponse(errNoSession), nil
+	case kind == errNotFound || !isParent(m):
+		return SaveMoodScreeningDraft404JSONResponse(errNoMember), nil
+	}
+	d, err := screening.SaveDraft(ctx, s.pool, familyID, req.MemberId, string(req.Instrument), req.Body.Answers, s.now(ctx))
+	if errors.Is(err, screening.ErrAnswers) {
+		return SaveMoodScreeningDraft400JSONResponse(errScreeningAnswers), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return SaveMoodScreeningDraft200JSONResponse(draftOut(d)), nil
+}
+
+func (s *Server) DeleteMoodScreeningDraft(ctx context.Context, req DeleteMoodScreeningDraftRequestObject) (DeleteMoodScreeningDraftResponseObject, error) {
+	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return DeleteMoodScreeningDraft401JSONResponse(errNoSession), nil
+	case kind == errNotFound || !isParent(m):
+		return DeleteMoodScreeningDraft404JSONResponse(errNoMember), nil
+	}
+	if err := screening.DeleteDraft(ctx, s.pool, familyID, req.MemberId, string(req.Instrument)); err != nil {
+		return nil, err
+	}
+	return DeleteMoodScreeningDraft204Response{}, nil
+}

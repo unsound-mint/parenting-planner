@@ -1,12 +1,33 @@
 package httpapi
 
-import "context"
+import (
+	"context"
+	"errors"
 
-// STUB for the agenda order backend issue: the contract is in openapi.yaml,
-// the implementation is not written yet. Replace it with a real handler
-// (copy GetPsychologistAgenda in care.go), remove its 501 from openapi.yaml
-// and replace its test. The web keeps the order locally on 501.
+	"github.com/unsound-mint/parenting-planner/api/internal/care"
+)
 
-func (s *Server) UpdatePsychologistAgenda(_ context.Context, _ UpdatePsychologistAgendaRequestObject) (UpdatePsychologistAgendaResponseObject, error) {
-	return UpdatePsychologistAgenda501JSONResponse(Error{Code: "not_implemented", Message: "saving the agenda is not available yet"}), nil
+var errUnknownTopic = Error{Code: "unknown_topic", Message: "that topic is not on your agenda"}
+
+// UpdatePsychologistAgenda stores the acting parent's own arrangement of their
+// agenda. The id of the other parent's topic is just as unknown as a made-up one,
+// so the answer reveals nothing.
+func (s *Server) UpdatePsychologistAgenda(ctx context.Context, req UpdatePsychologistAgendaRequestObject) (UpdatePsychologistAgendaResponseObject, error) {
+	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return UpdatePsychologistAgenda401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return UpdatePsychologistAgenda404JSONResponse(errNoMember), nil
+	}
+	a, err := care.UpdateAgenda(ctx, s.pool, familyID, req.MemberId, req.Body.TopicIds, s.now(ctx))
+	if errors.Is(err, care.ErrUnknownTopic) {
+		return UpdatePsychologistAgenda400JSONResponse(errUnknownTopic), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return UpdatePsychologistAgenda200JSONResponse(agendaOut(a)), nil
 }

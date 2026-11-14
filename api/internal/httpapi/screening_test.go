@@ -1,9 +1,12 @@
 package httpapi_test
 
 import (
+	"context"
 	"net/http"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
 )
@@ -175,4 +178,152 @@ func TestMoodScreeningChangesThePlan(t *testing.T) {
 	if planHas(t, c, mom2, "epds-talk-to-doctor") {
 		t.Error("a shared result still feeds only its author's plan")
 	}
+}
+
+func msPath(m httpapi.Parent) string { return "/api/members/" + m.Id.String() + "/mood-screenings" }
+func draftPath(m httpapi.Parent, instrument string) string {
+	return "/api/members/" + m.Id.String() + "/mood-screening-drafts/" + instrument
+}
+
+func TestSharingAResultShowsThePartnerTheBandOnly(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	var made httpapi.MoodScreeningResult
+	c.Post(msPath(mom), epdsInput(epdsSelfHarm, httpapi.VisibilityPrivate), http.StatusCreated, &made)
+	if !made.Urgent || made.Message == nil {
+		t.Fatalf("setup: the self-harm answer is urgent for its author: %+v", made)
+	}
+	seenBy := func(p httpapi.Parent) httpapi.MoodScreeningList {
+		var l httpapi.MoodScreeningList
+		c.Get(msPath(p), http.StatusOK, &l)
+		return l
+	}
+	if len(seenBy(jake).Items) != 0 {
+		t.Fatal("private to begin with")
+	}
+	var shared httpapi.MoodScreeningResult
+	c.Patch(msPath(mom)+"/"+made.Id.String(), map[string]any{"visibility": "partner"}, http.StatusOK, &shared)
+	if shared.Visibility != httpapi.VisibilityPartner || !shared.Urgent || shared.Message == nil {
+		t.Errorf("the author still sees everything: %+v", shared)
+	}
+	got := seenBy(jake).Items
+	if len(got) != 1 || got[0].Id != made.Id || got[0].Score != made.Score || got[0].Band != made.Band {
+		t.Fatalf("Jake sees the band and the score: %+v", got)
+	}
+	if got[0].Urgent || got[0].Message != nil {
+		t.Errorf("Jake never sees the self-harm flag or the message: %+v", got[0])
+	}
+	// Taking it back hides it again.
+	c.Patch(msPath(mom)+"/"+made.Id.String(), map[string]any{"visibility": "private"}, http.StatusOK, nil)
+	if len(seenBy(jake).Items) != 0 {
+		t.Error("unsharing hides it")
+	}
+	if n := c.AuditCount(fam.Id, "update", "mood_screening"); n != 2 {
+		t.Errorf("update audit rows = %d, want 2", n)
+	}
+}
+
+func TestOnlyTheAuthorSharesAndOnlyPrivateOrPartner(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	var made httpapi.MoodScreeningResult
+	c.Post(msPath(mom), epdsInput(epdsGreen, httpapi.VisibilityPartner), http.StatusCreated, &made)
+	path := msPath(mom) + "/" + made.Id.String()
+	for _, v := range []string{"care_team", "family", "everyone"} {
+		c.Patch(path, map[string]any{"visibility": v}, http.StatusBadRequest, nil)
+	}
+	c.Patch(path, map[string]any{}, http.StatusBadRequest, nil)
+	// Jake can read it but it is not his to change; 404 does not reveal that it exists.
+	c.Patch(msPath(jake)+"/"+made.Id.String(), map[string]any{"visibility": "private"}, http.StatusNotFound, nil)
+	c.Patch(msPath(mom)+"/"+uuid.NewString(), map[string]any{"visibility": "private"}, http.StatusNotFound, nil)
+	for _, cg := range fam.Caregivers {
+		c.Patch("/api/members/"+cg.Id.String()+"/mood-screenings/"+made.Id.String(), map[string]any{"visibility": "private"}, http.StatusNotFound, nil)
+	}
+	testutil.New(t).Patch(path, map[string]any{"visibility": "private"}, http.StatusUnauthorized, nil)
+}
+
+func TestSavingAndResumingADraft(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	var d httpapi.MoodScreeningDraft
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{1, 0, 3}}, http.StatusOK, &d)
+	if d.Instrument != httpapi.Epds || len(d.Answers) != 3 || d.Answers[2] != 3 || !d.UpdatedAt.Equal(testutil.Now) {
+		t.Errorf("draft = %+v", d)
+	}
+	c.Put(draftPath(mom, "phq9"), map[string]any{"answers": []int{}}, http.StatusOK, nil) // an empty draft is allowed
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{1, 0, 3, 2}}, http.StatusOK, nil)
+
+	var l httpapi.MoodScreeningDraftList
+	c.Get("/api/members/"+mom.Id.String()+"/mood-screening-drafts", http.StatusOK, &l)
+	if len(l.Items) != 2 {
+		t.Fatalf("one draft per instrument: %+v", l.Items)
+	}
+	for _, it := range l.Items {
+		if it.Instrument == httpapi.Epds && len(it.Answers) != 4 {
+			t.Errorf("the draft was replaced: %+v", it)
+		}
+	}
+	// Never visible to the partner, and it never scores or feeds the plan.
+	var jl httpapi.MoodScreeningDraftList
+	c.Get("/api/members/"+jake.Id.String()+"/mood-screening-drafts", http.StatusOK, &jl)
+	if len(jl.Items) != 0 {
+		t.Errorf("a draft is private to its author: %+v", jl.Items)
+	}
+	var results httpapi.MoodScreeningList
+	c.Get(msPath(mom), http.StatusOK, &results)
+	if len(results.Items) != 0 {
+		t.Errorf("a draft is not a result: %+v", results.Items)
+	}
+	// Finishing the questionnaire deletes its draft; the other instrument's stays.
+	c.Post(msPath(mom), epdsInput(epdsGreen, httpapi.VisibilityPrivate), http.StatusCreated, nil)
+	c.Get("/api/members/"+mom.Id.String()+"/mood-screening-drafts", http.StatusOK, &l)
+	if len(l.Items) != 1 || l.Items[0].Instrument != httpapi.Phq9 {
+		t.Errorf("after finishing epds only the phq9 draft is left: %+v", l.Items)
+	}
+	// Deleting is 204 even with nothing to delete.
+	c.Delete(draftPath(mom, "phq9"), http.StatusNoContent, nil)
+	c.Delete(draftPath(mom, "phq9"), http.StatusNoContent, nil)
+	c.Get("/api/members/"+mom.Id.String()+"/mood-screening-drafts", http.StatusOK, &l)
+	if len(l.Items) != 0 {
+		t.Errorf("drafts = %+v", l.Items)
+	}
+}
+
+func TestDraftValidationExpiryAndAccess(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}, http.StatusBadRequest, nil) // 11 answers for 10 questions
+	c.Put(draftPath(mom, "phq9"), map[string]any{"answers": []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}, http.StatusBadRequest, nil)    // 10 for 9
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{4}}, http.StatusBadRequest, nil)                               // not a printed score
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{-1}}, http.StatusBadRequest, nil)
+	c.Put(draftPath(mom, "epds"), map[string]any{}, http.StatusBadRequest, nil)
+	c.Put(draftPath(mom, "gad7"), map[string]any{"answers": []int{0}}, http.StatusBadRequest, nil)
+
+	// A draft older than 14 days is dropped.
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{1}}, http.StatusOK, nil)
+	if _, err := c.Pool.Exec(context.Background(), `UPDATE mood_screening_drafts SET updated_at = $1 WHERE owner_member_id = $2`, testutil.Now.Add(-15*24*time.Hour), mom.Id); err != nil {
+		t.Fatal(err)
+	}
+	var l httpapi.MoodScreeningDraftList
+	c.Get("/api/members/"+mom.Id.String()+"/mood-screening-drafts", http.StatusOK, &l)
+	if len(l.Items) != 0 {
+		t.Errorf("an old draft must not be returned: %+v", l.Items)
+	}
+	// Audited, caregivers and other families get nothing.
+	if c.AuditCount(fam.Id, "update", "mood_screening_draft") != 1 || c.AuditCount(fam.Id, "read", "mood_screening_draft") != 1 {
+		t.Error("saving and listing drafts must be audited")
+	}
+	for _, cg := range fam.Caregivers {
+		base := "/api/members/" + cg.Id.String() + "/mood-screening-drafts"
+		c.Get(base, http.StatusNotFound, nil)
+		c.Put(base+"/epds", map[string]any{"answers": []int{1}}, http.StatusNotFound, nil)
+		c.Delete(base+"/epds", http.StatusNotFound, nil)
+	}
+	c.Put(draftPath(mom, "epds"), map[string]any{"answers": []int{1}}, http.StatusOK, nil)
+	c.StartDemo("pregnancy") // another family's session now
+	c.Get("/api/members/"+mom.Id.String()+"/mood-screening-drafts", http.StatusNotFound, nil)
 }

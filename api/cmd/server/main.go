@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/unsound-mint/parenting-planner/api/internal/ai"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -42,10 +43,19 @@ func run() error {
 	}
 	defer pool.Close()
 
+	// The diary is encrypted at rest. Without DIARY_ENCRYPTION_KEY a random key lasts until
+	// the process stops: fine for synthetic demo data, not for a real deployment.
+	diaryKey, ephemeral, err := crypt.FromEnv()
+	if err != nil {
+		return err
+	}
+	slog.Info("diary encryption", "ephemeral_key", ephemeral)
+
 	aiCfg := ai.FromEnv()
 	handler, err := httpapi.New(pool, httpapi.Config{
 		SecureCookies: os.Getenv("COOKIE_SECURE") != "false",
 		AI:            aiCfg,
+		Diary:         diaryKey,
 	})
 	if err != nil {
 		return err

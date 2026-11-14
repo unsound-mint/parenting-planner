@@ -1,20 +1,82 @@
 package httpapi
 
-import "context"
+import (
+	"context"
+	"errors"
 
-// STUB for #285 (content): the contract is in openapi.yaml, the implementation is
-// not written yet. Replace each stub with a real handler (copy wellbeing.go),
-// remove its 501 from openapi.yaml and replace its test. The web hides the
-// feature on 501.
+	"github.com/unsound-mint/parenting-planner/api/internal/admin"
+	"github.com/unsound-mint/parenting-planner/api/internal/content"
+)
 
-func (s *Server) ListContentItems(_ context.Context, _ ListContentItemsRequestObject) (ListContentItemsResponseObject, error) {
-	return ListContentItems501JSONResponse(Error{Code: "not_implemented", Message: "the content admin is not available yet"}), nil
+// The content admin has no login (see openapi.yaml): every handler works on
+// the session's own family copy, so a visitor never changes what another sees.
+
+var errNoContentItem = Error{Code: "not_found", Message: "no such content item"}
+
+func (s *Server) ListContentItems(ctx context.Context, req ListContentItemsRequestObject) (ListContentItemsResponseObject, error) {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
+		return ListContentItems401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return ListContentItems403JSONResponse(errForbidden), nil
+	}
+	items, err := admin.ListContent(ctx, s.pool, familyID, content.ItemKind(req.Params.Kind))
+	if err != nil {
+		return nil, err
+	}
+	out := ContentItemList{Items: make([]ContentItem, 0, len(items))}
+	for _, it := range items {
+		out.Items = append(out.Items, contentItemOut(it))
+	}
+	return ListContentItems200JSONResponse(out), nil
 }
 
-func (s *Server) UpdateContentItem(_ context.Context, _ UpdateContentItemRequestObject) (UpdateContentItemResponseObject, error) {
-	return UpdateContentItem501JSONResponse(Error{Code: "not_implemented", Message: "the content admin is not available yet"}), nil
+func (s *Server) UpdateContentItem(ctx context.Context, req UpdateContentItemRequestObject) (UpdateContentItemResponseObject, error) {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
+		return UpdateContentItem401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return UpdateContentItem403JSONResponse(errForbidden), nil
+	}
+	it, err := admin.UpdateContent(ctx, s.pool, familyID, content.ItemKind(req.Kind), req.ItemId, req.Body.Title, req.Body.Body, s.now(ctx))
+	switch {
+	case errors.Is(err, admin.ErrNoItem):
+		return UpdateContentItem404JSONResponse(errNoContentItem), nil
+	case err != nil:
+		return nil, err
+	}
+	return UpdateContentItem200JSONResponse(contentItemOut(it)), nil
 }
 
-func (s *Server) ResetContentItem(_ context.Context, _ ResetContentItemRequestObject) (ResetContentItemResponseObject, error) {
-	return ResetContentItem501JSONResponse(Error{Code: "not_implemented", Message: "the content admin is not available yet"}), nil
+func (s *Server) ResetContentItem(ctx context.Context, req ResetContentItemRequestObject) (ResetContentItemResponseObject, error) {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
+		return ResetContentItem401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return ResetContentItem403JSONResponse(errForbidden), nil
+	}
+	it, err := admin.ResetContent(ctx, s.pool, familyID, content.ItemKind(req.Kind), req.ItemId)
+	switch {
+	case errors.Is(err, admin.ErrNoItem):
+		return ResetContentItem404JSONResponse(errNoContentItem), nil
+	case err != nil:
+		return nil, err
+	}
+	return ResetContentItem200JSONResponse(contentItemOut(it)), nil
+}
+
+func contentItemOut(it admin.ContentItem) ContentItem {
+	out := ContentItem{Kind: ContentKind(it.Kind), Id: it.ID, Title: it.Title, Body: it.Body, Edited: it.Edited}
+	if it.UpdatedAt != nil {
+		at := it.UpdatedAt.UTC()
+		out.UpdatedAt = &at
+	}
+	if it.Source != nil {
+		src := sourceOut(*it.Source)
+		out.Source = &src
+	}
+	return out
 }

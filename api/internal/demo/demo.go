@@ -52,7 +52,7 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 // start runs a seed and opens a session for its family in one transaction.
 // Demo templates and families from a visitor's own details both go through it.
 func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Time) (uuid.UUID, string, error) {
-	token, hash, err := newToken()
+	token, hash, err := NewToken()
 	if err != nil {
 		return uuid.Nil, "", err
 	}
@@ -74,14 +74,42 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 	return familyID, token, err
 }
 
+// seedCaregivers adds the two helpers every demo family has: a grandmother and
+// a nanny. They see the baby's care, never a parent's health data.
+func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) error {
+	for _, c := range []store.CreateCaregiverParams{
+		{FamilyID: familyID, Role: "grandparent", DisplayName: "Linda", Permissions: []string{"care_log", "baby_passport", "schedule", "pregnancy_updates"}},
+		{FamilyID: familyID, Role: "nanny", DisplayName: "Maria", Permissions: []string{"care_log", "baby_passport", "schedule"}},
+	} {
+		if _, err := q.CreateCaregiver(ctx, c); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // SkipDays is how far one "Skip ahead a week" moves a family's demo clock.
 const SkipDays = 7
 
 // SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
-// row changes; a new demo is a new family, which starts at real time.
-func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID) error {
-	_, err := store.New(pool).SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
-	return err
+// rows change; a new demo is a new family, which starts at real time.
+//
+// now is the family's clock before the skip. The check-ins of the last week are copied
+// forward by the skipped days, so the week the family lands in has the same mood and
+// sleep history: the seeded story (a low-mood pattern, the This week chart) survives the
+// skip instead of falling out of the 7 day window. Each skip copies the then-last week,
+// so the pattern carries on through further skips.
+func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		if err := q.CopyMoodCheckinsForwardVisibleToParent(ctx, store.CopyMoodCheckinsForwardVisibleToParentParams{
+			Days: SkipDays, FamilyID: familyID, FromAt: now.AddDate(0, 0, -SkipDays), ToAt: now,
+		}); err != nil {
+			return err
+		}
+		_, err := q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+		return err
+	})
 }
 
 // HashToken is how session tokens are stored and looked up.
@@ -90,7 +118,7 @@ func HashToken(token string) []byte {
 	return h[:]
 }
 
-func newToken() (string, []byte, error) {
+func NewToken() (string, []byte, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", nil, err
@@ -168,6 +196,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	if err := seedPregnancyPassport(ctx, q, fam.ID, mom.ID, partner.ID, today, week); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil

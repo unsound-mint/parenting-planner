@@ -55,13 +55,28 @@ func (c ChildFacts) AgeMonths(on time.Time) int {
 const pregnancyDays = 280
 
 // GestationalWeek returns completed weeks of pregnancy, counted from the
-// estimated due date (due date minus 280 days).
+// estimated due date (due date minus 280 days). It reports false when there is
+// no pregnancy or when today is before the counted start, which only happens
+// with a due date more than 280 days away.
 func (f Facts) GestationalWeek() (int, bool) {
 	if f.Stage != "pregnancy" || f.DueDate == nil {
 		return 0, false
 	}
-	start := f.DueDate.AddDate(0, 0, -pregnancyDays)
-	return int(f.Today.Sub(start).Hours() / 24 / 7), true
+	days := calendarDays(f.PregnancyStart(), f.Today)
+	if days < 0 {
+		return 0, false
+	}
+	return days / 7, true
+}
+
+// calendarDays counts whole calendar days from a to b, ignoring the time of
+// day and the zone, so a timestamp late in the day never shifts the week.
+func calendarDays(a, b time.Time) int {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+	from := time.Date(ay, am, ad, 0, 0, 0, 0, time.UTC)
+	to := time.Date(by, bm, bd, 0, 0, 0, 0, time.UTC)
+	return int(to.Sub(from).Hours() / 24)
 }
 
 // DateAtWeek is the last day of the given gestational week.

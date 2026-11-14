@@ -13,34 +13,54 @@ import (
 )
 
 const createSession = `-- name: CreateSession :exec
-INSERT INTO sessions (token_hash, family_id, expires_at) VALUES ($1, $2, $3)
+INSERT INTO sessions (token_hash, family_id, expires_at, member_id) VALUES ($1, $2, $3, $4)
 `
 
 type CreateSessionParams struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID
 	ExpiresAt time.Time
+	MemberID  uuid.NullUUID
 }
 
+// member_id is NULL for a demo session (it acts as either parent) and the
+// caregiver's id for a session opened by accepting an invitation.
 func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) error {
-	_, err := q.db.Exec(ctx, createSession, arg.TokenHash, arg.FamilyID, arg.ExpiresAt)
+	_, err := q.db.Exec(ctx, createSession,
+		arg.TokenHash,
+		arg.FamilyID,
+		arg.ExpiresAt,
+		arg.MemberID,
+	)
 	return err
 }
 
 const getSessionFamily = `-- name: GetSessionFamily :one
-SELECT s.family_id, f.demo_offset_days
-FROM sessions s JOIN families f ON f.id = s.family_id
+SELECT s.family_id, s.member_id, m.role AS member_role, f.demo_offset_days
+FROM sessions s
+JOIN families f ON f.id = s.family_id
+LEFT JOIN members m ON m.id = s.member_id AND m.family_id = s.family_id
 WHERE s.token_hash = $1 AND s.expires_at > now()
+  AND (s.member_id IS NULL OR (m.id IS NOT NULL AND m.revoked_at IS NULL))
 `
 
 type GetSessionFamilyRow struct {
 	FamilyID       uuid.UUID
+	MemberID       uuid.NullUUID
+	MemberRole     *string
 	DemoOffsetDays int32
 }
 
+// Mirrors access.SessionIsLive: a session bound to a member ends once that
+// member's access is revoked (or they left the family).
 func (q *Queries) GetSessionFamily(ctx context.Context, tokenHash []byte) (GetSessionFamilyRow, error) {
 	row := q.db.QueryRow(ctx, getSessionFamily, tokenHash)
 	var i GetSessionFamilyRow
-	err := row.Scan(&i.FamilyID, &i.DemoOffsetDays)
+	err := row.Scan(
+		&i.FamilyID,
+		&i.MemberID,
+		&i.MemberRole,
+		&i.DemoOffsetDays,
+	)
 	return i, err
 }
