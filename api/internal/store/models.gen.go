@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Allergy struct {
@@ -205,4 +206,16 @@ type VaccineSchedule struct {
 	Vaccine         string
 	Dose            string
 	DueOn           time.Time
+}
+
+type VoiceNote struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	UploaderMemberID uuid.UUID
+	HandoffID        uuid.NullUUID
+	ContentType      string
+	SizeBytes        int32
+	DurationSeconds  pgtype.Int4
+	Audio            []byte
+	CreatedAt        time.Time
 }
