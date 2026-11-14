@@ -83,6 +83,9 @@ func TestInviteAcceptFlow(t *testing.T) {
 	if got.Family.Id != fam.Id || len(got.Family.Caregivers) != 3 {
 		t.Fatalf("acceptance = %+v", got.Family)
 	}
+	if got.Family.SessionMemberId == nil || *got.Family.SessionMemberId != got.MemberId {
+		t.Errorf("the acceptance must say the session is bound to the caregiver: %+v", got.Family.SessionMemberId)
+	}
 	nanny.Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusConflict, nil) // single use
 	nanny.Get("/api/invitations/"+created.Token, http.StatusOK, &prev)
 	if prev.Status != httpapi.InvitationStatusAccepted {
@@ -91,7 +94,16 @@ func TestInviteAcceptFlow(t *testing.T) {
 
 	// As the nanny: in the family, but parent-only things are refused.
 	me := "/api/members/" + got.MemberId.String()
-	nanny.Get("/api/family", http.StatusOK, nil)
+	var asNanny httpapi.Family
+	nanny.Get("/api/family", http.StatusOK, &asNanny)
+	if asNanny.SessionMemberId == nil || *asNanny.SessionMemberId != got.MemberId {
+		t.Errorf("GET /family must name the session's member: %+v", asNanny.SessionMemberId)
+	}
+	var asMom httpapi.Family
+	c.Get("/api/family", http.StatusOK, &asMom)
+	if asMom.SessionMemberId != nil {
+		t.Errorf("a demo session is not bound to anyone: %v", *asMom.SessionMemberId)
+	}
 	nanny.Get(me+"/invitations", http.StatusForbidden, nil)
 	nanny.Post(me+"/invitations", inviteBody("nanny", "care_log"), http.StatusForbidden, nil)
 	nanny.Get(me+"/access-log", http.StatusForbidden, nil)

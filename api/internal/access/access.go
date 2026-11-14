@@ -58,3 +58,12 @@ func CanSessionActAs(bound uuid.NullUUID, member uuid.UUID) bool {
 func SessionIsLive(bound, memberRevoked bool) bool {
 	return !bound || !memberRevoked
 }
+
+// CanManageFamily reports whether a session may act on the family as a whole:
+// delete it, skip demo time, request an upgrade, edit content or offers, and
+// open the analytics dashboard. boundRole is the role of the member the
+// session is bound to, "" for a demo session, which acts as a parent. A
+// caregiver's session may not.
+func CanManageFamily(boundRole string) bool {
+	return boundRole == "" || boundRole == "mother" || boundRole == "partner"
+}

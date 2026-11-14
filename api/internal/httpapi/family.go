@@ -19,6 +19,11 @@ func (s *Server) GetFamily(ctx context.Context, _ GetFamilyRequestObject) (GetFa
 	if err != nil {
 		return nil, err
 	}
+	// Set here, not in loadFamily: loadFamily also builds the family for a new
+	// session while the request still carries the old one.
+	if bound, _ := ctx.Value(sessionMemberKey{}).(uuid.NullUUID); bound.Valid {
+		fam.SessionMemberId = &bound.UUID
+	}
 	return GetFamily200JSONResponse(fam), nil
 }
 

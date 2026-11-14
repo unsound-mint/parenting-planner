@@ -133,6 +133,24 @@ type clockKey struct{}
 // not Valid for a demo session, the caregiver for an accepted invitation.
 type sessionMemberKey struct{}
 
+// sessionRoleKey holds the role of the member the session is bound to; it is
+// absent for a demo session.
+type sessionRoleKey struct{}
+
+// managingFamily is familyFrom for endpoints that act on the family as a
+// whole (access.CanManageFamily): a caregiver's session gets errNotParent.
+func managingFamily(ctx context.Context) (uuid.UUID, errKind) {
+	familyID, ok := familyFrom(ctx)
+	if !ok {
+		return uuid.Nil, errUnauthorized
+	}
+	role, _ := ctx.Value(sessionRoleKey{}).(string)
+	if !access.CanManageFamily(role) {
+		return familyID, errNotParent
+	}
+	return familyID, errNone
+}
+
 // canActAs applies access.CanSessionActAs to the request's session.
 func canActAs(ctx context.Context, memberID uuid.UUID) bool {
 	bound, _ := ctx.Value(sessionMemberKey{}).(uuid.NullUUID)
@@ -147,6 +165,9 @@ func (s *Server) session(next http.Handler) http.Handler {
 			if row, err := s.q.GetSessionFamily(r.Context(), demo.HashToken(c.Value)); err == nil {
 				ctx := context.WithValue(r.Context(), ctxKey{}, row.FamilyID)
 				ctx = context.WithValue(ctx, sessionMemberKey{}, row.MemberID)
+				if row.MemberRole != nil {
+					ctx = context.WithValue(ctx, sessionRoleKey{}, *row.MemberRole)
+				}
 				r = r.WithContext(context.WithValue(ctx, clockKey{}, row.DemoOffsetDays))
 			} else if !errors.Is(err, pgx.ErrNoRows) {
 				slog.Error("session lookup", "err", err)

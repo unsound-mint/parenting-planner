@@ -6,7 +6,7 @@ INSERT INTO sessions (token_hash, family_id, expires_at, member_id) VALUES ($1, 
 -- Mirrors access.SessionIsLive: a session bound to a member ends once that
 -- member's access is revoked (or they left the family).
 -- name: GetSessionFamily :one
-SELECT s.family_id, s.member_id, f.demo_offset_days
+SELECT s.family_id, s.member_id, m.role AS member_role, f.demo_offset_days
 FROM sessions s
 JOIN families f ON f.id = s.family_id
 LEFT JOIN members m ON m.id = s.member_id AND m.family_id = s.family_id

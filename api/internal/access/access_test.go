@@ -73,3 +73,11 @@ func TestSessionIsLive(t *testing.T) {
 		t.Error("a revoked caregiver's session must stop working")
 	}
 }
+
+func TestCanManageFamily(t *testing.T) {
+	for role, want := range map[string]bool{"": true, "mother": true, "partner": true, "grandparent": false, "nanny": false} {
+		if got := CanManageFamily(role); got != want {
+			t.Errorf("session bound to %q: got %v, want %v", role, got, want)
+		}
+	}
+}

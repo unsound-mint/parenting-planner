@@ -91,6 +91,7 @@ export interface paths {
          *     cookie. Other families are untouched. The old cookie gets 401
          *     afterwards. Nothing is soft-deleted. Backups: see "Deletion and
          *     backups" in docs/data-model.md.
+         *     Only a parent's session may do this; a caregiver's session gets 403.
          */
         delete: operations["deleteFamily"];
         options?: never;
@@ -114,7 +115,7 @@ export interface paths {
          *     timeline) uses the shifted day, from the same stored data. Only this
          *     family moves; other demo families keep the real date. Starting a new
          *     demo creates a new family at real time, which is the reset. The UI
-         *     must label the shifted date as demo time.
+         *     must label the shifted date as demo time. A caregiver's session gets 403.
          */
         post: operations["createDemoTimeSkip"];
         delete?: never;
@@ -137,6 +138,7 @@ export interface paths {
          * @description There are no payments. This stores which tier the family asked for and
          *     when; it shows as "upgrade requested" on the family. Either parent of the
          *     session's family may send it. A second request replaces the first.
+         *     A caregiver's session gets 403.
          */
         post: operations["createUpgradeIntent"];
         delete?: never;
@@ -2548,7 +2550,7 @@ export interface paths {
          *     session's family (stored as overrides with family_id over the catalog
          *     in code) and never to other visitors. A real product would put this
          *     behind staff sign-in; that is out of scope for the demo. 401 without a
-         *     session.
+         *     session, 403 for a caregiver's session.
          *
          *     Every catalog item of the kind, with this family's edits applied and
          *     edited set on the ones changed here. Ordered as the catalog is (week
@@ -2587,7 +2589,7 @@ export interface paths {
          *     session's family (stored as overrides with family_id over the catalog
          *     in code) and never to other visitors. A real product would put this
          *     behind staff sign-in; that is out of scope for the demo. 401 without a
-         *     session.
+         *     session, 403 for a caregiver's session.
          *
          *     Only title and body change; the Source and checked date stay the
          *     catalog's, so health content keeps its citation. Every screen that
@@ -2618,7 +2620,7 @@ export interface paths {
          *     session's family (stored as overrides with family_id over the catalog
          *     in code) and never to other visitors. A real product would put this
          *     behind staff sign-in; that is out of scope for the demo. 401 without a
-         *     session.
+         *     session, 403 for a caregiver's session.
          *
          *     Returns the catalog version. 404 for an unknown slug.
          */
@@ -2643,7 +2645,7 @@ export interface paths {
          *     session's family (stored as overrides with family_id over the catalog
          *     in code) and never to other visitors. A real product would put this
          *     behind staff sign-in; that is out of scope for the demo. 401 without a
-         *     session.
+         *     session, 403 for a caregiver's session.
          *
          *     Newest first, with click counts.
          */
@@ -2656,7 +2658,7 @@ export interface paths {
          *     session's family (stored as overrides with family_id over the catalog
          *     in code) and never to other visitors. A real product would put this
          *     behind staff sign-in; that is out of scope for the demo. 401 without a
-         *     session.
+         *     session, 403 for a caregiver's session.
          *
          *     Shows up in listPartnerOffers for matching stages and roles when active.
          */
@@ -2689,7 +2691,7 @@ export interface paths {
          *     session's family (stored as overrides with family_id over the catalog
          *     in code) and never to other visitors. A real product would put this
          *     behind staff sign-in; that is out of scope for the demo. 401 without a
-         *     session.
+         *     session, 403 for a caregiver's session.
          *
          *     404 for an offer not in this family.
          */
@@ -2710,7 +2712,8 @@ export interface paths {
          *     free text, and nothing from health tables (mood check-ins, diary,
          *     labs, vaccines, screenings, session notes, insurance calls, care log
          *     contents). Every family is synthetic demo data. Not linked from the
-         *     family screens; any session can open it. 401 without a session.
+         *     family screens; any parent's session can open it. 401 without a
+         *     session, 403 for a caregiver's session.
          *
          *     Counts per day for the last `days` days (UTC), from audit_log and row
          *     counts of non-health tables.
@@ -2863,6 +2866,15 @@ export interface components {
              *     shown as demo time.
              */
             demoDaysAhead?: number;
+            /**
+             * Format: uuid
+             * @description Set when the session belongs to one person: a caregiver who accepted
+             *     an invitation. That session acts only as this member (other ids are
+             *     404) and cannot manage the family (skip demo time, upgrade, delete,
+             *     demo admin: 403). Absent for a demo session, which acts as either
+             *     parent.
+             */
+            sessionMemberId?: string;
             stage: components["schemas"]["Stage"];
             /**
              * Format: date
@@ -4952,6 +4964,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     createDemoTimeSkip: {
@@ -4974,6 +4995,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5025,6 +5055,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11099,6 +11138,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             /** @description Not implemented yet */
             501: {
                 headers: {
@@ -11147,6 +11195,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11206,6 +11263,15 @@ export interface operations {
                 };
             };
             /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -11245,6 +11311,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11296,6 +11371,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11357,6 +11441,15 @@ export interface operations {
                 };
             };
             /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -11407,6 +11500,15 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

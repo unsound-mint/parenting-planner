@@ -205,3 +205,79 @@ func sampleValue(s *openapi3.Schema) any {
 	}
 	return strings.Repeat("x", max(1, int(s.MinLength)))
 }
+
+// familyWideOps act on the whole family or the demo's admin screens. A
+// caregiver's session gets 403 on each (access.CanManageFamily); a parent's
+// session is allowed.
+var familyWideOps = []string{
+	"deleteFamily", "createDemoTimeSkip", "createUpgradeIntent",
+	"listContentItems", "updateContentItem", "resetContentItem",
+	"listAllPartnerOffers", "createPartnerOffer", "updatePartnerOffer", "getAnalytics",
+}
+
+func TestCaregiverSessionCannotManageTheFamily(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	var created httpapi.CreatedInvitation
+	c.Post(invitePath(testutil.Parent(t, fam, httpapi.ParentRoleMother)), inviteBody("nanny", "care_log", "baby_passport", "schedule", "family_plan", "pregnancy_updates"), http.StatusCreated, &created)
+	nanny := testutil.New(t)
+	nanny.Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusCreated, nil)
+
+	spec, err := httpapi.GetSwagger()
+	if err != nil {
+		t.Fatal(err)
+	}
+	type call struct {
+		name, method, target, ct string
+		body                     []byte
+	}
+	var calls []call
+	seen := map[string]bool{}
+	wanted := map[string]bool{}
+	for _, id := range familyWideOps {
+		wanted[strings.ToLower(id)] = true
+	}
+	for p, item := range spec.Paths.Map() {
+		for method, op := range item.Operations() {
+			// Any other route outside /members that declares 403 must be family-wide too.
+			declares403 := op.Responses.Status(http.StatusForbidden) != nil
+			// The embedded spec may capitalise operation ids; compare without case.
+			id := strings.ToLower(op.OperationID)
+			if !strings.HasPrefix(p, "/members/") && declares403 && !wanted[id] && !seen[id] {
+				t.Errorf("%s declares 403 outside /members; add it to familyWideOps", op.OperationID)
+			}
+			if !wanted[id] {
+				continue
+			}
+			if !declares403 {
+				t.Errorf("%s: the contract must declare 403", op.OperationID)
+			}
+			delete(wanted, id)
+			seen[id] = true
+			target, ct, body := sampleRequest(t, p, item, op, uuid.Nil)
+			calls = append(calls, call{id, method, target, ct, body})
+		}
+	}
+	for id := range wanted {
+		t.Errorf("%s is not in openapi.yaml", id)
+	}
+	// Deleting the family goes last so the parent's other calls still have one.
+	sort.Slice(calls, func(i, j int) bool {
+		return calls[j].name == "deletefamily" || (calls[i].name != "deletefamily" && calls[i].name < calls[j].name)
+	})
+
+	for _, k := range calls {
+		code, raw := nanny.Raw(k.method, k.target, k.ct, bytes.NewReader(k.body))
+		var e httpapi.Error
+		_ = json.Unmarshal(raw, &e)
+		if code != http.StatusForbidden || e.Code != "forbidden" {
+			t.Errorf("%s as the nanny: status %d, want 403; body: %s", k.name, code, raw)
+		}
+	}
+	nanny.Get("/api/family", http.StatusOK, nil) // the family is still there
+	for _, k := range calls {
+		if code, raw := c.Raw(k.method, k.target, k.ct, bytes.NewReader(k.body)); code == http.StatusForbidden || code == http.StatusUnauthorized || code == http.StatusBadRequest {
+			t.Errorf("%s as a parent: status %d; body: %s", k.name, code, raw)
+		}
+	}
+}
