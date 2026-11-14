@@ -11,6 +11,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Allergy struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	Substance       string
+	Certainty       string
+	Reaction        *string
+	NotedOn         *time.Time
+	CreatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
@@ -56,12 +70,15 @@ type CareLogEntry struct {
 }
 
 type CareTeam struct {
-	ID       uuid.UUID
-	FamilyID uuid.UUID
-	Role     string
-	Name     string
-	Phone    *string
-	Address  *string
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	Role            string
+	Name            string
+	Phone           *string
+	Address         *string
+	Clinic          *string
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
 }
 
 type Child struct {
@@ -77,6 +94,15 @@ type Family struct {
 	Stage     string
 	DueDate   *time.Time
 	CreatedAt time.Time
+}
+
+type GrowthMeasurement struct {
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	ChildID    uuid.UUID
+	MeasuredOn time.Time
+	WeightKg   float64
+	HeightCm   float64
 }
 
 type Handoff struct {
@@ -98,6 +124,7 @@ type Immunization struct {
 	SubjectChildID  uuid.NullUUID
 	Vaccine         string
 	GivenOn         time.Time
+	Dose            *string
 }
 
 type Invitation struct {
@@ -127,6 +154,11 @@ type LabResult struct {
 	Result          []byte
 	Note            *string
 	CreatedAt       time.Time
+	Name            *string
+	Value           *float64
+	Unit            *string
+	RefLow          *float64
+	RefHigh         *float64
 }
 
 type Member struct {
@@ -149,6 +181,15 @@ type MoodCheckin struct {
 	Energy        int16
 	SleepHours    float64
 	Note          *string
+}
+
+type PlanItemProgress struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	RuleID    string
+	Status    string
+	UpdatedAt time.Time
 }
 
 type Psychologist struct {
@@ -210,4 +251,14 @@ type UpgradeIntent struct {
 	FamilyID    uuid.UUID
 	Tier        string
 	RequestedAt time.Time
+}
+
+type VaccineSchedule struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	Vaccine         string
+	Dose            string
+	DueOn           time.Time
 }
