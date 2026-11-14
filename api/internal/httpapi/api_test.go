@@ -65,10 +65,9 @@ func TestWeeklyPlanIsNotImplementedYet(t *testing.T) {
 	c.Get("/api/members/"+mother.Id.String()+"/weekly-plan", http.StatusNotImplemented, nil)
 }
 
-// The plan status endpoint is in the contract but not built yet (web hides its
-// button behind BOOKING_ENABLED). Replace with real tests when it lands.
-func TestPlanStatusIsNotImplementedYet(t *testing.T) {
+// Stub until #325 lands; replace with real tests (plan moves, isolation, reset).
+func TestDemoTimeSkipIsNotImplementedYet(t *testing.T) {
 	c := testutil.New(t)
-	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
-	c.Put("/api/members/"+mom.Id.String()+"/plan/glucose-screen/status", map[string]string{"status": "booked"}, http.StatusNotImplemented, nil)
+	c.StartDemo("pregnancy")
+	c.Post("/api/family/demo-time-skips", nil, http.StatusNotImplemented, nil)
 }

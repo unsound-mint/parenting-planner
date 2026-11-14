@@ -42,3 +42,33 @@ export function summarize(person: PassportPerson): Summary {
         : { kind: "none" };
   return { vaccinesNeeded: needed.length, labsOutside: outside.length, suspectedAllergies: suspected.length, focus };
 }
+
+export type Tally = {
+  vaccinesGiven: number;
+  vaccinesNeeded: number;
+  vaccinesOverdue: number;
+  vaccinesTotal: number;
+  labsIn: number;
+  labsOutside: number;
+  labsTotal: number;
+};
+
+/** Counts that feed the two rings. Labs count the latest result per test. */
+export function tally(person: PassportPerson): Tally {
+  const labs = latestLabs(person.labs).map(labPosition);
+  return {
+    vaccinesGiven: person.vaccines.filter((v) => v.status === "done").length,
+    vaccinesNeeded: person.vaccines.filter((v) => v.status === "due").length,
+    vaccinesOverdue: person.vaccines.filter((v) => v.status === "overdue").length,
+    vaccinesTotal: person.vaccines.length,
+    labsIn: labs.filter((p) => p === "in").length,
+    labsOutside: labs.filter((p) => p === "low" || p === "high").length,
+    labsTotal: labs.length,
+  };
+}
+
+/** How many things in a person's passport want a look; drives the dot on their tab. */
+export function attentionCount(person: PassportPerson): number {
+  const s = summarize(person);
+  return s.vaccinesNeeded + s.labsOutside + s.suspectedAllergies;
+}
