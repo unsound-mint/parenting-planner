@@ -37,3 +37,6 @@ UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING *;
 -- name: CreateCareTeamMemberFor :one
 INSERT INTO care_team (family_id, role, name, clinic, phone, subject_member_id, subject_child_id)
 VALUES (@family_id, @role, @name, @clinic, @phone, @subject_member_id, @subject_child_id) RETURNING *;
+
+-- name: DeleteFamily :exec
+DELETE FROM families WHERE id = $1;

@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -31,6 +32,8 @@ type Client struct {
 	base string
 	http *http.Client
 	Pool *pgxpool.Pool
+	// LastHeader holds the response headers of the last request.
+	LastHeader http.Header
 }
 
 func New(t *testing.T) *Client {
@@ -135,6 +138,7 @@ func (c *Client) doWithHeaders(method, path string, headers map[string]string, b
 		c.t.Fatal(err)
 	}
 	defer res.Body.Close()
+	c.LastHeader = res.Header
 	raw, _ := io.ReadAll(res.Body)
 	if res.StatusCode != wantStatus {
 		c.t.Fatalf("%s %s: status %d, want %d; body: %s", method, path, res.StatusCode, wantStatus, raw)
@@ -144,6 +148,32 @@ func (c *Client) doWithHeaders(method, path string, headers map[string]string, b
 			c.t.Fatalf("%s %s: decode: %v; body: %s", method, path, err, raw)
 		}
 	}
+}
+
+// SessionCookie is the pp_session value the client holds, or "" if none.
+func (c *Client) SessionCookie() string {
+	c.t.Helper()
+	u, err := url.Parse(c.base)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	for _, ck := range c.http.Jar.Cookies(u) {
+		if ck.Name == "pp_session" {
+			return ck.Value
+		}
+	}
+	return ""
+}
+
+// SetSessionCookie makes the client send this pp_session value, e.g. an old
+// one kept from before the session ended.
+func (c *Client) SetSessionCookie(value string) {
+	c.t.Helper()
+	u, err := url.Parse(c.base)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	c.http.Jar.SetCookies(u, []*http.Cookie{{Name: "pp_session", Value: value, Path: "/"}})
 }
 
 // AuditCount counts audit rows for a family, action and entity.

@@ -168,8 +168,8 @@ paths:
         it (parents, children, caregivers, health records, check-ins, notes,
         bookings, sessions and the audit log) and clears the pp_session
         cookie. Other families are untouched. The old cookie gets 401
-        afterwards. Nothing is kept: the demo database has no backups of
-        family data.
+        afterwards. Nothing is soft-deleted. Backups: see "Deletion and
+        backups" in docs/data-model.md.
       responses:
         "204":
           description: Deleted; the session cookie is cleared.
@@ -179,12 +179,6 @@ paths:
                 type: string
         "401":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -452,12 +446,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
