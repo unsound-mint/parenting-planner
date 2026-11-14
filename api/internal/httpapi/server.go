@@ -103,8 +103,11 @@ func (s *Server) Healthz(ctx context.Context, _ HealthzRequestObject) (HealthzRe
 
 func (s *Server) CreateDemoSession(ctx context.Context, req CreateDemoSessionRequestObject) (CreateDemoSessionResponseObject, error) {
 	familyID, token, err := demo.Start(ctx, s.pool, demo.Template(req.Body.Template), s.today())
-	if err != nil {
+	if errors.Is(err, demo.ErrUnknownTemplate) {
 		return CreateDemoSession400JSONResponse{ErrorJSONResponse{Code: "bad_template", Message: err.Error()}}, nil
+	}
+	if err != nil {
+		return nil, err
 	}
 	fam, err := s.loadFamily(ctx, familyID)
 	if err != nil {

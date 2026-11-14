@@ -78,7 +78,7 @@ CREATE TABLE immunizations (
 );
 CREATE INDEX immunizations_family_idx ON immunizations (family_id);
 
--- Who read or changed sensitive data. Written by internal/access.
+-- Who read or changed sensitive data. Will be written by internal/access once sensitive endpoints exist.
 CREATE TABLE audit_log (
     id               bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     family_id        uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,

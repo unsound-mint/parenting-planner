@@ -9,7 +9,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,6 +24,8 @@ type Template string
 
 const Pregnancy Template = "pregnancy"
 
+var ErrUnknownTemplate = errors.New("unknown demo template")
+
 var seeds = map[Template]func(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error){
 	Pregnancy: seedPregnancy,
 }
@@ -33,7 +35,7 @@ var seeds = map[Template]func(ctx context.Context, q *store.Queries, today time.
 func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time) (uuid.UUID, string, error) {
 	seed, ok := seeds[t]
 	if !ok {
-		return uuid.Nil, "", fmt.Errorf("unknown template %q", t)
+		return uuid.Nil, "", ErrUnknownTemplate
 	}
 	token, hash, err := newToken()
 	if err != nil {

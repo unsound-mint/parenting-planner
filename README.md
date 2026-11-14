@@ -4,13 +4,13 @@ Working name; the final product name is still open.
 
 A personal guide for affluent, busy US couples raising a healthy child, from planning a pregnancy to age 9. It keeps the family's health data, mood and diaries in one place, turns them into a weekly plan for each parent using current guidelines and AI, and connects the family to doctors, psychologists and other providers when the data says they are needed.
 
-Live: https://parenting.unsoundmint.com (no sign-up, each visitor gets their own synthetic family)
+Live (once deployed): https://parenting.unsoundmint.com. No sign-up; each visitor gets their own synthetic family.
 
 Built for Business Cup 2.0 by Zimran, Skills track.
 
 ## Run locally
 
-Needs Go 1.26, Node 24 with pnpm, and Docker.
+Needs Go 1.26, Node 24 with pnpm, Docker, `make`, and a C compiler (sqlc builds with cgo: Xcode command line tools on macOS, `build-essential` on Linux, WSL on Windows).
 
 ```sh
 (cd web && pnpm install)

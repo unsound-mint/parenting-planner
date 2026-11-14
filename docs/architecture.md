@@ -46,7 +46,7 @@ make test    # Go tests including the HTTP + Postgres integration test
 make check   # everything CI runs
 ```
 
-Go tools (oapi-codegen, sqlc) are pinned in `api/go.mod` and run with `go tool`; nothing to install besides Go 1.26, Node 24, pnpm and Docker.
+Go tools (oapi-codegen, sqlc) are pinned in `api/go.mod` and run with `go tool`; nothing to install besides Go 1.26, Node 24, pnpm, Docker, `make` and a C compiler (sqlc needs cgo: Xcode command line tools on macOS, `build-essential` on Linux, WSL on Windows).
 
 ## Production
 

@@ -2,4 +2,4 @@
 // change it here and in README.md only.
 export const PRODUCT_NAME = "Parenting Planner";
 export const PRODUCT_TAGLINE =
-  "Two parents, one plan: prepare together, then hand off care without dropping anything.";
+  "A personal guide for both parents, from planning a pregnancy to age 9: your data, current guidelines, and the right people at the right time.";
