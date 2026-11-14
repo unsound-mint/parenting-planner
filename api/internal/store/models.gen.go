@@ -11,6 +11,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AgendaTopicPref struct {
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	TopicID   uuid.UUID
+	Position  pgtype.Int4
+	RemovedAt pgtype.Timestamptz
+}
+
 type Allergy struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -63,6 +71,15 @@ type Child struct {
 	FamilyID  uuid.UUID
 	Name      string
 	BirthDate time.Time
+}
+
+type ContentOverride struct {
+	FamilyID  uuid.UUID
+	Kind      string
+	ItemID    string
+	Title     *string
+	Body      *string
+	UpdatedAt time.Time
 }
 
 type Family struct {

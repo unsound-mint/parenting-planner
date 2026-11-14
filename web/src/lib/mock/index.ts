@@ -2,12 +2,15 @@ import { mockMiddleware, type MockTable } from "./registry";
 import { adminMocks } from "./fixtures/admin";
 import { appointmentQuestionMocks } from "./fixtures/appointment-questions";
 import { babyMocks } from "./fixtures/baby";
+import { birthPlanMocks } from "./fixtures/birth-prep";
+import { calendarEventMocks } from "./fixtures/calendar-events";
 import { calendarFeedMocks } from "./fixtures/calendar-feed";
 import { careMocks } from "./fixtures/care";
 import { demoMocks } from "./fixtures/demo";
 import { directoryMocks } from "./fixtures/directory";
 import { insuranceMocks } from "./fixtures/insurance";
 import { leaveMocks } from "./fixtures/leave";
+import { milestoneMocks } from "./fixtures/milestones";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { notificationMocks } from "./fixtures/notifications";
 import { passportMocks } from "./fixtures/passport";
@@ -27,12 +30,15 @@ const tables: MockTable[] = [
   adminMocks,
   appointmentQuestionMocks,
   babyMocks,
+  birthPlanMocks,
+  calendarEventMocks,
   calendarFeedMocks,
   careMocks,
   demoMocks,
   directoryMocks,
   insuranceMocks,
   leaveMocks,
+  milestoneMocks,
   moodPatternMocks,
   notificationMocks,
   passportMocks,

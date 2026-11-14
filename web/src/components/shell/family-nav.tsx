@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, CalendarCheck, CalendarDays, Ellipsis, HeartHandshake, IdCard, Route, Search, Target, UsersRound, type LucideIcon } from "lucide-react";
+import { Baby, CalendarCheck, CalendarDays, Ellipsis, GraduationCap, HeartHandshake, IdCard, Route, Search, ShieldCheck, Target, UsersRound, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,9 @@ const items: Item[] = [
   { href: "/directory", screen: "directory", label: "Find help", icon: Search, group: "care" },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "more" },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more" },
+  { href: "/learn", screen: "learn", label: "Learn", icon: GraduationCap, group: "more" },
   { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
+  { href: "/settings", screen: "settings", label: "Privacy", icon: ShieldCheck, group: "more" },
 ];
 const GROUPS: Group[] = ["daily", "care", "more"];
 
@@ -40,7 +42,7 @@ const linkClass = (active: boolean) =>
 // hasPlan is false while GET tasks does not answer 200 (501 in production without preview mocks): no Plan entry then.
 // hidden: other screens whose endpoint refuses this person (403, 404) or is not built and has no preview mock.
 // Phones get one row: the most used entries, then More, which opens the rest in place.
-export function FamilyNav({ memberId, role, hasPlan, hidden = [] }: { memberId: string; role: Role; hasPlan: boolean; hidden?: string[] }) {
+export function FamilyNav({ memberId, role, hasPlan, hidden = [], childName }: { memberId: string; role: Role; hasPlan: boolean; hidden?: string[]; childName?: string }) {
   const pathname = usePathname();
   // Open for one path only, so the panel closes after navigating.
   const [openAt, setOpenAt] = useState<string | null>(null);
@@ -48,7 +50,8 @@ export function FamilyNav({ memberId, role, hasPlan, hidden = [] }: { memberId: 
   const base = `/family/${memberId}`;
   const visible = items.filter((item) => canOpen(role, item.screen) && (item.screen !== "plan" || hasPlan) && !hidden.includes(item.screen));
   const isActive = (item: Item) => (item.href === "" ? pathname === base : pathname.startsWith(base + item.href));
-  const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.label);
+  // Past toddler age the Baby screen is the child's own: it carries their name.
+  const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.screen === "baby" && childName ? childName : item.label);
   const fits = visible.length <= PHONE_SLOTS;
   const bar = fits ? visible : visible.filter((i) => i.group === "daily").slice(0, PHONE_SLOTS - 1);
   const more = fits ? [] : visible.filter((i) => !bar.includes(i));

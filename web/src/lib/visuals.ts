@@ -56,6 +56,7 @@ import {
   SquareCheck,
   Stethoscope,
   Syringe,
+  Target,
   TestTube,
   Thermometer,
   UserRound,
@@ -117,6 +118,14 @@ export const visibilityIcon: Record<Visibility, LucideIcon> = {
   partner: HeartHandshake,
   care_team: Stethoscope,
   family: Users,
+};
+
+/** Learn: the one action a lesson ends in (lib/learn.ts). */
+export const lessonActionIcon: Record<"task" | "question" | "practice" | "shift", LucideIcon> = {
+  task: ListChecks,
+  question: CircleHelp,
+  practice: Target,
+  shift: MoonStar,
 };
 
 export const tierIcon: Record<Tier, LucideIcon> = {

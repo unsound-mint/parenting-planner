@@ -2,7 +2,7 @@
 
 The acceptance test for the hackathon scope in `product.md`. Every step must work on the production link with a fresh demo family. Target length: 2 minutes.
 
-1. Open the site and pick the "2nd trimester" family. Mom's screen shows her week, what is due (glucose screen at 24 to 28 weeks, with its source), and an AI plan that mentions her sleep and mood from the last few days.
+1. Open the site and pick the "2nd trimester" family. Mom's screen shows her week, what is due (glucose screen at 24 to 28 weeks, with its source), and a plan built from her own data: each item names the data and the guideline that put it there, with its source and checked date, and her sleep and mood from the last few days sit beside it.
 2. Switch to the Partner. His plan is different: Tdap timing for him, a partner class, and a note that he has not done a mood check-in in two weeks.
 3. Mom writes a diary entry about birth anxiety, shares only the topic with her psychologist, and sees it added to the next session agenda. The partner does not see it.
 4. Mom logs a mood check-in that completes a three-day low pattern. The plan updates and suggests a perinatal therapist from the directory, with a booking request.

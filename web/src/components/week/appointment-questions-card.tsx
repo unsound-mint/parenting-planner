@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarClock, Check, CornerDownRight, Plus } from "lucide-react";
@@ -14,7 +15,7 @@ import { Input } from "@/components/ui/input";
 
 // Share choices for a new question. Questions are health data: private unless
 // the author picks otherwise (docs/product.md).
-function audiences(partnerName?: string): { value: Visibility; label: string }[] {
+export function audiences(partnerName?: string): { value: Visibility; label: string }[] {
   return [
     { value: "private", label: "Only me" },
     ...(partnerName ? [{ value: "partner" as const, label: partnerName }] : []),
@@ -145,7 +146,9 @@ function Visit({ visit, items, memberId }: { visit: CalendarEvent; items: Appoin
           <CalendarClock className="size-3.5" aria-hidden />
           <time dateTime={visit.startsAt}>{formatShortDate(visit.startsAt.slice(0, 10))}</time>
         </span>
-        <p className="min-w-0 flex-1 pt-1 text-label font-semibold text-balance">{visit.title}</p>
+        <Link href={`/family/${memberId}/appointments/${visit.id}`} className="min-w-0 flex-1 pt-1 text-label font-semibold text-balance hover:underline">
+          {visit.title}
+        </Link>
         <span className="shrink-0 pt-1.5 font-mono text-caption text-muted-foreground">{waiting === 0 ? "all asked" : `${waiting} to ask`}</span>
       </div>
       {items.length > 0 && (
@@ -159,7 +162,8 @@ function Visit({ visit, items, memberId }: { visit: CalendarEvent; items: Appoin
   );
 }
 
-function Question({ q, memberId }: { q: AppointmentQuestion; memberId: string }) {
+/** after: the visit has passed, so an unanswered question says where it goes next. */
+export function Question({ q, memberId, after = false }: { q: AppointmentQuestion; memberId: string; after?: boolean }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [answer, setAnswer] = useState("");
@@ -202,10 +206,10 @@ function Question({ q, memberId }: { q: AppointmentQuestion; memberId: string })
         </button>
         <div className="min-w-0 flex-1 pt-0.5">
           <p className={cn("text-body", q.answered && "text-muted-foreground")}>{q.text}</p>
-          {q.carriedOver && !q.answered && (
+          {(after || q.carriedOver) && !q.answered && (
             <span className="mt-1 inline-flex h-5 items-center gap-1 rounded-full bg-status-due-soft px-2 text-caption font-medium text-status-due">
               <CornerDownRight className="size-3" aria-hidden />
-              Carried over
+              {after ? "Carries to your next visit" : "Carried over"}
             </span>
           )}
           {q.answered && q.answer && <p className="mt-1 rounded-lg bg-muted px-3 py-2 text-label">{q.answer}</p>}

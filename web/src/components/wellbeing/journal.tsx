@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Annoyed, ChevronDown, Frown, Laugh, ListPlus, Lock, Meh, Smile, type LucideIcon } from "lucide-react";
-import { api } from "@/lib/api/client";
+import { api, isPreviewMock } from "@/lib/api/client";
+import { mergeDiary, rememberMockEntry, useMockDiary } from "@/lib/mock/diary-store";
 import type { DiaryEntry, MoodCheckin, Visibility } from "@/lib/api/types";
 import { dayKey, formatDayNumber, formatMonth } from "@/lib/format";
 import { careIcon, visibilityIcon, visibilityLabel } from "@/lib/visuals";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { PageGrid } from "@/components/shell/page";
 
 type Partner = { id: string; name: string };
 
@@ -29,14 +31,16 @@ const TOPIC_MAX = 80;
 // psychologist session, never the entry text. The API does not change an entry's
 // text, so editing here means audience and agenda topic.
 export function Journal({ memberId, partner, entries: initial, moods }: { memberId: string; partner?: Partner; entries: DiaryEntry[]; moods: MoodCheckin[] }) {
-  const [entries, setEntries] = useState(initial);
+  const [local, setEntries] = useState(initial);
+  // While the diary endpoints are mocks, entries saved earlier in this session come back from the browser.
+  const entries = mergeDiary(local, useMockDiary(memberId));
   const Diary = careIcon.diary;
   const moodByDay = new Map<string, number>();
   // Newest first, so the first check-in of a day wins.
   for (const m of moods) if (!moodByDay.has(dayKey(m.recordedAt))) moodByDay.set(dayKey(m.recordedAt), m.mood);
 
   return (
-    <div className="mt-2 flex max-w-2xl flex-col gap-6">
+    <div className="mt-2 flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-3 text-headline">
           <Diary className="size-7 text-primary" aria-hidden />
@@ -48,30 +52,33 @@ export function Journal({ memberId, partner, entries: initial, moods }: { member
         </p>
       </div>
 
-      <WriteBox memberId={memberId} partner={partner} onSaved={(e) => setEntries((cur) => [e, ...cur])} />
+      {/* Two columns: the write box on the left, the entries beside it. */}
+      <PageGrid>
+        <WriteBox memberId={memberId} partner={partner} onSaved={(e) => setEntries((cur) => [e, ...cur])} />
 
-      {entries.length === 0 ? (
-        <p className="text-label text-muted-foreground">Nothing written yet. Whatever you put down stays yours.</p>
-      ) : (
-        <section aria-label="Entries" className="flex flex-col gap-3">
-          <h2 className="font-mono text-caption tracking-[0.07em] text-muted-foreground uppercase">
-            Entries
-          </h2>
-          <ul className="flex flex-col gap-3">
-            {entries.map((e) => (
-              <li key={e.id}>
-                <Entry
-                  memberId={memberId}
-                  entry={e}
-                  partner={partner}
-                  mood={moodByDay.get(dayKey(e.writtenAt))}
-                  onChange={(next) => setEntries((cur) => cur.map((x) => (x.id === next.id ? next : x)))}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {entries.length === 0 ? (
+          <p className="text-label text-muted-foreground">Nothing written yet. Whatever you put down stays yours.</p>
+        ) : (
+          <section aria-label="Entries" className="flex min-w-0 flex-col gap-3">
+            <h2 className="font-mono text-caption tracking-[0.07em] text-muted-foreground uppercase">
+              Entries
+            </h2>
+            <ul className="flex flex-col gap-3">
+              {entries.map((e) => (
+                <li key={e.id}>
+                  <Entry
+                    memberId={memberId}
+                    entry={e}
+                    partner={partner}
+                    mood={moodByDay.get(dayKey(e.writtenAt))}
+                    onChange={(next) => setEntries((cur) => cur.map((x) => (x.id === next.id ? next : x)))}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </PageGrid>
     </div>
   );
 }
@@ -150,7 +157,7 @@ function WriteBox({ memberId, partner, onSaved }: { memberId: string; partner?: 
     e.preventDefault();
     if (!ready) return;
     startTransition(async () => {
-      const { data, error } = await api.POST("/members/{memberId}/diary-entries", {
+      const { data, error, response } = await api.POST("/members/{memberId}/diary-entries", {
         params: { path: { memberId } },
         body: { body: body.trim(), visibility, ...(agendaTopic ? { agendaTopic } : {}) },
       });
@@ -158,6 +165,7 @@ function WriteBox({ memberId, partner, onSaved }: { memberId: string; partner?: 
         toast.error("Could not save your entry. Please try again.");
         return;
       }
+      if (isPreviewMock(response)) rememberMockEntry(memberId, data);
       toast.success(agendaTopic ? `Saved. "${agendaTopic}" is on your agenda.` : visibility === "private" ? "Saved. Only you can read it." : "Saved.");
       onSaved(data);
       setBody("");
@@ -202,7 +210,7 @@ function Entry({ memberId, entry, partner, mood, onChange }: { memberId: string;
 
   function save() {
     startTransition(async () => {
-      const { data, error } = await api.PATCH("/members/{memberId}/diary-entries/{entryId}", {
+      const { data, error, response } = await api.PATCH("/members/{memberId}/diary-entries/{entryId}", {
         params: { path: { memberId, entryId: entry.id } },
         // An empty string removes the topic; leaving it out would keep it.
         body: { visibility, agendaTopic: nextTopic },
@@ -212,7 +220,9 @@ function Entry({ memberId, entry, partner, mood, onChange }: { memberId: string;
         return;
       }
       // The API does not echo the topic when it is removed.
-      onChange({ ...data, agendaTopic: data.agendaTopic || undefined });
+      const next = { ...entry, ...data, agendaTopic: data.agendaTopic || undefined };
+      if (isPreviewMock(response)) rememberMockEntry(memberId, next);
+      onChange(next);
       setOpen(false);
       toast.success(nextTopic ? `"${nextTopic}" is on your agenda.` : "Updated.");
     });
@@ -239,7 +249,7 @@ function Entry({ memberId, entry, partner, mood, onChange }: { memberId: string;
           </span>
         </div>
       </header>
-      <p className="mt-3 text-body whitespace-pre-line">{entry.body}</p>
+      <p className="mt-3 max-w-prose text-body whitespace-pre-line">{entry.body}</p>
       {entry.agendaTopic && (
         <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-status-up-soft px-3 py-1 text-caption font-medium text-status-up">
           <Agenda className="size-3.5" aria-hidden />

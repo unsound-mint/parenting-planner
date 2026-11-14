@@ -14,6 +14,7 @@ import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
 import { VoicePlayer } from "@/components/baby/voice-player";
 import { previewMocksEnabled } from "@/lib/mock/registry";
 import { CaregiverHome } from "@/components/week/caregiver-home";
+import { PageFrame } from "@/components/shell/page";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
 const feedActions: QuickAction[] = [
@@ -91,9 +92,10 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
       : `${child.name}'s day starts here. Log the first feed.`;
 
   return (
-    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
-      <div className="flex min-w-0 flex-col gap-6">
-        <header className="flex flex-col gap-3">
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      {/* At the widest the logging side splits in two: log now on the left, today's timeline on the right. */}
+      <div className="flex min-w-0 flex-col gap-6 @7xl:grid @7xl:grid-cols-2 @7xl:items-start">
+        <header className="flex flex-col gap-3 @7xl:col-span-2">
           <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label font-normal text-muted-foreground">
             {isCaregiver(me.role) ? `${roleLabel[me.role]} view · ` : ""}
@@ -108,7 +110,11 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
           )}
         </header>
 
-        {incoming && <IncomingHandoff memberId={memberId} handoff={incoming} from={byId.get(incoming.fromMemberId)} now={now} />}
+        {incoming && (
+          <div className="min-w-0 @7xl:col-span-2">
+            <IncomingHandoff memberId={memberId} handoff={incoming} from={byId.get(incoming.fromMemberId)} now={now} />
+          </div>
+        )}
 
         <WhenProvider>
           <section aria-labelledby="log-title" className="flex flex-col gap-3">
@@ -150,7 +156,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         )}
       </div>
 
-      <aside className="flex min-w-0 flex-col gap-6 xl:pt-1">
+      <aside className="flex min-w-0 flex-col gap-6 @5xl:pt-1">
         {outgoing ? (
           <section aria-labelledby="handoff-title" className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card p-4">
             <div className="flex items-center gap-3">
@@ -177,7 +183,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         )}
         {passport?.data && <BabyCard passport={passport.data} />}
       </aside>
-    </main>
+    </PageFrame>
   );
 }
 

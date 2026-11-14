@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ChevronRight, CloudOff, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, CloudOff, Lock, Plus } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CalendarEvent, CalendarScope } from "@/lib/api/types";
 import { countThings, daysUntilInstant, formatClock, formatShortDate, whenWords } from "@/lib/format";
 import { familyPeople, isCaregiver, type Role } from "@/lib/roles";
 import { roleAccent } from "@/lib/visuals";
 import { addDays, todayKey } from "@/lib/schedule";
+import { EventDialog } from "@/components/schedule/event-dialog";
 import { CalendarSubscribe } from "@/components/schedule/calendar-subscribe";
 import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { WeekView, type Owner } from "@/components/schedule/week-view";
 import { cn } from "@/lib/utils";
 import { familyNow } from "@/lib/clock";
@@ -70,11 +72,14 @@ async function Calendar({
   );
   const items = events.data?.items ?? [];
   const agreed = (shifts.data?.items ?? []).filter((s) => s.status === "agreed");
+  const guests = people
+    .filter((p) => p.id !== memberId && (!isCaregiver(p.role) || family.caregivers.find((c) => c.id === p.id)?.permissions.includes("schedule")))
+    .map((p) => ({ id: p.id, name: p.displayName }));
   const hrefFor = (s: CalendarScope) => `/family/${memberId}/calendar?scope=${s}${from === today ? "" : `&from=${from}`}`;
   const weekHref = (f: string) => `/family/${memberId}/calendar?scope=${scope}${f === today ? "" : `&from=${f}`}`;
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame>
       <header>
         <h1 className="max-w-2xl text-headline text-balance">{headline(items, from === today, caregiver, now)}</h1>
         {caregiver ? (
@@ -87,6 +92,17 @@ async function Calendar({
       <div className="flex flex-wrap items-center gap-3">
         {!caregiver && <ScopeTabs active={scope} hrefFor={hrefFor} />}
         <span className="flex-1" />
+        {!caregiver && (
+          <EventDialog
+            memberId={memberId}
+            guests={guests}
+            today={today}
+            triggerClassName="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-primary px-4 text-label font-medium text-primary-foreground outline-none transition-colors duration-150 hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9"
+          >
+            <Plus aria-hidden className="size-4" />
+            Add event
+          </EventDialog>
+        )}
         <div className="flex items-center gap-1">
           <WeekLink href={weekHref(addDays(from, -7))} label="Previous week" icon={ChevronLeft} />
           <span className="min-w-36 text-center font-mono text-label">
@@ -106,31 +122,34 @@ async function Calendar({
       </div>
 
       {events.data ? (
-        <WeekView from={from} today={today} events={items} owners={owners} />
+        <WeekView from={from} today={today} events={items} owners={owners} edit={caregiver ? undefined : { memberId, guests }} />
       ) : (
         <Unavailable />
       )}
 
-      {agreed.length > 0 && (
-        <section aria-labelledby="agreed-title" className="flex flex-col gap-3">
-          <div>
-            <h2 id="agreed-title" className="text-title">
-              Agreed, starts when the baby is home
-            </h2>
-            <p className="text-label font-normal text-muted-foreground">These move into the week above on the day you switch.</p>
-          </div>
-          <ul className="grid max-w-3xl gap-3">
-            {agreed.map((s) => (
-              <li key={s.id}>
-                <ShiftCard shift={s} owner={owners[s.memberId]} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Under the week, side by side when there is room: the agreed shifts and the subscribe card. */}
+      <PageGrid className="empty:hidden">
+        {agreed.length > 0 && (
+          <section aria-labelledby="agreed-title" className="flex min-w-0 flex-col gap-3">
+            <div>
+              <h2 id="agreed-title" className="text-title">
+                Agreed, starts when the baby is home
+              </h2>
+              <p className="text-label font-normal text-muted-foreground">These move into the week above on the day you switch.</p>
+            </div>
+            <ul className="grid gap-3">
+              {agreed.map((s) => (
+                <li key={s.id}>
+                  <ShiftCard shift={s} owner={owners[s.memberId]} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-      {feed.data && <CalendarSubscribe memberId={memberId} initial={feed.data} canChooseScope={!caregiver} />}
-    </main>
+        {feed.data && <CalendarSubscribe memberId={memberId} initial={feed.data} canChooseScope={!caregiver} />}
+      </PageGrid>
+    </PageFrame>
   );
 }
 
