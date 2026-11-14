@@ -10,6 +10,10 @@
 #   ANTHROPIC_API_KEY=...   optional; without it the AI plan is off and the
 #                           rule plan shows on its own
 #   ANTHROPIC_MODEL=...     optional model id override for the AI plan
+#   STRIPE_SECRET_KEY=...   optional, sk_test_...; with STRIPE_WEBHOOK_SECRET (whsec_...)
+#   STRIPE_WEBHOOK_SECRET   and PUBLIC_BASE_URL (https://parenting.unsoundmint.com).
+#   PUBLIC_BASE_URL         Without all three the payment endpoints answer 503 and
+#                           the pricing page only records interest
 # Check the key is set without printing it (never run `docker compose config`
 # on the server, it prints every value):
 #   grep -c '^ANTHROPIC_API_KEY=.' deploy/.env                  # 1 = set
@@ -40,6 +44,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
       DIARY_ENCRYPTION_KEY: ${DIARY_ENCRYPTION_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:

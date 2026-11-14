@@ -33,6 +33,20 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
+type AppointmentQuestion struct {
+	ID              uuid.UUID
+	Seq             pgtype.Int8
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	AskedForEventID uuid.UUID
+	Body            string
+	Answered        bool
+	Answer          *string
+	AnsweredAt      pgtype.Timestamptz
+	CreatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
@@ -41,6 +55,32 @@ type AuditLog struct {
 	Entity        string
 	EntityID      *string
 	At            time.Time
+}
+
+type BabyName struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	Name      string
+	AddedBy   uuid.UUID
+	CreatedAt time.Time
+}
+
+type BabyNameLike struct {
+	NameID    uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	CreatedAt time.Time
+}
+
+type BookingRequest struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ProviderID    uuid.UUID
+	Status        string
+	Note          *string
+	CreatedAt     time.Time
 }
 
 type CalendarEvent struct {
@@ -60,6 +100,21 @@ type CalendarEvent struct {
 type CalendarEventAttendee struct {
 	EventID  uuid.UUID
 	MemberID uuid.UUID
+}
+
+type CareLogEntry struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	ChildID        uuid.UUID
+	AuthorMemberID uuid.UUID
+	Kind           string
+	StartedAt      time.Time
+	EndedAt        pgtype.Timestamptz
+	FeedMethod     *string
+	AmountMl       pgtype.Int2
+	Diaper         *string
+	Note           *string
+	CreatedAt      time.Time
 }
 
 type CareTeam struct {
@@ -90,6 +145,13 @@ type ContentOverride struct {
 	UpdatedAt time.Time
 }
 
+type CoupleTalk struct {
+	FamilyID uuid.UUID
+	PromptID string
+	TalkedBy uuid.UUID
+	TalkedAt time.Time
+}
+
 type DiaryEntry struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -117,6 +179,18 @@ type GrowthMeasurement struct {
 	MeasuredOn time.Time
 	WeightKg   float64
 	HeightCm   float64
+}
+
+type Handoff struct {
+	ID           uuid.UUID
+	FamilyID     uuid.UUID
+	FromMemberID uuid.UUID
+	ToMemberID   uuid.UUID
+	Note         *string
+	ShiftID      uuid.NullUUID
+	Status       string
+	CreatedAt    time.Time
+	AcceptedAt   pgtype.Timestamptz
 }
 
 type Immunization struct {
@@ -176,6 +250,25 @@ type LabResult struct {
 	Unit            *string
 	RefLow          *float64
 	RefHigh         *float64
+}
+
+type LessonRead struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	LessonID   string
+	StartedAt  time.Time
+	FinishedAt pgtype.Timestamptz
+}
+
+type LiveEvent struct {
+	ID              int64
+	FamilyID        uuid.UUID
+	Kind            string
+	EntityID        *string
+	ActorMemberID   uuid.UUID
+	Audience        []uuid.UUID
+	NeedsPermission *string
+	At              time.Time
 }
 
 type Member struct {
@@ -265,6 +358,18 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
+type Provider struct {
+	ID              uuid.UUID
+	Name            string
+	Type            string
+	City            string
+	State           string
+	Languages       []string
+	AvailableInDays int16
+	PriceUsd        int32
+	Summary         string
+}
+
 type Psychologist struct {
 	ID          uuid.UUID
 	Name        string
@@ -289,6 +394,14 @@ type PsychologistSlot struct {
 	DurationMinutes int16
 }
 
+type QuizAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	QuestionID string
+	ChoiceID   string
+	AnsweredAt time.Time
+}
+
 type Session struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID
@@ -305,6 +418,61 @@ type SessionNote struct {
 	BookingID     uuid.UUID
 	WrittenAt     time.Time
 	Text          string
+}
+
+type Shift struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	Title     string
+	Days      []string
+	StartTime string
+	EndTime   string
+	Status    string
+	StartsOn  *time.Time
+	RoundID   uuid.NullUUID
+	CreatedAt time.Time
+}
+
+type StripeEvent struct {
+	ID         string
+	Type       string
+	ReceivedAt time.Time
+}
+
+type Subscription struct {
+	FamilyID             uuid.UUID
+	Tier                 string
+	Status               string
+	StripeCustomerID     *string
+	StripeSubscriptionID *string
+	CheckoutSessionID    string
+	StartedAt            time.Time
+	CurrentPeriodEnd     pgtype.Timestamptz
+	UpdatedAt            time.Time
+}
+
+type Task struct {
+	ID                      uuid.UUID
+	Seq                     pgtype.Int8
+	FamilyID                uuid.UUID
+	Kind                    string
+	Title                   string
+	Detail                  *string
+	DueOn                   *time.Time
+	DueAnchor               *string
+	DueOffsetDays           pgtype.Int4
+	Bag                     *string
+	AssigneeMemberID        uuid.UUID
+	PendingAssigneeMemberID uuid.NullUUID
+	Done                    bool
+	DoneAt                  pgtype.Timestamptz
+	DoneByMemberID          uuid.NullUUID
+	SourceTitle             *string
+	SourceUrl               *string
+	SourceCheckedOn         *time.Time
+	CreatedByMemberID       uuid.UUID
+	CreatedAt               time.Time
 }
 
 type UpgradeIntent struct {

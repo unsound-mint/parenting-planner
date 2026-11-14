@@ -276,3 +276,34 @@ func TestEveryGuideRuleExists(t *testing.T) {
 		}
 	}
 }
+
+func TestSizeEveryWeekIsSourced(t *testing.T) {
+	for w := MinWeek; w <= MaxWeek; w++ {
+		sz, dev, ok := SizeFor(w)
+		if !ok || sz.Comparison == "" || sz.LengthCm <= 0 || sz.LengthMeasure == "" || dev == "" {
+			t.Fatalf("week %d: incomplete size %+v %q", w, sz, dev)
+		}
+		if (w >= 14) != sz.HasWeight() {
+			t.Errorf("week %d: weight present = %v", w, sz.HasWeight())
+		}
+		if sz.HasWeight() && !(sz.WeightRangeG[0] < sz.WeightG && sz.WeightG < sz.WeightRangeG[1]) {
+			t.Errorf("week %d: median %v outside range %v", w, sz.WeightG, sz.WeightRangeG)
+		}
+		if len(sz.Sources) == 0 {
+			t.Errorf("week %d: no source", w)
+		}
+		for _, s := range sz.Sources {
+			if s.URL == "" || s.CheckedAt.IsZero() {
+				t.Errorf("week %d: source %+v", w, s)
+			}
+		}
+		for _, text := range []string{sz.Comparison, dev} {
+			if strings.ContainsAny(text, "—–") {
+				t.Errorf("week %d: dash in %q", w, text)
+			}
+		}
+	}
+	if _, _, ok := SizeFor(MaxWeek + 1); ok {
+		t.Error("week 41 should have no size")
+	}
+}

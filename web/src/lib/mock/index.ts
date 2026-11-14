@@ -10,6 +10,7 @@ import { demoMocks } from "./fixtures/demo";
 import { directoryMocks } from "./fixtures/directory";
 import { insuranceMocks } from "./fixtures/insurance";
 import { leaveMocks } from "./fixtures/leave";
+import { learnMocks } from "./fixtures/learn";
 import { milestoneMocks } from "./fixtures/milestones";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { notificationMocks } from "./fixtures/notifications";
@@ -18,6 +19,7 @@ import { peopleMocks } from "./fixtures/people";
 import { pricingMocks } from "./fixtures/pricing";
 import { scheduleMocks } from "./fixtures/schedule";
 import { simulatorMocks } from "./fixtures/simulator";
+import { stageNowMocks } from "./fixtures/stage-now";
 import { weeklyPlanMocks } from "./fixtures/weekly-plan";
 import { taskMocks } from "./fixtures/tasks";
 import { todayMocks } from "./fixtures/today";
@@ -38,6 +40,7 @@ const tables: MockTable[] = [
   directoryMocks,
   insuranceMocks,
   leaveMocks,
+  learnMocks,
   milestoneMocks,
   moodPatternMocks,
   notificationMocks,
@@ -50,6 +53,7 @@ const tables: MockTable[] = [
   weeklyPlanMocks,
   scheduleMocks,
   simulatorMocks,
+  stageNowMocks,
 ];
 
 export const previewMocks = mockMiddleware(Object.assign({}, ...tables));

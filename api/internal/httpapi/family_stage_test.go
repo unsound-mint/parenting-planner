@@ -3,18 +3,55 @@ package httpapi_test
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
 )
 
-// Replace the baby-arrival case with the reference tests (see
-// wellbeing_test.go) when its handler lands (#235).
-func TestBabyArrivalIsNotImplementedYet(t *testing.T) {
+func arrivalPath(m httpapi.Parent) string { return "/api/members/" + m.Id.String() + "/baby-arrival" }
+
+func TestBabyIsHome(t *testing.T) {
 	c := testutil.New(t)
 	fam := c.StartDemo("pregnancy")
-	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
-	stubCall{"POST", m + "/baby-arrival", map[string]any{"name": "Ava", "birthDate": "2026-11-14"}}.expectNotImplemented(t, c)
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	planIDs := func() map[string]bool {
+		var pl httpapi.Plan
+		c.Get("/api/members/"+mom.Id.String()+"/plan", http.StatusOK, &pl)
+		ids := map[string]bool{}
+		for _, it := range pl.Items {
+			ids[it.RuleId] = true
+		}
+		return ids
+	}
+	if !planIDs()["glucose-screen"] {
+		t.Fatal("setup: the pregnancy plan must have the glucose screen")
+	}
+	// No baby yet: the care log is closed.
+	c.Post(careLog(mom.Id), map[string]any{"kind": "sleep", "startedAt": ago(time.Hour)}, http.StatusConflict, nil)
+
+	today := testutil.Now.Format("2006-01-02")
+	c.Post(arrivalPath(mom), map[string]any{"name": "Ava", "birthDate": testutil.Now.AddDate(0, 0, 1).Format("2006-01-02")}, http.StatusBadRequest, nil)   // future
+	c.Post(arrivalPath(mom), map[string]any{"name": "Ava", "birthDate": testutil.Now.AddDate(0, 0, -31).Format("2006-01-02")}, http.StatusBadRequest, nil) // too long ago
+	c.Post(arrivalPath(mom), map[string]any{"name": "", "birthDate": today}, http.StatusBadRequest, nil)
+	for _, cg := range fam.Caregivers {
+		c.Post("/api/members/"+cg.Id.String()+"/baby-arrival", map[string]any{"name": "Ava", "birthDate": today}, http.StatusForbidden, nil)
+	}
+
+	var got httpapi.Family
+	c.Post(arrivalPath(mom), map[string]any{"name": "Ava", "birthDate": testutil.Now.AddDate(0, 0, -2).Format("2006-01-02")}, http.StatusCreated, &got)
+	if got.Stage != httpapi.StagePostpartum || len(got.Children) != 1 || got.Children[0].Name != "Ava" || got.GestationalWeek != nil {
+		t.Fatalf("family = %+v", got)
+	}
+	// A second call is refused, the care log opens, pregnancy items are gone and the change is audited.
+	c.Post(arrivalPath(mom), map[string]any{"name": "Zoe", "birthDate": today}, http.StatusConflict, nil)
+	c.Post(careLog(mom.Id), map[string]any{"kind": "sleep", "startedAt": ago(time.Hour)}, http.StatusCreated, nil)
+	if planIDs()["glucose-screen"] {
+		t.Error("pregnancy plan items must stop after Baby is home")
+	}
+	if n := c.AuditCount(fam.Id, "update", "family"); n != 1 {
+		t.Errorf("family update audit rows = %d, want 1", n)
+	}
 }
 
 func TestMovingTheDueDateMovesTheWeek(t *testing.T) {

@@ -1,0 +1,150 @@
+/* Global (not a CSS module: the turbopack css rule in next.config.ts bypasses modules). Idle motion for the hero illustrations. Only transform and opacity move.
+   Per-shape timing comes from --bob-dur, --bob-delay, --blink-dur and
+   --blink-delay (set in illustration.tsx) so a row of babies never moves in
+   lockstep. Urgent screens must not use these components. */
+
+.pp-ill-stage {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+}
+
+button.pp-ill-stage {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.pp-ill-stage:focus-visible {
+  outline: 3px solid var(--me, #a04828);
+  outline-offset: 6px;
+  border-radius: 24px;
+}
+
+/* Outer: idle bob. Inner (.pp-ill-tap): tap wiggle, driven by Motion, so the two
+   transforms compose and a tap never resets the bob. */
+.pp-ill-bob {
+  display: block;
+  transform-origin: 50% 92%;
+  animation: pp-ill-bob var(--bob-dur, 4.8s) ease-in-out var(--bob-delay, 0s) infinite;
+}
+
+.pp-ill-tap {
+  display: block;
+  transform-origin: 50% 92%;
+  will-change: transform;
+}
+
+.pp-ill-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+@keyframes pp-ill-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-3.2%) rotate(1.2deg);
+  }
+}
+
+.pp-ill-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pp-ill-blink var(--blink-dur, 5.5s) ease-in-out var(--blink-delay, 0s) infinite;
+}
+
+/* A quick double blink now and then reads as alive rather than a metronome. */
+@keyframes pp-ill-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.1);
+  }
+  96% {
+    transform: scaleY(1);
+  }
+  97.5% {
+    transform: scaleY(0.1);
+  }
+  99% {
+    transform: scaleY(1);
+  }
+}
+
+.pp-ill-heart {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pp-ill-beat 1.6s ease-in-out infinite;
+}
+
+@keyframes pp-ill-beat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.18);
+  }
+  24% {
+    transform: scale(1);
+  }
+  36% {
+    transform: scale(1.12);
+  }
+  48% {
+    transform: scale(1);
+  }
+}
+
+.pp-ill-bubble {
+  position: absolute;
+  left: 58%;
+  top: -4%;
+  width: max-content;
+  max-width: 16rem;
+  padding: 10px 16px;
+  border-radius: 18px 18px 18px 4px;
+  background: var(--card, #fffdf9);
+  color: var(--ink, #2b2620);
+  box-shadow: 0 6px 20px rgb(120 80 30 / 0.12);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transform-origin: 0 100%;
+  transition:
+    opacity 0.25s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  pointer-events: none;
+}
+
+.pp-ill-bubble-on {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-ill-bob,
+  .pp-ill-eyes,
+  .pp-ill-heart {
+    animation: none;
+  }
+  .pp-ill-bubble {
+    transform: none;
+    transition: opacity 0.2s linear;
+  }
+}
