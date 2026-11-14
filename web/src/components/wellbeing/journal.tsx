@@ -49,7 +49,7 @@ export function Journal({ memberId, partner, entries: initial, moods }: { member
         </p>
       </div>
 
-      {/* From lg: the write box on the left, the entries beside it. */}
+      {/* Two columns: the write box on the left, the entries beside it. */}
       <PageGrid>
         <WriteBox memberId={memberId} partner={partner} onSaved={(e) => setEntries((cur) => [e, ...cur])} />
 

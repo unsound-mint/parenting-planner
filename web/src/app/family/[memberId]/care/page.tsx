@@ -87,7 +87,7 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
         {!agenda ? (
           <Unavailable />
         ) : (
-          // The session step, the agenda and the wellbeing links: side by side from lg, three across from 2xl.
+          // The session step, the agenda and the wellbeing links: two across, three on the widest screens.
           <PageGrid cols={3}>
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />

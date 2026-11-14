@@ -126,7 +126,7 @@ async function Directory({
                   </Link>
                 </Empty>
               ) : (
-                <ul className="mt-4 grid items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+                <ul className="mt-4 grid items-start gap-3 @3xl:grid-cols-2 @7xl:grid-cols-3">
                   {items.map((p) => (
                     <ProviderCard key={p.id} provider={p} memberId={memberId} requested={requested.has(p.id)} now={now} />
                   ))}

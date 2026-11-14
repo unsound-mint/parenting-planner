@@ -244,7 +244,7 @@ function Result({ memberId, round, calendarOpen }: { memberId: string; round: Si
   const suggestion = result.suggestedShift;
 
   return (
-    <PageFrame className="grid content-start gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <PageFrame className="grid content-start gap-8 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <section aria-labelledby="result-headline" className="flex min-w-0 flex-col gap-6">
         <div className="flex items-center gap-5">
           <ScoreRing correct={result.correct} total={result.total} />
@@ -281,7 +281,7 @@ function Result({ memberId, round, calendarOpen }: { memberId: string; round: Si
         </div>
       </section>
 
-      <aside className="min-w-0 lg:pt-1">
+      <aside className="min-w-0 @4xl:pt-1">
         <section aria-labelledby="after-title" className="rounded-2xl border border-border bg-card p-5">
           <h2 id="after-title" className="text-title">
             Your skills now

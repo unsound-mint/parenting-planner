@@ -73,7 +73,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
       )}
 
       {/* Two rows of cards: the status row (summary, next step, profile) and the records row
-          (labs, vaccines, growth). Two across from lg, three from 2xl. */}
+          (labs, vaccines, growth). Two across, then three on the widest screens. */}
       <PageGrid cols={3} className="mt-6 items-stretch gap-4 lg:gap-6">
         <SummaryCard tally={tally(person)} />
         <NextStep
@@ -88,13 +88,13 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
               : undefined
           }
         />
-        <div className="min-w-0 lg:col-span-2 2xl:col-span-1">
+        <div className="min-w-0 @3xl:col-span-2 @7xl:col-span-1">
           <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
         </div>
       </PageGrid>
       <PageGrid cols={3} className="mt-4 gap-4 lg:mt-6 lg:gap-6">
         <LabsCard labs={person.labs} showVisibility={person.isActingParent} />
-        <div className="flex min-w-0 flex-col gap-4 lg:gap-6 2xl:contents">
+        <div className="flex min-w-0 flex-col gap-4 lg:gap-6 @7xl:contents">
           <VaccineTimeline vaccines={person.vaccines} />
           {person.kind === "child" && <GrowthCard growth={person.growth} />}
         </div>

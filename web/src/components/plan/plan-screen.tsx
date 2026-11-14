@@ -215,7 +215,7 @@ function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: Tas
   const open = rest.filter((t) => !t.done);
   const done = rest.filter((t) => t.done);
   return (
-    // From lg: what is still open on the left, what is done on the right.
+    // Two columns: what is still open on the left, what is done on the right.
     <PageGrid>
       <Stack>
         {waiting.length > 0 && (

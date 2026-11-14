@@ -70,8 +70,8 @@ Rules:
 Family screens use the width of the screen they are on. The parts live in `web/src/components/shell/page.tsx`.
 
 1. The family layout caps the header and the page together at `max-w-page` (1600 px of content plus padding, set in `globals.css`), left-aligned beside the nav. The header and the page share the same side padding, so their edges line up. A page never sets its own `max-w` on its wrapper.
-2. Every page renders `PageFrame` as its `<main>`. Independent cards go in a `PageGrid`: one column on phones, two from `lg`, three from `2xl` (`cols={3}`) when the page has three or more independent cards. Use the extra width to put related things side by side (People: invite, who has access, who looked; This week: plan beside the rail, and the rail splits in two at `2xl`), not to stretch one card.
-3. DOM order is the phone order. Columns come from grouping, spans and grid placement (`lg:row-span-2`, `2xl:contents`), never from reordering.
+2. Every page renders `PageFrame` as its `<main>`. Independent cards go in a `PageGrid`: one column on phones, two once the content area is 768 px wide (`@3xl`, about a 1100 px screen), three from 1280 px (`@7xl`, about 1570 px) with `cols={3}` when the page has three or more independent cards. These are container queries on `PageFrame`, not viewport breakpoints, because the nav takes 224 px. A main column with a rail (This week, Baby, Practice) splits at `@4xl`. Use the extra width to put related things side by side (People: invite, who has access, who looked; This week: plan beside the rail, and the rail splits in two at `@7xl`), not to stretch one card.
+3. DOM order is the phone order. Columns come from grouping, spans and grid placement (`@3xl:row-span-2`, `@7xl:contents`), never from reordering.
 4. Keep a reading measure inside cards: running text at most `max-w-prose` (about 65ch), headlines `max-w-2xl`. Lists of rows sit in a column, not across the full width.
 5. A single-task flow (a quiz question, a questionnaire in progress, a one-off form page outside the family area) keeps a reading measure instead of the grid. So does a timeline that has to read top to bottom (paperwork).
 

@@ -40,7 +40,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
         : "No weak spots. Keep it fresh with a practice round.";
 
   return (
-    <PageFrame className="grid content-start gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <PageFrame className="grid content-start gap-8 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <section aria-labelledby="sim-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="sim-headline" className="max-w-2xl text-headline text-balance">
@@ -65,7 +65,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
           <h2 id="scenarios-title" className="text-title">
             Scenarios
           </h2>
-          <ul className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+          <ul className="grid gap-3 sm:grid-cols-2 @7xl:grid-cols-3">
             {progress.scenarios.map((s) => (
               <li key={s.id}>
                 <ScenarioCard scenario={s} memberId={memberId} />
@@ -75,7 +75,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
         </section>
       </section>
 
-      <aside className="min-w-0 lg:pt-1">
+      <aside className="min-w-0 @4xl:pt-1">
         <section aria-labelledby="skills-title" className="rounded-2xl border border-border bg-card p-5">
           <h2 id="skills-title" className="text-title">
             Your skills

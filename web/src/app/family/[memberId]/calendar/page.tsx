@@ -112,7 +112,7 @@ async function Calendar({
         <Unavailable />
       )}
 
-      {/* Under the week, side by side from lg: the agreed shifts and the subscribe card. */}
+      {/* Under the week, side by side when there is room: the agreed shifts and the subscribe card. */}
       <PageGrid className="empty:hidden">
         {agreed.length > 0 && (
           <section aria-labelledby="agreed-title" className="flex min-w-0 flex-col gap-3">

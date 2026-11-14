@@ -92,10 +92,10 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
       : `${child.name}'s day starts here. Log the first feed.`;
 
   return (
-    <PageFrame className="grid content-start gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] 2xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      {/* From 2xl the logging side splits in two: log now on the left, today's timeline on the right. */}
-      <div className="flex min-w-0 flex-col gap-6 2xl:grid 2xl:grid-cols-2 2xl:items-start">
-        <header className="flex flex-col gap-3 2xl:col-span-2">
+    <PageFrame className="grid content-start gap-8 @4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      {/* At the widest the logging side splits in two: log now on the left, today's timeline on the right. */}
+      <div className="flex min-w-0 flex-col gap-6 @7xl:grid @7xl:grid-cols-2 @7xl:items-start">
+        <header className="flex flex-col gap-3 @7xl:col-span-2">
           <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label font-normal text-muted-foreground">
             {isCaregiver(me.role) ? `${roleLabel[me.role]} view · ` : ""}
@@ -111,7 +111,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         </header>
 
         {incoming && (
-          <div className="min-w-0 2xl:col-span-2">
+          <div className="min-w-0 @7xl:col-span-2">
             <IncomingHandoff memberId={memberId} handoff={incoming} from={byId.get(incoming.fromMemberId)} now={now} />
           </div>
         )}
@@ -156,7 +156,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         )}
       </div>
 
-      <aside className="flex min-w-0 flex-col gap-6 lg:pt-1">
+      <aside className="flex min-w-0 flex-col gap-6 @4xl:pt-1">
         {outgoing ? (
           <section aria-labelledby="handoff-title" className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card p-4">
             <div className="flex items-center gap-3">

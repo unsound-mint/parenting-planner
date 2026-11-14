@@ -48,10 +48,10 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
       </header>
-      {/* lg: the form on the left, access and the log stacked on the right (the last row
-          is flexible so a tall form does not open a gap between them). 2xl: three columns. */}
-      <PageGrid cols={3} className="lg:grid-rows-[auto_1fr] 2xl:grid-rows-none">
-        <div className="min-w-0 lg:row-span-2 2xl:row-span-1">
+      {/* Two columns: the form on the left, access and the log stacked on the right (the last row
+          is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
+      <PageGrid cols={3} className="@3xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
+        <div className="min-w-0 @3xl:row-span-2 @7xl:row-span-1">
           <InviteForm memberId={memberId} />
         </div>
         {shown.length > 0 && (
