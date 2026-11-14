@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Annoyed, ChevronDown, Frown, Laugh, ListPlus, Lock, Meh, Smile, type LucideIcon } from "lucide-react";
-import { api } from "@/lib/api/client";
+import { api, isPreviewMock } from "@/lib/api/client";
+import { mergeDiary, rememberMockEntry, useMockDiary } from "@/lib/mock/diary-store";
 import type { DiaryEntry, MoodCheckin, Visibility } from "@/lib/api/types";
 import { dayKey, formatDayNumber, formatMonth } from "@/lib/format";
 import { careIcon, visibilityIcon, visibilityLabel } from "@/lib/visuals";
@@ -30,7 +31,9 @@ const TOPIC_MAX = 80;
 // psychologist session, never the entry text. The API does not change an entry's
 // text, so editing here means audience and agenda topic.
 export function Journal({ memberId, partner, entries: initial, moods }: { memberId: string; partner?: Partner; entries: DiaryEntry[]; moods: MoodCheckin[] }) {
-  const [entries, setEntries] = useState(initial);
+  const [local, setEntries] = useState(initial);
+  // While the diary endpoints are mocks, entries saved earlier in this session come back from the browser.
+  const entries = mergeDiary(local, useMockDiary(memberId));
   const Diary = careIcon.diary;
   const moodByDay = new Map<string, number>();
   // Newest first, so the first check-in of a day wins.
@@ -154,7 +157,7 @@ function WriteBox({ memberId, partner, onSaved }: { memberId: string; partner?: 
     e.preventDefault();
     if (!ready) return;
     startTransition(async () => {
-      const { data, error } = await api.POST("/members/{memberId}/diary-entries", {
+      const { data, error, response } = await api.POST("/members/{memberId}/diary-entries", {
         params: { path: { memberId } },
         body: { body: body.trim(), visibility, ...(agendaTopic ? { agendaTopic } : {}) },
       });
@@ -162,6 +165,7 @@ function WriteBox({ memberId, partner, onSaved }: { memberId: string; partner?: 
         toast.error("Could not save your entry. Please try again.");
         return;
       }
+      if (isPreviewMock(response)) rememberMockEntry(memberId, data);
       toast.success(agendaTopic ? `Saved. "${agendaTopic}" is on your agenda.` : visibility === "private" ? "Saved. Only you can read it." : "Saved.");
       onSaved(data);
       setBody("");
@@ -206,7 +210,7 @@ function Entry({ memberId, entry, partner, mood, onChange }: { memberId: string;
 
   function save() {
     startTransition(async () => {
-      const { data, error } = await api.PATCH("/members/{memberId}/diary-entries/{entryId}", {
+      const { data, error, response } = await api.PATCH("/members/{memberId}/diary-entries/{entryId}", {
         params: { path: { memberId, entryId: entry.id } },
         // An empty string removes the topic; leaving it out would keep it.
         body: { visibility, agendaTopic: nextTopic },
@@ -216,7 +220,9 @@ function Entry({ memberId, entry, partner, mood, onChange }: { memberId: string;
         return;
       }
       // The API does not echo the topic when it is removed.
-      onChange({ ...data, agendaTopic: data.agendaTopic || undefined });
+      const next = { ...entry, ...data, agendaTopic: data.agendaTopic || undefined };
+      if (isPreviewMock(response)) rememberMockEntry(memberId, next);
+      onChange(next);
       setOpen(false);
       toast.success(nextTopic ? `"${nextTopic}" is on your agenda.` : "Updated.");
     });
