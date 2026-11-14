@@ -6,6 +6,7 @@ import { AiPlan } from "@/components/week/ai-plan";
 import { PlanBoard } from "@/components/week/plan-board";
 import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
+import { CaregiverHome } from "@/components/week/caregiver-home";
 import { SleepChart } from "@/components/week/sleep-chart";
 
 // Own check-ins needed before the sleep chart earns space in the right rail.
@@ -32,6 +33,9 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     // Answers 501 until the API lands; no data means no card.
     api.GET("/members/{memberId}/mood-patterns", path),
   ]);
+  // Grandparents and nannies get the baby's care, not a parent's plan (lib/roles.ts).
+  const caregiver = family?.caregivers?.find((c) => c.id === memberId);
+  if (family && caregiver) return <CaregiverHome family={family} caregiver={caregiver} />;
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
