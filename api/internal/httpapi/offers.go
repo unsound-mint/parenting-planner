@@ -28,6 +28,11 @@ func (s *Server) ListPartnerOffers(ctx context.Context, req ListPartnerOffersReq
 	if err != nil {
 		return nil, err
 	}
+	// Offers are hidden in pregnancy loss support: the stage is planning then,
+	// and planning offers would read as a nudge to try again.
+	if fam.PregnancyLossRecordedAt.Valid {
+		return ListPartnerOffers200JSONResponse(PartnerOfferList{Items: []PartnerOffer{}}), nil
+	}
 	// Stage and role only: offers never read health data.
 	rows, err := offers.ForParent(ctx, s.pool, familyID, fam.Stage, m.Role)
 	if err != nil {
