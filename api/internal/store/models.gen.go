@@ -114,6 +114,7 @@ type DiaryEntry struct {
 	BodySealed    []byte
 	AgendaTopic   *string
 	CreatedAt     time.Time
+	Mood          pgtype.Int2
 }
 
 type Family struct {

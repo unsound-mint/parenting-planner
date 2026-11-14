@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
@@ -34,6 +35,7 @@ type New struct {
 	Body        string
 	Visibility  access.Visibility
 	AgendaTopic *string
+	Mood        *int // 1 to 5, optional; the contract bounds it
 	WrittenAt   time.Time
 }
 
@@ -46,6 +48,13 @@ func topic(t *string) *string {
 		return nil
 	}
 	return &v
+}
+
+func mood(m *int) pgtype.Int2 {
+	if m == nil {
+		return pgtype.Int2{}
+	}
+	return pgtype.Int2{Int16: int16(*m), Valid: true}
 }
 
 func open(key crypt.Key, row store.DiaryEntry) (Entry, error) {
@@ -63,7 +72,7 @@ func Create(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 		q := store.New(tx)
 		row, err := q.CreateDiaryEntry(ctx, store.CreateDiaryEntryParams{
 			FamilyID: familyID, OwnerMemberID: actor, Visibility: string(in.Visibility), WrittenAt: in.WrittenAt,
-			BodySealed: sealed, AgendaTopic: topic(in.AgendaTopic),
+			BodySealed: sealed, AgendaTopic: topic(in.AgendaTopic), Mood: mood(in.Mood),
 		})
 		if err != nil {
 			return err

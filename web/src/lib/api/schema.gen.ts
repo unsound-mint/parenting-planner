@@ -3664,6 +3664,30 @@ export interface components {
             nextSession?: components["schemas"]["PsychologistBooking"];
             /** @description The latest session that has started and has no note yet. */
             noteDue?: components["schemas"]["PsychologistBooking"];
+            /**
+             * @description Topics the parent might add, from themes that come up in two or
+             *     more of their own diary entries of the last 7 days (sleep, the
+             *     birth, work...). Computed from the acting parent's own entries
+             *     only, whatever their visibility, and returned only to them.
+             *     Wording names the theme, never quotes an entry. At most one,
+             *     absent or empty when there is none. Adding one is
+             *     updateDiaryEntry on diaryEntryId with agendaTopic = text.
+             */
+            suggestions?: components["schemas"]["AgendaSuggestion"][];
+        };
+        AgendaSuggestion: {
+            /** @example Sleep lately */
+            text: string;
+            /**
+             * @description Why it is suggested, counting entries only.
+             * @example You wrote about sleep in 2 entries this week.
+             */
+            reason: string;
+            /**
+             * Format: uuid
+             * @description The newest of the parent's matching entries that has no agenda topic yet; the topic goes on this entry.
+             */
+            diaryEntryId: string;
         };
         PsychologistAgendaUpdate: {
             /** @description Every topic to keep, in order. Leave a topic out to remove it. */
@@ -5025,7 +5049,16 @@ export interface components {
             visibility: components["schemas"]["Visibility"];
             /** @description A short topic for the author's next psychologist session, never the entry text. */
             agendaTopic?: string;
+            mood?: components["schemas"]["DiaryMood"];
         };
+        /**
+         * @description How the author felt when writing, on the MoodCheckin.mood scale (1 =
+         *     very low, 5 = very good). Optional, set once when the entry is written.
+         *     It is part of the entry, so it has the entry's visibility: whoever may
+         *     read the entry sees it. It is not a mood check-in and does not feed
+         *     mood patterns, agenda topics or the plan.
+         */
+        DiaryMood: number;
         DiaryEntryUpdate: {
             visibility: components["schemas"]["Visibility"];
             /** @description Set or change the agenda topic; an empty string removes it. Leave out to keep it. */
@@ -5042,6 +5075,7 @@ export interface components {
             visibility: components["schemas"]["Visibility"];
             /** @description Only on the author's own entries. */
             agendaTopic?: string;
+            mood?: components["schemas"]["DiaryMood"];
         };
         DiaryEntryList: {
             /** @description Newest first. */

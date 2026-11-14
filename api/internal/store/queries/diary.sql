@@ -1,6 +1,6 @@
 -- name: CreateDiaryEntry :one
-INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic)
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
+INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, mood)
+VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
 
 -- Mirrors access.CanParentRead: own entries, plus entries shared with the partner or the family.
 -- name: ListDiaryEntriesVisibleToParent :many

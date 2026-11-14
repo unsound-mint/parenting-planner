@@ -19,6 +19,11 @@ func diaryEntryOut(e diary.Entry, viewer uuid.UUID) DiaryEntry {
 	if e.OwnerMemberID == viewer && e.AgendaTopic != nil {
 		out.AgendaTopic = e.AgendaTopic
 	}
+	// The mood is part of the entry: a reader of the entry sees it.
+	if e.Mood.Valid {
+		m := DiaryMood(e.Mood.Int16)
+		out.Mood = &m
+	}
 	return out
 }
 
@@ -34,7 +39,7 @@ func (s *Server) CreateDiaryEntry(ctx context.Context, req CreateDiaryEntryReque
 	}
 	b := req.Body
 	e, err := diary.Create(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, diary.New{
-		Body: b.Body, Visibility: access.Visibility(b.Visibility), AgendaTopic: b.AgendaTopic, WrittenAt: s.now(ctx),
+		Body: b.Body, Visibility: access.Visibility(b.Visibility), AgendaTopic: b.AgendaTopic, Mood: b.Mood, WrittenAt: s.now(ctx),
 	})
 	if err != nil {
 		return nil, err
