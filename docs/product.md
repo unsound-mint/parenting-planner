@@ -44,29 +44,18 @@ At a blended $300 to $600 a year, $100M ARR needs roughly 170k to 400k paying fa
 
 ## Hackathon scope
 
-The jury scores "works end to end, core value real" at 40%. Breadth wins only if every screen runs on real data through the same engine. So we build one engine and many surfaces, and we demo with several families at different stages to prove personalization.
+The backlog lives in GitHub issues; Dayana sets it. The milestone "Hackathon MVP (22h)" is the demo scope:
 
-### Must work in production
+- Tier 1 (`hackathon:must`, P0) must work end to end on the live site. Never cut T1.2, T1.6, T1.8, T1.9, T1.10. Checkpoint: all of Tier 1 working by hour 14.
+- Tier 2 (`hackathon:demo-grade`, P1) starts only after Tier 1 works. Cut order if behind: T2.12, T2.11, T2.4, T2.3, T2.9, T2.10, T2.2, T2.1, T2.8; keep T2.5 to T2.7 longest.
 
-1. **Demo entry without login.** Pick a family to explore: planning, 2nd trimester, newborn at home, 4-year-old. Each is a fresh copy of rich synthetic data, switchable between Mom and Partner.
-2. **Journey timeline** from planning to age 9, with the family's current position and what is coming.
-3. **Guideline rules engine**: sourced, versioned rules (screening windows, vaccines, milestones, warning signs) evaluated against the family's data to produce due, overdue and upcoming items.
-4. **AI weekly plan** per parent: takes the rule results, recent mood, diary topics the person chose to share and the stage, and writes a short personal plan with reasons and sources. Generated live with the Claude API, with guardrails.
-5. **Health passport**: parents and child, with lab results, vaccines, growth, allergies and care team (doctor, clinic, pediatrician, psychologist).
-6. **Mood check-ins and private diary** with per-entry sharing (keep private, share with partner, add to the psychologist agenda). Pattern detection over check-ins (for example "low sleep and low mood three days running").
-7. **Psychologist flow**: the agenda built from shared topics, booking with a synthetic provider, and a short note after the session that feeds the next plan.
-8. **Ecosystem directory**: providers by type and state, suggested from the plan, with a booking request.
-9. **Couple layer**: shared plan, task ownership and the shift handoff.
-10. **Pricing page** with the tiers above, and an upgrade flow that records intent.
-11. **Safety**: the crisis screen and help contacts, always reachable.
+Later milestones (Phase 0 to 4) are the roadmap after the hackathon, not demo scope. The vision above is where the product goes; the milestone is what we build now. When they differ, the milestone wins for the demo.
 
-### Out of scope for the hackathon
-
-Real accounts and login, real payments, real provider integrations, EHR or insurer connections, calendar sync, file uploads of real lab PDFs, native mobile apps.
+The demo has no login (contest rule): visitors get a fresh copy of the demo family and switch between its people. Web only.
 
 ## Open decisions (Dayana)
 
-- [ ] Final product name (`src/lib/product.ts` and the README title)
+- [ ] Final product name (`web/src/lib/product.ts` and the README title)
 - [ ] Track: Skills (learning to raise a healthy child) or Money. Pick one and write the one-sentence pain statement.
 - [ ] Prices and tier contents
 - [ ] The four demo families: who they are and what in their data drives a visibly different plan
