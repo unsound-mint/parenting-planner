@@ -38,6 +38,12 @@ type Client struct {
 
 func New(t *testing.T) *Client {
 	t.Helper()
+	return NewWithConfig(t, httpapi.Config{})
+}
+
+// NewWithConfig is New with a custom server config; Now defaults to the fixed clock.
+func NewWithConfig(t *testing.T, cfg httpapi.Config) *Client {
+	t.Helper()
 	dbURL := os.Getenv("TEST_DATABASE_URL")
 	if dbURL == "" {
 		t.Skip("TEST_DATABASE_URL not set; run `make test`")
@@ -47,7 +53,10 @@ func New(t *testing.T) *Client {
 		t.Fatal(err)
 	}
 	t.Cleanup(pool.Close)
-	h, err := httpapi.New(pool, httpapi.Config{Now: func() time.Time { return Now }})
+	if cfg.Now == nil {
+		cfg.Now = func() time.Time { return Now }
+	}
+	h, err := httpapi.New(pool, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
