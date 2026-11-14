@@ -55,8 +55,8 @@ func careSummaryOut(s carelog.Summary) CareSummary {
 		return &v
 	}
 	out.LastFeed, out.LastSleep, out.LastDiaper = conv(s.LastFeed), conv(s.LastSleep), conv(s.LastDiaper)
-	if s.OnDuty != nil && s.OnDuty.AcceptedAt.Valid {
-		out.OnDuty = &OnDuty{MemberId: s.OnDuty.ToMemberID, Since: s.OnDuty.AcceptedAt.Time, Via: OnDutyViaHandoff}
+	if s.OnDuty != nil {
+		out.OnDuty = &OnDuty{MemberId: s.OnDuty.MemberID, Since: s.OnDuty.Since, Via: OnDutyVia(s.OnDuty.Via)}
 	}
 	return out
 }
@@ -110,7 +110,7 @@ func (s *Server) CreateCareLogEntry(ctx context.Context, req CreateCareLogEntryR
 		v := int16(*b.AmountMl)
 		in.AmountMl = &v
 	}
-	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in)
+	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in, s.now(ctx))
 	switch {
 	case errors.Is(err, carelog.ErrNoChild):
 		return CreateCareLogEntry409JSONResponse(errBabyNotHome), nil
@@ -183,7 +183,7 @@ func (s *Server) CreateHandoff(ctx context.Context, req CreateHandoffRequestObje
 
 // careSummary is read after a write so the response shows the latest feed, sleep and diaper.
 func (s *Server) careSummary(ctx context.Context, familyID uuid.UUID) (carelog.Summary, error) {
-	return carelog.LatestSummary(ctx, s.pool, familyID)
+	return carelog.LatestSummary(ctx, s.pool, familyID, s.now(ctx))
 }
 
 func (s *Server) ListHandoffs(ctx context.Context, req ListHandoffsRequestObject) (ListHandoffsResponseObject, error) {

@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -74,7 +75,10 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, parentID uuid.UUI
 		if err != nil {
 			return err
 		}
-		return access.Audit(ctx, q, familyID, parentID, access.ActionCreate, Entity, inv.ID.String())
+		if err := access.Audit(ctx, q, familyID, parentID, access.ActionCreate, Entity, inv.ID.String()); err != nil {
+			return err
+		}
+		return publish(ctx, q, familyID, parentID, inv.ID, now)
 	})
 	return inv, token, err
 }
@@ -109,7 +113,10 @@ func Revoke(ctx context.Context, pool *pgxpool.Pool, familyID, parentID, id uuid
 			}
 		}
 		inv.RevokedAt = ts(now)
-		return access.Audit(ctx, q, familyID, parentID, access.ActionRevoke, Entity, id.String())
+		if err := access.Audit(ctx, q, familyID, parentID, access.ActionRevoke, Entity, id.String()); err != nil {
+			return err
+		}
+		return publish(ctx, q, familyID, parentID, id, now)
 	})
 	return inv, err
 }
@@ -163,7 +170,10 @@ func Accept(ctx context.Context, pool *pgxpool.Pool, token string, now time.Time
 		}); err != nil {
 			return err
 		}
-		return access.Audit(ctx, q, inv.FamilyID, cg.ID, access.ActionAccept, Entity, inv.ID.String())
+		if err := access.Audit(ctx, q, inv.FamilyID, cg.ID, access.ActionAccept, Entity, inv.ID.String()); err != nil {
+			return err
+		}
+		return publish(ctx, q, inv.FamilyID, cg.ID, inv.ID, now)
 	})
 	return familyID, cg, sessionToken, err
 }
@@ -171,4 +181,13 @@ func Accept(ctx context.Context, pool *pgxpool.Pool, token string, now time.Time
 // AccessLog lists caregiver activity and invitation events of the last 30 days.
 func AccessLog(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) ([]store.ListAccessLogRow, error) {
 	return store.New(pool).ListAccessLog(ctx, store.ListAccessLogParams{FamilyID: familyID, At: now.AddDate(0, 0, -30)})
+}
+
+// publish tells the parents that an invitation changed.
+func publish(ctx context.Context, q *store.Queries, familyID, actor, invitationID uuid.UUID, now time.Time) error {
+	parents, err := live.ParentsAnd(ctx, q, familyID)
+	if err != nil {
+		return err
+	}
+	return live.Publish(ctx, q, familyID, live.Event{Kind: live.Invitation, EntityID: invitationID.String(), Actor: actor, Audience: parents}, now)
 }

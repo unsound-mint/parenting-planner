@@ -22,6 +22,7 @@ func calendarEventOut(e calendar.Event) CalendarEvent {
 	out := CalendarEvent{
 		Id: e.ID, Kind: CalendarEventKind(e.Kind), Title: e.Title, StartsAt: e.StartsAt, EndsAt: e.EndsAt, AllDay: e.AllDay,
 		Location: e.Location, OwnerId: e.OwnerID, AttendeeIds: e.AttendeeIDs, Visibility: CalendarVisibility(e.Visibility),
+		ShiftId: e.ShiftID,
 	}
 	if out.AttendeeIds == nil {
 		out.AttendeeIds = []uuid.UUID{}
@@ -102,7 +103,7 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 	if b.AllDay != nil {
 		in.AllDay = *b.AllDay
 	}
-	e, err := calendar.Create(ctx, s.pool, familyID, m.ID, in)
+	e, err := calendar.Create(ctx, s.pool, familyID, m.ID, in, s.now(ctx))
 	switch {
 	case errors.Is(err, calendar.ErrBadAttendee):
 		return CreateCalendarEvent400JSONResponse(errBadAttendee), nil
