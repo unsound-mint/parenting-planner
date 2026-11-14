@@ -9,6 +9,7 @@ package screening
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -83,6 +84,10 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, 
 			return err
 		}
 		out = resultFor(actor, s)
+		// The questionnaire is finished: the draft of its instrument goes with it.
+		if err := q.DeleteMoodScreeningDraft(ctx, store.DeleteMoodScreeningDraftParams{OwnerMemberID: actor, Instrument: in.Instrument}); err != nil {
+			return err
+		}
 		return access.Audit(ctx, q, familyID, actor, access.ActionCreate, entityMoodScreening, s.ID.String())
 	})
 	return out, err
@@ -127,4 +132,136 @@ func Questionnaires(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uu
 		out = append(out, Questionnaire{Instrument: in, Suggested: in.ID == want})
 	}
 	return out, nil
+}
+
+const entityDraft = "mood_screening_draft"
+
+// DraftWindow is how long a half-finished questionnaire is kept.
+const DraftWindow = 14 * 24 * time.Hour
+
+var (
+	// ErrVisibility: a result is only ever private or shared with the partner.
+	ErrVisibility = errors.New("a result can only be private or shared with the partner")
+	// ErrNoResult: not the author's, or unknown.
+	ErrNoResult = errors.New("no such result")
+)
+
+// Share lets the author change who may read one of their results. Only private and
+// partner exist: a result never reaches the care team or the family group. The partner
+// sees the band and the score, never the answers and never the self-harm flag
+// (resultFor hides those for anyone but the author).
+func Share(ctx context.Context, pool *pgxpool.Pool, familyID, actor, id uuid.UUID, v access.Visibility) (Result, error) {
+	if v != access.Private && v != access.Partner {
+		return Result{}, ErrVisibility
+	}
+	var out Result
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		if _, err := q.GetOwnMoodScreeningVisibleToParent(ctx, store.GetOwnMoodScreeningVisibleToParentParams{ID: id, FamilyID: familyID, ViewerID: actor}); errors.Is(err, pgx.ErrNoRows) {
+			return ErrNoResult
+		} else if err != nil {
+			return err
+		}
+		row, err := q.UpdateOwnMoodScreeningVisibilityVisibleToParent(ctx, store.UpdateOwnMoodScreeningVisibilityVisibleToParentParams{ID: id, ViewerID: actor, Visibility: string(v)})
+		if err != nil {
+			return err
+		}
+		out = resultFor(actor, row)
+		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityMoodScreening, id.String())
+	})
+	return out, err
+}
+
+// ValidateDraft checks the answers so far against the instrument: no more answers than
+// questions, and each one a score printed for its question.
+func ValidateDraft(instrument string, answers []int) error {
+	in, ok := rules.InstrumentByID(instrument)
+	if !ok || len(answers) > len(in.Questions) {
+		return ErrAnswers
+	}
+	for i, a := range answers {
+		found := false
+		for _, c := range in.Questions[i].Choices {
+			if c.Value == a {
+				found = true
+			}
+		}
+		if !found {
+			return ErrAnswers
+		}
+	}
+	return nil
+}
+
+// Draft is a half-finished questionnaire.
+type Draft struct {
+	Instrument string
+	Answers    []int
+	UpdatedAt  time.Time
+}
+
+func draftOf(d store.MoodScreeningDraft) Draft {
+	answers := make([]int, len(d.Answers))
+	for i, a := range d.Answers {
+		answers[i] = int(a)
+	}
+	return Draft{Instrument: d.Instrument, Answers: answers, UpdatedAt: d.UpdatedAt}
+}
+
+// SaveDraft replaces the author's draft for an instrument. It never scores.
+func SaveDraft(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, instrument string, answers []int, now time.Time) (Draft, error) {
+	if err := ValidateDraft(instrument, answers); err != nil {
+		return Draft{}, err
+	}
+	stored := make([]int16, len(answers))
+	for i, a := range answers {
+		stored[i] = int16(a)
+	}
+	var out Draft
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		if err := q.DeleteStaleMoodScreeningDrafts(ctx, store.DeleteStaleMoodScreeningDraftsParams{OwnerMemberID: actor, UpdatedAt: now.Add(-DraftWindow)}); err != nil {
+			return err
+		}
+		row, err := q.UpsertMoodScreeningDraft(ctx, store.UpsertMoodScreeningDraftParams{
+			FamilyID: familyID, OwnerMemberID: actor, Instrument: instrument, Answers: stored, UpdatedAt: now,
+		})
+		if err != nil {
+			return err
+		}
+		out = draftOf(row)
+		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityDraft, instrument)
+	})
+	return out, err
+}
+
+// ListDrafts returns the author's own drafts from the last 14 days.
+func ListDrafts(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, now time.Time) ([]Draft, error) {
+	var out []Draft
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		rows, err := q.ListMoodScreeningDraftsVisibleToParent(ctx, store.ListMoodScreeningDraftsVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer, Since: now.Add(-DraftWindow),
+		})
+		if err != nil {
+			return err
+		}
+		out = make([]Draft, 0, len(rows))
+		for _, r := range rows {
+			out = append(out, draftOf(r))
+		}
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityDraft, "")
+	})
+	return out, err
+}
+
+// DeleteDraft discards the author's draft; no draft is not an error.
+func DeleteDraft(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, instrument string) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		if err := q.DeleteMoodScreeningDraft(ctx, store.DeleteMoodScreeningDraftParams{OwnerMemberID: actor, Instrument: instrument}); err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, actor, access.ActionDelete, entityDraft, instrument)
+	})
 }
