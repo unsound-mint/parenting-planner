@@ -2,18 +2,20 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Design tokens. Direction and rules: docs/design.md. Light is direction A
-   (Steady), .dark is direction D (Night light). Every text/background pair
-   below passes WCAG AA; re-check contrast when changing a value. */
+/* Design tokens. Direction and rules: docs/design.md. The palette is the
+   approved journey comp: warm paper, Fraunces headings, one accent per acting
+   parent. Every text/background pair below passes WCAG AA (computed, not
+   eyeballed); re-check contrast when changing a value. There is no dark theme
+   for now: nothing sets .dark, so shadcn's dark: variants stay inert. */
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-figtree);
   --font-mono: var(--font-jetbrains-mono);
-  --font-heading: var(--font-inter);
+  --font-heading: var(--font-fraunces);
   /* Widest the family area gets, header and page together (docs/design.md, Layout):
      1600 px of content plus 32 px of padding on each side. */
   --container-page: 104rem;
@@ -49,6 +51,21 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* The comp's palette by name. paper/ink/line are the same values as
+     background/foreground/border; use whichever reads better. */
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  /* sun: hero and composer wash; butter: sun, blossom, a small sparkle (never text). */
+  --color-sun: var(--sun);
+  --color-sun-2: var(--sun-2);
+  --color-butter: var(--butter);
+  /* leaf: done, quiz, privacy notes, development lines. Text-leaf on bg-leaf-soft. */
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+
   /* Plan item status. Overdue is warm clay, never alarm red: red (urgent) is
      reserved for urgent symptoms and the crisis path. Use as text-status-due
      on bg-status-due-soft. */
@@ -62,11 +79,27 @@
   --color-status-late-soft: var(--status-late-soft);
   --color-urgent: var(--urgent);
 
-  /* Each person in the family owns an accent: ownership in the shared plan, handoffs and the role switch. */
+  /* Each person owns a fixed colour (avatars, ownership in the shared plan,
+     handoffs): mother terracotta, partner teal, caregivers neutral. */
   --color-mom: var(--mom);
+  --color-mom-soft: var(--mom-soft);
+  --color-mom-mid: var(--mom-mid);
   --color-partner: var(--partner);
+  --color-partner-soft: var(--partner-soft);
+  --color-partner-mid: var(--partner-mid);
   --color-grandparent: var(--grandparent);
+  --color-grandparent-soft: var(--grandparent-soft);
   --color-nanny: var(--nanny);
+  --color-nanny-soft: var(--nanny-soft);
+  /* me: the acting person; them: the other parent. They swap when the acting
+     person changes (the data-acting rule below), so a screen written with
+     text-me / bg-them-soft takes the right accent for whoever is using it. */
+  --color-me: var(--me);
+  --color-me-soft: var(--me-soft);
+  --color-me-mid: var(--me-mid);
+  --color-them: var(--them);
+  --color-them-soft: var(--them-soft);
+  --color-them-mid: var(--them-mid);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -77,138 +110,194 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 
   /* Type scale (docs/design.md, "Hierarchy and visuals"). Use these, not
-     text-[17px] or text-sm, so every screen has the same six levels. */
-  --text-display: 2.75rem;
-  --text-display--line-height: 3rem;
-  --text-display--letter-spacing: -0.03em;
+     text-[17px] or text-sm, so every screen has the same six levels.
+     display, headline and title are set in Fraunces (see the @utility rules
+     below); body, label and caption in Figtree. */
+  --text-display: clamp(2.25rem, 1.5rem + 2.4vw, 3.625rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.02em;
   --text-display--font-weight: 600;
-  --text-headline: 1.75rem;
-  --text-headline--line-height: 2.25rem;
-  --text-headline--letter-spacing: -0.02em;
+  --text-headline: clamp(1.5rem, 1.25rem + 0.8vw, 1.75rem);
+  --text-headline--line-height: 1.2;
+  --text-headline--letter-spacing: -0.01em;
   --text-headline--font-weight: 600;
-  --text-title: 1.0625rem;
+  --text-title: 1.1875rem;
   --text-title--line-height: 1.5rem;
-  --text-title--letter-spacing: -0.01em;
+  --text-title--letter-spacing: -0.005em;
   --text-title--font-weight: 600;
-  --text-body: 0.9375rem;
+  --text-body: 1rem;
   --text-body--line-height: 1.5rem;
-  --text-label: 0.8125rem;
+  --text-label: 0.875rem;
   --text-label--line-height: 1.25rem;
   --text-label--font-weight: 500;
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
 
-  /* Motion. ease-out for things entering or responding to the user; never
-     ease-in on UI. Keep UI transitions at or under --duration-slow. */
+  /* Motion vocabulary (docs/design.md, "Motion"). The same values live in
+     src/components/joy/motion.ts for Motion springs. UI eases out, never in. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 120ms;
   --duration-fast: 150ms;
   --duration-base: 220ms;
   --duration-slow: 320ms;
+  --duration-enter: 400ms;
+  --stagger: 70ms;
+
+  --animate-rise: rise var(--duration-enter) var(--ease-out) both;
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+
+/* Headings speak in Fraunces with the soft axis; @utility so md:text-title gets it too. */
+@utility text-display {
+  font-family: var(--font-heading);
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+}
+@utility text-headline {
+  font-family: var(--font-heading);
+  font-variation-settings: "SOFT" 100;
+}
+@utility text-title {
+  font-family: var(--font-heading);
+  font-variation-settings: "SOFT" 100;
+}
+
+/* Tactile feedback for anything tappable: a quick ease-out scale on press.
+   Use on buttons, chips, cards that open something. Never on Urgent help. */
+@utility press {
+  transition-property: transform, background-color, border-color, color, box-shadow;
+  transition-duration: var(--duration-press);
+  transition-timing-function: var(--ease-out);
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Staggered entrance: <Rise i={n}> (components/joy/rise.tsx) sets --i. */
+@utility rise {
+  animation: var(--animate-rise);
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* Hover lift for cards that open something; pointer devices only (touch fires false hovers). */
+@utility lift {
+  transition-property: transform, box-shadow;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgb(120 80 30 / 0.1);
+    }
+  }
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
-  --background: #f7f5f1;
-  --foreground: #1e2a2c;
-  --card: #ffffff;
-  --card-foreground: #1e2a2c;
-  --popover: #ffffff;
-  --popover-foreground: #1e2a2c;
-  --primary: #3e6e5e;
+  --paper: #fbf7f0;
+  --ink: #2b2620;
+  --ink-2: #4a423a;
+  --line: #ede3d3;
+  --line-2: #e3d6c2;
+  --sun: #fcebd5;
+  --sun-2: #f8ddb8;
+  --butter: #f4cd6a;
+  --leaf: #3f6b37;
+  --leaf-soft: #e6efdc;
+
+  --mom: #a04828;
+  --mom-soft: #fae3d5;
+  --mom-mid: #e8a07c;
+  --partner: #1d6a70;
+  --partner-soft: #d8edeb;
+  --partner-mid: #7dbab6;
+  --grandparent: #6e6253;
+  --grandparent-soft: #efe9e0;
+  --grandparent-mid: #b8ac9c;
+  --nanny: #556270;
+  --nanny-soft: #e4e8ec;
+  --nanny-mid: #a3aeb9;
+
+  /* Outside the family area (landing, pricing, help) the accent is the mother's. */
+  --me: var(--mom);
+  --me-soft: var(--mom-soft);
+  --me-mid: var(--mom-mid);
+  --them: var(--partner);
+  --them-soft: var(--partner-soft);
+  --them-mid: var(--partner-mid);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #fffdf9;
+  --card-foreground: var(--ink);
+  --popover: #fffdf9;
+  --popover-foreground: var(--ink);
+  --primary: var(--me);
   --primary-foreground: #ffffff;
-  --secondary: #e4ede8;
-  --secondary-foreground: #2f5649;
-  --muted: #efece6;
-  --muted-foreground: #5a6668;
-  --accent: #e4ede8;
-  --accent-foreground: #2f5649;
+  --secondary: var(--me-soft);
+  --secondary-foreground: var(--me);
+  --muted: #f3ece1;
+  --muted-foreground: #6b6157;
+  --accent: var(--me-soft);
+  --accent-foreground: var(--me);
   --destructive: #b3261e;
-  --border: #e3e0da;
-  --input: #d9d5ce;
-  --ring: #3e6e5e;
+  --border: var(--line);
+  --input: var(--line-2);
+  --ring: var(--me);
 
-  --status-ok: #3e6e5e;
-  --status-ok-soft: #e4ede8;
+  --status-ok: var(--leaf);
+  --status-ok-soft: var(--leaf-soft);
   --status-up: #4f6475;
   --status-up-soft: #e6ecf1;
   --status-due: #8a6414;
-  --status-due-soft: #f6ebd3;
+  --status-due-soft: #fbefd0;
   --status-late: #a24e32;
   --status-late-soft: #f6e2da;
   --urgent: #b3261e;
 
-  --mom: #3e6e5e;
-  --partner: #5b5aa8;
-  --grandparent: #8f5f2a;
-  --nanny: #2f7388;
-
-  --chart-1: #3e6e5e;
-  --chart-2: #5b5aa8;
-  --chart-3: #4f6475;
+  --chart-1: var(--me);
+  --chart-2: var(--them);
+  --chart-3: var(--leaf);
   --chart-4: #8a6414;
-  --chart-5: #a24e32;
+  --chart-5: #4f6475;
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: #1e2a2c;
-  --sidebar-primary: #3e6e5e;
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--me);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e4ede8;
-  --sidebar-accent-foreground: #2f5649;
-  --sidebar-border: #e3e0da;
-  --sidebar-ring: #3e6e5e;
+  --sidebar-accent: var(--me-soft);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--me);
 }
 
-.dark {
-  --background: #14151e;
-  --foreground: #ede7db;
-  --card: #1d1f2c;
-  --card-foreground: #ede7db;
-  --popover: #1d1f2c;
-  --popover-foreground: #ede7db;
-  --primary: #e9b872;
-  --primary-foreground: #14151e;
-  --secondary: #252838;
-  --secondary-foreground: #ede7db;
-  --muted: #252838;
-  --muted-foreground: #a6a3b4;
-  --accent: #252838;
-  --accent-foreground: #ede7db;
-  --destructive: #ff6b5e;
-  --border: #2f3244;
-  --input: #3a3d52;
-  --ring: #e9b872;
-
-  --status-ok: #7cc2b3;
-  --status-ok-soft: rgb(124 194 179 / 0.14);
-  --status-up: #b3a9e6;
-  --status-up-soft: rgb(179 169 230 / 0.14);
-  --status-due: #e9b872;
-  --status-due-soft: rgb(233 184 114 / 0.14);
-  --status-late: #f09a7e;
-  --status-late-soft: rgb(240 154 126 / 0.15);
-  --urgent: #ff6b5e;
-
-  --mom: #e9b872;
-  --partner: #7cc2b3;
-  --grandparent: #e0a08c;
-  --nanny: #86b8d4;
-
-  --chart-1: #7cc2b3;
-  --chart-2: #b3a9e6;
-  --chart-3: #e9b872;
-  --chart-4: #f09a7e;
-  --chart-5: #a6a3b4;
-
-  --sidebar: #1d1f2c;
-  --sidebar-foreground: #ede7db;
-  --sidebar-primary: #e9b872;
-  --sidebar-primary-foreground: #14151e;
-  --sidebar-accent: #252838;
-  --sidebar-accent-foreground: #ede7db;
-  --sidebar-border: #2f3244;
-  --sidebar-ring: #e9b872;
+/* The acting person's accent. The family layout sets data-acting on its frame;
+   matching on :root (not the frame) re-resolves --primary, --ring and the rest,
+   and reaches portals (popovers, toasts) rendered outside the frame. */
+:root:has([data-acting="partner"]) {
+  --me: var(--partner);
+  --me-soft: var(--partner-soft);
+  --me-mid: var(--partner-mid);
+  --them: var(--mom);
+  --them-soft: var(--mom-soft);
+  --them-mid: var(--mom-mid);
+}
+:root:has([data-acting="grandparent"]) {
+  --me: var(--grandparent);
+  --me-soft: var(--grandparent-soft);
+  --me-mid: var(--grandparent-mid);
+}
+:root:has([data-acting="nanny"]) {
+  --me: var(--nanny);
+  --me-soft: var(--nanny-soft);
+  --me-mid: var(--nanny-mid);
 }
 
 @layer base {
@@ -224,8 +313,16 @@
 }
 
 /* Motion components read MotionConfig reducedMotion="user"; this covers CSS
-   transitions, keyframes and React view transitions. */
+   transitions, keyframes and React view transitions. Entrances are dropped
+   entirely (with their delays), not just shortened. The baby's idle motion
+   has its own rule in components/illustrations/illustrations.css. */
 @media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none !important;
+  }
+  .press:active {
+    transform: none;
+  }
   *,
   *::before,
   *::after {

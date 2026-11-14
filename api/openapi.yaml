@@ -28,6 +28,8 @@ tags:
   - name: tasks
   - name: calendar
   - name: simulator
+  - name: learn
+  - name: together
   - name: shifts
   - name: carelog
   - name: live
@@ -765,12 +767,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/booking-requests:
     parameters:
@@ -821,12 +817,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     get:
       operationId: listBookingRequests
       tags: [directory]
@@ -847,12 +837,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -2902,6 +2886,421 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/learning-paths:
+    get:
+      operationId: listLearningPaths
+      tags: [learn]
+      summary: Learning paths with lessons, quizzes and both parents' progress
+      description: |
+        Both parents only; a grandparent or nanny gets 404. The paths come from the embedded content catalog
+        (api/internal/content), filtered by the family's stage. Each lesson
+        has a best-read window in gestational weeks (weekFrom to weekTo) and
+        opens four weeks before it (unlocksAtWeek), so a couple can read a
+        month ahead. After birth and before pregnancy every lesson of the
+        stage's paths is open and timing is now.
+
+        Reading state and quiz answers of both parents are included: a parent
+        sees the other parent's reading progress (both parents only, never
+        caregivers). A quiz question reveals the right choice, the
+        explanation and the other parent's choice only once the acting
+        parent has answered it; before that the other parent's answer shows
+        only that they answered.
+
+        Week and timing follow the family's demo clock. Families without a
+        path for their stage get an empty list.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningPathList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/lesson-reads/{lessonId}:
+    put:
+      operationId: updateLessonRead
+      tags: [learn]
+      summary: Start or finish a lesson for the acting parent
+      description: |
+        Both parents only; a grandparent or nanny gets 404. The first call sets startedAt. finished true sets
+        finishedAt (kept on later calls); finished false clears it again, so
+        "mark as unread" works. 404 unknown_lesson for a lesson that is not
+        in the family's paths, 409 lesson_locked before unlocksAtWeek.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/LessonId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LessonReadInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LessonRead"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/quiz-answers:
+    post:
+      operationId: createQuizAnswer
+      tags: [learn]
+      summary: Answer one quiz question of a lesson
+      description: |
+        Both parents only; a grandparent or nanny gets 404. One answer per parent per question, so a couple can
+        compare; 409 already_answered for a second one. 404 for a question
+        not in the family's paths, 400 for a choice that is not in the
+        question. No scores, streaks or badges: the result is only whether
+        this answer was right, why, and what the other parent chose.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizAnswerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/together:
+    get:
+      operationId: getTogether
+      tags: [together]
+      summary: The "Tonight, together" card for the acting parent
+      description: |
+        Both parents only; a grandparent or nanny gets 404. nudge is the other parent's latest learning activity
+        from the last seven days (a finished lesson, then a quiz answer, then
+        a name they added), worded relative to the family's demo clock;
+        absent when there is none. prompts are this week's couple talk
+        prompts in a fixed order, prompts not yet talked about first; the
+        client shows the first and "Another question" moves to the next. A
+        prompt comes from the prompt pool by week range or from the talk
+        prompt of a lesson that is open now.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Together"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/couple-talks:
+    post:
+      operationId: createCoupleTalk
+      tags: [together]
+      summary: Mark a talk prompt as talked about, for the couple
+      description: |
+        Both parents only; a grandparent or nanny gets 404. One shared record per family and prompt: either parent
+        can mark it and both see it. Marking it again keeps the first record
+        and returns it. 404 unknown_prompt for an id that is not one of the
+        family's prompts.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoupleTalkInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoupleTalk"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/baby-names:
+    get:
+      operationId: listBabyNames
+      tags: [together]
+      summary: The couple's shared baby name list
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Names both parents like first, then newest first.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyNameList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      operationId: createBabyName
+      tags: [together]
+      summary: Add a name to the shared list
+      description: |
+        Both parents only; a grandparent or nanny gets 404. The parent who adds a name likes it. 409 name_exists
+        when the list already has it (case-insensitive).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BabyNameInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyName"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/baby-names/{nameId}/like:
+    put:
+      operationId: likeBabyName
+      tags: [together]
+      summary: The acting parent likes a name
+      description: Both parents only; a grandparent or nanny gets 404. Idempotent. 404 for a name of another family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/BabyNameId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyName"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      operationId: unlikeBabyName
+      tags: [together]
+      summary: The acting parent takes back their like
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Idempotent. A name nobody likes stays on the list until
+        it is liked again; it sorts last.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/BabyNameId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BabyName"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Error
           content:
             application/json:
@@ -5325,6 +5724,22 @@ components:
         minLength: 16
         maxLength: 128
 
+    LessonId:
+      name: lessonId
+      in: path
+      required: true
+      schema:
+        type: string
+        maxLength: 80
+
+    BabyNameId:
+      name: nameId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     RoundId:
       name: roundId
       in: path
@@ -7678,6 +8093,360 @@ components:
         roundCompleted:
           type: boolean
           description: True when this was the last unanswered question; fetch the round for the result.
+
+    LessonTiming:
+      type: string
+      description: |
+        now = the lesson's best-read window covers this week (always now
+        outside pregnancy); upcoming = before the window (locked until
+        unlocksAtWeek, open after); past = the window is behind you.
+      enum: [upcoming, now, past]
+
+    LearningPathList:
+      type: object
+      required: [stage, items]
+      properties:
+        stage:
+          $ref: "#/components/schemas/Stage"
+        week:
+          type: integer
+          description: The family's completed gestational week on the demo clock. Absent outside pregnancy.
+          example: 25
+        items:
+          type: array
+          description: In catalog order. Empty when no path fits the stage.
+          items:
+            $ref: "#/components/schemas/LearningPath"
+
+    LearningPath:
+      type: object
+      required: [id, title, why, lessons, progress]
+      properties:
+        id:
+          type: string
+          description: Stable slug from the content catalog.
+          example: birth
+        title:
+          type: string
+          example: Birth
+        why:
+          type: string
+          description: One sentence on why the path matters.
+        lessons:
+          type: array
+          description: In reading order.
+          items:
+            $ref: "#/components/schemas/Lesson"
+        progress:
+          type: array
+          description: One row per parent (mother and partner), acting parent first.
+          items:
+            $ref: "#/components/schemas/PathProgress"
+
+    PathProgress:
+      type: object
+      required: [memberId, started, finished]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        started:
+          type: integer
+          description: Lessons started and not finished.
+        finished:
+          type: integer
+
+    Lesson:
+      type: object
+      description: |
+        A short read in a learning path. Field names follow Guide; a lesson is
+        not a Guide because it belongs to a path and carries reading state
+        and a quiz for each parent.
+      required: [id, pathId, title, body, minutes, audience, locked, timing, source, extraSources, urgentHelpLink, reads, quiz]
+      properties:
+        id:
+          type: string
+          description: Stable slug from the content catalog.
+          example: pain-relief
+        pathId:
+          type: string
+          example: birth
+        title:
+          type: string
+        body:
+          type: array
+          description: Paragraphs, plain text.
+          items:
+            type: string
+        minutes:
+          type: integer
+          description: Reading time.
+        weekFrom:
+          type: integer
+          description: First gestational week of the best-read window. Absent outside pregnancy.
+          example: 28
+        weekTo:
+          type: integer
+          example: 36
+        audience:
+          type: array
+          description: Who it is written for. Both parents see every lesson; a partner-only lesson is labeled, not hidden.
+          items:
+            $ref: "#/components/schemas/GuideAudience"
+        locked:
+          type: boolean
+          description: True before unlocksAtWeek. A locked lesson cannot be started.
+        unlocksAtWeek:
+          type: integer
+          description: weekFrom minus four, at least 4. Absent outside pregnancy.
+          example: 24
+        timing:
+          $ref: "#/components/schemas/LessonTiming"
+        source:
+          $ref: "#/components/schemas/Source"
+        extraSources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+        talkPrompt:
+          type: string
+          description: A question for the couple to talk about after reading.
+        urgentHelpLink:
+          type: boolean
+          description: True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there.
+        reads:
+          type: array
+          description: Reading state of each parent who opened it, acting parent first.
+          items:
+            $ref: "#/components/schemas/LessonRead"
+        quiz:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestion"
+
+    LessonRead:
+      type: object
+      required: [memberId, lessonId, startedAt]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        lessonId:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+
+    LessonReadInput:
+      type: object
+      required: [finished]
+      properties:
+        finished:
+          type: boolean
+
+    QuizQuestion:
+      type: object
+      required: [id, lessonId, prompt, choices, answers]
+      properties:
+        id:
+          type: string
+          description: Stable, lessonId plus the position (pain-relief-q1).
+          example: pain-relief-q1
+        lessonId:
+          type: string
+        prompt:
+          type: string
+        choices:
+          type: array
+          description: Choice ids are a, b, c in the catalog's order.
+          items:
+            $ref: "#/components/schemas/SimulatorChoice"
+        answers:
+          type: array
+          description: |
+            One per parent who answered, acting parent first. The other
+            parent's choiceId and correct are absent until the acting parent
+            has answered too.
+          items:
+            $ref: "#/components/schemas/QuizAnswer"
+        correctChoiceId:
+          type: string
+          description: Present once the acting parent has answered.
+        explanation:
+          type: string
+          description: Why, in plain words, cited to the lesson's source. Present once the acting parent has answered.
+
+    QuizAnswer:
+      type: object
+      required: [memberId, answeredAt]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        choiceId:
+          type: string
+        correct:
+          type: boolean
+        answeredAt:
+          type: string
+          format: date-time
+
+    QuizAnswerInput:
+      type: object
+      required: [questionId, choiceId]
+      properties:
+        questionId:
+          type: string
+          maxLength: 80
+        choiceId:
+          type: string
+          maxLength: 8
+
+    QuizResult:
+      type: object
+      required: [questionId, choiceId, correct, correctChoiceId, explanation, source]
+      properties:
+        questionId:
+          type: string
+        choiceId:
+          type: string
+        correct:
+          type: boolean
+        correctChoiceId:
+          type: string
+        explanation:
+          type: string
+        source:
+          $ref: "#/components/schemas/Source"
+        partnerAnswer:
+          $ref: "#/components/schemas/QuizAnswer"
+
+    PartnerNudgeKind:
+      type: string
+      enum: [lesson_finished, quiz_answered, name_added]
+
+    PartnerNudge:
+      type: object
+      required: [memberId, kind, at, text]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+          description: The other parent, who did it.
+        kind:
+          $ref: "#/components/schemas/PartnerNudgeKind"
+        at:
+          type: string
+          format: date-time
+        lessonId:
+          type: string
+          description: For lesson_finished and quiz_answered.
+        name:
+          type: string
+          description: For name_added.
+        text:
+          type: string
+          description: Ready to show, relative to the demo clock.
+          example: 'Jake finished "Pain relief: the options" yesterday. Ask him what surprised him.'
+
+    TalkPrompt:
+      type: object
+      required: [id, text]
+      properties:
+        id:
+          type: string
+          description: A prompt pool id (p07) or lesson:<lessonId> for a lesson's talk prompt.
+          example: p07
+        text:
+          type: string
+        lessonId:
+          type: string
+          description: The lesson it comes from, when it is a lesson's prompt.
+        talkedAt:
+          type: string
+          format: date-time
+        talkedBy:
+          type: string
+          format: uuid
+          description: The parent who marked it.
+
+    Together:
+      type: object
+      required: [prompts]
+      properties:
+        nudge:
+          $ref: "#/components/schemas/PartnerNudge"
+        prompts:
+          type: array
+          items:
+            $ref: "#/components/schemas/TalkPrompt"
+
+    CoupleTalkInput:
+      type: object
+      required: [promptId]
+      properties:
+        promptId:
+          type: string
+          maxLength: 80
+
+    CoupleTalk:
+      type: object
+      required: [promptId, talkedBy, talkedAt]
+      properties:
+        promptId:
+          type: string
+        talkedBy:
+          type: string
+          format: uuid
+        talkedAt:
+          type: string
+          format: date-time
+
+    BabyNameInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+
+    BabyName:
+      type: object
+      required: [id, name, addedBy, likedBy, bothLike, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: June
+        addedBy:
+          type: string
+          format: uuid
+        likedBy:
+          type: array
+          items:
+            type: string
+            format: uuid
+        bothLike:
+          type: boolean
+          description: True when both parents like it.
+        createdAt:
+          type: string
+          format: date-time
+
+    BabyNameList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BabyName"
 
     Weekday:
       type: string

@@ -33,6 +33,20 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
+type AppointmentQuestion struct {
+	ID              uuid.UUID
+	Seq             pgtype.Int8
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	AskedForEventID uuid.UUID
+	Body            string
+	Answered        bool
+	Answer          *string
+	AnsweredAt      pgtype.Timestamptz
+	CreatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
@@ -41,6 +55,17 @@ type AuditLog struct {
 	Entity        string
 	EntityID      *string
 	At            time.Time
+}
+
+type BookingRequest struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ProviderID    uuid.UUID
+	Status        string
+	Note          *string
+	CreatedAt     time.Time
 }
 
 type CalendarEvent struct {
@@ -288,6 +313,18 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
+type Provider struct {
+	ID              uuid.UUID
+	Name            string
+	Type            string
+	City            string
+	State           string
+	Languages       []string
+	AvailableInDays int16
+	PriceUsd        int32
+	Summary         string
+}
+
 type Psychologist struct {
 	ID          uuid.UUID
 	Name        string
@@ -360,6 +397,29 @@ type Subscription struct {
 	StartedAt            time.Time
 	CurrentPeriodEnd     pgtype.Timestamptz
 	UpdatedAt            time.Time
+}
+
+type Task struct {
+	ID                      uuid.UUID
+	Seq                     pgtype.Int8
+	FamilyID                uuid.UUID
+	Kind                    string
+	Title                   string
+	Detail                  *string
+	DueOn                   *time.Time
+	DueAnchor               *string
+	DueOffsetDays           pgtype.Int4
+	Bag                     *string
+	AssigneeMemberID        uuid.UUID
+	PendingAssigneeMemberID uuid.NullUUID
+	Done                    bool
+	DoneAt                  pgtype.Timestamptz
+	DoneByMemberID          uuid.NullUUID
+	SourceTitle             *string
+	SourceUrl               *string
+	SourceCheckedOn         *time.Time
+	CreatedByMemberID       uuid.UUID
+	CreatedAt               time.Time
 }
 
 type UpgradeIntent struct {
