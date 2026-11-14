@@ -27,4 +27,5 @@ export const calendarEventMocks = {
     visibility: ctx.body.visibility ?? "private",
     neutralTitle: ctx.body.neutralTitle ?? false,
   })),
+  ...mock("/members/{memberId}/calendar-events/{eventId}", "delete", () => undefined as never, 204),
 };
