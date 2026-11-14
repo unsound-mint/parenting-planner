@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -63,6 +64,41 @@ func ListMoodCheckins(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 		}
 		out = rows
 		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityMoodCheckin, "")
+	})
+	return out, err
+}
+
+const entityMoodPattern = "mood_pattern"
+
+// PatternWindow is how far back ListMoodPatterns reads; rules.DetectMoodPatterns
+// narrows it to its own window of whole days.
+const PatternWindow = 8 * 24 * time.Hour
+
+// ListMoodPatterns detects patterns in the viewer's own recent check-ins.
+// Only check-ins the viewer wrote are used, even when the other parent shared
+// theirs: a pattern is about one person and is shown only to them.
+func ListMoodPatterns(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, viewer store.Member, today, now time.Time) ([]rules.MoodPattern, error) {
+	var out []rules.MoodPattern
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		fam, err := q.GetFamily(ctx, familyID)
+		if err != nil {
+			return err
+		}
+		rows, err := q.ListMoodCheckinsVisibleToParent(ctx, store.ListMoodCheckinsVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer.ID, Since: now.Add(-PatternWindow),
+		})
+		if err != nil {
+			return err
+		}
+		var own []rules.PatternCheckin
+		for _, r := range rows {
+			if r.OwnerMemberID == viewer.ID {
+				own = append(own, rules.PatternCheckin{ID: r.ID, At: r.RecordedAt, Mood: int(r.Mood), SleepHours: r.SleepHours})
+			}
+		}
+		out = rules.DetectMoodPatterns(rules.Role(viewer.Role), fam.Stage, own, today)
+		return access.Audit(ctx, q, familyID, viewer.ID, access.ActionRead, entityMoodPattern, "")
 	})
 	return out, err
 }
