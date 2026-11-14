@@ -1,31 +1,13 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import type { LabResult, Visibility } from "@/lib/api/types";
+import type { LabResult } from "@/lib/api/types";
 import { formatLongDate } from "@/lib/format";
-import { passportIcon, visibilityIcon, visibilityLabel } from "@/lib/visuals";
+import { passportIcon } from "@/lib/visuals";
+import { VisibilityChip } from "./visibility-chip";
 import { RangeBar } from "./range-bar";
 import { EmptyLine, SectionCard } from "./section-card";
 import { labPosition, latestLabs } from "./summary";
 
 const positionText = { low: "Below range", in: "In range", high: "Above range", unknown: "No range given" } as const;
-
-const visibilityShort: Record<Visibility, string> = {
-  private: "Only you",
-  partner: "Partner",
-  care_team: "Care team",
-  family: "Whole family",
-};
-
-// Who can see a result: lock or people icon with the words beside it, full wording on hover.
-function VisibilityChip({ visibility }: { visibility: Visibility }) {
-  const Icon = visibilityIcon[visibility];
-  return (
-    <span title={visibilityLabel[visibility]} className="inline-flex h-6 items-center gap-1 rounded-full bg-muted px-2 font-sans text-caption text-muted-foreground">
-      <Icon className="size-3.5" aria-hidden />
-      {visibilityShort[visibility]}
-      <span className="sr-only">: {visibilityLabel[visibility]}</span>
-    </span>
-  );
-}
 
 export function LabsCard({ labs, showVisibility }: { labs: LabResult[]; showVisibility: boolean }) {
   const latest = latestLabs(labs);
