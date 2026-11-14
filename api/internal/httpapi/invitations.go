@@ -1,32 +1,190 @@
 package httpapi
 
-import "context"
+import (
+	"context"
+	"errors"
+	"net/http"
+	"strconv"
 
-// STUB for #211: the contract is in openapi.yaml, the implementation is
-// not written yet. Replace each stub with a real handler (copy wellbeing.go),
-// remove its 501 from openapi.yaml and replace its test. The web shows an
-// empty state on 501.
+	"github.com/unsound-mint/parenting-planner/api/internal/demo"
+	"github.com/unsound-mint/parenting-planner/api/internal/invitations"
+	"github.com/unsound-mint/parenting-planner/api/internal/store"
+)
 
-func (s *Server) CreateInvitation(_ context.Context, _ CreateInvitationRequestObject) (CreateInvitationResponseObject, error) {
-	return CreateInvitation501JSONResponse(Error{Code: "not_implemented", Message: "invitations are not available yet"}), nil
+func (s *Server) invitationOut(ctx context.Context, inv store.Invitation) Invitation {
+	out := Invitation{
+		Id: inv.ID, Role: CaregiverRole(inv.Role), DisplayName: inv.DisplayName, Permissions: permissionsOut(inv.Permissions),
+		Status: InvitationStatus(invitations.StatusOf(inv, s.now(ctx))), InvitedById: inv.InvitedBy,
+		CreatedAt: inv.CreatedAt, ExpiresAt: inv.ExpiresAt,
+	}
+	if inv.MemberID.Valid {
+		id := inv.MemberID.UUID
+		out.MemberId = &id
+	}
+	if inv.AcceptedAt.Valid {
+		out.AcceptedAt = &inv.AcceptedAt.Time
+	}
+	if inv.RevokedAt.Valid {
+		out.RevokedAt = &inv.RevokedAt.Time
+	}
+	return out
 }
 
-func (s *Server) ListInvitations(_ context.Context, _ ListInvitationsRequestObject) (ListInvitationsResponseObject, error) {
-	return ListInvitations501JSONResponse(Error{Code: "not_implemented", Message: "invitations are not available yet"}), nil
+func permissionStrings(in []CaregiverPermission) []string {
+	out := make([]string, 0, len(in))
+	for _, p := range in {
+		out = append(out, string(p))
+	}
+	return out
 }
 
-func (s *Server) RevokeInvitation(_ context.Context, _ RevokeInvitationRequestObject) (RevokeInvitationResponseObject, error) {
-	return RevokeInvitation501JSONResponse(Error{Code: "not_implemented", Message: "invitations are not available yet"}), nil
+func (s *Server) CreateInvitation(ctx context.Context, req CreateInvitationRequestObject) (CreateInvitationResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return CreateInvitation401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return CreateInvitation404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return CreateInvitation403JSONResponse(errForbidden), nil
+	}
+	b := req.Body
+	inv, token, err := invitations.Create(ctx, s.pool, familyID, req.MemberId, string(b.Role), b.DisplayName, permissionStrings(b.Permissions), s.now(ctx))
+	if err != nil {
+		return nil, err
+	}
+	return CreateInvitation201JSONResponse{Invitation: s.invitationOut(ctx, inv), Token: token, Path: "/invite/" + token}, nil
 }
 
-func (s *Server) GetInvitation(_ context.Context, _ GetInvitationRequestObject) (GetInvitationResponseObject, error) {
-	return GetInvitation501JSONResponse(Error{Code: "not_implemented", Message: "invitations are not available yet"}), nil
+func (s *Server) ListInvitations(ctx context.Context, req ListInvitationsRequestObject) (ListInvitationsResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return ListInvitations401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return ListInvitations404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return ListInvitations403JSONResponse(errForbidden), nil
+	}
+	rows, err := invitations.List(ctx, s.pool, familyID)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]Invitation, 0, len(rows))
+	for _, r := range rows {
+		items = append(items, s.invitationOut(ctx, r))
+	}
+	return ListInvitations200JSONResponse{Items: items}, nil
 }
 
-func (s *Server) AcceptInvitation(_ context.Context, _ AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error) {
-	return AcceptInvitation501JSONResponse(Error{Code: "not_implemented", Message: "invitations are not available yet"}), nil
+func (s *Server) RevokeInvitation(ctx context.Context, req RevokeInvitationRequestObject) (RevokeInvitationResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return RevokeInvitation401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return RevokeInvitation404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return RevokeInvitation403JSONResponse(errForbidden), nil
+	}
+	inv, err := invitations.Revoke(ctx, s.pool, familyID, req.MemberId, req.InvitationId, s.now(ctx))
+	switch {
+	case errors.Is(err, invitations.ErrNotFound):
+		return RevokeInvitation404JSONResponse(errNoInvitation), nil
+	case errors.Is(err, invitations.ErrNotActive):
+		return RevokeInvitation409JSONResponse(errInvitationNotActive), nil
+	case err != nil:
+		return nil, err
+	}
+	return RevokeInvitation200JSONResponse(s.invitationOut(ctx, inv)), nil
 }
 
-func (s *Server) ListAccessLogEntries(_ context.Context, _ ListAccessLogEntriesRequestObject) (ListAccessLogEntriesResponseObject, error) {
-	return ListAccessLogEntries501JSONResponse(Error{Code: "not_implemented", Message: "the access log is not available yet"}), nil
+func (s *Server) GetInvitation(ctx context.Context, req GetInvitationRequestObject) (GetInvitationResponseObject, error) {
+	row, err := invitations.Preview(ctx, s.pool, req.Token)
+	if errors.Is(err, invitations.ErrNotFound) {
+		return GetInvitation404JSONResponse(errNoInvitation), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	inv := store.Invitation{AcceptedAt: row.AcceptedAt, RevokedAt: row.RevokedAt, ExpiresAt: row.ExpiresAt}
+	return GetInvitation200JSONResponse{
+		Role: CaregiverRole(row.Role), DisplayName: row.DisplayName, Permissions: permissionsOut(row.Permissions),
+		Status: InvitationStatus(invitations.StatusOf(inv, s.now(ctx))), InvitedByName: row.InvitedByName, ExpiresAt: row.ExpiresAt,
+	}, nil
 }
+
+func (s *Server) AcceptInvitation(ctx context.Context, req AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error) {
+	familyID, cg, token, err := invitations.Accept(ctx, s.pool, req.Token, s.now(ctx))
+	switch {
+	case errors.Is(err, invitations.ErrNotFound):
+		return AcceptInvitation404JSONResponse(errNoInvitation), nil
+	case errors.Is(err, invitations.ErrNotPending):
+		return AcceptInvitation409JSONResponse(errInvitationNotPending), nil
+	case err != nil:
+		return nil, err
+	}
+	fam, err := s.loadFamily(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	fam.SessionMemberId = &cg.ID // the new session is bound to the caregiver
+	fam.PregnancyLoss = nil      // a caregiver must not learn why pregnancy updates stopped
+	cookie := (&http.Cookie{
+		Name: sessionCookie, Value: token, Path: "/", HttpOnly: true,
+		Secure: s.cfg.SecureCookies, SameSite: http.SameSiteLaxMode, MaxAge: int(demo.SessionTTL.Seconds()),
+	}).String()
+	return AcceptInvitation201JSONResponse{
+		Body:    InvitationAcceptance{Family: fam, MemberId: cg.ID},
+		Headers: AcceptInvitation201ResponseHeaders{SetCookie: &cookie},
+	}, nil
+}
+
+func (s *Server) ListAccessLogEntries(ctx context.Context, req ListAccessLogEntriesRequestObject) (ListAccessLogEntriesResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return ListAccessLogEntries401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return ListAccessLogEntries404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return ListAccessLogEntries403JSONResponse(errForbidden), nil
+	}
+	rows, err := invitations.AccessLog(ctx, s.pool, familyID, s.now(ctx))
+	if err != nil {
+		return nil, err
+	}
+	items := make([]AccessLogEntry, 0, len(rows))
+	for _, r := range rows {
+		e := AccessLogEntry{Id: itoa(r.ID), Action: r.Action, Entity: r.Entity, At: r.At}
+		if r.ActorMemberID.Valid {
+			if !r.ActorRevokedAt.Valid {
+				id := r.ActorMemberID.UUID
+				e.ActorId = &id
+			}
+			e.ActorName = "Removed person"
+			if r.ActorName != nil {
+				e.ActorName = *r.ActorName
+			}
+			if r.ActorRole != nil {
+				role := PersonRole(*r.ActorRole)
+				e.ActorRole = &role
+			}
+		} else {
+			e.ActorName = "Removed person"
+		}
+		e.EntityId = r.EntityID
+		items = append(items, e)
+	}
+	return ListAccessLogEntries200JSONResponse{Items: items}, nil
+}
+
+func itoa(n int64) string { return strconv.FormatInt(n, 10) }

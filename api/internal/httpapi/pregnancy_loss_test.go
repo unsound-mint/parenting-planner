@@ -153,3 +153,30 @@ func TestPregnancyLossSilencesPlanningNudgesOffersAndUnreadReminders(t *testing.
 		t.Error("offers return after an undo")
 	}
 }
+
+// Caregivers keep seeing the family, but never why pregnancy updates stopped.
+func TestPregnancyLossIsHiddenFromCaregivers(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	var created httpapi.CreatedInvitation
+	c.Post("/api/members/"+mom.Id.String()+"/invitations", map[string]any{"role": "grandparent", "displayName": "Rita", "permissions": []string{"schedule"}}, http.StatusCreated, &created)
+	c.Post(lossPath(mom.Id), map[string]any{}, http.StatusCreated, nil)
+
+	nana := testutil.New(t)
+	var got httpapi.InvitationAcceptance
+	nana.Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusCreated, &got)
+	if got.Family.PregnancyLoss != nil {
+		t.Errorf("the acceptance must not carry the loss: %+v", got.Family.PregnancyLoss)
+	}
+	var seen httpapi.Family
+	nana.Get("/api/family", http.StatusOK, &seen)
+	if seen.PregnancyLoss != nil || seen.Id != fam.Id {
+		t.Errorf("a caregiver's GET /family must leave pregnancyLoss out: %+v", seen.PregnancyLoss)
+	}
+	var parent httpapi.Family
+	c.Get("/api/family", http.StatusOK, &parent)
+	if parent.PregnancyLoss == nil {
+		t.Error("a parent still sees the loss")
+	}
+}

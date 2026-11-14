@@ -63,15 +63,3 @@ func moodCheckinOut(c store.MoodCheckin) MoodCheckin {
 
 // STUB for #270: Sofia's diary handlers from #202 replace these three when
 // it merges (same operation ids, same file).
-
-func (s *Server) CreateDiaryEntry(_ context.Context, _ CreateDiaryEntryRequestObject) (CreateDiaryEntryResponseObject, error) {
-	return CreateDiaryEntry501JSONResponse(Error{Code: "not_implemented", Message: "the diary is not available yet"}), nil
-}
-
-func (s *Server) ListDiaryEntries(_ context.Context, _ ListDiaryEntriesRequestObject) (ListDiaryEntriesResponseObject, error) {
-	return ListDiaryEntries501JSONResponse(Error{Code: "not_implemented", Message: "the diary is not available yet"}), nil
-}
-
-func (s *Server) UpdateDiaryEntry(_ context.Context, _ UpdateDiaryEntryRequestObject) (UpdateDiaryEntryResponseObject, error) {
-	return UpdateDiaryEntry501JSONResponse(Error{Code: "not_implemented", Message: "the diary is not available yet"}), nil
-}

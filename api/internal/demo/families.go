@@ -140,6 +140,9 @@ func (s *seeder) moodScreening(owner uuid.UUID, visibility, instrument string, d
 }
 
 func (s *seeder) done() (uuid.UUID, error) {
+	if s.err == nil {
+		s.err = seedCaregivers(s.ctx, s.q, s.fam)
+	}
 	if s.err != nil {
 		return uuid.Nil, s.err
 	}

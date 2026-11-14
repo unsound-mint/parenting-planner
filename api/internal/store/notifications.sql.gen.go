@@ -71,7 +71,7 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 }
 
 const listFamilyParents = `-- name: ListFamilyParents :many
-SELECT id, family_id, role, display_name, birth_date FROM members
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at FROM members
 WHERE family_id = $1 AND role IN ('mother', 'partner')
 ORDER BY role
 `
@@ -93,6 +93,8 @@ func (q *Queries) ListFamilyParents(ctx context.Context, familyID uuid.UUID) ([]
 			&i.Role,
 			&i.DisplayName,
 			&i.BirthDate,
+			&i.Permissions,
+			&i.RevokedAt,
 		); err != nil {
 			return nil, err
 		}

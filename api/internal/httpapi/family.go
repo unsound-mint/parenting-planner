@@ -19,6 +19,16 @@ func (s *Server) GetFamily(ctx context.Context, _ GetFamilyRequestObject) (GetFa
 	if err != nil {
 		return nil, err
 	}
+	// Set here, not in loadFamily: loadFamily also builds the family for a new
+	// session while the request still carries the old one.
+	if bound, _ := ctx.Value(sessionMemberKey{}).(uuid.NullUUID); bound.Valid {
+		fam.SessionMemberId = &bound.UUID
+	}
+	// A grandparent or nanny must not learn why pregnancy updates stopped. A demo
+	// session has no role and is a parent's view.
+	if role, _ := ctx.Value(sessionRoleKey{}).(string); role != "" && !isParentRole(role) {
+		fam.PregnancyLoss = nil
+	}
 	return GetFamily200JSONResponse(fam), nil
 }
 
@@ -28,6 +38,10 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		return Family{}, err
 	}
 	members, err := s.q.ListMembers(ctx, id)
+	if err != nil {
+		return Family{}, err
+	}
+	caregivers, err := s.q.ListCaregivers(ctx, id)
 	if err != nil {
 		return Family{}, err
 	}
@@ -50,8 +64,6 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 			out.GestationalWeek = &w
 		}
 	}
-	// TODO(#363): the session has no person yet. Once it does, leave pregnancyLoss
-	// out for a grandparent or nanny: they must not learn why updates stopped.
 	if fam.PregnancyLossRecordedAt.Valid {
 		loss := PregnancyLoss{RecordedAt: fam.PregnancyLossRecordedAt.Time}
 		if fam.PregnancyLossOccurredOn != nil {
@@ -59,7 +71,6 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		}
 		out.PregnancyLoss = &loss
 	}
-	// Caregivers are not stored yet: the seed and a table come with the backend half of #1.
 
 	// There is no billing, so every family stays on free; an upgrade intent
 	// only shows as "upgrade requested".
@@ -76,6 +87,9 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	for _, m := range members {
 		out.Parents = append(out.Parents, Parent{Id: m.ID, Role: ParentRole(m.Role), DisplayName: m.DisplayName})
 	}
+	for _, c := range caregivers {
+		out.Caregivers = append(out.Caregivers, Caregiver{Id: c.ID, Role: CaregiverRole(c.Role), DisplayName: c.DisplayName, Permissions: permissionsOut(c.Permissions)})
+	}
 	for _, c := range children {
 		out.Children = append(out.Children, Child{Id: c.ID, Name: c.Name, BirthDate: openapi_types.Date{Time: c.BirthDate}, AgeMonths: monthsBetween(c.BirthDate, today)})
 	}
@@ -88,4 +102,12 @@ func monthsBetween(from, to time.Time) int {
 		m--
 	}
 	return max(m, 0)
+}
+
+func permissionsOut(in []string) []CaregiverPermission {
+	out := make([]CaregiverPermission, 0, len(in))
+	for _, p := range in {
+		out = append(out, CaregiverPermission(p))
+	}
+	return out
 }
