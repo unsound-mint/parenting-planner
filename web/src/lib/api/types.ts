@@ -157,3 +157,5 @@ export type Together = S["Together"];
 export type CoupleTalk = S["CoupleTalk"];
 export type BabyName = S["BabyName"];
 export type BabyNameList = S["BabyNameList"];
+export type Journey = S["Journey"];
+export type JourneyStage = S["JourneyStage"];
