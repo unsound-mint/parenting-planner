@@ -14,6 +14,7 @@ import { simulatorMocks } from "./fixtures/simulator";
 import { weeklyPlanMocks } from "./fixtures/weekly-plan";
 import { taskMocks } from "./fixtures/tasks";
 import { todayMocks } from "./fixtures/today";
+import { wellbeingMocks } from "./fixtures/wellbeing";
 
 // Every feature registers its preview mocks here, one import per file in
 // ./fixtures. Fixture data is synthetic and matches the demo family (Emily,
@@ -31,6 +32,7 @@ const tables: MockTable[] = [
   pricingMocks,
   taskMocks,
   todayMocks,
+  wellbeingMocks,
   weeklyPlanMocks,
   scheduleMocks,
   simulatorMocks,
