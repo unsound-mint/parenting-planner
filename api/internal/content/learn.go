@@ -11,8 +11,11 @@ import (
 
 // Every *_paths.json file is part of the learning catalog, read in file name
 // order: learn_paths.json holds 8 paths, 32 lessons and their quizzes. Adding a
-// file in the same shape (its own sources map, paths with stages) adds paths
-// without code changes; path and lesson ids must stay unique across files. Lesson bodies are our own plain-language writing from the cited
+// file in the same shape adds paths without code changes. Each file carries its
+// own sources map; every path needs "stages" (a path without any is never
+// offered); weeks matter only for lessons offered in pregnancy; each lesson
+// needs two or more quiz questions; path and lesson ids stay unique across
+// files. learn_test.go checks all of this. Lesson bodies are our own plain-language writing from the cited
 // page; every source was opened on its checkedAt date and numbers were checked
 // against the page text. The labor lesson cites NICHD only: the MedlinePlus
 // labor page is A.D.A.M. content that forbids derivative works.

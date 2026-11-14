@@ -1,6 +1,7 @@
 package content
 
 import (
+	"slices"
 	"strings"
 	"testing"
 )
@@ -31,7 +32,9 @@ func TestLearnCatalogIsCompleteAndSourced(t *testing.T) {
 			if l.Source.URL == "" || l.Source.CheckedAt.IsZero() {
 				t.Errorf("lesson %s has no source with a checked date", l.ID)
 			}
-			if l.WeekFrom < MinWeek || l.WeekTo > MaxWeek || l.WeekFrom > l.WeekTo {
+			// Weeks only matter for lessons offered in pregnancy.
+			inPregnancy := slices.Contains(l.Stages, "pregnancy")
+			if inPregnancy && (l.WeekFrom < MinWeek || l.WeekTo > MaxWeek || l.WeekFrom > l.WeekTo) {
 				t.Errorf("lesson %s window %d to %d", l.ID, l.WeekFrom, l.WeekTo)
 			}
 			if len(l.Quiz) < 2 {
