@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createPartnerOffer = `-- name: CreatePartnerOffer :one
@@ -99,6 +100,60 @@ func (q *Queries) GetPartnerOffer(ctx context.Context, arg GetPartnerOfferParams
 	return i, err
 }
 
+const listAllPartnerOffersWithClicks = `-- name: ListAllPartnerOffersWithClicks :many
+SELECT o.id, o.seq, o.family_id, o.partner_name, o.title, o.detail, o.url, o.stages, o.audience, o.active, o.created_at, (SELECT count(*) FROM partner_offer_clicks c WHERE c.offer_id = o.id)::bigint AS clicks
+FROM partner_offers o WHERE o.family_id = $1 ORDER BY o.seq DESC
+`
+
+type ListAllPartnerOffersWithClicksRow struct {
+	ID          uuid.UUID
+	Seq         pgtype.Int8
+	FamilyID    uuid.UUID
+	PartnerName string
+	Title       string
+	Detail      string
+	Url         string
+	Stages      []string
+	Audience    []string
+	Active      bool
+	CreatedAt   time.Time
+	Clicks      int64
+}
+
+// Every offer of the family, newest first, with its click count.
+func (q *Queries) ListAllPartnerOffersWithClicks(ctx context.Context, familyID uuid.UUID) ([]ListAllPartnerOffersWithClicksRow, error) {
+	rows, err := q.db.Query(ctx, listAllPartnerOffersWithClicks, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAllPartnerOffersWithClicksRow{}
+	for rows.Next() {
+		var i ListAllPartnerOffersWithClicksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Seq,
+			&i.FamilyID,
+			&i.PartnerName,
+			&i.Title,
+			&i.Detail,
+			&i.Url,
+			&i.Stages,
+			&i.Audience,
+			&i.Active,
+			&i.CreatedAt,
+			&i.Clicks,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMatchingPartnerOffers = `-- name: ListMatchingPartnerOffers :many
 SELECT id, seq, family_id, partner_name, title, detail, url, stages, audience, active, created_at FROM partner_offers
 WHERE family_id = $1 AND active AND $2::text = ANY(stages) AND $3::text = ANY(audience)
@@ -143,4 +198,58 @@ func (q *Queries) ListMatchingPartnerOffers(ctx context.Context, arg ListMatchin
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePartnerOffer = `-- name: UpdatePartnerOffer :one
+UPDATE partner_offers SET
+    partner_name = COALESCE($1, partner_name),
+    title        = COALESCE($2, title),
+    detail       = COALESCE($3, detail),
+    url          = COALESCE($4, url),
+    stages       = COALESCE($5::text[], stages),
+    audience     = COALESCE($6::text[], audience),
+    active       = COALESCE($7, active)
+WHERE id = $8 AND family_id = $9 RETURNING id, seq, family_id, partner_name, title, detail, url, stages, audience, active, created_at
+`
+
+type UpdatePartnerOfferParams struct {
+	PartnerName *string
+	Title       *string
+	Detail      *string
+	Url         *string
+	Stages      []string
+	Audience    []string
+	Active      pgtype.Bool
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+}
+
+// Only the fields that are sent change.
+func (q *Queries) UpdatePartnerOffer(ctx context.Context, arg UpdatePartnerOfferParams) (PartnerOffer, error) {
+	row := q.db.QueryRow(ctx, updatePartnerOffer,
+		arg.PartnerName,
+		arg.Title,
+		arg.Detail,
+		arg.Url,
+		arg.Stages,
+		arg.Audience,
+		arg.Active,
+		arg.ID,
+		arg.FamilyID,
+	)
+	var i PartnerOffer
+	err := row.Scan(
+		&i.ID,
+		&i.Seq,
+		&i.FamilyID,
+		&i.PartnerName,
+		&i.Title,
+		&i.Detail,
+		&i.Url,
+		&i.Stages,
+		&i.Audience,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
 }
