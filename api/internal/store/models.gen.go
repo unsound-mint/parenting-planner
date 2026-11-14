@@ -319,6 +319,20 @@ type SessionNote struct {
 	Text          string
 }
 
+type Shift struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	Title     string
+	Days      []string
+	StartTime string
+	EndTime   string
+	Status    string
+	StartsOn  *time.Time
+	RoundID   uuid.NullUUID
+	CreatedAt time.Time
+}
+
 type StripeEvent struct {
 	ID         string
 	Type       string
