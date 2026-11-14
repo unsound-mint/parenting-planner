@@ -5380,6 +5380,8 @@ export interface components {
             comparison?: string;
             /** @description care_log, handoff, vaccines and names_liked, how many. */
             count?: number;
+            /** @description names_liked only, the names both parents like, oldest first. */
+            names?: string[];
             /** @description Content-derived moments (pregnancy_week, stage_line) carry the pages they paraphrase. */
             sources?: components["schemas"]["Source"][];
         };

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, Route, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
+import { Baby, BookHeart, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, Route, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +30,7 @@ const items: Item[] = [
   { href: "/learn", screen: "learn", label: "Learn", icon: BookOpen, group: "main" },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "main", fallbackFor: "learn" },
   { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main" },
+  { href: "/story", screen: "story", label: "Our story", short: "Story", icon: BookHeart, group: "main" },
   { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "more" },
   { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "more" },
   { href: "/passport", screen: "passport", label: "Baby passport", short: "Passport", icon: IdCard, group: "more" },

@@ -69,6 +69,7 @@ type Moment struct {
 	Week       int
 	Comparison string
 	Count      int
+	Names      []string
 	Sources    []content.Source
 }
 
@@ -853,6 +854,6 @@ func (b *builder) learning() {
 	}
 	if len(both) > 0 {
 		title := fmt.Sprintf("You both like %s", listNames(both))
-		b.add(Moment{ID: "names", Kind: NamesLiked, On: day(last), Title: title, Detail: "Names on your shared list that both of you liked.", People: parents, Count: len(both)})
+		b.add(Moment{ID: "names", Kind: NamesLiked, On: day(last), Title: title, Detail: "Names on your shared list that both of you liked.", People: parents, Count: len(both), Names: both})
 	}
 }

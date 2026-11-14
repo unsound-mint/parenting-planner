@@ -9724,6 +9724,11 @@ components:
         count:
           type: integer
           description: care_log, handoff, vaccines and names_liked, how many.
+        names:
+          type: array
+          description: names_liked only, the names both parents like, oldest first.
+          items:
+            type: string
         sources:
           type: array
           description: Content-derived moments (pregnancy_week, stage_line) carry the pages they paraphrase.

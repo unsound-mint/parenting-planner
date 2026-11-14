@@ -20,6 +20,7 @@ import { pricingMocks } from "./fixtures/pricing";
 import { scheduleMocks } from "./fixtures/schedule";
 import { simulatorMocks } from "./fixtures/simulator";
 import { stageNowMocks } from "./fixtures/stage-now";
+import { storyMocks } from "./fixtures/story";
 import { weeklyPlanMocks } from "./fixtures/weekly-plan";
 import { taskMocks } from "./fixtures/tasks";
 import { todayMocks } from "./fixtures/today";
@@ -54,6 +55,7 @@ const tables: MockTable[] = [
   scheduleMocks,
   simulatorMocks,
   stageNowMocks,
+  storyMocks,
 ];
 
 export const previewMocks = mockMiddleware(Object.assign({}, ...tables));

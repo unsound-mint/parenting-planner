@@ -49,6 +49,9 @@ func storyOut(st story.Story) Story {
 			if m.Week > 0 {
 				mo.Week = &m.Week
 			}
+			if len(m.Names) > 0 {
+				mo.Names = &m.Names
+			}
 			if m.Count > 0 {
 				mo.Count = &m.Count
 			}
