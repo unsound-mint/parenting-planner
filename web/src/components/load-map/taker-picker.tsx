@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Avatar } from "@/components/joy/partner-chip";
 import type { Person } from "@/lib/roles";
 import { roleLabel } from "@/lib/visuals";
@@ -9,10 +10,7 @@ import { roleLabel } from "@/lib/visuals";
  * parent, and a grandparent or nanny who may use the plan). One button each,
  * with their colour and role, so the choice reads as people, not a dropdown.
  */
-export function TakerPicker({ takers, label, disabled, onPick }: { takers: Person[]; label: string; disabled?: boolean; onPick: (to: Person) => void }) {
-  if (takers.length === 0) {
-    return <p className="text-label font-normal text-muted-foreground">Nobody else can take tasks yet. Invite someone below and let them see the shared to-do list.</p>;
-  }
+export function TakerPicker({ takers, others = [], memberId, label, disabled, onPick }: { takers: Person[]; others?: Person[]; memberId: string; label: string; disabled?: boolean; onPick: (to: Person) => void }) {
   return (
     <div role="group" aria-label={label} className="flex flex-col gap-2">
       <p className="text-label font-medium text-ink-2">{label}</p>
@@ -32,6 +30,22 @@ export function TakerPicker({ takers, label, disabled, onPick }: { takers: Perso
           </li>
         ))}
       </ul>
+      {takers.length === 0 && others.length === 0 && <p className="text-label font-normal text-muted-foreground">Nobody else is here yet. Invite someone below and turn on the shared to-do list for them.</p>}
+      {others.length > 0 && (
+        <ul className="flex flex-col gap-1 text-caption text-muted-foreground">
+          {others.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center gap-x-2">
+              <Avatar person={p} size="sm" className="opacity-60" />
+              <span>
+                {p.displayName} can take tasks once the shared to-do list is on.{" "}
+                <Link href={`/family/${memberId}/settings`} className="text-ink underline decoration-line-2 underline-offset-3 hover:decoration-ink">
+                  Open sharing settings
+                </Link>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

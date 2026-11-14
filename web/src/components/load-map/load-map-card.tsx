@@ -27,6 +27,8 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
   const parents = people.filter((p) => p.role === "mother" || p.role === "partner");
   const takers = map.takers.map((id) => people.find((p) => p.id === id)).filter((p): p is Person => !!p);
 
+  const others = people.filter((p) => p.id !== memberId && !takers.some((t) => t.id === p.id));
+
   const refresh = useCallback(async () => {
     if (busyRef.current) return;
     const { data } = await api.GET("/members/{memberId}/load-map", { params: { path: { memberId } } });
@@ -134,6 +136,7 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
             people={people}
             self={self}
             takers={takers}
+            others={others}
             busy={busy === area.key}
             celebrate={celebrate === area.key}
             onOffer={(ids, to) => offer(area.key, ids, to)}

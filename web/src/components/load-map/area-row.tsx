@@ -32,6 +32,7 @@ type Props = {
   people: Person[];
   self: Person;
   takers: Person[];
+  others: Person[];
   busy: boolean;
   celebrate: boolean;
   onOffer: (ids: string[], to: Person) => void;
@@ -40,7 +41,7 @@ type Props = {
   onWithdraw: (ids: string[]) => void;
 };
 
-export function AreaRow({ area, n, memberId, people, self, takers, busy, celebrate, onOffer, onAccept, onDecline, onWithdraw }: Props) {
+export function AreaRow({ area, n, memberId, people, self, takers, others, busy, celebrate, onOffer, onAccept, onDecline, onWithdraw }: Props) {
   const panelId = useId();
   const [open, setOpen] = useState(false);
   const [choosing, setChoosing] = useState(false);
@@ -123,6 +124,8 @@ export function AreaRow({ area, n, memberId, people, self, takers, busy, celebra
           <motion.div key="choose" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring.ui} className="rounded-xl bg-muted/60 p-3">
             <TakerPicker
               takers={takers}
+              others={others}
+              memberId={memberId}
               disabled={busy}
               label={`Offer ${handover.length === 1 ? "this task" : `these ${handover.length} tasks`} to`}
               onPick={(to) => {
@@ -162,12 +165,12 @@ export function AreaRow({ area, n, memberId, people, self, takers, busy, celebra
       </div>
 
       {/* The area's contents. 0fr to 1fr animates the height without measuring it. */}
-      <div id={panelId} className={cn("grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+      <div id={panelId} className={cn("grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none", open ? "grid-rows-[1fr]" : "-mt-3 grid-rows-[0fr]")}>
         <div className="min-h-0 overflow-hidden" inert={!open}>
           {isTaskArea ? (
             <ul className="flex flex-col divide-y divide-line border-t border-line">
               {area.items.map((it) => (
-                <ItemRow key={it.taskId} item={it} memberId={memberId} self={self} people={people} takers={takers} busy={busy} onOffer={onOffer} onAccept={onAccept} onDecline={onDecline} onWithdraw={onWithdraw} />
+                <ItemRow key={it.taskId} item={it} memberId={memberId} self={self} people={people} takers={takers} others={others} busy={busy} onOffer={onOffer} onAccept={onAccept} onDecline={onDecline} onWithdraw={onWithdraw} />
               ))}
             </ul>
           ) : (
@@ -192,6 +195,7 @@ function ItemRow({
   self,
   people,
   takers,
+  others,
   busy,
   onOffer,
   onAccept,
@@ -203,6 +207,7 @@ function ItemRow({
   self: Person;
   people: Person[];
   takers: Person[];
+  others: Person[];
   busy: boolean;
   onOffer: (ids: string[], to: Person) => void;
   onAccept: (ids: string[]) => void;
@@ -280,6 +285,8 @@ function ItemRow({
         <div className="ml-7 rounded-xl bg-muted/60 p-3">
           <TakerPicker
             takers={takers}
+            others={others}
+            memberId={memberId}
             disabled={busy}
             label="Offer this task to"
             onPick={(to) => {
