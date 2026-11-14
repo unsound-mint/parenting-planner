@@ -39,12 +39,19 @@ type Config struct {
 	AI ai.Config
 	// Diary encrypts diary text at rest; see internal/crypt. The zero key works for tests.
 	Diary crypt.Key
+	// SessionLimit caps new demo families per client address (limits.go);
+	// AIPlanLimit caps Claude calls per family. Zero means the default, N < 0 off.
+	SessionLimit Limit
+	AIPlanLimit  Limit
 }
 
 type Server struct {
 	pool *pgxpool.Pool
 	q    *store.Queries
 	cfg  Config
+
+	sessionLimiter *rateLimiter
+	aiLimiter      *rateLimiter
 }
 
 var _ StrictServerInterface = (*Server)(nil)
@@ -70,7 +77,11 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 		},
 	})
 
-	s := &Server{pool: pool, q: store.New(pool), cfg: cfg}
+	s := &Server{
+		pool: pool, q: store.New(pool), cfg: cfg,
+		sessionLimiter: newRateLimiter(cfg.SessionLimit.or(defaultSessionLimit), cfg.Now),
+		aiLimiter:      newRateLimiter(cfg.AIPlanLimit.or(defaultAIPlanLimit), cfg.Now),
+	}
 	strict := NewStrictHandlerWithOptions(s, nil, StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
@@ -81,12 +92,13 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
 	})
-	// Middlewares run last-to-first: check the Stripe webhook signature on the
-	// raw body, cap voice note uploads, validate, then resolve the session.
-	return recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
+	// Middlewares run last-to-first: cap the body, limit new demos per
+	// address, check the Stripe webhook signature on the raw body, cap voice
+	// note uploads, validate, then resolve the session.
+	return securityHeaders(recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, s.verifyStripeSignature},
-	})), nil
+		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, s.verifyStripeSignature, s.limitNewSessions, capBody},
+	}))), nil
 }
 
 // recoverPanics turns a panic in a handler into a logged and reported 500

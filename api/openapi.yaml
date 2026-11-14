@@ -91,6 +91,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "429":
+          description: Error. Too many new demos from one address (rate_limited); Retry-After is set.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /demo/custom-sessions:
     post:
@@ -133,6 +139,12 @@ paths:
                 $ref: "#/components/schemas/Family"
         "400":
           description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Error. Too many new demos from one address (rate_limited); Retry-After is set.
           content:
             application/json:
               schema:

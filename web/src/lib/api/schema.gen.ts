@@ -5869,6 +5869,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description Error. Too many new demos from one address (rate_limited); Retry-After is set. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     createCustomSession: {
@@ -5896,6 +5905,15 @@ export interface operations {
             };
             /** @description Error */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error. Too many new demos from one address (rate_limited); Retry-After is set. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
