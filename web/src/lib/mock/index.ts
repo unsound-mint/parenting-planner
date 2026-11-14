@@ -3,6 +3,7 @@ import { appointmentQuestionMocks } from "./fixtures/appointment-questions";
 import { babyMocks } from "./fixtures/baby";
 import { calendarFeedMocks } from "./fixtures/calendar-feed";
 import { careMocks } from "./fixtures/care";
+import { demoMocks } from "./fixtures/demo";
 import { directoryMocks } from "./fixtures/directory";
 import { insuranceMocks } from "./fixtures/insurance";
 import { leaveMocks } from "./fixtures/leave";
@@ -26,6 +27,7 @@ const tables: MockTable[] = [
   babyMocks,
   calendarFeedMocks,
   careMocks,
+  demoMocks,
   directoryMocks,
   insuranceMocks,
   leaveMocks,

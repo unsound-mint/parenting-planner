@@ -1,6 +1,7 @@
 import { mock } from "../registry";
 import { isoDate, uid } from "./dates";
 import { careTeam, couple, tdap } from "../timeline";
+import { vaccineName } from "@/lib/vaccines";
 
 // Emily (week 25) and Jake, with the ids of the session's family. The glucose test is
 // still ahead (shared timeline), so there is no glucose result yet.
@@ -50,6 +51,33 @@ export const passportMocks = {
         careTeam: [{ id: uid(153), name: "Dr. Tom Okafor", role: "primary_care", clinic: "Northside Family Practice" }],
       },
     ],
+    };
+  }),
+  // Logging echoes the record back and stores nothing. The real backend also
+  // takes the matching dose or rule item off the plan on the next request and
+  // writes an audit row; the passport view applies that locally for previews.
+  ...mock("/members/{memberId}/immunizations", "post", (ctx) => ({
+    id: crypto.randomUUID(),
+    name: vaccineName[ctx.body.vaccine],
+    dose: ctx.body.dose ?? "Dose given",
+    status: "done",
+    givenOn: ctx.body.givenOn,
+    visibility: "partner",
+  })),
+  ...mock("/members/{memberId}/screenings", "post", (ctx) => ({
+    id: crypto.randomUUID(),
+    childId: ctx.body.childId,
+    kind: ctx.body.kind,
+    takenOn: ctx.body.takenOn,
+    visibility: ctx.body.visibility,
+  })),
+  ...mock("/members/{memberId}/lab-results", "post", (ctx) => {
+    const { refLow, refHigh, value } = ctx.body;
+    const direction = refLow != null && value < refLow ? "low" : refHigh != null && value > refHigh ? "high" : undefined;
+    return {
+      id: crypto.randomUUID(),
+      ...ctx.body,
+      flag: direction && { direction, message: "Outside the usual range. Discuss with your doctor.", basis: "Reference range reported with this lab result" },
     };
   }),
 };

@@ -91,7 +91,7 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires }: Vi
             ) : slots ? (
               <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
-            <AgendaCard topics={topics} />
+            <AgendaCard memberId={memberId} topics={topics} />
             <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
           </div>
         )}
