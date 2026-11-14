@@ -1,12 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronRight, ClipboardCheck, type LucideIcon } from "lucide-react";
 import type { DiaryEntry, ScreeningQuestionnaire } from "@/lib/api/types";
 import { careIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
+import { mergeDiary, useMockDiary } from "@/lib/mock/diary-store";
 
 // Two doors from Care to the parent's own wellbeing. Each hides when its
 // endpoint failed, so a missing backend never leaves a dead link.
-export function WellbeingLinks({ memberId, entries, questionnaires }: { memberId: string; entries?: DiaryEntry[]; questionnaires?: ScreeningQuestionnaire[] }) {
+export function WellbeingLinks({ memberId, entries: server, questionnaires }: { memberId: string; entries?: DiaryEntry[]; questionnaires?: ScreeningQuestionnaire[] }) {
+  // Entries saved while the diary is a mock come from the browser (see lib/mock/diary-store.ts).
+  const remembered = useMockDiary(memberId);
+  const entries = server && mergeDiary(server, remembered);
   if (!entries && !questionnaires) return null;
   const suggested = questionnaires?.some((q) => q.suggested);
   return (
