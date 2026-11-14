@@ -39,6 +39,8 @@ var (
 	ErrNoHandoff         = errors.New("no such handoff")
 	ErrNotRecipient      = errors.New("only the receiver can accept")
 	ErrHandoffNotPending = errors.New("handoff is not pending")
+	ErrNoEntry           = errors.New("no such care log entry")
+	ErrKindChanged       = errors.New("an entry keeps its kind")
 )
 
 // Person is whoever acts: a parent or a caregiver.
@@ -88,11 +90,8 @@ func tsOf(t *time.Time) pgtype.Timestamptz {
 
 // CreateEntry logs a feed, sleep or diaper for the family's child.
 func CreateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, in NewEntry, now time.Time) (store.CareLogEntry, error) {
-	switch {
-	case in.Kind == "feed" && in.FeedMethod == nil, in.Kind == "diaper" && in.Diaper == nil:
-		return store.CareLogEntry{}, ErrMissingDetail
-	case in.EndedAt != nil && in.EndedAt.Before(in.StartedAt):
-		return store.CareLogEntry{}, ErrBadTimes
+	if err := checkEntry(in); err != nil {
+		return store.CareLogEntry{}, err
 	}
 	var out store.CareLogEntry
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
@@ -125,6 +124,77 @@ func CreateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p 
 		return live.Publish(ctx, q, familyID, live.Event{Kind: live.CareLog, EntityID: out.ID.String(), Actor: p.ID, NeedsPermission: "care_log"}, now)
 	})
 	return out, err
+}
+
+func checkEntry(in NewEntry) error {
+	switch {
+	case in.Kind == "feed" && in.FeedMethod == nil, in.Kind == "diaper" && in.Diaper == nil:
+		return ErrMissingDetail
+	case in.EndedAt != nil && in.EndedAt.Before(in.StartedAt):
+		return ErrBadTimes
+	}
+	return nil
+}
+
+// UpdateEntry replaces the times and details of an entry (a feed logged on the
+// wrong side, a sleep that ran longer). The kind and the child stay.
+func UpdateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, in NewEntry, now time.Time) (store.CareLogEntry, error) {
+	if err := checkEntry(in); err != nil {
+		return store.CareLogEntry{}, err
+	}
+	var out store.CareLogEntry
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		cur, err := q.GetCareLogEntry(ctx, store.GetCareLogEntryParams{ID: id, FamilyID: familyID})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNoEntry
+		}
+		if err != nil {
+			return err
+		}
+		if cur.Kind != in.Kind {
+			return ErrKindChanged
+		}
+		// Details that do not belong to the kind are dropped, so a sleep never carries a feed method.
+		var method, diaper *string
+		amount := pgtype.Int2{}
+		switch in.Kind {
+		case "feed":
+			method, amount = in.FeedMethod, amountOf(in.AmountMl)
+		case "diaper":
+			diaper = in.Diaper
+		}
+		out, err = q.UpdateCareLogEntry(ctx, store.UpdateCareLogEntryParams{
+			ID: id, FamilyID: familyID, StartedAt: in.StartedAt, EndedAt: tsOf(in.EndedAt),
+			FeedMethod: method, AmountMl: amount, Diaper: diaper, Note: in.Note,
+		})
+		if err != nil {
+			return err
+		}
+		if err := audit(ctx, q, familyID, p, access.ActionUpdate, entityEntry, id.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.CareLog, EntityID: id.String(), Actor: p.ID, NeedsPermission: "care_log"}, now)
+	})
+	return out, err
+}
+
+// DeleteEntry removes an entry logged by mistake.
+func DeleteEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		n, err := q.DeleteCareLogEntry(ctx, store.DeleteCareLogEntryParams{ID: id, FamilyID: familyID})
+		if err != nil {
+			return err
+		}
+		if n == 0 {
+			return ErrNoEntry
+		}
+		if err := audit(ctx, q, familyID, p, access.ActionDelete, entityEntry, id.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.CareLog, EntityID: id.String(), Actor: p.ID, NeedsPermission: "care_log"}, now)
+	})
 }
 
 // Summary is the latest of each kind and who has the baby now.
@@ -177,14 +247,21 @@ func summary(ctx context.Context, q *store.Queries, familyID uuid.UUID, now time
 	return s, nil
 }
 
-// ListEntries returns the last 48 hours, newest first, and the latest of each kind.
-func ListEntries(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, kind *string, now time.Time) ([]store.CareLogEntry, Summary, error) {
+// MaxDays is the widest window a list may ask for: the Baby screen's week view.
+const MaxDays = 7
+
+// ListEntries returns the last days (Window when days is 0), newest first, and the latest of each kind.
+func ListEntries(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, kind *string, days int, now time.Time) ([]store.CareLogEntry, Summary, error) {
+	since := now.Add(-Window)
+	if days > 0 {
+		since = now.AddDate(0, 0, -min(days, MaxDays))
+	}
 	var items []store.CareLogEntry
 	var sum Summary
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		var err error
-		items, err = q.ListCareLogEntries(ctx, store.ListCareLogEntriesParams{FamilyID: familyID, Since: now.Add(-Window), Kind: kind})
+		items, err = q.ListCareLogEntries(ctx, store.ListCareLogEntriesParams{FamilyID: familyID, Since: since, Kind: kind})
 		if err != nil {
 			return err
 		}

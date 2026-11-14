@@ -275,6 +275,7 @@ export const careLogTint: Record<CareLogKind, { soft: string; solid: string }> =
 export const feedMethodLabel: Record<FeedMethod, string> = {
   breast_left: "Left breast",
   breast_right: "Right breast",
+  breast_both: "Both breasts",
   bottle_breast_milk: "Bottle, breast milk",
   bottle_formula: "Bottle, formula",
 };
