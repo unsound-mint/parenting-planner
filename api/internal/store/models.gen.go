@@ -33,6 +33,28 @@ type Allergy struct {
 	CreatedAt       time.Time
 }
 
+type AppointmentNote struct {
+	FamilyID      uuid.UUID
+	AuthorID      uuid.UUID
+	AppointmentID uuid.UUID
+	Body          string
+	UpdatedAt     time.Time
+}
+
+type AppointmentQuestion struct {
+	ID              uuid.UUID
+	Seq             pgtype.Int8
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	AskedForEventID uuid.UUID
+	Body            string
+	Answered        bool
+	Answer          *string
+	AnsweredAt      pgtype.Timestamptz
+	CreatedAt       time.Time
+}
+
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
@@ -41,6 +63,42 @@ type AuditLog struct {
 	Entity        string
 	EntityID      *string
 	At            time.Time
+}
+
+type BabyName struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	Name      string
+	AddedBy   uuid.UUID
+	CreatedAt time.Time
+}
+
+type BabyNameLike struct {
+	NameID    uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	CreatedAt time.Time
+}
+
+type BirthPlan struct {
+	FamilyID        uuid.UUID
+	HospitalName    string
+	HospitalAddress string
+	HospitalPhone   *string
+	DeskPhone       *string
+	TravelMinutes   pgtype.Int4
+	PreferencesNote *string
+}
+
+type BookingRequest struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ProviderID    uuid.UUID
+	Status        string
+	Note          *string
+	CreatedAt     time.Time
 }
 
 type CalendarEvent struct {
@@ -96,6 +154,22 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ChildcareOption struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	Name             string
+	Kind             string
+	Contact          *string
+	MonthlyCost      pgtype.Int4
+	Status           string
+	WaitlistPosition pgtype.Int4
+	AppliedOn        *time.Time
+	DecideBy         *time.Time
+	Notes            *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
 type ContentOverride struct {
 	FamilyID  uuid.UUID
 	Kind      string
@@ -103,6 +177,13 @@ type ContentOverride struct {
 	Title     *string
 	Body      *string
 	UpdatedAt time.Time
+}
+
+type CoupleTalk struct {
+	FamilyID uuid.UUID
+	PromptID string
+	TalkedBy uuid.UUID
+	TalkedAt time.Time
 }
 
 type DiaryEntry struct {
@@ -114,15 +195,21 @@ type DiaryEntry struct {
 	BodySealed    []byte
 	AgendaTopic   *string
 	CreatedAt     time.Time
+	Mood          pgtype.Int2
+	IsFirst       bool
 }
 
 type Family struct {
-	ID             uuid.UUID
-	Template       string
-	Stage          string
-	DueDate        *time.Time
-	CreatedAt      time.Time
-	DemoOffsetDays int32
+	ID                        uuid.UUID
+	Template                  string
+	Stage                     string
+	DueDate                   *time.Time
+	CreatedAt                 time.Time
+	DemoOffsetDays            int32
+	PregnancyLossRecordedAt   pgtype.Timestamptz
+	PregnancyLossOccurredOn   *time.Time
+	PregnancyLossPriorStage   *string
+	PregnancyLossPriorDueDate *time.Time
 }
 
 type GrowthMeasurement struct {
@@ -154,6 +241,21 @@ type Immunization struct {
 	Vaccine         string
 	GivenOn         time.Time
 	Dose            *string
+}
+
+type InsuranceCall struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	CalledAt        time.Time
+	Insurer         string
+	Representative  *string
+	ReferenceNumber *string
+	Topic           string
+	Summary         string
+	FollowUpOn      *time.Time
+	CreatedAt       time.Time
 }
 
 type Invitation struct {
@@ -190,6 +292,26 @@ type LabResult struct {
 	RefHigh         *float64
 }
 
+type LeavePlan struct {
+	FamilyID          uuid.UUID
+	MemberID          uuid.UUID
+	State             string
+	EmployerEmployees int32
+	MonthsEmployed    int32
+	HoursLast12Months int32
+	StartsOn          *time.Time
+	WeeksWanted       pgtype.Int4
+	UpdatedAt         time.Time
+}
+
+type LessonRead struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	LessonID   string
+	StartedAt  time.Time
+	FinishedAt pgtype.Timestamptz
+}
+
 type LiveEvent struct {
 	ID              int64
 	FamilyID        uuid.UUID
@@ -209,6 +331,7 @@ type Member struct {
 	BirthDate   *time.Time
 	Permissions []string
 	RevokedAt   pgtype.Timestamptz
+	Phone       *string
 }
 
 type MoodCheckin struct {
@@ -288,6 +411,18 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
+type Provider struct {
+	ID              uuid.UUID
+	Name            string
+	Type            string
+	City            string
+	State           string
+	Languages       []string
+	AvailableInDays int16
+	PriceUsd        int32
+	Summary         string
+}
+
 type Psychologist struct {
 	ID          uuid.UUID
 	Name        string
@@ -310,6 +445,14 @@ type PsychologistSlot struct {
 	PsychologistID  uuid.UUID
 	StartsAt        time.Time
 	DurationMinutes int16
+}
+
+type QuizAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	QuestionID string
+	ChoiceID   string
+	AnsweredAt time.Time
 }
 
 type Session struct {
@@ -382,6 +525,39 @@ type Subscription struct {
 	StartedAt            time.Time
 	CurrentPeriodEnd     pgtype.Timestamptz
 	UpdatedAt            time.Time
+}
+
+type Task struct {
+	ID                      uuid.UUID
+	Seq                     pgtype.Int8
+	FamilyID                uuid.UUID
+	Kind                    string
+	Title                   string
+	Detail                  *string
+	DueOn                   *time.Time
+	DueAnchor               *string
+	DueOffsetDays           pgtype.Int4
+	Bag                     *string
+	AssigneeMemberID        uuid.UUID
+	PendingAssigneeMemberID uuid.NullUUID
+	Done                    bool
+	DoneAt                  pgtype.Timestamptz
+	DoneByMemberID          uuid.NullUUID
+	SourceTitle             *string
+	SourceUrl               *string
+	SourceCheckedOn         *time.Time
+	CreatedByMemberID       uuid.UUID
+	CreatedAt               time.Time
+}
+
+type Thank struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	FromMemberID  uuid.UUID
+	ToMemberID    uuid.UUID
+	Body          string
+	SuggestionKey *string
+	CreatedAt     time.Time
 }
 
 type UpgradeIntent struct {

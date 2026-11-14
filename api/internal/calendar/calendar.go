@@ -21,6 +21,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
 
 const entity = "calendar_event"
@@ -55,6 +56,7 @@ type Event struct {
 	AttendeeIDs []uuid.UUID
 	Visibility  string
 	ShiftID     *uuid.UUID
+	TaskID      *uuid.UUID
 }
 
 type NewEvent struct {
@@ -183,6 +185,11 @@ func ListForParent(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uui
 			return err
 		}
 		out = append(out, shiftEvents...)
+		taskEvents, err := taskEvents(ctx, q, familyID, viewer, scope, from, to)
+		if err != nil {
+			return err
+		}
+		out = append(out, taskEvents...)
 		if scope != Partner { // psychologist sessions are the owner's own, always private
 			sessions, err := ownSessions(ctx, q, familyID, viewer, from, to)
 			if err != nil {
@@ -250,6 +257,49 @@ func shiftEvents(ctx context.Context, q *store.Queries, familyID, viewer uuid.UU
 	return out, nil
 }
 
+// taskEvents turns open tasks with a deadline in the window into all-day events:
+// mine are the viewer's own, partner the other parent's, family everyone's.
+func taskEvents(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, scope Scope, from, to time.Time) ([]Event, error) {
+	items, err := tasks.ListWith(ctx, q, familyID, nil)
+	if err != nil {
+		return nil, err
+	}
+	parents, err := q.ListMembers(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	isParent := map[uuid.UUID]bool{}
+	for _, p := range parents {
+		isParent[p.ID] = true
+	}
+	var out []Event
+	for _, it := range items {
+		switch {
+		case scope == Mine && it.AssigneeMemberID != viewer, scope == Partner && (it.AssigneeMemberID == viewer || !isParent[it.AssigneeMemberID]):
+			continue
+		}
+		if ev, ok := taskEvent(it, from, to); ok {
+			out = append(out, ev)
+		}
+	}
+	return out, nil
+}
+
+func taskEvent(it tasks.Item, from, to time.Time) (Event, bool) {
+	if it.Done || it.Kind == "hospital_bag" || it.Deadline.On == nil {
+		return Event{}, false
+	}
+	day := time.Date(it.Deadline.On.Year(), it.Deadline.On.Month(), it.Deadline.On.Day(), 0, 0, 0, 0, time.UTC)
+	if day.Before(from) || !day.Before(to) {
+		return Event{}, false
+	}
+	owner, id := it.AssigneeMemberID, it.ID
+	return Event{
+		ID: id.String(), Kind: "task", Title: it.Title, StartsAt: day, AllDay: true, OwnerID: &owner,
+		AttendeeIDs: []uuid.UUID{owner}, Visibility: "family", TaskID: &id,
+	}, true
+}
+
 func occurrenceEvents(sh store.Shift, from, to time.Time) []Event {
 	var out []Event
 	for _, o := range shifts.Occurrences(sh, from, to) {
@@ -269,8 +319,19 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	if !to.After(from) || to.Sub(from) > MaxWindow {
 		return nil, ErrBadWindow
 	}
-	rows, err := store.New(pool).ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
-		FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+	// The events are parents' records a caregiver may see: the read goes in the
+	// access log in the same transaction, like a parent's List.
+	var rows []store.ListCaregiverCalendarEventsVisibleToParentRow
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		var err error
+		rows, err = q.ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+		})
+		if err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entity, "")
 	})
 	if err != nil {
 		return nil, err
@@ -290,6 +351,18 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	for _, sh := range active {
 		if sh.MemberID == viewer {
 			out = append(out, occurrenceEvents(sh, from, to)...)
+		}
+	}
+	// Open tasks assigned to them.
+	items, err := tasks.ListWith(ctx, store.New(pool), familyID, nil)
+	if err != nil {
+		return nil, err
+	}
+	for _, it := range items {
+		if it.AssigneeMemberID == viewer {
+			if ev, ok := taskEvent(it, from, to); ok {
+				out = append(out, ev)
+			}
 		}
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].StartsAt.Before(out[j].StartsAt) })

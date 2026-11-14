@@ -116,6 +116,9 @@ func sampleRequest(t *testing.T, path string, item *openapi3.PathItem, op *opena
 		if strings.HasPrefix(ct, "audio/") {
 			return target, "audio/webm", []byte("fake opus frames")
 		}
+		if strings.HasPrefix(ct, "image/") {
+			return target, "image/jpeg", []byte("fake jpeg bytes")
+		}
 	}
 	t.Fatalf("%s: no sample body for content types %v", path, content)
 	return "", "", nil
@@ -213,6 +216,7 @@ var familyWideOps = []string{
 	"deleteFamily", "createDemoTimeSkip", "createUpgradeIntent",
 	"listContentItems", "updateContentItem", "resetContentItem",
 	"listAllPartnerOffers", "createPartnerOffer", "updatePartnerOffer", "getAnalytics",
+	"listChildcareOptions", "createChildcareOption", "getChildcareOption", "updateChildcareOption", "deleteChildcareOption",
 }
 
 func TestCaregiverSessionCannotManageTheFamily(t *testing.T) {

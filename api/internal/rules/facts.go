@@ -9,6 +9,9 @@ type Facts struct {
 	Viewer  Role
 	Stage   string
 	DueDate *time.Time
+	// PregnancyLoss is true while the family is in pregnancy loss support. The
+	// stage is planning then, but the preconception nudges must not fire.
+	PregnancyLoss bool
 
 	// Lab result kinds on record for the pregnant parent, with the latest date.
 	PregnancyLabs map[string]time.Time
@@ -31,6 +34,15 @@ type Facts struct {
 	MotherRubella string
 	// The family's children, oldest first.
 	Children []ChildFacts
+	// The family's childcare options (family-wide, both parents see them).
+	ChildcareOptions []ChildcareOptionFacts
+}
+
+// ChildcareOptionFacts is what the rules know about one childcare option.
+type ChildcareOptionFacts struct {
+	Name     string
+	Status   string
+	DecideBy *time.Time
 }
 
 // ChildFacts is what the rules know about one child.

@@ -20,6 +20,8 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/offers"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
+	"github.com/unsound-mint/parenting-planner/api/internal/thanks"
 )
 
 const SessionTTL = 30 * 24 * time.Hour
@@ -91,6 +93,12 @@ func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) e
 // SkipDays is how far one "Skip ahead a week" moves a family's demo clock.
 const SkipDays = 7
 
+// MaxOffsetDays bounds the demo clock: two years ahead covers every stage
+// change a demo shows. Each skip copies a week of check-ins, so without a
+// bound a loop of skips would grow the family's rows forever. A skip past
+// the bound changes nothing.
+const MaxOffsetDays = 2 * 364
+
 // SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
 // rows change; a new demo is a new family, which starts at real time.
 //
@@ -102,12 +110,19 @@ const SkipDays = 7
 func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
+		fam, err := q.GetFamily(ctx, familyID)
+		if err != nil {
+			return err
+		}
+		if int(fam.DemoOffsetDays)+SkipDays > MaxOffsetDays {
+			return nil
+		}
 		if err := q.CopyMoodCheckinsForwardVisibleToParent(ctx, store.CopyMoodCheckinsForwardVisibleToParentParams{
 			Days: SkipDays, FamilyID: familyID, FromAt: now.AddDate(0, 0, -SkipDays), ToAt: now,
 		}); err != nil {
 			return err
 		}
-		_, err := q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+		_, err = q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
 		return err
 	})
 }
@@ -195,10 +210,37 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedPsychologist(ctx, q, fam.ID, mom.ID, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedBirthPlan(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedPregnancyPassport(ctx, q, fam.ID, mom.ID, partner.ID, today, week); err != nil {
 		return uuid.Nil, err
 	}
 	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedInsuranceCalls(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedAppointments(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := tasks.SeedPlanTasks(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	// Emily has already thanked Jake for the crib he ordered.
+	crib := today.AddDate(0, 0, -tasks.CribDoneDaysAgo)
+	if err := thanks.Seed(ctx, q, fam.ID, mom.ID, partner.ID, "Thank you for ordering the crib, I did not have to think about it once.",
+		thanks.Key("tasks_done", partner.ID, crib), crib.Add(20*time.Hour)); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil
@@ -325,4 +367,97 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 		}
 	}
 	return nil
+}
+
+// seedAppointments gives the mother a past and an upcoming OB visit (Jake comes to the
+// next one) with questions: one left unanswered at the past visit, so it carries over.
+func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID, today time.Time) error {
+	visit := func(title string, days int) (uuid.UUID, error) {
+		e, err := q.CreateCalendarEvent(ctx, store.CreateCalendarEventParams{
+			FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", Kind: "appointment", Title: title,
+			StartsAt: today.AddDate(0, 0, days).Add(10 * time.Hour), Location: ptr(demoBirthAddress),
+		})
+		if err != nil {
+			return uuid.Nil, err
+		}
+		if days > 0 {
+			err = q.AddCalendarEventAttendee(ctx, store.AddCalendarEventAttendeeParams{EventID: e.ID, MemberID: partner})
+		}
+		return e.ID, err
+	}
+	past, err := visit("OB visit with Dr. Shah", -14)
+	if err != nil {
+		return err
+	}
+	next, err := visit("OB visit with Dr. Shah", 9)
+	if err != nil {
+		return err
+	}
+	for _, aq := range []struct {
+		event      uuid.UUID
+		text, vis  string
+		answeredAt *time.Time
+	}{
+		{past, "Is the back pain normal at this stage?", "partner", nil},
+		{past, "When do we sign up for the birth class?", "family", ptr(today.AddDate(0, 0, -14).Add(11 * time.Hour))},
+		{next, "When should I schedule the glucose screening?", "private", nil},
+		{next, "Which vaccines does Jake need before the birth?", "family", nil},
+	} {
+		createdAt := today.AddDate(0, 0, -1)
+		if aq.event == past {
+			createdAt = today.AddDate(0, 0, -15)
+		}
+		created, err := q.CreateAppointmentQuestion(ctx, store.CreateAppointmentQuestionParams{
+			FamilyID: familyID, OwnerMemberID: mom, Visibility: aq.vis, AskedForEventID: aq.event, Body: aq.text, CreatedAt: createdAt,
+		})
+		if err != nil {
+			return err
+		}
+		if aq.answeredAt != nil {
+			if _, err := q.AnswerAppointmentQuestionVisibleToParent(ctx, store.AnswerAppointmentQuestionVisibleToParentParams{
+				ID: created.ID, FamilyID: familyID, ViewerID: mom, Answered: true, Answer: ptr("At the next visit, the clinic will hand out the schedule."),
+				AnsweredAt: pgtype.Timestamptz{Time: *aq.answeredAt, Valid: true},
+			}); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// seedInsuranceCalls gives the family three calls with the insurer: one the mother
+// shared with the family, one only she can see, and one the partner shared with her.
+func seedInsuranceCalls(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID, today time.Time) error {
+	for _, c := range []store.CreateInsuranceCallParams{
+		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", CalledAt: today.AddDate(0, 0, -6).Add(15 * time.Hour), Insurer: "Lakeside Health Plan",
+			Representative: ptr("Dana"), ReferenceNumber: ptr("CL-48213"), Topic: "add_baby",
+			Summary: "Asked how to add the baby after the birth. Dana said the plan needs the birth date and a request within 30 days; she will send the form.", FollowUpOn: ptr(today.AddDate(0, 0, 7))},
+		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "private", CalledAt: today.AddDate(0, 0, -2).Add(11 * time.Hour), Insurer: "Lakeside Health Plan",
+			Topic: "claim", Summary: "Asked about the status of a lab claim; still being processed."},
+		{FamilyID: familyID, OwnerMemberID: partner, Visibility: "partner", CalledAt: today.AddDate(0, 0, -20).Add(9 * time.Hour), Insurer: "Lakeside Health Plan",
+			Topic: "coverage", Summary: "Checked that the breast pump is covered; a prescription is needed."},
+	} {
+		if _, err := q.CreateInsuranceCall(ctx, c); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// seedBirthPlan gives the pregnant family a birth hospital, a desk phone, a note of preferences
+// and the parents' phones. All invented.
+const demoBirthAddress = "1200 Riverbend Dr, Austin, TX 78701"
+
+func seedBirthPlan(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID) error {
+	if _, err := q.UpsertBirthPlan(ctx, store.UpsertBirthPlanParams{
+		FamilyID: familyID, HospitalName: "Riverbend Women's Hospital", HospitalAddress: demoBirthAddress,
+		HospitalPhone: ptr("(512) 555-0100"), DeskPhone: ptr("(512) 555-0111"), TravelMinutes: pgtype.Int4{Int32: 18, Valid: true},
+		PreferencesNote: ptr("Ask about skin-to-skin right after birth and who may cut the cord."),
+	}); err != nil {
+		return err
+	}
+	if err := q.SetMemberPhone(ctx, store.SetMemberPhoneParams{ID: mom, Phone: ptr("(512) 555-0142"), FamilyID: familyID}); err != nil {
+		return err
+	}
+	return q.SetMemberPhone(ctx, store.SetMemberPhoneParams{ID: partner, Phone: ptr("(512) 555-0143"), FamilyID: familyID})
 }

@@ -100,9 +100,13 @@ func (s *Server) GetMemberWeeklyPlan(ctx context.Context, req GetMemberWeeklyPla
 	if err := access.Audit(ctx, s.q, familyID, m.ID, access.ActionRead, "weekly_plan", ""); err != nil {
 		return nil, err
 	}
-	out, err := aiplan.New(s.cfg.AI).Generate(ctx, facts)
-	if err != nil {
-		out = aiplan.Fallback(facts)
+	// Each Generate is a paid Claude call: past the family's limit the
+	// rule-based fallback is shown instead (limits.go).
+	out := aiplan.Fallback(facts)
+	if s.cfg.AI.Enabled() && s.aiLimiter.allow(familyID.String()) {
+		if gen, err := aiplan.New(s.cfg.AI).Generate(ctx, facts); err == nil {
+			out = gen
+		}
 	}
 	res := WeeklyPlan{MemberId: m.ID, GeneratedAt: now.UTC(), Fallback: out.Fallback, Intro: out.Intro, Sections: make([]WeeklyPlanSection, 0, len(out.Sections))}
 	for _, sec := range out.Sections {

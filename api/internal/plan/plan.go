@@ -102,6 +102,7 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 		Viewer:        rules.Role(viewer.Role),
 		Stage:         fam.Stage,
 		DueDate:       fam.DueDate,
+		PregnancyLoss: fam.PregnancyLossRecordedAt.Valid,
 		PregnancyLabs: map[string]time.Time{},
 		Immunizations: map[rules.Role]map[string]time.Time{rules.Mother: {}, rules.Partner: {}},
 		CareTeam:      map[string]bool{},
@@ -220,6 +221,15 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 		if b.OwnerMemberID == memberID && b.StartsAt.After(now) {
 			f.NextSessionBooked = true
 		}
+	}
+
+	// The childcare tracker is family-wide: both parents see every option.
+	options, err := q.ListChildcareOptions(ctx, familyID)
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, o := range options {
+		f.ChildcareOptions = append(f.ChildcareOptions, rules.ChildcareOptionFacts{Name: o.Name, Status: o.Status, DecideBy: o.DecideBy})
 	}
 	return f, nil
 }

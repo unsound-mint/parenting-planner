@@ -22,27 +22,16 @@ func event(title, vis string, startsIn time.Duration, attendees ...uuid.UUID) ma
 	}
 }
 
+// calTitles lists the stored events only: seeded tasks also appear in the feed and have their own test.
 func calTitles(l httpapi.CalendarEventList) []string {
 	out := []string{}
 	for _, e := range l.Items {
+		if e.Kind == httpapi.CalendarEventKindTask {
+			continue
+		}
 		out = append(out, e.Title)
 	}
 	return out
-}
-
-// The stubs for appointment questions are still 501 until #253.
-func TestAppointmentQuestionsAreNotImplementedYet(t *testing.T) {
-	c := testutil.New(t)
-	fam := c.StartDemo("pregnancy")
-	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
-	for _, call := range []stubCall{
-		{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}},
-		{"POST", m + "/appointment-questions", map[string]any{"text": "Is my iron level fine?", "visibility": "private"}},
-		{"GET", m + "/appointment-questions", nil},
-		{"PATCH", m + "/appointment-questions/00000000-0000-4000-8000-000000000001", map[string]any{"answered": true}},
-	} {
-		call.expectNotImplemented(t, c)
-	}
 }
 
 func TestCalendarValidation(t *testing.T) {
@@ -180,10 +169,67 @@ func TestCalendarIsScopedToTheFamily(t *testing.T) {
 	c.Get(calBase(momA), http.StatusNotFound, nil)
 	var l httpapi.CalendarEventList
 	c.Get(calBase(testutil.Parent(t, second, httpapi.ParentRoleMother)), http.StatusOK, &l)
-	if len(l.Items) != 0 {
+	if len(calTitles(l)) != 0 {
 		t.Errorf("another family's events leaked: %v", calTitles(l))
 	}
 	if n := c.AuditCount(first.Id, "create", "calendar_event"); n != 1 {
 		t.Errorf("create audit rows = %d, want 1", n)
 	}
+}
+
+func TestTaskDeadlinesAppearInTheCalendarAndToday(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	// Jake owns "Book the birth class", due in 5 days; Mom owns the car seat (21 days) and the pediatrician (30).
+	feed := func(p httpapi.Parent, scope string) []httpapi.CalendarEvent {
+		var l httpapi.CalendarEventList
+		c.Get(calBase(p)+"?scope="+scope+"&from=2026-11-14&to=2026-12-14", http.StatusOK, &l)
+		var out []httpapi.CalendarEvent
+		for _, e := range l.Items {
+			if e.Kind == httpapi.CalendarEventKindTask {
+				out = append(out, e)
+			}
+		}
+		return out
+	}
+	if got := feed(jake, "mine"); len(got) != 1 || got[0].Title != "Book the birth class" || !got[0].AllDay || got[0].TaskId == nil || got[0].OwnerId == nil || *got[0].OwnerId != jake.Id {
+		t.Fatalf("Jake's own tasks = %+v", got)
+	}
+	if got := feed(mom, "partner"); len(got) != 1 || got[0].Title != "Book the birth class" {
+		t.Errorf("Mom sees Jake's task under partner: %+v", got)
+	}
+	if got := feed(mom, "mine"); len(got) < 2 {
+		t.Errorf("Mom's own tasks: %+v", got)
+	}
+
+	// A ticked task leaves the calendar.
+	var l httpapi.TaskList
+	c.Get(tasksPath(mom.Id)+"?kind=task", http.StatusOK, &l)
+	c.Patch(tasksPath(mom.Id)+"/"+byTitle(l.Items, "Book the birth class").Id.String(), map[string]any{"done": true}, http.StatusOK, nil)
+	if got := feed(jake, "mine"); len(got) != 0 {
+		t.Errorf("a done task must leave the calendar: %+v", got)
+	}
+
+	// Today: the person's tasks due within 7 days, then the ones offered to them.
+	var td httpapi.Today
+	c.Get(todayPath(jake.Id), http.StatusOK, &td)
+	if len(td.Tasks) != 1 || td.Tasks[0].Title != "Install the car seat" || td.Tasks[0].PendingAssigneeId == nil {
+		t.Errorf("Jake's Today shows the task offered to him: %+v", td.Tasks)
+	}
+	var mt httpapi.Today
+	c.Get(todayPath(mom.Id), http.StatusOK, &mt)
+	for _, tk := range mt.Tasks {
+		if tk.AssigneeId != mom.Id || tk.Kind == httpapi.TaskKindHospitalBag {
+			t.Errorf("Mom's Today must hold only her own tasks: %+v", tk)
+		}
+	}
+}
+
+// Replace with the reference tests when UpdateCalendarEvent lands.
+func TestUpdateCalendarEventIsNotImplementedYet(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
+	stubCall{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}}.expectNotImplemented(t, c)
 }
