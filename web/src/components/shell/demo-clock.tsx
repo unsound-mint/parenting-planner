@@ -13,11 +13,12 @@ const dateFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric
 
 // Demo time: moves this family's clock a week ahead so a judge sees the plan
 // change without waiting. The label stays on while the clock is shifted.
-export function DemoClock({ memberId, daysAhead }: { memberId: string; daysAhead: number }) {
+export function DemoClock({ memberId, daysAhead, className, onSkip }: { memberId: string; daysAhead: number; className?: string; onSkip?: () => void }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function skip() {
+    onSkip?.();
     startTransition(async () => {
       const before = await readPlan(memberId);
       const { data, error } = await api.POST("/family/demo-time-skips");
@@ -35,11 +36,6 @@ export function DemoClock({ memberId, daysAhead }: { memberId: string; daysAhead
 
   return (
     <>
-      {daysAhead > 0 && (
-        <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 font-mono text-caption font-medium text-status-due">
-          Demo time +{daysAhead} days
-        </span>
-      )}
       <button
         type="button"
         onClick={skip}
@@ -47,10 +43,16 @@ export function DemoClock({ memberId, daysAhead }: { memberId: string; daysAhead
         className={cn(
           "order-4 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-label font-medium transition-colors duration-150 hover:bg-muted md:min-h-8",
           "outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60",
+          className,
         )}
       >
         <FastForward className="size-3.5" aria-hidden />
         {pending ? "Skipping..." : "Skip a week"}
+        {daysAhead > 0 && (
+          <span title={`Demo time is ${daysAhead} days ahead`} className="rounded-full bg-status-due-soft px-1.5 font-mono text-caption text-status-due">
+            +{daysAhead}d
+          </span>
+        )}
       </button>
     </>
   );

@@ -32,11 +32,13 @@ const GENERIC = new Set(["preg", "pregnancy", "mother", "mom", "partner", "baby"
 const topic = (id: string) => id.split(/[-_]/).filter((w) => w && !GENERIC.has(w));
 
 /**
- * A guide repeats a plan item when it cites the same guideline or its id names
- * the same topic or category ("preg-tdap" and rule "tdap-pregnancy"). The contract has no
- * link between guides and rules yet; replace this with one when it does.
+ * A guide repeats a plan item when it explains the item's rule (Guide.ruleId).
+ * While the API does not fill ruleId, fall back to a guess: the same guideline
+ * source, or an id that names the same topic or category ("preg-tdap" and rule
+ * "tdap-pregnancy"). Drop the guess once the catalog sets ruleId everywhere.
  */
 export function guideRepeatsPlan(guide: Guide, items: PlanItem[]): boolean {
+  if (guide.ruleId) return items.some((i) => i.ruleId === guide.ruleId);
   const words = topic(guide.id);
   return items.some(
     (i) =>
