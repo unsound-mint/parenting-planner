@@ -3,7 +3,7 @@ import { CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { serverApi } from "@/lib/api/server";
 import type { Family, PlanItem } from "@/lib/api/types";
-import { countThings, familyContext } from "@/lib/format";
+import { childCalled, countThings, familyContext } from "@/lib/format";
 import { familyPeople } from "@/lib/roles";
 import { categoryIcon, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,7 @@ export async function ChildHome({ memberId, family }: { memberId: string; family
   const open = vaccines.filter((v) => v.status !== "done");
   const unseen = milestones.data ? milestones.data.items.filter((m) => !m.observed).length : 0;
 
-  const headline = dueItems.length > 0 ? `${countThings(dueItems.length)} for ${child.name} ${dueItems.length === 1 ? "is" : "are"} due.` : `${child.name} is up to date.`;
+  const headline = dueItems.length > 0 ? `${countThings(dueItems.length)} for ${childCalled(child)} ${dueItems.length === 1 ? "is" : "are"} due.` : `${childCalled(child, { capital: true })} is up to date.`;
   const sub = [milestones.data ? `${unseen} milestones to watch for` : undefined, childcare.length ? `${new Set(childcare.map((s) => s.memberId)).size} of you cover preschool` : undefined].filter(Boolean).join(" · ");
 
   return (
@@ -87,7 +87,7 @@ export async function ChildHome({ memberId, family }: { memberId: string; family
         </Stack>
       </PageGrid>
 
-      {milestones.data && <MilestoneCard memberId={memberId} childId={child.id} childName={child.name} checklist={milestones.data} />}
+      {milestones.data && <MilestoneCard memberId={memberId} childId={child.id} checklist={milestones.data} />}
     </PageFrame>
   );
 }

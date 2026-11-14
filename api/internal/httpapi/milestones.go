@@ -3,7 +3,6 @@ package httpapi
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/unsound-mint/parenting-planner/api/internal/milestones"
@@ -38,7 +37,7 @@ func (s *Server) ListChildMilestones(ctx context.Context, req ListChildMilestone
 		return nil, err
 	}
 	out := MilestoneChecklist{ChildId: req.ChildId, ChecklistAgeMonths: age, Items: make([]Milestone, 0, len(items)),
-		Source: Source{Title: fmt.Sprintf("CDC: Milestones by %d Years", age/12), Url: milestones.SourceURL(age), CheckedAt: apiDate(milestones.CheckedAt)}}
+		Source: Source{Title: milestones.SourceTitle(age), Url: milestones.SourceURL(age), CheckedAt: apiDate(milestones.CheckedAt)}}
 	for _, item := range items {
 		var date *time.Time
 		if day, ok := observed[item.ID]; ok {

@@ -5,11 +5,12 @@ import { serverApi } from "@/lib/api/server";
 import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today, VoiceNote } from "@/lib/api/types";
 import { agoWords, breastSide, durationWords, isAsleep, lastActivityAt, nextFeedEstimate } from "@/lib/care";
 import { getEssentialsOnly } from "@/lib/essentials";
-import { familyContext, formatClock } from "@/lib/format";
+import { childCalled, familyContext, formatClock, givenName } from "@/lib/format";
 import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
 import { careLogIcon, careLogLabel, careLogTint, diaperLabel, feedMethodLabel, roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { AllergyChips, AllergyLabel, BabyCard } from "@/components/baby/baby-card";
+import { MilestoneCard } from "@/components/child/milestone-card";
 import { FeedLogger, QuickAdd, SleepLogger, WhenPicker, WhenProvider, type QuickAction } from "@/components/baby/care-logger";
 import { CareChart } from "@/components/baby/care-chart";
 import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
@@ -51,7 +52,8 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [log, handoffs, passport, voiceProbe, essentialsOnly] = await Promise.all([
+  const parent = !isCaregiver(me.role);
+  const [log, handoffs, passport, voiceProbe, milestones, essentialsOnly] = await Promise.all([
     // A week, for the chart's 7-day view; the 24-hour view is the end of it.
     canLog ? api.GET("/members/{memberId}/care-log", { params: { path: { memberId }, query: { days: 7 } } }) : undefined,
     canLog ? api.GET("/members/{memberId}/handoffs", path) : undefined,
@@ -59,6 +61,8 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
     // Probe: a read of a note that cannot exist is 404 once voice notes work and 501 before.
     // Preview mocks cover the upload but not audio, so in preview the recorder stays on.
     canLog ? api.GET("/members/{memberId}/voice-notes/{voiceNoteId}", { params: { path: { memberId, voiceNoteId: NO_NOTE } }, parseAs: "stream" }) : undefined,
+    // The CDC checklist the baby is heading to (2, 4, 6, 9 or 12 months); parents only, like the API.
+    parent ? api.GET("/members/{memberId}/children/{childId}/milestones", { params: { path: { memberId, childId: child.id } } }) : undefined,
     // "Essentials only" is a parent setting; caregivers always see the full log.
     caregiver ? false : getEssentialsOnly(memberId),
   ]);
@@ -78,7 +82,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
     (p) => p.id !== memberId && allows({ role: p.role, permissions: family.caregivers?.find((c) => c.id === p.id)?.permissions }, "care_log"),
   );
 
-  const headline = incoming ? `${byId.get(incoming.fromMemberId)?.displayName ?? "Someone"} is handing ${child.name} over to you.` : `${child.name}'s day`;
+  const headline = incoming ? `${byId.get(incoming.fromMemberId)?.displayName ?? "Someone"} is handing ${childCalled(child)} over to you.` : `${givenName(child) ? `${givenName(child)}'s` : "Your baby's"} day`;
   // The side to offer first is the one not used last time; after "both" either is fine.
   const lastBreast = care.items.find((e) => e.kind === "feed" && breastSide(e));
   const nextSide = ({ left: "right", right: "left", both: undefined } as const)[breastSide(lastBreast) ?? "both"];
@@ -167,9 +171,9 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
             <section aria-labelledby="handoff-title" className="rounded-2xl border border-border bg-card p-4">
               <h2 id="handoff-title" className="mb-3 flex items-center gap-2 text-title">
                 <Handshake aria-hidden className="size-4.5 text-muted-foreground" />
-                Hand over {child.name}
+                Hand over {childCalled(child)}
               </h2>
-              <HandoffForm memberId={memberId} recipients={recipients} childName={child.name} voice={voice} />
+              <HandoffForm memberId={memberId} recipients={recipients} childName={childCalled(child)} voice={voice} />
             </section>
           )
         )}
@@ -188,6 +192,12 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         {passport?.data && <BabyCard passport={passport.data} />}
         <PortraitFlipbook memberId={memberId} childId={child.id} />
       </aside>
+
+      {milestones?.data && (
+        <div className="min-w-0 @5xl:col-span-2">
+          <MilestoneCard memberId={memberId} childId={child.id} checklist={milestones.data} />
+        </div>
+      )}
     </PageFrame>
   );
 }

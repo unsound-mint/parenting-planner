@@ -147,6 +147,7 @@ func TestCustomDetailsAreValidated(t *testing.T) {
 		"born in the future":   {with("stage", "postpartum", "childBirthDate", day(3)), "bad_details"},
 		"age outside stage":    {with("stage", "infant", "childBirthDate", day(-800)), "bad_details"},
 		"blank mother name":    {with("stage", "planning", "motherName", "   "), "bad_details"},
+		"dash partner name":    {with("stage", "planning", "partnerName", "-"), "bad_details"},
 		"missing partner name": {map[string]string{"stage": "planning", "motherName": "Ana"}, "invalid_request"},
 		"unknown stage":        {with("stage", "teen"), "invalid_request"},
 		"name too long":        {with("stage", "planning", "motherName", strings.Repeat("a", 41)), "invalid_request"},

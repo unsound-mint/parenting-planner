@@ -7,7 +7,13 @@ import { api } from "@/lib/api/client";
 import type { Milestone, MilestoneChecklist, MilestoneDomain } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { SourceLink, shortSource } from "@/components/joy/source-line";
+import { SourceLink } from "@/components/joy/source-line";
+
+/** The CDC names its lists "by 2 months", "by 1 year", "by 30 months", "by 4 years". */
+function ageLabel(months: number): string {
+  if (months === 12) return "1 year";
+  return months % 12 === 0 ? `${months / 12} years` : `${months} months`;
+}
 
 const domains: { id: MilestoneDomain; label: string; icon: LucideIcon }[] = [
   { id: "social_emotional", label: "Social and emotional", icon: Smile },
@@ -18,11 +24,11 @@ const domains: { id: MilestoneDomain; label: string; icon: LucideIcon }[] = [
 
 // The CDC checklist for the child's age. A parent ticks what they have seen. An
 // unticked line is never called a delay: it only means "watch for it and bring it
-// to the next check-up". The source and its checked date sit at the foot.
-export function MilestoneCard({ memberId, childId, childName, checklist }: { memberId: string; childId: string; childName: string; checklist: MilestoneChecklist }) {
+// to the next check-up". The CDC page is linked in the closing sentence.
+export function MilestoneCard({ memberId, childId, checklist }: { memberId: string; childId: string; checklist: MilestoneChecklist }) {
   const [items, setItems] = useState(checklist.items);
   const seen = items.filter((m) => m.observed).length;
-  const years = Math.floor(checklist.checklistAgeMonths / 12);
+  const age = ageLabel(checklist.checklistAgeMonths);
 
   async function toggle(m: Milestone) {
     const next = { ...m, observed: !m.observed };
@@ -46,7 +52,7 @@ export function MilestoneCard({ memberId, childId, childName, checklist }: { mem
           <Sprout className="size-4.5" aria-hidden />
         </span>
         <h2 id="milestones-title" className="flex-1 text-title">
-          What {childName} can do at {years}
+          What most children do by {age}
         </h2>
         <p className="font-mono text-label text-muted-foreground">
           {seen} of {items.length} seen
@@ -99,8 +105,8 @@ export function MilestoneCard({ memberId, childId, childName, checklist }: { mem
       </div>
 
       <p className="mt-5 border-t border-border pt-4 text-label text-muted-foreground">
-        Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis.{" "}
-        <SourceLink source={checklist.source}>{shortSource(checklist.source.title)}</SourceLink>
+        Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis. The list follows the{" "}
+        <SourceLink source={checklist.source}>CDC milestones by {age}</SourceLink>.
       </p>
     </section>
   );

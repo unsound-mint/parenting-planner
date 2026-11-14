@@ -1,0 +1,782 @@
+{
+  "about": "Weekly reads for baby weeks 0 to 52, written as our own plain-language paraphrase of the linked CDC, AAP, NICHD, NIMH and Postpartum Support International pages.",
+  "sources": {
+    "cdc-2m": {
+      "title": "CDC: Milestones by 2 months",
+      "url": "https://www.cdc.gov/act-early/milestones/2-months.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-4m": {
+      "title": "CDC: Milestones by 4 months",
+      "url": "https://www.cdc.gov/act-early/milestones/4-months.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-6m": {
+      "title": "CDC: Milestones by 6 months",
+      "url": "https://www.cdc.gov/act-early/milestones/6-months.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-9m": {
+      "title": "CDC: Milestones by 9 months",
+      "url": "https://www.cdc.gov/act-early/milestones/9-months.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-1y": {
+      "title": "CDC: Milestones by 1 year",
+      "url": "https://www.cdc.gov/act-early/milestones/1-year.html",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-1m": {
+      "title": "HealthyChildren.org (AAP): Developmental milestones, 1 month",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Developmental-Milestones-1-Month.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-7m": {
+      "title": "HealthyChildren.org (AAP): Developmental milestones, 7 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Developmental-Milestones-7-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-12m": {
+      "title": "HealthyChildren.org (AAP): Developmental milestones, 12 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Developmental-Milestones-12-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-hunger": {
+      "title": "CDC: Signs your child is hungry or full",
+      "url": "https://www.cdc.gov/infant-toddler-nutrition/mealtime/signs-your-child-is-hungry-or-full.html",
+      "checkedAt": "2026-11-15"
+    },
+    "nichd-sleep": {
+      "title": "NICHD Safe to Sleep: Ways to reduce the risk of SIDS",
+      "url": "https://safetosleep.nichd.nih.gov/reduce-risk/reduce",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-ahT": {
+      "title": "CDC: About abusive head trauma",
+      "url": "https://www.cdc.gov/child-abuse-neglect/about/about-abusive-head-trauma.html",
+      "checkedAt": "2026-11-15"
+    },
+    "nimh-perinatal": {
+      "title": "NIMH: Perinatal depression",
+      "url": "https://www.nimh.nih.gov/health/publications/perinatal-depression",
+      "checkedAt": "2026-11-15"
+    },
+    "psi-dads": {
+      "title": "Postpartum Support International: Help for dads",
+      "url": "https://www.postpartum.net/get-help/help-for-dads/",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-car-seat": {
+      "title": "CDC: Child passenger safety",
+      "url": "https://www.cdc.gov/child-passenger-safety/about/index.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-solids": {
+      "title": "CDC: When, what, and how to introduce solid foods",
+      "url": "https://www.cdc.gov/infant-toddler-nutrition/foods-and-drinks/when-what-and-how-to-introduce-solid-foods.html",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-teething": {
+      "title": "HealthyChildren.org (AAP): Teething pain",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/teething-tooth-care/Pages/Teething-Pain.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-newborn-screening": {
+      "title": "CDC: About newborn screening",
+      "url": "https://www.cdc.gov/newborn-screening/about/index.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-hearing": {
+      "title": "CDC: Screening for hearing loss in children",
+      "url": "https://www.cdc.gov/hearing-loss-children/screening/index.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-bf-amount": {
+      "title": "CDC: How much and how often to breastfeed",
+      "url": "https://www.cdc.gov/infant-toddler-nutrition/breastfeeding/how-much-and-how-often.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-formula-amount": {
+      "title": "CDC: How much and how often to feed infant formula",
+      "url": "https://www.cdc.gov/infant-toddler-nutrition/formula-feeding/how-much-and-how-often.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-avoid": {
+      "title": "CDC: Foods and drinks to avoid or limit",
+      "url": "https://www.cdc.gov/infant-toddler-nutrition/foods-and-drinks/foods-and-drinks-to-avoid-or-limit.html",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-choking": {
+      "title": "CDC: Choking hazards",
+      "url": "https://www.cdc.gov/infant-toddler-nutrition/foods-and-drinks/choking-hazards.html",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-dads": {
+      "title": "HealthyChildren.org (AAP): New dads and partners",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/A-Special-Message-to-Fathers.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-bonding": {
+      "title": "HealthyChildren.org (AAP): Ways you can bond with your baby",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/ways-you-can-bond-with-your-baby.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-reflexes": {
+      "title": "HealthyChildren.org (AAP): Newborn reflexes",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/newborn-reflexes.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-move-0-3": {
+      "title": "HealthyChildren.org (AAP): Movement milestones, birth to 3 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/pages/Movement-Birth-to-Three-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-move-4-7": {
+      "title": "HealthyChildren.org (AAP): Movement milestones, 4 to 7 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Movement-4-to-7-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-move-8-12": {
+      "title": "HealthyChildren.org (AAP): Movement milestones, 8 to 12 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Movement-8-to-12-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-hearing-sounds": {
+      "title": "HealthyChildren.org (AAP): Hearing and making sounds",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Hearing-and-Making-Sounds.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-lang-4-7": {
+      "title": "HealthyChildren.org (AAP): Language development, 4 to 7 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Language-Development-4-to-7-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-lang-8-12": {
+      "title": "HealthyChildren.org (AAP): Language development, 8 to 12 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Language-Development-8-to-12-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-books": {
+      "title": "HealthyChildren.org (AAP): How to share books with your baby",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/how-to-share-books-with-your-baby.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-literacy": {
+      "title": "HealthyChildren.org (AAP): Developmental milestones of early literacy",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/Pages/Developmental-Milestones-of-Early-Literacy.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-colic": {
+      "title": "HealthyChildren.org (AAP): Colic relief tips",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/crying-colic/Pages/Colic.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-fussy": {
+      "title": "HealthyChildren.org (AAP): How to calm a fussy baby",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/crying-colic/Pages/Calming-A-Fussy-Baby.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-sleep-getting": {
+      "title": "HealthyChildren.org (AAP): Getting your baby to sleep",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/sleep/Pages/getting-your-baby-to-sleep.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-back-tummy": {
+      "title": "HealthyChildren.org (AAP): Back to sleep, tummy to play",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/sleep/Pages/back-to-sleep-tummy-to-play.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-colostrum": {
+      "title": "HealthyChildren.org (AAP): Colostrum, your baby's first meal",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/breastfeeding/Pages/Colostrum-Your-Babys-First-Meal.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-home-safety": {
+      "title": "HealthyChildren.org (AAP): Home safety tips",
+      "url": "https://www.healthychildren.org/English/safety-prevention/at-home/Pages/home-safety-heres-how.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-tipover": {
+      "title": "HealthyChildren.org (AAP): Preventing furniture and TV tip-overs",
+      "url": "https://www.healthychildren.org/English/safety-prevention/at-home/Pages/Preventing-Furniture-and-TV-Tip-Overs.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-walkers": {
+      "title": "HealthyChildren.org (AAP): Baby walkers, a dangerous choice",
+      "url": "https://www.healthychildren.org/English/safety-prevention/at-home/Pages/baby-walkers-a-dangerous-choice.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-poison": {
+      "title": "HealthyChildren.org (AAP): Childproofing your home for poisons",
+      "url": "https://www.healthychildren.org/English/safety-prevention/at-home/Pages/Childproofing-Your-Home.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-water": {
+      "title": "HealthyChildren.org (AAP): Infant drowning prevention and water safety",
+      "url": "https://www.healthychildren.org/English/safety-prevention/at-play/Pages/Infant-Water-Safety.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-emotional-8-12": {
+      "title": "HealthyChildren.org (AAP): Emotional and social development, 8 to 12 months",
+      "url": "https://www.healthychildren.org/English/ages-stages/baby/pages/Emotional-and-Social-Development-8-12-Months.aspx",
+      "checkedAt": "2026-11-15"
+    },
+    "aap-separation": {
+      "title": "HealthyChildren.org (AAP): Easing separation anxiety",
+      "url": "https://www.healthychildren.org/English/ages-stages/toddler/Pages/Soothing-Your-Childs-Separation-Anxiety.aspx",
+      "checkedAt": "2026-11-15"
+    }
+  },
+  "entries": [
+    {
+      "kind": "baby_week",
+      "n": 0,
+      "title": "Skin to skin and the first feeds",
+      "body": "Many parents find that holding a newborn skin to skin helps the baby settle, and either of you can do it. The first milk, colostrum, comes in small amounts, and the AAP says frequent feeds matter more than long ones in these first days. Some early weight loss is common. Tell your pediatrician or a lactation consultant if you are unsure how feeding is going.",
+      "sources": [
+        "aap-colostrum",
+        "aap-dads",
+        "cdc-2m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 1,
+      "title": "Reading your baby's hunger cues",
+      "body": "CDC lists early hunger cues for babies under 6 months: hands to mouth, turning toward the breast or bottle, lip smacking, and clenched hands. Crying tends to come late, so the earlier signs are easier to answer. A full baby often closes the mouth, turns away, or relaxes the hands. Take turns feeding so you both learn your baby's own signals.",
+      "sources": [
+        "cdc-hunger",
+        "cdc-2m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 2,
+      "title": "How often a newborn eats",
+      "body": "CDC notes that newborns have tiny stomachs and may want to eat every 1 to 3 hours in the first days, and that formula-fed babies also feed 8 to 12 times in 24 hours at first. Cluster feeding is common. Ask your pediatrician whether your baby needs vitamin D drops, and call if you are worried about how much your baby is taking.",
+      "sources": [
+        "cdc-bf-amount",
+        "cdc-formula-amount",
+        "aap-1m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 3,
+      "title": "Newborn and hearing screening",
+      "body": "Newborn screening is a state program that tests a few drops of heel blood for serious conditions so treatment can start early if needed. CDC also describes hearing screening, ideally by 1 month of age, as a quick, painless check. If a result needs a follow-up, your pediatrician can explain the next step. Keep the paperwork where both of you can find it.",
+      "sources": [
+        "cdc-newborn-screening",
+        "cdc-hearing",
+        "cdc-2m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 4,
+      "title": "Setting up a safe sleep space",
+      "body": "Safe to Sleep advises placing babies on their backs for every nap and night until age 1, on a firm, flat surface with only a fitted sheet. It also suggests keeping the baby's own sleep space in your room, not in your bed, for at least the first 6 months. At 1 month the AAP says babies mostly eat, sleep, and cry. Keep pillows, bumpers, and soft toys out of the crib.",
+      "sources": [
+        "nichd-sleep",
+        "aap-1m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 5,
+      "title": "When the crying gets hard",
+      "body": "The AAP says daily crying often peaks around 6 weeks and usually eases by 3 to 4 months. CDC says long, hard-to-soothe crying is normal and that shaking, throwing, or hitting a baby is never the right response. If you feel yourself getting angry, lay the baby down safely, step away, and check back every 5 to 10 minutes, or hand the baby to your partner or a friend.",
+      "sources": [
+        "cdc-ahT",
+        "aap-colic",
+        "cdc-2m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 6,
+      "title": "Your own mood matters too",
+      "body": "NIMH describes baby blues as mild mood changes and tiredness many mothers feel in the first 2 weeks. Stronger or longer-lasting symptoms, which most often begin 4 to 8 weeks after birth, are worth raising with a professional. Postpartum Support International says about one in ten dads also experiences postpartum depression. Check in with each other this week, and tell your doctor if either of you feels unusually low.",
+      "sources": [
+        "nimh-perinatal",
+        "psi-dads",
+        "cdc-2m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 7,
+      "title": "First real smiles",
+      "body": "The AAP says real smiles often appear around 6 weeks, and CDC lists smiling back when you talk or smile at them among the things many babies do by 2 months. Babies focus best on faces about 8 to 12 inches away, so hold yours close and talk slowly, then pause to see if your baby answers. Babies vary, so bring any questions to the check-up around 2 months.",
+      "sources": [
+        "cdc-2m",
+        "aap-move-0-3",
+        "aap-1m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 8,
+      "title": "A little tummy time each day",
+      "body": "The AAP suggests starting tummy time soon after coming home and building toward about 15 to 30 minutes in total each day by around 7 weeks, in short sessions while the baby is awake and watched. CDC lists lifting the head on the tummy as a milestone many babies reach by 2 months. If your baby protests, lie back and put the baby on your chest. Sleep is always on the back.",
+      "sources": [
+        "aap-back-tummy",
+        "cdc-2m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 9,
+      "title": "Startles and early reflexes",
+      "body": "Many early movements are reflexes. The AAP says the startle reflex usually peaks in the first month and fades around 2 months, so you may see it softening now. Rooting and sucking help newborns find food in the first weeks. As reflexes fade, CDC lists bringing hands to the mouth and pushing up on the forearms by 4 months. Mention to your pediatrician any clear difference between your baby's two sides.",
+      "sources": [
+        "aap-reflexes",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 10,
+      "title": "Cooing and talking back",
+      "body": "Around 2 months, the AAP says babies often start cooing and repeating vowel sounds, and these early exchanges teach turn-taking. Babies tend to like the human voice, especially higher pitches. Talk during diaper changes and feeds, leave a pause, and answer the sounds you get. CDC lists making sounds back when you talk among the milestones many babies show by 4 months.",
+      "sources": [
+        "aap-hearing-sounds",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 11,
+      "title": "Fussy evenings and what helps",
+      "body": "The AAP lists rocking, walking with the baby in a carrier, white noise, and swaddling as ways to soothe a fussy baby, and suggests spacing feeds at least 2 to 2 and a half hours apart to avoid overfeeding. Colic usually eases by 3 to 4 months. Trade shifts so each of you gets a real break. Ask your pediatrician if the crying seems different from usual.",
+      "sources": [
+        "aap-fussy",
+        "aap-colic",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 12,
+      "title": "Car seat basics",
+      "body": "CDC recommends a rear-facing car seat with a harness from birth until about age 2 to 4, kept rear-facing until the child reaches the seat's weight or height limit. A rear-facing seat never goes in the front seat because of airbags. Practice the installation together, read the seat's manual, and ask your pediatrician where to get the fit checked. Your baby is heading toward the 4-month milestones.",
+      "sources": [
+        "cdc-car-seat",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 13,
+      "title": "Sleep changes around 3 months",
+      "body": "Safe to Sleep says to stop swaddling once a baby begins to roll, usually around 3 months. The AAP adds that regular sleep cycles develop only gradually, around 4 months, and suggests keeping nights low-key with dim light and little chatter at feeds. Many parents keep days lively for contrast. Safe to Sleep places babies on their back for every sleep, naps included.",
+      "sources": [
+        "nichd-sleep",
+        "aap-sleep-getting",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 14,
+      "title": "Floor play builds strong muscles",
+      "body": "Movements often get smoother around 3 months, with relaxed hands, stronger kicks, and more purposeful grasping. The AAP notes that bouncer seats and harnesses limit the muscle practice babies need, so floor time on a blanket helps. CDC lists swinging at toys among the 4-month milestones, so hold a toy within reach. Mention it if your baby seems very limp or does not use one side.",
+      "sources": [
+        "aap-move-0-3",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 15,
+      "title": "Sharing a first book",
+      "body": "The AAP recommends reading with babies from birth, since they soak up the rhythm and sounds of speech. Younger babies enjoy your voice, eye contact, and simple rhymes. If your baby looks away or fusses, take a break, because you do not need to finish the book. A short story before naps or bedtime can become a calming cue, and each parent can pick a favorite.",
+      "sources": [
+        "aap-books",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 16,
+      "title": "Sharing the nights and the days",
+      "body": "The AAP encourages partners to share the night work, such as diaper changes and nighttime shifts, to reduce sleep deprivation. It also says responding to crying builds trust and that babies can bond closely with several people. Pick one stretch this week where one of you takes the baby while the other sleeps, then swap. CDC lists looking for your attention as a 4-month milestone.",
+      "sources": [
+        "aap-dads",
+        "aap-bonding",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 17,
+      "title": "Babbling and chuckles begin",
+      "body": "Around 4 months, the AAP says babies start babbling with the rhythms of their home language, and repeating the sounds back encourages it. CDC lists chuckling when you try to make them laugh and smiling on purpose to get your attention. Try a game of silly faces and sounds. Bring any questions to the check-up around 4 months.",
+      "sources": [
+        "aap-lang-4-7",
+        "cdc-4m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 18,
+      "title": "Rolling over, tummy to back",
+      "body": "CDC lists rolling from tummy to back among the milestones heading toward 6 months, and the AAP says that direction usually comes first, with most babies rolling both ways by about 7 months. Rolling can start suddenly, so never leave your baby alone on a bed, sofa, or changing table. The floor is the safest place for play. Timing varies, so ask your pediatrician if you wonder.",
+      "sources": [
+        "cdc-6m",
+        "aap-move-4-7",
+        "aap-move-8-12"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 19,
+      "title": "Everything goes in the mouth",
+      "body": "CDC lists putting things in the mouth to explore them among the milestones around 6 months, and the AAP says mouthing books is a good sign of interest, with sturdy board books holding up best. Check the floor for small objects that could cause choking, and keep button batteries out of reach. Agree on a quick floor sweep you each do before play.",
+      "sources": [
+        "cdc-6m",
+        "aap-literacy",
+        "aap-poison"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 20,
+      "title": "Settling to sleep",
+      "body": "The AAP suggests that from 4 months on, putting babies down drowsy rather than fully asleep can help them learn to fall asleep on their own. Waking and settling again within a few minutes is normal around 6 months. Still respond to hunger or illness, and keep placing your baby on the back to sleep. Pick a simple bedtime routine you can both repeat.",
+      "sources": [
+        "aap-sleep-getting",
+        "nichd-sleep",
+        "cdc-6m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 21,
+      "title": "Faces, mirrors, familiar people",
+      "body": "CDC lists recognizing familiar people, liking to look in a mirror, and laughing among the milestones around 6 months. Hold your baby up to a mirror and make faces together. The AAP says babies can form close bonds with several people, so partners, grandparents, and sitters can all have a place. Give each adult some regular one-on-one time with the baby.",
+      "sources": [
+        "cdc-6m",
+        "aap-bonding"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 22,
+      "title": "Signs of readiness for solids",
+      "body": "CDC says solid foods can begin around 6 months and are not recommended before 4 months. Signs of readiness include sitting up with or without support, controlling the head and neck, opening the mouth for food, and swallowing food instead of pushing it out. Watch for these signs together rather than counting days, and ask your pediatrician what fits your baby.",
+      "sources": [
+        "cdc-solids",
+        "cdc-6m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 23,
+      "title": "Practicing to sit",
+      "body": "The AAP says babies need support while they practice sitting, leaning forward on their arms at first, and by about 6 to 8 months many stay upright without help. CDC lists leaning on hands when sitting and pushing up on straight arms during tummy time. Sit on the floor with cushions around your baby and offer toys at chest height.",
+      "sources": [
+        "aap-move-4-7",
+        "cdc-6m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 24,
+      "title": "Starting solids, slowly",
+      "body": "CDC suggests offering one single-ingredient food at a time, waiting 3 to 5 days between new foods so reactions are easy to spot, and starting with smooth, mashed, or pureed textures. CDC lists closing the lips to show no more as a sign of fullness, so let your baby decide when a meal is over. If your baby has severe eczema or an egg allergy, ask your pediatrician about when to introduce peanut.",
+      "sources": [
+        "cdc-solids",
+        "cdc-hunger",
+        "cdc-6m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 25,
+      "title": "Your baby's first teeth",
+      "body": "The AAP says baby teeth usually appear between 6 and 10 months, with fussiness, drooling, and chewing on things among the common signs. A chilled teether, a cool damp washcloth, or a clean finger rubbed on the gums can help. Fever and diarrhea are not teething symptoms, so call your pediatrician if you see them. Ask before using any pain medicine.",
+      "sources": [
+        "aap-teething",
+        "cdc-6m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 26,
+      "title": "Foods to hold back for now",
+      "body": "CDC says to avoid honey before 12 months because of the risk of botulism, and to hold off on cow's milk as a drink and on juice until after the first birthday. It also advises avoiding added sugars and high-salt foods for babies. Read labels together, and share the list with every caregiver so the rules stay the same.",
+      "sources": [
+        "cdc-avoid",
+        "cdc-solids",
+        "cdc-6m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 27,
+      "title": "Babyproofing before crawling",
+      "body": "The AAP suggests securing hazards as soon as a child starts to crawl or walk: store cleaning products and medicines out of reach and sight, ideally in locked cabinets, and check floors for small objects and button batteries. Poison Help is 1-800-222-1222. Tour each room at baby's eye level together, then save the number in both phones. CDC lists sitting and moving objects hand to hand by 9 months.",
+      "sources": [
+        "aap-poison",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 28,
+      "title": "Taking turns with sounds",
+      "body": "CDC lists making many different babbling sounds, such as mamamama, among the milestones around 9 months. The AAP says babies may stumble onto words like mama before using them on purpose, and that conversation is two-way, so ask a question and wait for a reply. Narrate your day out loud. If you wonder about your baby's sounds, mention it at the next check-up.",
+      "sources": [
+        "cdc-9m",
+        "aap-lang-8-12"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 29,
+      "title": "Preparing food to prevent choking",
+      "body": "CDC says babies can choke as they learn to chew and swallow. Cut round foods like grapes and cherry tomatoes, skip whole nuts, popcorn, and hard raw produce, and seat your baby upright in a high chair, never eating while crawling, walking, or riding in a car. Watch closely at every meal. Ask your pediatrician what to do if a child chokes.",
+      "sources": [
+        "cdc-choking",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 30,
+      "title": "Sitting and rolling both ways",
+      "body": "By about 7 months the AAP says babies often roll both ways, sit with and then without hand support, bear weight on their legs, and pass toys between hands. Offer toys just out of reach to encourage moving. The AAP suggests calling your pediatrician if your baby seems very stiff or floppy, reaches with only one hand, or does not bear weight on the legs.",
+      "sources": [
+        "aap-7m",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 31,
+      "title": "Responding to name and no",
+      "body": "The AAP says that around 7 months babies respond to their name, start reacting to the word no, and read feelings from your tone of voice. CDC lists turning when called by name among the milestones by 9 months. Use a calm, steady voice for limits and a warm one for play. Call your baby's name from across the room and see who gets the first turn.",
+      "sources": [
+        "aap-7m",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 32,
+      "title": "Anchoring furniture and gating stairs",
+      "body": "The AAP says a child goes to the emergency department for a furniture or TV tip-over about once an hour, and that anti-tip anchors cost about $5 to $25 and take minutes to install. Put heavy items low, never place a TV on a dresser, and mount stair gates to wall studs rather than using accordion-style gates. Many babies this age bear weight on their legs, so mobility is close.",
+      "sources": [
+        "aap-tipover",
+        "aap-home-safety",
+        "aap-7m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 33,
+      "title": "Bath time and water safety",
+      "body": "The AAP warns that infants can drown in 1 or 2 inches of water within seconds, so keep a hand on your baby in the bath and never leave a baby alone or with another young child near water. Bath seats can tip. Check bath water with your wrist or elbow, latch toilet lids, and keep the bathroom door closed. Agree who is on bath duty, and consider learning infant CPR together.",
+      "sources": [
+        "aap-water",
+        "aap-7m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 34,
+      "title": "Crawling, scooting, or something else",
+      "body": "The AAP says crawling is usually mastered between 7 and 10 months, and that some babies scoot or slither instead, which is fine if they use both sides of the body equally. CDC lists getting into a sitting position alone among the milestones by 9 months. Clear a safe floor space and get down to baby's level. Tell your pediatrician if your baby is not sitting alone by 9 months.",
+      "sources": [
+        "aap-move-8-12",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 35,
+      "title": "Why strangers feel scary now",
+      "body": "The AAP calls stranger anxiety an early emotional milestone: a baby who was calm with new people may now tense up or cry, even with relatives. CDC lists shyness, clinginess, or fear around strangers among the milestones by 9 months. It reflects a new ability to tell familiar from unfamiliar, not poor parenting. Hold your baby while visitors say hello and let the baby warm up.",
+      "sources": [
+        "aap-emotional-8-12",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 36,
+      "title": "Peekaboo and hidden toys",
+      "body": "CDC lists smiling or laughing during peekaboo and looking for objects dropped out of sight among the milestones by 9 months. The AAP suggests mirror games, such as naming body parts or playing peekaboo with reflections. Drop a toy and let your baby look for it, or hide one under a cloth while your baby watches. Take turns hiding so both of you get to play.",
+      "sources": [
+        "cdc-9m",
+        "aap-emotional-8-12"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 37,
+      "title": "Finger foods and the pincer grasp",
+      "body": "CDC lists raking food toward themselves with the fingers among the milestones by 9 months, and the AAP says the pincer grasp, using index finger and thumb, usually develops around 9 months. Offer soft food that dissolves easily or is cooked until easy to mash, in small pieces, and stay close. Check the CDC choking list together. Messy meals are part of learning.",
+      "sources": [
+        "cdc-9m",
+        "aap-move-4-7",
+        "cdc-choking"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 38,
+      "title": "Separation anxiety and goodbyes",
+      "body": "The AAP says separation anxiety often peaks around 9 months, because babies do not yet understand time and even short absences can upset them. Short, predictable goodbyes work better than lingering, and coming back when you said you would builds trust. Practice brief separations at home, and let both parents take turns with drop-offs. CDC lists reacting when a caregiver leaves.",
+      "sources": [
+        "aap-separation",
+        "cdc-9m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 39,
+      "title": "Looking at the 9-month mark",
+      "body": "CDC lists sitting without support, passing objects from hand to hand, and looking for dropped objects among the milestones by 9 months. The AAP says to tell the pediatrician if a baby is not sitting alone by then. Many families have a check-up around now, so each of you can jot down what you have noticed, including new sounds and moves. Babies develop at their own pace.",
+      "sources": [
+        "cdc-9m",
+        "aap-move-8-12"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 40,
+      "title": "Pulling up and cruising",
+      "body": "CDC lists pulling up to stand and walking while holding onto furniture among the milestones by 1 year. The AAP describes babies pulling up, cruising along furniture, and often taking first steps around the first birthday. Make sure furniture is anchored and low shelves are safe to grab. Stand a short distance away with a toy and let your baby come to you.",
+      "sources": [
+        "cdc-1y",
+        "aap-move-8-12"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 41,
+      "title": "Why to skip the walker",
+      "body": "The AAP strongly urges parents not to use baby walkers. Babies in walkers can roll down stairs, reach hot items, and move more than 3 feet in a second, so injuries happen even with an adult watching. The AAP also says walkers do not help children walk. Stationary activity centers, play yards, and floor time are safer, and CDC lists pulling up to stand by 1 year.",
+      "sources": [
+        "aap-walkers",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 42,
+      "title": "Waving, pointing, and gestures",
+      "body": "CDC lists waving goodbye and pausing or stopping when told no among the milestones by 1 year. The AAP says babies often point or gesture at what they want while words are still on the way. When your baby points, name the thing and wait for a reaction. Wave goodbye together at every departure, so both of you can practice with your baby.",
+      "sources": [
+        "cdc-1y",
+        "aap-lang-8-12"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 43,
+      "title": "Learning to drink from a cup",
+      "body": "CDC lists drinking from an open cup while you hold it among the milestones by 1 year. Let your baby practice at meals with you holding the cup. CDC also says juice is not recommended before 12 months and that cow's milk as a drink waits until after the first birthday. Ask your pediatrician what to put in the cup.",
+      "sources": [
+        "cdc-1y",
+        "cdc-avoid"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 44,
+      "title": "Board books and pointing",
+      "body": "The AAP says babies of 6 to 11 months enjoy sturdy board books, textures, naming pictures, and repetition, and that mouthing books is normal. By 12 to 24 months many toddlers point to named pictures. Read the same favorite again and ask where something is. CDC lists playing back-and-forth games among the milestones by 1 year, and a book can be one.",
+      "sources": [
+        "aap-books",
+        "aap-literacy",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 45,
+      "title": "First words in any form",
+      "body": "The AAP says any consistent sound a baby uses for a person or object counts as a word. Some babies have two or three words by age 1, and many still babble with the rhythm of speech at 12 months. CDC lists calling a parent by a special name among the milestones by 1 year. Use the same names for things and mention any questions about speech at the check-up.",
+      "sources": [
+        "aap-lang-8-12",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 46,
+      "title": "Containers, blocks, and play",
+      "body": "CDC lists putting objects inside containers and searching for hidden objects among the milestones by 1 year. The AAP lists banging blocks together and putting things in and taking them out. Offer a plastic bowl and large safe objects, nothing small enough to fit in the mouth. Hide a toy under a cup and let your baby find it.",
+      "sources": [
+        "cdc-1y",
+        "aap-12m"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 47,
+      "title": "Fears and strong opinions",
+      "body": "The AAP says babies of this age may refuse certain foods, resist hearing no, and become afraid of things like the dark, thunder, or vacuum cleaners. Removing the source when you can, using a night-light, and staying calm and reassuring can help. CDC lists pausing when told no among the milestones by 1 year. Agree between you how you each respond.",
+      "sources": [
+        "aap-emotional-8-12",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 48,
+      "title": "Night wakings near the first birthday",
+      "body": "The AAP says waking and settling again is a normal part of baby sleep, and that parents still respond to needs such as hunger, a wet diaper, or illness. Safe to Sleep says back sleeping continues until age 1. If nights are rough, trade off so each of you gets a longer stretch. Ask your pediatrician about any sleep worry.",
+      "sources": [
+        "aap-sleep-getting",
+        "nichd-sleep",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 49,
+      "title": "Looking after yourselves too",
+      "body": "Postpartum Support International says about one in ten dads experiences postpartum depression and that anxiety can appear in pregnancy or the first postpartum year, and that these conditions are treatable. NIMH says perinatal depression can affect any pregnant or postpartum woman. Check in with each other this week, and tell your doctor if either of you has felt low or anxious for a while.",
+      "sources": [
+        "psi-dads",
+        "nimh-perinatal",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 50,
+      "title": "Shoes and first steps",
+      "body": "The AAP says babies often take first steps around their first birthday, and that shoes are needed only once a baby walks outside: closed-toe, flexible, with nonskid soles and room to grow. Check the fit monthly, since feet grow quickly. Special inserts or arch supports are not needed. CDC lists walking while holding onto furniture by 1 year.",
+      "sources": [
+        "aap-move-8-12",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 51,
+      "title": "Moving from formula and baby foods",
+      "body": "CDC says toddlers can gradually switch from formula to plain, unsweetened, pasteurized whole cow's milk or fortified unsweetened dairy alternatives after the first birthday, such as by replacing one formula feeding at a time. It also advises avoiding added sugars, and juice before 12 months. Talk with your pediatrician about amounts and timing before you change.",
+      "sources": [
+        "cdc-formula-amount",
+        "cdc-avoid",
+        "cdc-1y"
+      ]
+    },
+    {
+      "kind": "baby_week",
+      "n": 52,
+      "title": "Around the first birthday",
+      "body": "CDC lists waving, calling a parent by a special name, and pulling up to stand among the milestones by 1 year. The AAP lists not crawling, not standing with support, not searching for hidden items, not saying single words, and not pointing as things to bring up with your pediatrician. Write down questions together before the 12-month check-up. Babies grow at their own pace.",
+      "sources": [
+        "cdc-1y",
+        "aap-12m"
+      ]
+    }
+  ]
+}
