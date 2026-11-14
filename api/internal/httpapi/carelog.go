@@ -135,7 +135,7 @@ func (s *Server) ListCareLogEntries(ctx context.Context, req ListCareLogEntriesR
 		v := string(*req.Params.Kind)
 		k = &v
 	}
-	rows, sum, err := carelog.ListEntries(ctx, s.pool, familyID, carePerson(m), k, s.cfg.Now())
+	rows, sum, err := carelog.ListEntries(ctx, s.pool, familyID, carePerson(m), k, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func (s *Server) ListHandoffs(ctx context.Context, req ListHandoffsRequestObject
 	case !carePerson(m).CanUse():
 		return ListHandoffs403JSONResponse(errNoCareLogAccess), nil
 	}
-	rows, sum, err := carelog.ListHandoffs(ctx, s.pool, familyID, carePerson(m), s.cfg.Now())
+	rows, sum, err := carelog.ListHandoffs(ctx, s.pool, familyID, carePerson(m), s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func (s *Server) AcceptHandoff(ctx context.Context, req AcceptHandoffRequestObje
 	case kind == errNotFound:
 		return AcceptHandoff404JSONResponse(errNoMember), nil
 	}
-	h, sum, err := carelog.AcceptHandoff(ctx, s.pool, familyID, carePerson(m), req.HandoffId, s.cfg.Now())
+	h, sum, err := carelog.AcceptHandoff(ctx, s.pool, familyID, carePerson(m), req.HandoffId, s.now(ctx))
 	switch {
 	case errors.Is(err, carelog.ErrNoHandoff):
 		return AcceptHandoff404JSONResponse(errNoHandoff), nil
