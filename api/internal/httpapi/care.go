@@ -21,7 +21,7 @@ func (s *Server) GetPsychologistAgenda(ctx context.Context, req GetPsychologistA
 	case kind == errNotFound:
 		return GetPsychologistAgenda404JSONResponse(errNoMember), nil
 	}
-	a, err := care.GetAgenda(ctx, s.pool, familyID, req.MemberId, s.cfg.Now())
+	a, err := care.GetAgenda(ctx, s.pool, familyID, req.MemberId, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *Server) ListPsychologistSlots(ctx context.Context, req ListPsychologist
 	case kind == errNotFound:
 		return ListPsychologistSlots404JSONResponse(errNoMember), nil
 	}
-	p, slots, err := care.ListOpenSlots(ctx, s.pool, familyID, req.MemberId, s.cfg.Now())
+	p, slots, err := care.ListOpenSlots(ctx, s.pool, familyID, req.MemberId, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (s *Server) CreatePsychologistBooking(ctx context.Context, req CreatePsycho
 	case kind == errNotFound:
 		return CreatePsychologistBooking404JSONResponse(errNoMember), nil
 	}
-	b, err := care.Book(ctx, s.pool, familyID, req.MemberId, req.Body.SlotId, s.cfg.Now())
+	b, err := care.Book(ctx, s.pool, familyID, req.MemberId, req.Body.SlotId, s.now(ctx))
 	switch {
 	case errors.Is(err, care.ErrSlotTaken):
 		return CreatePsychologistBooking409JSONResponse(errSlotTaken), nil
@@ -95,7 +95,7 @@ func (s *Server) CreateSessionNote(ctx context.Context, req CreateSessionNoteReq
 	if text == "" {
 		return CreateSessionNote400JSONResponse(errEmptyNote), nil
 	}
-	n, err := care.WriteNote(ctx, s.pool, familyID, req.MemberId, req.Body.BookingId, text, s.cfg.Now())
+	n, err := care.WriteNote(ctx, s.pool, familyID, req.MemberId, req.Body.BookingId, text, s.now(ctx))
 	switch {
 	case errors.Is(err, care.ErrNoBooking):
 		return CreateSessionNote404JSONResponse(errNoBooking), nil

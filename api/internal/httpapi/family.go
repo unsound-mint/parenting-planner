@@ -35,9 +35,12 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	if err != nil {
 		return Family{}, err
 	}
-	today := s.today()
+	// The family row's offset, not the session's: right after a skip or a new
+	// demo, the request context still holds the old value.
+	today := s.realToday().AddDate(0, 0, int(fam.DemoOffsetDays))
+	daysAhead := int(fam.DemoOffsetDays)
 	out := Family{
-		Id: fam.ID, Template: DemoTemplate(fam.Template), Stage: Stage(fam.Stage),
+		Id: fam.ID, Template: DemoTemplate(fam.Template), Stage: Stage(fam.Stage), DemoDaysAhead: &daysAhead,
 		Parents: make([]Parent, 0, len(members)), Caregivers: []Caregiver{}, Children: make([]Child, 0, len(children)),
 	}
 	if fam.DueDate != nil {

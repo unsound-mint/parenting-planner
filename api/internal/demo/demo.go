@@ -65,6 +65,16 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 	return familyID, token, err
 }
 
+// SkipDays is how far one "Skip ahead a week" moves a family's demo clock.
+const SkipDays = 7
+
+// SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
+// row changes; a new demo is a new family, which starts at real time.
+func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID) error {
+	_, err := store.New(pool).SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+	return err
+}
+
 // HashToken is how session tokens are stored and looked up.
 func HashToken(token string) []byte {
 	h := sha256.Sum256([]byte(token))

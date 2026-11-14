@@ -5,6 +5,9 @@ const apiUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8091";
 const nextConfig: NextConfig = {
   // Self-contained server bundle for the Docker image (see Dockerfile).
   output: "standalone",
+  // Caddy compresses in production. Next's own gzip also buffers the /api/.../live
+  // event stream when it is proxied in dev, so events would arrive minutes late.
+  compress: false,
   cacheComponents: true,
   partialPrefetching: true,
   // In production Caddy sends /api to the Go service before it reaches Next;
