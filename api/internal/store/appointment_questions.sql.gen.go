@@ -128,7 +128,7 @@ func (q *Queries) GetOwnAppointmentQuestionVisibleToParent(ctx context.Context, 
 }
 
 const listAppointmentEventsVisibleToParent = `-- name: ListAppointmentEventsVisibleToParent :many
-SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at,
+SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at, e.neutral_title,
        COALESCE((SELECT array_agg(a.member_id) FROM calendar_event_attendees a WHERE a.event_id = e.id), '{}')::uuid[] AS attendee_ids
 FROM calendar_events e
 WHERE e.family_id = $1 AND e.kind = 'appointment'
@@ -153,6 +153,7 @@ type ListAppointmentEventsVisibleToParentRow struct {
 	AllDay        bool
 	Location      *string
 	CreatedAt     time.Time
+	NeutralTitle  bool
 	AttendeeIds   []uuid.UUID
 }
 
@@ -179,6 +180,7 @@ func (q *Queries) ListAppointmentEventsVisibleToParent(ctx context.Context, arg 
 			&i.AllDay,
 			&i.Location,
 			&i.CreatedAt,
+			&i.NeutralTitle,
 			&i.AttendeeIds,
 		); err != nil {
 			return nil, err

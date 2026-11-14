@@ -58,7 +58,7 @@ The `cn` helper in `lib/utils.ts` knows these as font sizes; add any new level t
 
 Family screens use the width of the screen they are on. The parts live in `web/src/components/shell/page.tsx`.
 
-1. The frame: a 248 px side nav (This week, Learn, Journal and care; then Calendar, Baby, Baby passport, People), a top bar (parent switch, stage label, demo controls, Urgent help) and the page. On phones the nav is a floating bottom tab bar (This week, Learn, Journal, More), and the column leaves room under it. Plan, Journey, Practice, Find help and Privacy are not in the nav: This week, Learn, Journal and care, and People link to them.
+1. The frame: a 248 px side nav (This week, Learn, Journal and care; then Calendar, Baby, Baby passport, People; then Privacy and Settings), a top bar (parent switch, stage label, demo controls, Urgent help) and the page. On phones the nav is a floating bottom tab bar (This week, Learn, Journal, More), and the column leaves room under it. Plan, Journey, Practice and Find help are not in the nav: This week, Learn and Journal and care link to them.
 2. The family layout caps the header and the page together at `max-w-page` (1600 px of content plus padding). A page never sets its own `max-w` on its wrapper.
 3. Every page renders `PageFrame` as its `<main>`. Independent cards go in a `PageGrid`: one column on phones, two from `@4xl`, three from `@7xl` with `cols={3}`. These are container queries on the family column, not viewport breakpoints. Use the width to put related things side by side, not to stretch one card.
 4. DOM order is the phone order. Columns come from grouping, spans and grid placement, never from reordering.
