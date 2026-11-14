@@ -23,12 +23,15 @@ export function YourVisits({
   partnerName,
   now,
   className,
+  showProvider = true,
 }: {
   memberId: string;
   bookings: ProviderBooking[];
   partnerName?: string;
   now: Date;
   className?: string;
+  /** False on a provider's own page, where the heading already names them. */
+  showProvider?: boolean;
 }) {
   const upcoming = bookings.filter((b) => new Date(b.startsAt).getTime() > now.getTime());
   if (upcoming.length === 0) return null;
@@ -36,14 +39,14 @@ export function YourVisits({
     <ul className={cn("flex flex-col gap-2", className)}>
       <AnimatePresence initial={false}>
         {upcoming.map((b) => (
-          <Visit key={b.id} memberId={memberId} booking={b} partnerName={partnerName} />
+          <Visit key={b.id} memberId={memberId} booking={b} partnerName={partnerName} showProvider={showProvider} />
         ))}
       </AnimatePresence>
     </ul>
   );
 }
 
-function Visit({ memberId, booking: b, partnerName }: { memberId: string; booking: ProviderBooking; partnerName?: string }) {
+function Visit({ memberId, booking: b, partnerName, showProvider }: { memberId: string; booking: ProviderBooking; partnerName?: string; showProvider: boolean }) {
   const router = useRouter();
   const [asking, setAsking] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -83,10 +86,11 @@ function Visit({ memberId, booking: b, partnerName }: { memberId: string; bookin
         <span className="font-mono text-title leading-none">{formatDayNumber(b.startsAt)}</span>
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-body font-medium">{b.providerName}</p>
+        <p className="truncate text-body font-medium">{showProvider ? b.providerName : `${formatClock(b.startsAt)}, ${b.durationMinutes} min`}</p>
         <p className="flex flex-wrap items-center gap-x-2 text-label font-normal text-muted-foreground">
           <span className="font-mono">
-            {formatMonth(b.startsAt)} {formatDayNumber(b.startsAt)}, {formatClock(b.startsAt)}
+            {formatMonth(b.startsAt)} {formatDayNumber(b.startsAt)}
+            {showProvider && `, ${formatClock(b.startsAt)}`}
           </span>
           <span aria-hidden>·</span>
           {own ? (

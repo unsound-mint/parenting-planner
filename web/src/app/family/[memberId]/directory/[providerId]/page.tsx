@@ -120,7 +120,7 @@ async function Provider({
           {mine.length > 0 && !move && (
             <div>
               <h2 className="text-title font-semibold">Booked with {p.name}</h2>
-              <YourVisits memberId={memberId} bookings={mine} partnerName={partnerName} now={now} className="mt-3" />
+              <YourVisits memberId={memberId} bookings={mine} partnerName={partnerName} now={now} showProvider={false} className="mt-3" />
             </div>
           )}
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">

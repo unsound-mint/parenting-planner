@@ -46,26 +46,35 @@ const stageTypes: Record<Stage, [ProviderType, string][]> = {
   ],
 };
 
+// Families have no stored location yet; every demo family lives around Austin
+// (the seeded birth clinic). Picks prefer providers there, then ones who see
+// people by video, so a suggestion is never an in-person visit in another state.
+export const HOME_STATE = "TX";
+const reach = (p: Provider) => (p.state === HOME_STATE ? 0 : p.visitModes.includes("video") ? 1 : 2);
+
 export type Recommendation = { provider: Provider; first?: ProviderSlot; reason: string; pattern: boolean };
 
 /**
  * Up to `limit` providers for this family: the pattern's provider type first,
  * then the stage's types, one provider per type, each the soonest open one.
- * Providers with no open time in the next two weeks are left out.
+ * Providers with no open time in the next two weeks, or only in person in
+ * another state, are left out.
  */
 export function recommend(
   providers: Provider[],
   openings: Map<string, ProviderSlot>,
   pattern: MoodPattern | undefined,
   stage: Stage | undefined,
+  /** Providers the parent already booked: their kind is covered, so it is not suggested again. */
+  booked: string[] = [],
   limit = 3,
 ): Recommendation[] {
   const soonest = (t: ProviderType) =>
     providers
-      .filter((p) => p.type === t && openings.has(p.id))
-      .sort((a, b) => openings.get(a.id)!.startsAt.localeCompare(openings.get(b.id)!.startsAt))[0];
+      .filter((p) => p.type === t && openings.has(p.id) && reach(p) < 2)
+      .sort((a, b) => reach(a) - reach(b) || openings.get(a.id)!.startsAt.localeCompare(openings.get(b.id)!.startsAt))[0];
   const out: Recommendation[] = [];
-  const seen = new Set<ProviderType>();
+  const seen = new Set<ProviderType>(providers.filter((p) => booked.includes(p.id)).map((p) => p.type));
   const add = (t: ProviderType, reason: string, fromPattern: boolean) => {
     if (seen.has(t) || out.length >= limit) return;
     const provider = soonest(t);

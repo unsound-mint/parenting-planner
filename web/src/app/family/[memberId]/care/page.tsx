@@ -60,8 +60,9 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   const now = familyNow(fam);
   const psychologist = slots.data?.provider ?? agenda.data?.nextSession?.provider;
   const team = passport.data?.people.find((p) => p.isActingParent)?.careTeam ?? [];
-  const picks = recommend(providers.data?.items ?? [], firstOpenings(openTimes.data?.items ?? []), patterns.data?.items[0], fam.stage);
-  const nextVisit = visits.data?.items.find((b) => new Date(b.startsAt).getTime() > now.getTime());
+  const upcoming = (visits.data?.items ?? []).filter((b) => new Date(b.startsAt).getTime() > now.getTime());
+  const nextVisit = upcoming[0];
+  const picks = recommend(providers.data?.items ?? [], firstOpenings(openTimes.data?.items ?? []), patterns.data?.items[0], fam.stage, upcoming.map((b) => b.providerId), nextVisit ? 2 : 3);
   const latest = (screenings.data?.items ?? []).filter((r) => r.authorId === memberId)[0];
 
   return (

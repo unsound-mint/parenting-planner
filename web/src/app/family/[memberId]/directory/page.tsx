@@ -64,7 +64,9 @@ async function Directory({
   const now = family.data ? familyNow(family.data) : new Date();
   const partnerName = family.data?.parents.find((p) => p.id !== memberId)?.displayName;
 
-  const picks = recommend(everyone, openings, patterns.data?.items[0], family.data?.stage);
+  const visits = bookings.data?.items ?? [];
+  const upcoming = visits.filter((b) => new Date(b.startsAt).getTime() > now.getTime());
+  const picks = recommend(everyone, openings, patterns.data?.items[0], family.data?.stage, upcoming.map((b) => b.providerId));
   // Soonest opening first; no opening sorts last ("~" is after any ISO time).
   const soon = (id: string) => openings.get(id)?.startsAt ?? "~";
   const fits = (p: (typeof everyone)[number]) => (!state || p.state === state) && (!mode || p.visitModes.includes(mode));
@@ -74,8 +76,7 @@ async function Directory({
   const states = [...new Set(everyone.map((p) => p.state))].sort();
   const counts: Partial<Record<ProviderType, number>> = {};
   for (const p of everyone) if (fits(p)) counts[p.type] = (counts[p.type] ?? 0) + 1;
-  const visits = bookings.data?.items ?? [];
-  const hasVisits = visits.some((b) => new Date(b.startsAt).getTime() > now.getTime());
+  const hasVisits = upcoming.length > 0;
 
   return (
     <PageFrame>
@@ -146,8 +147,8 @@ async function Directory({
   );
 }
 
-/** "tomorrow 10:00 AM" inside a sentence. */
-const inSentence = (label: string) => label.replace(/^(Today|Tomorrow)/, (m) => m.toLowerCase());
+/** "tomorrow at 10:00 AM", "Mon at 4:00 PM" inside a sentence. */
+const inSentence = (label: string) => label.replace(/^(Today|Tomorrow)/, (m) => m.toLowerCase()).replace(/,? (\d{1,2}:\d{2})/, " at $1");
 
 function headline(picks: Recommendation[], failed: boolean, now: Date): string {
   if (failed) return "We could not load the directory.";
