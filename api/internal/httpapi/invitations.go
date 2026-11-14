@@ -190,6 +190,28 @@ func (s *Server) ListAccessLogEntries(ctx context.Context, req ListAccessLogEntr
 
 func itoa(n int64) string { return strconv.FormatInt(n, 10) }
 
+func (s *Server) RevokeCaregiver(ctx context.Context, req RevokeCaregiverRequestObject) (RevokeCaregiverResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return RevokeCaregiver401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return RevokeCaregiver404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return RevokeCaregiver403JSONResponse(errForbidden), nil
+	}
+	err = invitations.RevokeCaregiver(ctx, s.pool, familyID, req.MemberId, req.CaregiverId, s.now(ctx))
+	switch {
+	case errors.Is(err, invitations.ErrNotFound):
+		return RevokeCaregiver404JSONResponse(errNoMember), nil
+	case err != nil:
+		return nil, err
+	}
+	return RevokeCaregiver204Response{}, nil
+}
+
 func (s *Server) UpdateCaregiverPermissions(ctx context.Context, req UpdateCaregiverPermissionsRequestObject) (UpdateCaregiverPermissionsResponseObject, error) {
 	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
 	switch {

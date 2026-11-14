@@ -110,6 +110,33 @@ func (q *Queries) CreateSessionNote(ctx context.Context, arg CreateSessionNotePa
 	return i, err
 }
 
+const deleteOwnUpcomingPsychologistBooking = `-- name: DeleteOwnUpcomingPsychologistBooking :execrows
+DELETE FROM psychologist_bookings b
+USING psychologist_slots s
+WHERE b.id = $1 AND b.family_id = $2 AND b.owner_member_id = $3
+  AND s.id = b.slot_id AND s.starts_at > $4
+`
+
+type DeleteOwnUpcomingPsychologistBookingParams struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Now           time.Time
+}
+
+func (q *Queries) DeleteOwnUpcomingPsychologistBooking(ctx context.Context, arg DeleteOwnUpcomingPsychologistBookingParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteOwnUpcomingPsychologistBooking,
+		arg.ID,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getDemoPsychologist = `-- name: GetDemoPsychologist :one
 SELECT id, name, credentials, focus FROM psychologists ORDER BY name LIMIT 1
 `
@@ -305,4 +332,39 @@ func (q *Queries) ListSessionNotesVisibleToParent(ctx context.Context, arg ListS
 		return nil, err
 	}
 	return items, nil
+}
+
+const moveOwnPsychologistBookingVisibleToParent = `-- name: MoveOwnPsychologistBookingVisibleToParent :one
+UPDATE psychologist_bookings b SET slot_id = s.id
+FROM psychologist_slots s, psychologist_slots cur
+WHERE b.id = $1 AND b.family_id = $2 AND b.owner_member_id = $3
+  AND cur.id = b.slot_id AND cur.starts_at > $4
+  AND s.id = $5 AND s.family_id = $2 AND s.starts_at > $4
+  AND NOT EXISTS (SELECT 1 FROM psychologist_bookings x WHERE x.owner_member_id = $3 AND x.slot_id = s.id)
+RETURNING b.id
+`
+
+type MoveOwnPsychologistBookingVisibleToParentParams struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Now           time.Time
+	SlotID        uuid.UUID
+}
+
+// Moves the parent's own upcoming booking to another open future slot of the
+// family. No row back: the booking is not theirs, has started, or the slot is
+// gone (unknown, past, or already booked by this parent).
+// Mirrors access.CanParentRead for a change: only the author's own bookings.
+func (q *Queries) MoveOwnPsychologistBookingVisibleToParent(ctx context.Context, arg MoveOwnPsychologistBookingVisibleToParentParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, moveOwnPsychologistBookingVisibleToParent,
+		arg.ID,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+		arg.Now,
+		arg.SlotID,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }

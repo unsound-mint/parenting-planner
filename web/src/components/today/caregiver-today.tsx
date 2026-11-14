@@ -4,6 +4,7 @@ import { CalendarClock, Droplet, HandHeart, Milk, MoonStar, type LucideIcon } fr
 import type { CareLogEntry, Today } from "@/lib/api/types";
 import { daysUntilInstant, formatClock, whenWords } from "@/lib/format";
 import { roleAccent } from "@/lib/visuals";
+import { CaregiverTasks } from "./caregiver-tasks";
 import { useFamilyNow } from "@/components/shell/family-clock";
 
 // What a grandparent or nanny does next: their shift, who has the baby, the
@@ -23,13 +24,15 @@ export function CaregiverToday({ today, names, shiftOnly = false }: { today: Tod
     { icon: Droplet, label: "Last diaper", entry: careSummary?.lastDiaper },
   ];
   const entries = last.filter((l) => l.entry);
-  if (!nextShift && !onDuty && entries.length === 0 && pendingHandoffs.length === 0) return null;
+  if (!nextShift && !onDuty && entries.length === 0 && pendingHandoffs.length === 0 && today.tasks.length === 0) return null;
 
   return (
     <section aria-labelledby="today-title" className="flex flex-col gap-4">
       <h2 id="today-title" className="sr-only">
         Today
       </h2>
+
+      <CaregiverTasks memberId={today.memberId} tasks={today.tasks} names={names} />
 
       {pendingHandoffs.map((h) => (
         <div key={h.id} className="flex items-center gap-3 rounded-2xl border border-primary bg-card p-4">

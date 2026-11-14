@@ -62,9 +62,12 @@ import {
   UserRound,
   Users,
   type LucideIcon,
+  MapPin,
+  Video,
+  House,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { InsuranceCallTopic, AllergyCertainty, CalendarEventKind, CareLogKind, CaregiverPermission, CareRole, DiaperContent, FeedMethod, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility } from "@/lib/api/types";
+import type { InsuranceCallTopic, AllergyCertainty, CalendarEventKind, CareLogKind, CaregiverPermission, CareRole, DiaperContent, FeedMethod, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility, VisitMode } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -223,6 +226,8 @@ export const providerTypeIcon: Record<ProviderType, LucideIcon> = {
   sleep_consultant: MoonStar,
   child_therapist: Puzzle,
   tutor: GraduationCap,
+  pediatrician: Stethoscope,
+  obstetrician: HeartPulse,
 };
 
 export const providerTypeLabel: Record<ProviderType, { one: string; many: string }> = {
@@ -233,7 +238,14 @@ export const providerTypeLabel: Record<ProviderType, { one: string; many: string
   sleep_consultant: { one: "Sleep consultant", many: "Sleep consultants" },
   child_therapist: { one: "Child therapist", many: "Child therapists" },
   tutor: { one: "Tutor", many: "Tutors" },
+  pediatrician: { one: "Pediatrician", many: "Pediatricians" },
+  obstetrician: { one: "Obstetrician", many: "Obstetricians" },
 };
+
+/** How a provider sees you: the profile chips and the mode filter. */
+export const visitModeIcon: Record<VisitMode, LucideIcon> = { in_person: MapPin, video: Video, home: House };
+export const visitModeLabel: Record<VisitMode, string> = { in_person: "In person", video: "Video", home: "Home visits" };
+export const visitModes = Object.keys(visitModeIcon) as VisitMode[];
 
 export const providerTypes = Object.keys(providerTypeIcon) as ProviderType[];
 
@@ -310,6 +322,7 @@ export const calendarKindIcon: Record<CalendarEventKind, LucideIcon> = {
   shift: Baby,
   task: SquareCheck,
   psychologist_session: Brain,
+  provider_visit: HandHeart,
 };
 
 export const calendarKindLabel: Record<CalendarEventKind, string> = {
@@ -320,6 +333,7 @@ export const calendarKindLabel: Record<CalendarEventKind, string> = {
   shift: "Shift",
   task: "Task due",
   psychologist_session: "Session",
+  provider_visit: "Visit",
 };
 
 /** Simulator skills (components/simulator). */

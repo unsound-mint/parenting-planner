@@ -58,3 +58,22 @@ WHERE family_id = @family_id
   AND written_at >= @since
   AND (owner_member_id = @viewer_id OR visibility IN ('partner', 'family'))
 ORDER BY written_at DESC;
+
+-- Moves the parent's own upcoming booking to another open future slot of the
+-- family. No row back: the booking is not theirs, has started, or the slot is
+-- gone (unknown, past, or already booked by this parent).
+-- Mirrors access.CanParentRead for a change: only the author's own bookings.
+-- name: MoveOwnPsychologistBookingVisibleToParent :one
+UPDATE psychologist_bookings b SET slot_id = s.id
+FROM psychologist_slots s, psychologist_slots cur
+WHERE b.id = @id AND b.family_id = @family_id AND b.owner_member_id = @owner_member_id
+  AND cur.id = b.slot_id AND cur.starts_at > @now
+  AND s.id = @slot_id AND s.family_id = @family_id AND s.starts_at > @now
+  AND NOT EXISTS (SELECT 1 FROM psychologist_bookings x WHERE x.owner_member_id = @owner_member_id AND x.slot_id = s.id)
+RETURNING b.id;
+
+-- name: DeleteOwnUpcomingPsychologistBooking :execrows
+DELETE FROM psychologist_bookings b
+USING psychologist_slots s
+WHERE b.id = @id AND b.family_id = @family_id AND b.owner_member_id = @owner_member_id
+  AND s.id = b.slot_id AND s.starts_at > @now;

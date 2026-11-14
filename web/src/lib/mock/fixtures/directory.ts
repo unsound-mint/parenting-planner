@@ -1,35 +1,63 @@
 import type { components } from "@/lib/api/schema.gen";
 import { mock } from "../registry";
-import { isoAt, isoDate, uid } from "./dates";
+import { isoAt, uid } from "./dates";
 
 type Provider = components["schemas"]["Provider"];
+type Slot = components["schemas"]["ProviderSlot"];
 
-// Made-up providers, sorted soonest first like the API does.
+const p = (n: number, name: string, type: Provider["type"], city: string, state: string, languages: string[], priceUsd: number, summary: string, visitModes: Provider["visitModes"]): Provider => ({
+  id: uid(n),
+  name,
+  type,
+  city,
+  state,
+  languages,
+  priceUsd,
+  summary,
+  credentials: "Licensed",
+  bio: summary + " A made-up provider for previews.",
+  visitModes,
+  sessionMinutes: 50,
+});
+
+// Made-up providers, sorted by name like the API does.
 const providers = (): Provider[] =>
   [
-    { id: uid(500), name: "Dr. Priya Nair", type: "perinatal_therapist", city: "Oakland", state: "CA", languages: ["English", "Hindi"], nextAvailable: isoDate(2), priceUsd: 140, summary: "Helps expecting parents with low mood, worry and sleep." },
-    { id: uid(501), name: "Noah Bell, LMFT", type: "perinatal_therapist", city: "Sacramento", state: "CA", languages: ["English"], nextAvailable: isoDate(4), priceUsd: 120, summary: "Couples and individual sessions before and after the birth." },
-    { id: uid(502), name: "Dr. Anna Weiss", type: "psychologist", city: "San Francisco", state: "CA", languages: ["English", "German"], nextAvailable: isoDate(3), priceUsd: 185, summary: "Perinatal and postpartum mental health, one parent at a time." },
-    { id: uid(503), name: "Rosa Alvarez", type: "doula", city: "San Jose", state: "CA", languages: ["English", "Spanish"], nextAvailable: isoDate(6), priceUsd: 90, summary: "Birth planning and support through labor and the first week home." },
-    { id: uid(504), name: "Hannah Cole, IBCLC", type: "lactation_consultant", city: "Oakland", state: "CA", languages: ["English"], nextAvailable: isoDate(8), priceUsd: 110, summary: "Latch and feeding help, in the home or by video." },
-    { id: uid(505), name: "Tom Brennan", type: "sleep_consultant", city: "Austin", state: "TX", languages: ["English"], nextAvailable: isoDate(12), priceUsd: 95, summary: "Gentle sleep plans for babies from four months." },
-    { id: uid(506), name: "Dr. Lena Torres", type: "child_therapist", city: "Austin", state: "TX", languages: ["English", "Spanish"], nextAvailable: isoDate(15), priceUsd: 130, summary: "Play-based therapy for children from three to nine." },
-    { id: uid(507), name: "Ben Okoye", type: "tutor", city: "Brooklyn", state: "NY", languages: ["English"], nextAvailable: isoDate(5), priceUsd: 60, summary: "Early reading and maths for ages five to nine." },
-  ].sort((a, b) => a.nextAvailable.localeCompare(b.nextAvailable)) as Provider[];
+    p(500, "Dr. Priya Nair", "perinatal_therapist", "Austin", "TX", ["English", "Hindi"], 140, "Helps expecting parents with low mood, worry and sleep.", ["in_person", "video"]),
+    p(501, "Noah Bell, LMFT", "perinatal_therapist", "Houston", "TX", ["English"], 120, "Couples and individual sessions before and after the birth.", ["video"]),
+    p(502, "Dr. Anna Weiss", "psychologist", "Austin", "TX", ["English", "German"], 185, "Perinatal and postpartum mental health, one parent at a time.", ["video"]),
+    p(503, "Rosa Alvarez", "doula", "Austin", "TX", ["English", "Spanish"], 90, "Birth planning and support through labor and the first week home.", ["in_person", "home"]),
+    p(504, "Hannah Cole, IBCLC", "lactation_consultant", "Austin", "TX", ["English"], 110, "Latch and feeding help, in the home or by video.", ["home", "video"]),
+    p(505, "Tom Brennan", "sleep_consultant", "Austin", "TX", ["English"], 95, "Gentle sleep plans for babies from four months.", ["video"]),
+    p(506, "Cedar Kids Clinic", "pediatrician", "Austin", "TX", ["English", "Spanish"], 160, "Pediatricians taking new patients, newborns included.", ["in_person"]),
+    p(507, "Hill Country OB", "obstetrician", "Austin", "TX", ["English"], 220, "Prenatal care and birth.", ["in_person"]),
+  ].sort((a, b) => a.name.localeCompare(b.name));
+
+// Three times a weekday for each provider, starting on a different day per provider.
+const slots = (): Slot[] =>
+  providers()
+    .flatMap((pr, i) => [1, 2, 3, 5, 8].flatMap((d) => [14, 15, 19].map((h, k) => ({ id: uid(600 + i * 100 + d * 10 + k), providerId: pr.id, startsAt: isoAt(d + (i % 3), h), durationMinutes: 50 }))))
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
 export const directoryMocks = {
   ...mock("/providers", "get", (ctx) => ({
-    items: providers().filter((p) => (!ctx.query.type || p.type === ctx.query.type) && (!ctx.query.state || p.state === ctx.query.state)),
+    items: providers().filter((x) => (!ctx.query.type || x.type === ctx.query.type) && (!ctx.query.state || x.state === ctx.query.state)),
   })),
-  ...mock("/members/{memberId}/booking-requests", "get", (ctx) => ({
-    items: [{ id: uid(510), memberId: ctx.path.memberId, providerId: uid(502), status: "requested", note: "Evenings work best.", createdAt: isoAt(-1, 18) }],
+  ...mock("/members/{memberId}/provider-slots", "get", (ctx) => ({
+    items: slots().filter((s) => !ctx.query.providerId || s.providerId === ctx.query.providerId).slice(1),
   })),
-  ...mock("/members/{memberId}/booking-requests", "post", (ctx) => ({
-    id: uid(511),
-    memberId: ctx.path.memberId,
-    providerId: ctx.body.providerId,
-    status: "requested",
-    note: ctx.body.note,
-    createdAt: new Date().toISOString(),
+  ...mock("/members/{memberId}/provider-bookings", "get", (ctx) => ({
+    items: [
+      {
+        id: uid(590),
+        memberId: ctx.path.memberId,
+        providerId: uid(503),
+        providerName: "Rosa Alvarez",
+        startsAt: slots().find((s) => s.providerId === uid(503))!.startsAt,
+        durationMinutes: 50,
+        visibility: "family",
+        createdAt: isoAt(-1, 18),
+      },
+    ],
   })),
 };
