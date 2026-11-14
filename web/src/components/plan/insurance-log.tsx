@@ -49,8 +49,8 @@ export function InsuranceLog({ calls, people, selfId, onCreated }: { calls: Insu
   const [open, setOpen] = useState(calls.length === 0);
   const ordered = byFollowUp(calls);
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
-      <div className="flex flex-wrap items-center gap-2 print:hidden">
+    <div className="grid items-start gap-x-8 gap-y-6 lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)] print:block">
+      <div className="flex flex-wrap items-center gap-2 lg:col-span-2 print:hidden">
         <Button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="h-11 md:h-9">
           <Plus aria-hidden />
           Log a call
@@ -74,7 +74,7 @@ export function InsuranceLog({ calls, people, selfId, onCreated }: { calls: Insu
         />
       )}
 
-      <section aria-labelledby="calls-title">
+      <section aria-labelledby="calls-title" className={cn("min-w-0", !open && "lg:col-span-2")}>
         <h2 id="calls-title" className="text-title">
           <span className="hidden print:inline">Insurance calls, printed {formatLongDate(todayKey())}</span>
           <span className="print:hidden">Calls by follow-up date</span>
@@ -82,7 +82,7 @@ export function InsuranceLog({ calls, people, selfId, onCreated }: { calls: Insu
         {ordered.length === 0 ? (
           <p className="mt-2 text-body text-muted-foreground">No calls yet.</p>
         ) : (
-          <ul className="mt-1 divide-y divide-border">
+          <ul className="mt-1 divide-y divide-border 2xl:grid 2xl:grid-cols-2 2xl:gap-x-8">
             {ordered.map((c) => (
               <CallRow key={c.id} call={c} author={c.authorId === selfId ? undefined : people.find((p) => p.id === c.authorId)} />
             ))}

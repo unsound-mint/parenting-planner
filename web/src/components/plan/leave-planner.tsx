@@ -104,7 +104,7 @@ export function LeavePlanner({
   for (const p of plan.parents) for (const pr of p.programs) programs.set(pr.id, pr);
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <section aria-label="Leave timeline" className="rounded-2xl border border-border bg-card p-3 md:p-5">
         <div className="relative mb-1 h-4" aria-hidden>
           {ticks.map((t) => (

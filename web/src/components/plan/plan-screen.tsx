@@ -150,7 +150,7 @@ export function PlanScreen({
           ? "Your bags are packed."
           : "Nothing is waiting on you here.";
   return (
-    <main className="flex min-w-0 max-w-5xl flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
       <h1 className="max-w-2xl text-headline text-balance print:hidden">{headline}</h1>
 
       {tabs.length > 1 && (
