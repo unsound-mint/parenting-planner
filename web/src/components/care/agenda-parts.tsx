@@ -109,7 +109,7 @@ export function TopicRow({
           ) : (
             <p className="text-caption text-muted-foreground">{origin.label}</p>
           )}
-          {extra}
+          {extra && <div>{extra}</div>}
         </div>
         <button
           type="button"

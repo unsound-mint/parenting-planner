@@ -22,7 +22,7 @@ export function Sparkline({ mood, className }: { mood: MoodSummary; className?: 
     else runs.push([p]);
   });
   return (
-    <svg aria-hidden viewBox="0 0 100 30" className={cn("h-8 w-20 shrink-0 overflow-visible", className)}>
+    <svg aria-hidden viewBox="0 0 100 30" className={cn("h-10 w-24 shrink-0 overflow-visible", className)}>
       <line x1="0" x2="100" y1="20.5" y2="20.5" stroke="var(--color-line-2)" strokeDasharray="2 2" strokeWidth="0.75" />
       {runs.map((r) => r.length > 1 && <polyline key={r[0].day} points={r.map((p) => `${p.x},${p.y}`).join(" ")} fill="none" stroke="var(--color-me)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />)}
       {pts.map((p) => (
