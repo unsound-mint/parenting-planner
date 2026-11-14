@@ -34,3 +34,9 @@ WHERE a.family_id = $1 AND a.at >= $2
   AND (a.entity = 'invitation' OR m.role IN ('grandparent','nanny'))
 ORDER BY a.at DESC, a.id DESC
 LIMIT 200;
+
+-- name: UpdateInvitationPermissionsForMember :exec
+UPDATE invitations SET permissions = $3 WHERE family_id = $1 AND member_id = $2;
+
+-- name: GetInvitationForMember :one
+SELECT * FROM invitations WHERE family_id = $1 AND member_id = $2;

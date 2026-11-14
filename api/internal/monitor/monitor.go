@@ -135,6 +135,9 @@ func maskPath(raw string) string {
 			s = rest[i:]
 		}
 	}
+	if strings.HasPrefix(s, "/api/calendar-feeds/") {
+		return "/api/calendar-feeds/{token}"
+	}
 	return uuidRe.ReplaceAllString(s, "{id}")
 }
 
