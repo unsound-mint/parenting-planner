@@ -5,6 +5,7 @@ import type { CalendarFeed, Caregiver, CaregiverPermission, Family, Notification
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { roleIcon, roleLabel } from "@/lib/visuals";
+import { syncNote } from "@/lib/schedule";
 import { PermissionRow } from "@/components/people/permission-row";
 
 const allPermissions: CaregiverPermission[] = ["care_log", "baby_passport", "schedule", "family_plan", "pregnancy_updates"];
@@ -138,7 +139,7 @@ export function FeedCard({ memberId, feed }: { memberId: string; feed: CalendarF
           {feed.lastFetchedAt ? `Last read ${formatShortDate(feed.lastFetchedAt)}` : "Not read by a calendar app yet"}
         </p>
       )}
-      <p className="text-caption text-muted-foreground">Psychologist sessions are never included. Events can show only a neutral title.</p>
+      <p className="text-caption text-muted-foreground">Psychologist sessions are never included. {syncNote}</p>
       <Link href={`/family/${memberId}/calendar#subscribe`} className={linkClass}>
         {feed.active ? "Manage the link" : "Create a link"}
         <ChevronRight aria-hidden className="size-4" />

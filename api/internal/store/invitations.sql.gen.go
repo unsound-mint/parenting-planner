@@ -123,6 +123,35 @@ func (q *Queries) GetInvitationByTokenForUpdate(ctx context.Context, tokenHash [
 	return i, err
 }
 
+const getInvitationForMember = `-- name: GetInvitationForMember :one
+SELECT id, family_id, invited_by, member_id, role, display_name, permissions, token_hash, created_at, expires_at, accepted_at, revoked_at FROM invitations WHERE family_id = $1 AND member_id = $2
+`
+
+type GetInvitationForMemberParams struct {
+	FamilyID uuid.UUID
+	MemberID uuid.NullUUID
+}
+
+func (q *Queries) GetInvitationForMember(ctx context.Context, arg GetInvitationForMemberParams) (Invitation, error) {
+	row := q.db.QueryRow(ctx, getInvitationForMember, arg.FamilyID, arg.MemberID)
+	var i Invitation
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.InvitedBy,
+		&i.MemberID,
+		&i.Role,
+		&i.DisplayName,
+		&i.Permissions,
+		&i.TokenHash,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.AcceptedAt,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
 const getInvitationForUpdate = `-- name: GetInvitationForUpdate :one
 SELECT id, family_id, invited_by, member_id, role, display_name, permissions, token_hash, created_at, expires_at, accepted_at, revoked_at FROM invitations WHERE id = $1 AND family_id = $2 FOR UPDATE
 `
@@ -276,5 +305,20 @@ type MarkInvitationRevokedParams struct {
 
 func (q *Queries) MarkInvitationRevoked(ctx context.Context, arg MarkInvitationRevokedParams) error {
 	_, err := q.db.Exec(ctx, markInvitationRevoked, arg.ID, arg.RevokedAt)
+	return err
+}
+
+const updateInvitationPermissionsForMember = `-- name: UpdateInvitationPermissionsForMember :exec
+UPDATE invitations SET permissions = $3 WHERE family_id = $1 AND member_id = $2
+`
+
+type UpdateInvitationPermissionsForMemberParams struct {
+	FamilyID    uuid.UUID
+	MemberID    uuid.NullUUID
+	Permissions []string
+}
+
+func (q *Queries) UpdateInvitationPermissionsForMember(ctx context.Context, arg UpdateInvitationPermissionsForMemberParams) error {
+	_, err := q.db.Exec(ctx, updateInvitationPermissionsForMember, arg.FamilyID, arg.MemberID, arg.Permissions)
 	return err
 }
