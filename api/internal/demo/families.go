@@ -156,6 +156,21 @@ func (s *seeder) moodScreening(owner uuid.UUID, visibility, instrument string, d
 	})
 }
 
+// visit is a past appointment both parents went to, visible to the family,
+// so the calendar and Our story show it with both avatars.
+func (s *seeder) visit(owner, with uuid.UUID, title string, on time.Time) {
+	if s.err != nil {
+		return
+	}
+	e, err := s.q.CreateCalendarEvent(s.ctx, store.CreateCalendarEventParams{
+		FamilyID: s.fam, OwnerMemberID: owner, Visibility: "family", Kind: "appointment", Title: title,
+		StartsAt: on.Add(15 * time.Hour),
+	})
+	if s.err = err; err == nil {
+		s.err = s.q.AddCalendarEventAttendee(s.ctx, store.AddCalendarEventAttendeeParams{EventID: e.ID, MemberID: with})
+	}
+}
+
 func (s *seeder) learning(t Template, mom, dad uuid.UUID) {
 	if s.err == nil {
 		s.err = seedLearning(s.ctx, s.q, t, s.fam, mom, dad, s.today)
@@ -215,7 +230,11 @@ func seedPlanning(ctx context.Context, q *store.Queries, today time.Time) (uuid.
 // not taken one, so his plan asks for it.
 func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error) {
 	born := today.AddDate(0, 0, -49)
-	s := newSeeder(ctx, q, today, Newborn, "postpartum", nil)
+	// Leo came four days before his due date. Baby is home keeps the due
+	// date, so a family that lived through the pregnancy in the app looks
+	// the same, and Our story can open with the pregnancy weeks.
+	due := born.AddDate(0, 0, 4)
+	s := newSeeder(ctx, q, today, Newborn, "postpartum", &due)
 	aisha := s.member("mother", "Aisha", date(1997, 11, 5))
 	marcus := s.member("partner", "Marcus", date(1994, 3, 22))
 	s.paperwork = &struct{ mother, partner uuid.UUID }{aisha, marcus}
@@ -233,6 +252,7 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.vaccine(parent(aisha), "tdap", born.AddDate(0, 0, -70))
 	s.vaccine(parent(marcus), "tdap", born.AddDate(0, 0, -40))
 	s.vaccine(childOf(leo), "hepb", born)
+	s.visit(aisha, marcus, "Leo's first checkup with Dr. Ortiz", born.AddDate(0, 0, 5))
 	// The 2-month visit, so the passport lists the same doses the plan item
 	// "infant-2-month-vaccines" asks the parents to book.
 	for _, v := range []string{"dtap", "ipv", "hib", "pcv", "rotavirus"} {
@@ -258,6 +278,17 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 		return uuid.Nil, err
 	}
 	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedRecovery(ctx, q, fam, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
+	// From bump to baby: Aisha's bump, then Leo at birth and at one month. His
+	// two-month portrait, due in under two weeks, is the next one to take.
+	if err := bumpWeeks(ctx, q, fam, born, 12, 20, 28, 36); err != nil {
+		return uuid.Nil, err
+	}
+	if err := childMonths(ctx, q, fam, leo, born, 0, 1); err != nil {
 		return uuid.Nil, err
 	}
 	if err := seedChildcare(ctx, q, fam, today); err != nil {
@@ -471,6 +502,7 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		s.vaccine(childOf(ava), v.name, born.AddDate(0, v.months, 0))
 	}
 	s.vaccine(childOf(ava), "flu", today.AddDate(0, 0, -400))
+	s.visit(rachel, tom, "Ava's 4-year checkup with Dr. Rahman", born.AddDate(4, 0, 2))
 	s.vaccine(parent(rachel), "flu", today.AddDate(0, 0, -15))
 	s.vaccine(parent(tom), "tdap", today.AddDate(-5, 0, 0))
 	for _, m := range []struct{ daysAgo, mood int }{{1, 4}, {2, 3}, {4, 4}, {6, 3}} {
@@ -479,7 +511,90 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
 	s.learning(Preschool, rachel, tom)
 	s.missions(Preschool, rachel, tom)
-	return s.done()
+	fam, err := s.done()
+	if err != nil {
+		return uuid.Nil, err
+	}
+	// Ava at birth, six months and every birthday so far.
+	if err := childMonths(ctx, q, fam, ava, born, 0, 6, 12, 24, 36, 48); err != nil {
+		return uuid.Nil, err
+	}
+	return fam, nil
+}
+
+// seedRecovery gives Aisha five recovery check-ins over the last two weeks, getting
+// better, and the baby supplies: diapers are low (about three days left by the care
+// log), the rest is fine. One check-in is shared with Marcus; the others are private.
+func seedRecovery(ctx context.Context, q *store.Queries, fam, aisha, marcus uuid.UUID, today time.Time) error {
+	mood := func(v int16) pgtype.Int2 { return pgtype.Int2{Int16: v, Valid: true} }
+	note := func(v string) *string { return &v }
+	for _, c := range []struct {
+		daysAgo                               int
+		vis, bleeding, wound, breasts, pelvic string
+		pain                                  int16
+		sleep                                 float32
+		mood                                  int16
+		note                                  *string
+	}{
+		{13, "private", "light", "sore", "sore", "leaking", 5, 4.5, 2, note("Sitting is still uncomfortable.")},
+		{9, "private", "light", "sore", "full", "leaking", 4, 5, 3, nil},
+		{6, "private", "spotting", "healing_well", "comfortable", "leaking", 3, 5.5, 3, nil},
+		{3, "partner", "spotting", "healing_well", "comfortable", "fine", 2, 6, 4, note("A good stretch of sleep. Marcus did the night shift.")},
+		{1, "private", "none", "healing_well", "comfortable", "fine", 2, 5.5, 4, nil},
+	} {
+		if _, err := q.CreateRecoveryCheckin(ctx, store.CreateRecoveryCheckinParams{
+			FamilyID: fam, OwnerMemberID: aisha, Visibility: c.vis, RecordedAt: today.AddDate(0, 0, -c.daysAgo).Add(20 * time.Hour),
+			Bleeding: c.bleeding, Pain: c.pain, Wound: c.wound, Breasts: c.breasts, PelvicFloor: c.pelvic,
+			SleepHours: c.sleep, Mood: mood(c.mood), WarningSigns: []string{}, Note: c.note,
+		}); err != nil {
+			return err
+		}
+	}
+	item := func(name, category string, qty, lowAt int32, unit string, perUse int16, size *string, expires *time.Time) (store.SupplyItem, error) {
+		return q.CreateSupplyItem(ctx, store.CreateSupplyItemParams{FamilyID: fam, Name: name, Category: category, Quantity: qty, Unit: unit, LowAt: lowAt, PerUse: perUse, Size: size, ExpiresOn: expires})
+	}
+	diapers, err := item("Diapers", "diapers", 11, 12, "diapers", 1, note("Size 2"), nil)
+	if err != nil {
+		return err
+	}
+	expires := today.AddDate(0, 5, 0)
+	for _, it := range []struct {
+		name, category, unit string
+		qty, lowAt           int32
+		perUse               int16
+		size                 *string
+		expires              *time.Time
+	}{
+		{"Wipes", "wipes", "wipes", 180, 60, 3, nil, nil},
+		{"Infant formula", "formula", "bottles", 9, 3, 1, nil, nil},
+		{"Vitamin D drops", "medicine", "bottle", 1, 0, 1, nil, &expires},
+		{"Diaper cream", "medicine", "tube", 1, 0, 1, nil, nil},
+		{"Onesies", "clothing", "pcs", 7, 0, 1, note("3-6 months"), nil},
+	} {
+		if _, err := item(it.name, it.category, it.qty, it.lowAt, it.unit, it.perUse, it.size, it.expires); err != nil {
+			return err
+		}
+	}
+	restock := pgtype.Int4{Int32: 40, Valid: true}
+	rows := []store.CreateShoppingItemParams{
+		{FamilyID: fam, Name: "Diapers, size 2", SupplyItemID: uuid.NullUUID{UUID: diapers.ID, Valid: true}, RestockQuantity: restock, AddedByMemberID: marcus},
+		{FamilyID: fam, Name: "Nursing pads", AddedByMemberID: aisha},
+		{FamilyID: fam, Name: "Burp cloths", AddedByMemberID: aisha},
+	}
+	for i, r := range rows {
+		row, err := q.CreateShoppingItem(ctx, r)
+		if err != nil {
+			return err
+		}
+		if i == 2 { // bought yesterday
+			if _, err := q.SetShoppingItemDone(ctx, store.SetShoppingItemDoneParams{
+				ID: row.ID, FamilyID: fam, DoneAt: pgtype.Timestamptz{Time: today.AddDate(0, 0, -1).Add(18 * time.Hour), Valid: true}, DoneBy: uuid.NullUUID{UUID: marcus, Valid: true},
+			}); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // SeedRecentCare gives the newborn the hours since midnight (UTC, the seed's

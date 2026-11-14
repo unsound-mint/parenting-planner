@@ -1,8 +1,10 @@
 import { notFound, redirect } from "next/navigation";
-import { Handshake, Hourglass } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Handshake, Hourglass, ShoppingBasket, Utensils } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today, VoiceNote } from "@/lib/api/types";
-import { agoWords, breastSide, durationWords, isAsleep, lastActivityAt } from "@/lib/care";
+import { agoWords, breastSide, durationWords, isAsleep, lastActivityAt, nextFeedEstimate } from "@/lib/care";
+import { getEssentialsOnly } from "@/lib/essentials";
 import { familyContext, formatClock } from "@/lib/format";
 import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
 import { careLogIcon, careLogLabel, careLogTint, diaperLabel, feedMethodLabel, roleAccent, roleLabel } from "@/lib/visuals";
@@ -15,6 +17,7 @@ import { VoicePlayer } from "@/components/baby/voice-player";
 import { previewMocksEnabled } from "@/lib/mock/registry";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { PageFrame } from "@/components/shell/page";
+import { PortraitFlipbook } from "@/components/portrait";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
 const diaperActions: QuickAction[] = [
@@ -48,7 +51,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [log, handoffs, passport, voiceProbe] = await Promise.all([
+  const [log, handoffs, passport, voiceProbe, essentialsOnly] = await Promise.all([
     // A week, for the chart's 7-day view; the 24-hour view is the end of it.
     canLog ? api.GET("/members/{memberId}/care-log", { params: { path: { memberId }, query: { days: 7 } } }) : undefined,
     canLog ? api.GET("/members/{memberId}/handoffs", path) : undefined,
@@ -56,6 +59,8 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
     // Probe: a read of a note that cannot exist is 404 once voice notes work and 501 before.
     // Preview mocks cover the upload but not audio, so in preview the recorder stays on.
     canLog ? api.GET("/members/{memberId}/voice-notes/{voiceNoteId}", { params: { path: { memberId, voiceNoteId: NO_NOTE } }, parseAs: "stream" }) : undefined,
+    // "Essentials only" is a parent setting; caregivers always see the full log.
+    caregiver ? false : getEssentialsOnly(memberId),
   ]);
   const voice = previewMocksEnabled || (voiceProbe !== undefined && voiceProbe.response.status !== 501);
   if (log?.response.status === 401) redirect("/");
@@ -126,9 +131,13 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
           </section>
         </WhenProvider>
 
-        <section aria-labelledby="day-title" className="rounded-3xl border border-line bg-card p-4 md:p-6">
-          <CareChart entries={care.items} now={now.toISOString()} memberId={memberId} names={names} />
-        </section>
+        {essentialsOnly ? (
+          <NextFeed estimate={nextFeedEstimate(care.items)} />
+        ) : (
+          <section aria-labelledby="day-title" className="rounded-3xl border border-line bg-card p-4 md:p-6">
+            <CareChart entries={care.items} now={now.toISOString()} memberId={memberId} names={names} />
+          </section>
+        )}
 
         {caregiver && slots && (
           <>
@@ -164,9 +173,37 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
             </section>
           )
         )}
+        {!caregiver && (
+          <Link href={`/family/${memberId}/baby/supplies`} className="press lift flex min-h-16 items-center gap-3 rounded-2xl border border-border bg-card p-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+              <ShoppingBasket aria-hidden className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-title">Baby supplies</span>
+              <span className="block text-caption text-muted-foreground">Diapers, formula, medicines and the shopping list</span>
+            </span>
+            <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+          </Link>
+        )}
         {passport?.data && <BabyCard passport={passport.data} />}
+        <PortraitFlipbook memberId={memberId} childId={child.id} />
       </aside>
     </PageFrame>
+  );
+}
+
+// Essentials only: one estimate instead of the day's timeline.
+function NextFeed({ estimate }: { estimate: string | null }) {
+  return (
+    <section aria-label="Next feed" className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+        <Utensils aria-hidden className="size-5" />
+      </span>
+      <div>
+        <h2 className="text-title">{estimate ? `Next feed around ${formatClock(estimate)}` : "Log a few feeds to see the next one"}</h2>
+        <p className="text-caption text-muted-foreground">An estimate from the last feeds. Essentials only is on; you can change it in settings.</p>
+      </div>
+    </section>
   );
 }
 

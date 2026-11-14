@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, Phone, Search } from "lucide-react";
+import { ArrowRight, ClipboardCheck, HeartPulse, Phone, Search } from "lucide-react";
 import type { BookingRequest, CareTeamMember, MoodScreeningResult, Provider, ScreeningQuestionnaire } from "@/lib/api/types";
 import { formatDayNumber, formatMonth } from "@/lib/format";
 import { careRoleIcon, careRoleLabel, providerTypeIcon, providerTypeLabel } from "@/lib/visuals";
@@ -109,6 +109,19 @@ export function ScreeningCard({ memberId, latest, questionnaires }: { memberId: 
           </Row>
         )
       )}
+    </CalmCard>
+  );
+}
+
+/** The mother's recovery check-ins after birth. Shown only once a baby is on record. */
+export function RecoveryCard({ memberId }: { memberId: string }) {
+  const href = `/family/${memberId}/care/recovery`;
+  return (
+    <CalmCard title="Recovery after birth" href={href} linkLabel="Open">
+      <Row icon={HeartPulse} tint="bg-me-soft text-me" side={<Arrow href={href} label="Check in on your recovery" />}>
+        <p className="text-body font-medium">How your body is healing</p>
+        <p className="text-caption text-muted-foreground">Your own check-ins, private</p>
+      </Row>
     </CalmCard>
   );
 }
