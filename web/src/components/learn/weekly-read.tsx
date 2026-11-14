@@ -92,7 +92,7 @@ export function WeeklyReadCard({ items, current }: { items: WeeklyRead[]; curren
               {read.title}
             </h2>
             <p className="mt-3 max-w-prose text-body text-ink-2">{read.body}</p>
-            <p className="mt-3 text-caption text-muted-foreground">General information from the pages linked here, not medical advice. Your doctor or midwife knows what fits you.</p>
+            <p className="mt-3 text-caption text-muted-foreground">General information from the pages linked here, not medical advice. {read.kind === "pregnancy_week" ? "Your midwife or doctor knows what fits you." : read.kind === "planning" ? "Your doctor knows what fits you." : "Your pediatrician knows what fits your child."}</p>
           </div>
           <div className="min-w-0">
             <h3 className="text-caption font-semibold tracking-wide text-muted-foreground uppercase">Read on</h3>
