@@ -16,6 +16,7 @@ import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { notificationMocks } from "./fixtures/notifications";
 import { passportMocks } from "./fixtures/passport";
 import { peopleMocks } from "./fixtures/people";
+import { portraitMocks } from "./fixtures/portraits";
 import { pregnancyGrowthMocks } from "./fixtures/pregnancy-growth";
 import { pricingMocks } from "./fixtures/pricing";
 import { scheduleMocks } from "./fixtures/schedule";
@@ -47,6 +48,7 @@ const tables: MockTable[] = [
   notificationMocks,
   passportMocks,
   peopleMocks,
+  portraitMocks,
   pregnancyGrowthMocks,
   pricingMocks,
   taskMocks,
