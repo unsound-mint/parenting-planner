@@ -192,6 +192,18 @@ func TestTogetherNudgesFromThePartnersRealActivity(t *testing.T) {
 		}
 	}
 	c.Post(memberPath(mom.Id)+"/couple-talks", map[string]any{"promptId": "p99"}, http.StatusNotFound, nil)
+
+	// A talk on a lesson prompt shows on the lesson too, so the button survives a reload.
+	c.Post(memberPath(dad.Id)+"/couple-talks", map[string]any{"promptId": "lesson:pain-relief"}, http.StatusCreated, nil)
+	var list httpapi.LearningPathList
+	c.Get(memberPath(mom.Id)+"/learning-paths", http.StatusOK, &list)
+	for _, p := range list.Items {
+		for _, l := range p.Lessons {
+			if (l.Id == "pain-relief") != (l.TalkedAt != nil) {
+				t.Errorf("lesson %s talkedAt = %v", l.Id, l.TalkedAt)
+			}
+		}
+	}
 }
 
 func TestBabyNamesAreSharedWithLikesPerParent(t *testing.T) {

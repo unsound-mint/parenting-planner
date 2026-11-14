@@ -161,3 +161,5 @@ export type StoryChapter = S["StoryChapter"];
 export type StoryMoment = S["StoryMoment"];
 export type StoryMomentKind = S["StoryMomentKind"];
 export type StoryInvitation = S["StoryInvitation"];
+export type Portrait = S["Portrait"];
+export type PortraitList = S["PortraitList"];

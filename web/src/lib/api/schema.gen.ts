@@ -3062,6 +3062,128 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/portraits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The family's portrait series, the bump by week and each child by month
+         * @description Family-shared, like the care log: both parents see every portrait. A
+         *     grandparent or nanny sees the children's portraits with baby_passport
+         *     and the bump with pregnancy_updates; with neither, 403. Newest moment
+         *     first: children by age in months, descending, then the bump by
+         *     pregnancy week, descending. Metadata only; a photo's pixels come from
+         *     getPortraitImage. Seeded demo portraits are kind illustration and have
+         *     no image: the web draws them.
+         */
+        get: operations["listPortraits"];
+        put?: never;
+        /**
+         * Upload this month's portrait of a child, or this week's bump photo
+         * @description Parents only (403 for a grandparent or nanny). With childId and month
+         *     (age in whole months) it is that child's portrait; without childId,
+         *     week (pregnancy week) makes it a bump photo. Any other combination is
+         *     400. One portrait per slot: uploading to a taken slot replaces it,
+         *     seeded illustration or photo alike.
+         *     The body is the raw image, resized in the browser to at most 1600 px
+         *     and encoded as JPEG. The server accepts image/jpeg and image/png
+         *     (checked from the bytes, not the header; anything else is 400), at
+         *     most 1.5 MB (413 too_large, cut off while reading) and at most 4096
+         *     px a side. It decodes and re-encodes the image as JPEG, so EXIF,
+         *     location and any other metadata never reach the database. Stored in
+         *     the database with the family and deleted with it, and when the
+         *     visitor starts a new demo from the same browser.
+         */
+        post: operations["createPortrait"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/portraits/{portraitId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                portraitId: components["parameters"]["PortraitId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a portrait
+         * @description Parents only (403 for a grandparent or nanny); either parent may
+         *     delete any portrait of the family. The row and its image are gone at
+         *     once. 404 for an id outside the family.
+         */
+        delete: operations["deletePortrait"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/portraits/{portraitId}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                portraitId: components["parameters"]["PortraitId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * A photo portrait's pixels
+         * @description The re-encoded JPEG, to whoever may list that portrait (see
+         *     listPortraits); anyone else, and a seeded illustration, gets 404.
+         *     Served only through the session, never from a public URL; the
+         *     browser may keep it privately for an hour.
+         */
+        get: operations["getPortraitImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4489,6 +4611,11 @@ export interface components {
             extraSources: components["schemas"]["Source"][];
             /** @description A question for the couple to talk about after reading. */
             talkPrompt?: string;
+            /**
+             * Format: date-time
+             * @description When either parent marked this lesson's talk prompt (prompt id `lesson:<lessonId>`) as talked about. Absent until then.
+             */
+            talkedAt?: string;
             /** @description True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there. */
             urgentHelpLink: boolean;
             /** @description Reading state of each parent who opened it, acting parent first. */
@@ -5398,6 +5525,39 @@ export interface components {
              */
             on?: string;
         };
+        /**
+         * @description One frame of the flipbook. A child's portrait has childId and month; a
+         *     bump photo has week and no childId.
+         */
+        Portrait: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            childId?: string;
+            /** @description The child's age in whole months. */
+            month?: number;
+            /** @description The pregnancy week of a bump photo. */
+            week?: number;
+            /**
+             * @description photo is an upload served by getPortraitImage; illustration is seeded demo art the web draws.
+             * @enum {string}
+             */
+            kind: "photo" | "illustration";
+            /** @description Pixels, photos only. */
+            width?: number;
+            /** @description Pixels, photos only. */
+            height?: number;
+            /**
+             * Format: uuid
+             * @description The parent who uploaded a photo.
+             */
+            uploadedBy?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PortraitList: {
+            items: components["schemas"]["Portrait"][];
+        };
     };
     responses: never;
     parameters: {
@@ -5411,6 +5571,7 @@ export interface components {
          *     or permissions do not allow the action.
          */
         MemberId: string;
+        PortraitId: string;
         EventId: string;
         TaskId: string;
         InvitationId: string;
@@ -12901,6 +13062,293 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listPortraits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortraitList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createPortrait: {
+        parameters: {
+            query?: {
+                childId?: string;
+                /** @description The child's age in whole months on the photo. */
+                month?: number;
+                /** @description The pregnancy week of a bump photo. */
+                week?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "image/*": string;
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Portrait"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deletePortrait: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                portraitId: components["parameters"]["PortraitId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPortraitImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                portraitId: components["parameters"]["PortraitId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The image. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
