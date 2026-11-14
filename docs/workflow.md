@@ -3,7 +3,7 @@
 ## Roles
 
 - Dayana, product: decides scope, writes issues, owns `docs/product.md`, the demo script and the pitch deck.
-- Sofia, backend: server actions, database, seed data, deploy.
+- Sofia, backend: the Go API in `api/`, database, seed data, deploy. Start with `api/AGENTS.md`.
 - Denis, frontend: screens, design, UX.
 
 Everyone works with Claude Code in this repo. Claude reads `AGENTS.md` automatically.
@@ -24,7 +24,7 @@ Open Claude Code in this repo and describe what you want in plain words, in any 
 
 - "Create an issue: the partner should see a summary of their training score after the simulator. Frontend, P1."
 - "Read docs/product.md and the open issues. What is missing for the demo script to work?"
-- "We decided the name is X and the price is $12/month. Update docs/product.md and src/lib/product.ts."
+- "We decided the name is X and the price is $12/month. Update docs/product.md and web/src/lib/product.ts."
 - "Go through the demo script on the live site and tell me which steps fail."
 
 Claude creates issues with `gh issue create` using a template (Backend task for anything in `api/`, Task otherwise), and can open small PRs for doc or wording changes. Engineers pick up issues by assigning themselves.

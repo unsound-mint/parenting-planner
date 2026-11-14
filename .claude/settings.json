@@ -1,0 +1,47 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(go test:*)",
+      "Bash(go vet:*)",
+      "Bash(go build:*)",
+      "Bash(go run:*)",
+      "Bash(go generate:*)",
+      "Bash(go tool sqlc:*)",
+      "Bash(go tool oapi-codegen:*)",
+      "Bash(gofmt:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm gen:api:*)",
+      "Bash(curl -s localhost:*)",
+      "Bash(curl localhost:*)",
+      "Bash(scripts/check-migrations.sh:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git switch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull:*)",
+      "Bash(git push -u origin:*)"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin main:*)",
+      "Edit(api/internal/store/migrations/00001_init.sql)",
+      "Edit(api/internal/store/migrations/00002_mood_checkins.sql)",
+      "Edit(**/*.gen.go)",
+      "Edit(**/*.gen.ts)"
+    ]
+  }
+}
