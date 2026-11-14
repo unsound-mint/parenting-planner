@@ -354,6 +354,16 @@ type Member struct {
 	EssentialsOnly bool
 }
 
+type MissionPick struct {
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	MissionKey string
+	Status     string
+	TaskID     uuid.NullUUID
+	Note       *string
+	CreatedAt  time.Time
+}
+
 type MoodCheckin struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -589,6 +599,15 @@ type SimulatorRound struct {
 	QuestionIds []string
 	CreatedAt   time.Time
 	CompletedAt pgtype.Timestamptz
+}
+
+type Sticker struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	Key      string
+	EarnedAt time.Time
+	SeenAt   pgtype.Timestamptz
 }
 
 type StripeEvent struct {

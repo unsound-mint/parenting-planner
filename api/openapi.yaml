@@ -47,6 +47,8 @@ tags:
   - name: account
   - name: story
   - name: portraits
+  - name: missions
+  - name: badges
   - name: childcare
 paths:
   /healthz:
@@ -7776,8 +7778,219 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/missions:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listMissions
+      tags: [missions]
+      summary: Missions for the family's stage, with who took what
+      description: |
+        Practical jobs for either parent, written mostly for the one who is not pregnant. Both parents see all of them. A mission taken by either parent shows who took it. Missions put back with swapMission are left out. Parents only; a grandparent or nanny gets 404.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/missions/{missionKey}/take:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/MissionKey"
+    post:
+      operationId: takeMission
+      tags: [missions]
+      summary: The acting parent takes a mission
+      description: |
+        Creates a plan task assigned to the acting parent (title, why and source from the mission), so it shows in the plan and the load map. 404 for an unknown key, 409 mission_taken when it is already taken, 409 wrong_stage when it is not offered at this stage. A mission that was put back can be taken again.
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mission"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/missions/{missionKey}/done:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/MissionKey"
+      operationId: finishMission
+      tags: [missions]
+      summary: Finish a taken mission, with an optional one-line note
+      description: |
+        Ticks the mission's plan task and may earn stickers (see listStickers). Calling it again only updates the note. 409 not_taken when nobody took it.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissionDone"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Mission"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/missions/{missionKey}/swap:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/MissionKey"
+      operationId: swapMission
+      tags: [missions]
+      summary: Put a mission back
+      description: |
+        Takes the mission off the list for this family, and removes its plan task if it was taken. 409 mission_done when it is already finished.
+      responses:
+        "204":
+          description: Done
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/stickers:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listStickers
+      tags: [badges]
+      summary: The acting parent's sticker book
+      description: |
+        Stickers earned for finished lessons and paths, finished missions, practice with the virtual baby, and finishing the same path as the other parent. There are no points, ranks or streaks, and none for health data. Open slots are returned with earned false so the book can show them. new is true until markStickerSeen is called, so the earn animation plays once. Computed from stored state on every read. Parents only; a grandparent or nanny gets 404.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StickerBook"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/stickers/{stickerKey}/seen:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: stickerKey
+          in: path
+          required: true
+          schema:
+            type: string
+      operationId: markStickerSeen
+      tags: [badges]
+      summary: The earn animation has played for a sticker
+      description: |
+        Clears new on the acting parent's sticker. 404 when they have not earned it.
+      responses:
+        "204":
+          description: Done
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
+    MissionKey:
+      name: missionKey
+      in: path
+      required: true
+      schema:
+        type: string
+        maxLength: 60
     MemberId:
       name: memberId
       in: path
@@ -7910,6 +8123,112 @@ components:
 
 
   schemas:
+    MissionList:
+      type: object
+      required: [stage, items]
+      properties:
+        stage:
+          type: string
+          enum: [planning, first_trimester, second_trimester, third_trimester, newborn, baby, toddler]
+          description: The mission stage the family is in now.
+        items:
+          type: array
+          description: In suggestion order; open missions first is the client's choice.
+          items:
+            $ref: "#/components/schemas/Mission"
+
+    Mission:
+      type: object
+      required: [key, stage, title, why, category, forPartner, state]
+      properties:
+        key:
+          type: string
+        stage:
+          type: string
+          enum: [planning, first_trimester, second_trimester, third_trimester, newborn, baby, toddler]
+        title:
+          type: string
+        why:
+          type: string
+          description: One or two warm sentences on why this helps.
+        category:
+          type: string
+          enum: [meals, home, gear, care, learning, rest, together]
+        forPartner:
+          type: boolean
+          description: Written for the parent who is not pregnant. Either parent can take any mission.
+        state:
+          type: string
+          enum: [open, taken, done]
+        takenBy:
+          type: string
+          format: uuid
+          description: The parent who took it.
+        taskId:
+          type: string
+          format: uuid
+          description: The plan task created when it was taken.
+        dueOn:
+          type: string
+          format: date
+          description: When it is most useful, if it matters. Never a deadline to be ashamed of.
+        note:
+          type: string
+          description: The one-line note written when it was finished.
+        doneAt:
+          type: string
+          format: date-time
+        doneBy:
+          type: string
+          format: uuid
+        source:
+          $ref: "#/components/schemas/Source"
+
+    MissionDone:
+      type: object
+      properties:
+        note:
+          type: string
+          maxLength: 140
+
+    StickerBook:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: In book order (groups learning, together, missions, practice).
+          items:
+            $ref: "#/components/schemas/Sticker"
+
+    Sticker:
+      type: object
+      required: [key, title, blurb, art, group, earned, new]
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        blurb:
+          type: string
+          description: What earns it. Shown on open slots too.
+        art:
+          type: string
+          description: Names the web illustration.
+        group:
+          type: string
+          enum: [learning, together, missions, practice]
+        pathId:
+          type: string
+          description: The learning path of a path or together sticker.
+        earned:
+          type: boolean
+        earnedAt:
+          type: string
+          format: date-time
+        new:
+          type: boolean
+          description: Earned and the earn animation has not played yet.
     Error:
       type: object
       required: [code, message]

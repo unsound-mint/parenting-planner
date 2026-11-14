@@ -17,6 +17,7 @@ import { LessonCard } from "@/components/learn/lesson-card";
 import { LearnBoard } from "@/components/learn/learn-board";
 import type { Talked } from "@/components/learn/lesson-list";
 import { JourneyStrip } from "@/components/journey/journey-strip";
+import { StickerShelf } from "@/components/missions/sticker-shelf";
 import { PracticeSection } from "@/components/simulator/practice-section";
 
 // Learn: the one place to learn and prepare together. Learning paths with both
@@ -47,7 +48,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, paths, together, journey, simulator, guides, plan, tasks, questions] = await Promise.all([
+  const [family, paths, together, journey, simulator, guides, plan, tasks, questions, stickers] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/learning-paths", path),
     optional(api.GET("/members/{memberId}/together", path)),
@@ -57,6 +58,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
     api.GET("/members/{memberId}/plan", path),
     optional(api.GET("/members/{memberId}/tasks", path)),
     optional(api.GET("/members/{memberId}/appointment-questions", path)),
+    optional(api.GET("/members/{memberId}/stickers", path)),
   ]);
   if (family.response.status === 401) redirect("/");
   if (!family.data) notFound();
@@ -92,6 +94,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
             {items.length > 0 ? `${countWord(items.length)} ${items.length === 1 ? "path" : "paths"} for ${forWhen(family.data)}. ` : ""}
             {them ? "A few unhurried minutes a week, side by side." : "A few unhurried minutes a week."}
           </p>
+          {stickers && <StickerShelf items={stickers.items} memberId={memberId} className="mt-3 w-fit" />}
           <Link href={`/family/${memberId}/learn/reference`} className="press mt-3 inline-flex h-11 items-center gap-2 rounded-full border border-line-2 bg-card px-4 text-label text-ink-2 transition-colors hover:border-ink-2">
             <Pill className="size-4" aria-hidden />
             Can I eat or take this?

@@ -11,6 +11,7 @@ import { LoadMapCard } from "@/components/load-map/load-map-card";
 import { ThanksSection } from "@/components/thanks/thanks-section";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame, PageGrid } from "@/components/shell/page";
+import { MissionsLink } from "@/components/missions/missions-link";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
 // revoke, and read what they did. Parents only; the API refuses caregivers too.
@@ -27,13 +28,14 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, invitations, log, loadMap, thanks, suggestions] = await Promise.all([
+  const [{ data: family }, invitations, log, loadMap, thanks, suggestions, missions] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/invitations", path),
     api.GET("/members/{memberId}/access-log", path),
     api.GET("/members/{memberId}/load-map", path),
     api.GET("/members/{memberId}/thanks", path),
     api.GET("/members/{memberId}/thanks/suggestions", path),
+    api.GET("/members/{memberId}/missions", path),
   ]);
   const people = familyPeople(family ?? { parents: [] });
   if (invitations.response.status === 401) redirect("/");
@@ -72,6 +74,7 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           )}
         </PageGrid>
       )}
+      {missions.data && <MissionsLink memberId={memberId} missions={missions.data.items} />}
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
       <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">

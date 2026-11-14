@@ -184,6 +184,11 @@ export type ThanksSuggestion = S["ThanksSuggestion"];
 export type ThanksBasis = S["ThanksBasis"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+export type Mission = S["Mission"];
+export type MissionList = S["MissionList"];
+export type MissionCategory = Mission["category"];
+export type Sticker = S["Sticker"];
+export type StickerBook = S["StickerBook"];
 
 export type RecoveryCheckin = S["RecoveryCheckin"];
 export type RecoveryCheckinInput = S["RecoveryCheckinInput"];

@@ -177,6 +177,12 @@ func (s *seeder) learning(t Template, mom, dad uuid.UUID) {
 	}
 }
 
+func (s *seeder) missions(t Template, mom, dad uuid.UUID) {
+	if s.err == nil {
+		s.err = seedMissions(s.ctx, s.q, t, s.fam, mom, dad, s.today)
+	}
+}
+
 func (s *seeder) done() (uuid.UUID, error) {
 	if s.err == nil {
 		s.err = seedCaregivers(s.ctx, s.q, s.fam)
@@ -212,6 +218,7 @@ func seedPlanning(ctx context.Context, q *store.Queries, today time.Time) (uuid.
 	}
 	s.mood(daniel, "partner", 2, 4, 4, 7, "")
 	s.learning(Planning, maya, daniel)
+	s.missions(Planning, maya, daniel)
 	return s.done()
 }
 
@@ -259,6 +266,7 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.mood(marcus, "private", 4, 2, 2, 5, "")
 	s.moodScreening(aisha, "private", rules.EPDS, 14, []int{1, 1, 1, 1, 0, 1, 0, 0, 0, 0})
 	s.learning(Newborn, aisha, marcus)
+	s.missions(Newborn, aisha, marcus)
 	fam, err := s.done()
 	if err != nil {
 		return uuid.Nil, err
@@ -502,6 +510,7 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	}
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
 	s.learning(Preschool, rachel, tom)
+	s.missions(Preschool, rachel, tom)
 	fam, err := s.done()
 	if err != nil {
 		return uuid.Nil, err
