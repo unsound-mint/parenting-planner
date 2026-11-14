@@ -1,5 +1,5 @@
 import type { Family, PlanItem, Stage } from "@/lib/api/types";
-import { countThings, daysUntil, formatShortDate } from "@/lib/format";
+import { countThings, daysUntil } from "@/lib/format";
 
 // The path from planning to age 9. "Birth" is a milestone between Pregnancy
 // and Newborn, so it has a node but no API stage of its own.
@@ -76,22 +76,9 @@ export function laneWindow(family: Family, items: PlanItem[]): Lane {
   };
 }
 
-/** A headline about what is next and a short line of context, from the family's data. */
-export function journeyHeadline(family: Family, lane: Lane): { headline: string; support: string } {
+/** A headline about what is next, from the family's plan. */
+export function journeyHeadline(lane: Lane): string {
   const n = lane.inWindow.length;
   const steps = n === 0 ? "Nothing to schedule" : `${countThings(n)} to do`;
-  const headline = lane.babyDue && n > 0 ? `${steps} before you meet your baby.` : `${steps} in the next ${lane.weeks} weeks.`;
-
-  const child = family.children[0];
-  let support = "";
-  if (family.stage === "pregnancy" && family.gestationalWeek != null) {
-    support = `Week ${family.gestationalWeek} of pregnancy${family.dueDate ? ` · due ${formatShortDate(family.dueDate)}` : ""}`;
-  } else if (child) {
-    support = `${child.name}, ${child.ageMonths} months old`;
-  } else if (family.stage === "planning") {
-    support = "Planning for a baby";
-  } else if (family.stage === "trying") {
-    support = "Trying for a baby";
-  }
-  return { headline, support };
+  return lane.babyDue && n > 0 ? `${steps} before you meet your baby.` : `${steps} in the next ${lane.weeks} weeks.`;
 }

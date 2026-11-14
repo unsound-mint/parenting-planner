@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { toast } from "sonner";
 import { BookOpen, CalendarCheck, CheckCircle2, ChevronDown, ExternalLink, UserRound, type LucideIcon } from "lucide-react";
 import { api } from "@/lib/api/client";
@@ -14,15 +14,14 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { StatusPill } from "./status-pill";
 
-// The plan as one focus card plus a quieter list, and a "why" panel for the
-// selected item: the parent's data that triggered it, the guideline and its
-// source with the date it was checked (docs/design.md, rules 2 and 3).
+// The plan as one focus card plus a quieter list. Each item explains itself
+// in place: "Why?" opens under the item and adds only what the item does not
+// already say (the parent's data, the rest of the guideline, the source with
+// its checked date), so nothing on the page is printed twice.
 export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: string }) {
   const focus = items.find((i) => i.status !== "upcoming") ?? items[0];
-  const [selectedId, setSelectedId] = useState(focus?.ruleId);
-  const [whyOpen, setWhyOpen] = useState(true);
-  const whyRef = useRef<HTMLElement>(null);
-  const selected = items.find((i) => i.ruleId === selectedId) ?? focus;
+  const [openId, setOpenId] = useState<string | null>(null);
+  const toggle = (id: string) => setOpenId((o) => (o === id ? null : id));
 
   if (!focus) {
     return (
@@ -40,32 +39,9 @@ export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: st
 
   const rest = items.filter((i) => i.ruleId !== focus.ruleId);
 
-  // The why panel sits right under the focus card. Picking a row further down
-  // selects it there, so bring the panel into view when it is off screen.
-  function selectRow(id: string) {
-    setSelectedId(id);
-    setWhyOpen(true);
-    whyRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  function toggleWhy() {
-    if (selected?.ruleId === focus.ruleId) {
-      setWhyOpen((o) => !o);
-    } else {
-      setSelectedId(focus.ruleId);
-      setWhyOpen(true);
-    }
-  }
-
   return (
     <div className="mt-8 flex min-w-0 flex-col gap-6">
-      <FocusCard
-        item={focus}
-        memberId={memberId}
-        whyOpen={whyOpen && selected?.ruleId === focus.ruleId}
-        onToggleWhy={toggleWhy}
-      />
-      {selected && <WhyPanel ref={whyRef} item={selected} open={whyOpen} />}
+      <FocusCard item={focus} memberId={memberId} whyOpen={openId === focus.ruleId} onToggleWhy={() => toggle(focus.ruleId)} />
       {rest.length > 0 && (
         <section aria-labelledby="also-title" className="mt-2">
           <h2 id="also-title" className="text-title">
@@ -79,7 +55,7 @@ export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: st
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.06 + i * 0.04 }}
               >
-                <ItemRow item={item} selected={whyOpen && selected?.ruleId === item.ruleId} onSelect={() => selectRow(item.ruleId)} />
+                <ItemRow item={item} open={openId === item.ruleId} onToggle={() => toggle(item.ruleId)} />
               </motion.li>
             ))}
           </ul>
@@ -88,10 +64,6 @@ export function PlanBoard({ items, memberId }: { items: PlanItem[]; memberId: st
     </div>
   );
 }
-
-const selectable =
-  "w-full border bg-card text-left outline-none transition-[border-color,box-shadow] duration-150 focus-visible:ring-3 focus-visible:ring-ring/50";
-const selectedRing = "border-primary shadow-[0_0_0_3px_var(--secondary)]";
 
 function ItemIcon({ item, size }: { item: PlanItem; size: "md" | "lg" }) {
   const Icon = categoryIcon[item.category];
@@ -166,7 +138,7 @@ function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; m
             variant="ghost"
             onClick={onToggleWhy}
             aria-expanded={whyOpen}
-            aria-controls="why-panel"
+            aria-controls={`why-${item.ruleId}`}
             className="h-11 px-3 text-label md:h-9"
           >
             Why?
@@ -192,6 +164,7 @@ function FocusCard({ item, memberId, whyOpen, onToggleWhy }: { item: PlanItem; m
           )}
         </div>
       </div>
+      <Why id={`why-${item.ruleId}`} item={item} open={whyOpen} skipFirstSentence />
     </motion.article>
   );
 }
@@ -231,43 +204,51 @@ function Countdown({ item, days }: { item: PlanItem; days: number }) {
   );
 }
 
-function ItemRow({ item, selected, onSelect }: { item: PlanItem; selected: boolean; onSelect: () => void }) {
+function ItemRow({ item, open, onToggle }: { item: PlanItem; open: boolean; onToggle: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(selectable, "flex items-center gap-3 rounded-xl px-4 py-3", selected ? selectedRing : "border-border hover:border-input")}
-    >
-      <ItemIcon item={item} size="md" />
-      <span className="min-w-0 flex-1">
-        <span className="block text-body font-semibold">{item.title}</span>
-        <span className="block text-caption text-muted-foreground">
-          {categoryLabel[item.category]}
-          {item.dueBy ? ` · by ${formatShortDate(item.dueBy)}` : ""}
+    <div className={cn("rounded-xl border bg-card transition-colors duration-150", open ? "border-input" : "border-border")}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={`why-${item.ruleId}`}
+        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <ItemIcon item={item} size="md" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-body font-semibold">{item.title}</span>
+          <span className="block text-caption text-muted-foreground">
+            {categoryLabel[item.category]}
+            {item.dueBy ? ` · by ${formatShortDate(item.dueBy)}` : ""}
+          </span>
         </span>
-      </span>
-      {item.progress ? (
-        <span className="inline-flex items-center gap-1 rounded-md bg-status-ok-soft px-2 py-0.5 text-caption font-semibold text-status-ok">
-          <CheckCircle2 className="size-3.5" aria-hidden />
-          {item.progress === "done" ? "Done" : "Booked"}
-        </span>
-      ) : (
-        <StatusPill status={item.status} />
-      )}
-    </button>
+        {item.progress ? (
+          <span className="inline-flex items-center gap-1 rounded-md bg-status-ok-soft px-2 py-0.5 text-caption font-semibold text-status-ok">
+            <CheckCircle2 className="size-3.5" aria-hidden />
+            {item.progress === "done" ? "Done" : "Booked"}
+          </span>
+        ) : (
+          <StatusPill status={item.status} />
+        )}
+        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-220", open && "rotate-180")} aria-hidden />
+      </button>
+      <div className="px-4">
+        <Why id={`why-${item.ruleId}`} item={item} open={open} className="pb-4" />
+      </div>
+    </div>
   );
 }
 
 // Opens and closes with a grid-rows transition (0fr to 1fr) plus a fade, so
-// the page below slides instead of jumping. Closed content is inert.
-function WhyPanel({ item, open, ref }: { item: PlanItem; open: boolean; ref: React.Ref<HTMLElement> }) {
+// the content below slides instead of jumping. Closed content is inert.
+// skipFirstSentence: the focus card already shows the guideline's first
+// sentence as its action, so the guideline step only adds what follows it.
+function Why({ id, item, open, skipFirstSentence, className }: { id: string; item: PlanItem; open: boolean; skipFirstSentence?: boolean; className?: string }) {
+  const guideline = skipFirstSentence ? item.detail.slice(firstSentence(item.detail).length).trim() : item.detail;
   return (
     <section
-      ref={ref}
-      id="why-panel"
-      aria-live="polite"
-      aria-labelledby="why-title"
+      id={id}
+      aria-label={`Why ${item.title} is in your plan`}
       className={cn(
         "grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out)",
         open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
@@ -275,44 +256,23 @@ function WhyPanel({ item, open, ref }: { item: PlanItem; open: boolean; ref: Rea
       inert={!open}
     >
       <div className="min-h-0 overflow-hidden">
-        <div className="rounded-2xl border border-border bg-card p-5">
-          <h2 id="why-title" className="text-title">
-            Why it&apos;s in your plan
-          </h2>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={item.ruleId}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <p className="mt-1 text-label text-muted-foreground">{item.title}</p>
-              <ol className="mt-4 flex flex-col">
-                <Step icon={UserRound} label="Your data">
-                  <p className="text-body">{item.reason}</p>
-                </Step>
-                <Step icon={BookOpen} label="The guideline">
-                  <p className="text-body">{item.detail}</p>
-                </Step>
-                <Step icon={ExternalLink} label="Source" last>
-                  <a
-                    href={item.source.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block font-mono text-caption underline-offset-2 hover:underline"
-                  >
-                    {item.source.title}
-                  </a>
-                  <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(item.source.checkedAt)}</p>
-                </Step>
-              </ol>
-            </motion.div>
-          </AnimatePresence>
-          <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
-            Guidance to discuss with your doctor, not a diagnosis.
-          </p>
-        </div>
+        <ol className="mt-5 flex flex-col border-t border-border pt-5">
+          <Step icon={UserRound} label="Your data">
+            <p className="text-body">{item.reason}</p>
+          </Step>
+          {guideline && (
+            <Step icon={BookOpen} label="The guideline">
+              <p className="text-body">{guideline}</p>
+            </Step>
+          )}
+          <Step icon={ExternalLink} label="Source" last>
+            <a href={item.source.url} target="_blank" rel="noreferrer" className="block font-mono text-caption underline-offset-2 hover:underline">
+              {item.source.title}
+            </a>
+            <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(item.source.checkedAt)}</p>
+          </Step>
+        </ol>
+        <p className={cn("mt-4 text-caption text-muted-foreground", className)}>Guidance to discuss with your doctor, not a diagnosis.</p>
       </div>
     </section>
   );

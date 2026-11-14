@@ -48,7 +48,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
         </h1>
-        <p className="mt-2 text-label font-normal text-muted-foreground">{familyContext(family)}</p>
+        {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
+        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
         <PlanBoard items={plan.items} memberId={memberId} />
       </section>
 

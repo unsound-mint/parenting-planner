@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
+import { familyContext } from "@/lib/format";
 import { formatShortDate } from "@/lib/format";
 import { categoryIcon, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,7 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
   ]);
   if (!family || !plan || !family.parents.some((p) => p.id === memberId)) notFound();
   const lane = laneWindow(family, plan.items);
-  const { headline, support } = journeyHeadline(family, lane);
+  const headline = journeyHeadline(lane);
 
   return (
     <main className="flex min-w-0 max-w-4xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
@@ -35,7 +36,8 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
         <PathStrip family={family} />
         <div>
           <h1 className="text-headline text-balance">{headline}</h1>
-          {support && <p className="mt-2 text-label font-normal text-muted-foreground">{support}</p>}
+          {/* The top bar shows this line from sm up; repeat it here only on phones. */}
+          <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
         </div>
       </header>
 
