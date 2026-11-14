@@ -36,7 +36,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, requests, patterns] = await Promise.all([
+  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, requests, patterns, brief, checkins] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
@@ -47,6 +47,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/providers"),
     api.GET("/members/{memberId}/booking-requests", path),
     api.GET("/members/{memberId}/mood-patterns", path),
+    api.GET("/members/{memberId}/session-brief", path),
+    api.GET("/members/{memberId}/mood-checkins", path),
   ]);
   const fam = family.data;
   const me = fam?.parents.find((p) => p.id === memberId);
@@ -85,6 +87,9 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           entries={diary.data.items}
           agenda={agenda.data}
           slots={slots.data}
+          brief={brief.data}
+          checkins={checkins.data?.items ?? []}
+          now={now.toISOString()}
         />
       )}
 

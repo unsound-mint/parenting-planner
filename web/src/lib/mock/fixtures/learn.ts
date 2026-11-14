@@ -223,6 +223,7 @@ export const learnMocks = {
     if (theirFinish?.finishedAt) {
       const title = lessonById.get(theirFinish.lessonId)?.title ?? "";
       nudge = {
+        id: `lesson_finished:${theirFinish.lessonId}:${theirFinish.finishedAt}`,
         memberId: other.id,
         kind: "lesson_finished",
         at: theirFinish.finishedAt,

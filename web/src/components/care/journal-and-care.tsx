@@ -6,14 +6,17 @@ import { AnimatePresence, motion } from "motion/react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-import type { AgendaSuggestion, AgendaTopic, DiaryEntry, PsychologistAgenda, PsychologistSlots, Visibility } from "@/lib/api/types";
+import type { AgendaSuggestion, AgendaTopic, DiaryEntry, MoodCheckin, PsychologistAgenda, PsychologistSlots, SessionBrief, Visibility } from "@/lib/api/types";
 import { formatDayNumber, formatMonth } from "@/lib/format";
 import { Rise } from "@/components/joy/rise";
 import { spring } from "@/components/joy/motion";
 import { Composer } from "@/components/diary/composer";
 import { EntryRow } from "@/components/diary/entry-row";
 import type { Partner } from "@/components/diary/audience";
-import { AgendaCard, topicKey, type Flights } from "./agenda-card";
+import { topicKey, type Flights } from "./agenda-parts";
+import { BriefCard } from "./brief-card";
+import { MoodChart } from "@/components/diary/mood-chart";
+import type { Mood } from "@/components/joy/mood-face";
 import { shortName } from "./names";
 import { SessionNoteCard } from "./session-note-card";
 
@@ -34,6 +37,9 @@ export function JournalAndCare({
   entries: serverEntries,
   agenda,
   slots,
+  brief,
+  checkins,
+  now,
 }: {
   memberId: string;
   name: string;
@@ -43,6 +49,10 @@ export function JournalAndCare({
   entries: DiaryEntry[];
   agenda?: PsychologistAgenda;
   slots?: PsychologistSlots;
+  brief?: SessionBrief;
+  checkins: MoodCheckin[];
+  /** The family's clock, ISO. */
+  now: string;
 }) {
   const router = useRouter();
   // Local copies so every change shows at once; a new server render resets them.
@@ -79,7 +89,7 @@ export function JournalAndCare({
     setTimeout(() => setFlash((f) => (f === id ? undefined : f)), 1400);
   }
 
-  async function patch(entry: DiaryEntry, body: { visibility: Visibility; agendaTopic?: string }) {
+  async function patch(entry: DiaryEntry, body: { visibility: Visibility; agendaTopic?: string; body?: string; mood?: number }) {
     const { data, error } = await api.PATCH("/members/{memberId}/diary-entries/{entryId}", {
       params: { path: { memberId, entryId: entry.id } },
       body,
@@ -96,6 +106,38 @@ export function JournalAndCare({
     setEntries((cur) => cur.map((e) => (e.id === entry.id ? { ...e, visibility: data.visibility } : e)));
     toast.success(visibility === "private" ? "Only you can read it now." : `${partner?.name ?? "Your partner"} can read this entry now.`);
     return true;
+  }
+
+  async function edit(entry: DiaryEntry, text: string, mood: Mood | undefined): Promise<boolean> {
+    const data = await patch(entry, { visibility: entry.visibility, body: text, ...(mood ? { mood } : {}) });
+    if (!data) {
+      toast.error("Could not save your changes. Your words are still in the box.");
+      return false;
+    }
+    setEntries((cur) => cur.map((e) => (e.id === entry.id ? data : e)));
+    flashEntry(entry.id);
+    router.refresh();
+    return true;
+  }
+
+  async function remove_(entry: DiaryEntry) {
+    const undo = entries;
+    const undoTopics = topics;
+    setEntries((cur) => cur.filter((e) => e.id !== entry.id));
+    setTopics((cur) => cur.filter((t) => t.diaryEntryId !== entry.id));
+    const { error } = await api.DELETE("/members/{memberId}/diary-entries/{entryId}", { params: { path: { memberId, entryId: entry.id } } });
+    if (error) {
+      setEntries(undo);
+      setTopics(undoTopics);
+      toast.error("Could not delete the entry. Please try again.");
+      return;
+    }
+    toast.success("Entry deleted.");
+    router.refresh();
+  }
+
+  function jump(id: string) {
+    flashEntry(id);
   }
 
   /** Puts a title on an entry's agenda. from: the field's rect for the flight; none means drop in. */
@@ -189,6 +231,8 @@ export function JournalAndCare({
           }}
         />
 
+        <MoodChart memberId={memberId} now={now} entries={entries} checkins={checkins} onJump={jump} />
+
         <h2 className="sr-only">Your entries</h2>
         {entries.length === 0 ? (
           <p className="mt-3 flex items-center gap-3 rounded-3xl border border-dashed border-line-2 px-5 py-4 text-label font-normal text-ink-2">
@@ -216,6 +260,8 @@ export function JournalAndCare({
                     offer={e.id === offerId}
                     onVisibility={(v) => changeVisibility(e, v)}
                     onBring={(title, from) => bring(e, title, from)}
+                    onEdit={e.authorId === memberId ? (text, mood) => edit(e, text, mood) : undefined}
+                    onDelete={e.authorId === memberId ? () => remove_(e) : undefined}
                   />
                 </motion.li>
               ))}
@@ -226,15 +272,15 @@ export function JournalAndCare({
 
       <Rise i={2} className="flex min-w-0 flex-col gap-6">
         {agenda ? (
-          <AgendaCard
+          <BriefCard
             memberId={memberId}
             psychologist={psychologist}
             topics={topics}
             origin={origin}
             suggestion={suggestion}
-            nextSession={agenda.nextSession}
             lastSession={agenda.noteDue}
             slots={slots?.items ?? []}
+            brief={brief}
             busy={busy > 0}
             flights={flights}
             onAddSuggestion={addSuggestion}
