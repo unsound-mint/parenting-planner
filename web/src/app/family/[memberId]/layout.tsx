@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/product";
-import { familyPeople } from "@/lib/roles";
+import { familyPeople, isCaregiver } from "@/lib/roles";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
@@ -27,6 +27,8 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
   if (!person) notFound();
+  // The Plan entry shows only once tasks work: the API answers 501 until then.
+  const hasPlan = !isCaregiver(person.role) && (await api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } })).response.ok;
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
@@ -37,7 +39,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink />
           </div>
         </div>
-        <FamilyNav memberId={memberId} role={person.role} />
+        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} />
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
