@@ -25,7 +25,7 @@ export function FamilyNav({ memberId, role, hidden = [] }: { memberId: string; r
   const pathname = usePathname();
   const base = `/family/${memberId}`;
   return (
-    <nav aria-label="Family" className="flex gap-1 md:flex-col">
+    <nav aria-label="Family" className="grid auto-cols-fr grid-flow-col gap-1 md:flex md:flex-col">
       {items.filter((item) => canOpen(role, item.screen) && !hidden.includes(item.screen)).map((item) => {
         const href = base + item.href;
         const active = item.href === "" ? pathname === href : pathname.startsWith(href);
@@ -35,7 +35,7 @@ export function FamilyNav({ memberId, role, hidden = [] }: { memberId: string; r
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-label transition-colors duration-150",
+              "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-caption font-medium transition-colors duration-150 md:min-h-0 md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-label",
               active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

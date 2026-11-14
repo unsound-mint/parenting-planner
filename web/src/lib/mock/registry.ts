@@ -50,14 +50,24 @@ export function mock<P extends keyof paths, M extends Method & keyof paths[P]>(
 }
 
 export function mockMiddleware(table: MockTable): Middleware {
+  // fetch consumes the request body, so it is copied in onRequest and read back by request id.
+  const bodies = new Map<string, string>();
   return {
-    async onResponse({ request, response, schemaPath, params }) {
+    async onRequest({ request, id }) {
+      if (previewMocksEnabled && request.method !== "GET" && request.method !== "HEAD") {
+        bodies.set(id, await request.clone().text());
+      }
+      return undefined;
+    },
+    async onResponse({ request, response, schemaPath, params, id }) {
+      const sent = bodies.get(id);
+      bodies.delete(id);
       if (!previewMocksEnabled || response.status !== 501) return undefined;
       const entry = table[`${request.method} ${schemaPath}`];
       if (!entry) return undefined;
       let body: unknown;
       try {
-        body = await request.clone().json();
+        body = sent ? JSON.parse(sent) : undefined;
       } catch {
         body = undefined;
       }

@@ -82,7 +82,7 @@ export function BabyHomeSwitch({ memberId, agreedShifts }: { memberId: string; a
             aria-hidden
             className={cn(
               "size-9 rounded-full bg-card shadow-[0_1px_3px_rgb(0_0_0/0.2)] transition-transform duration-220 ease-(--ease-out)",
-              (open || done) && "translate-x-7",
+              done && "translate-x-7",
             )}
           />
         </button>
