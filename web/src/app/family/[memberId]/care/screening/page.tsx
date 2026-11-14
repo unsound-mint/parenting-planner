@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { Screening } from "@/components/wellbeing/screening";
+import { PageFrame } from "@/components/shell/page";
 import { BackToCare, Unavailable, WellbeingFallback } from "@/components/wellbeing/chrome";
 
 // Mood questionnaires (EPDS, PHQ-9). Screening, never a diagnosis. Parents only.
@@ -24,7 +25,7 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
   ]);
 
   return (
-    <main className="flex-1 px-4 pt-4 pb-16 md:px-8">
+    <PageFrame className="block pt-4">
       <BackToCare memberId={memberId} />
       {!questionnaires ? (
         <Unavailable title="The questionnaires are not loading" />
@@ -35,6 +36,6 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
           past={(past?.items ?? []).filter((r) => r.authorId === memberId)}
         />
       )}
-    </main>
+    </PageFrame>
   );
 }

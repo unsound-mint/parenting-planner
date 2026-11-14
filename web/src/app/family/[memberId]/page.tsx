@@ -8,6 +8,7 @@ import { PlanWithNote } from "@/components/week/plan-with-note";
 import { MoodSleepCard } from "@/components/week/mood-sleep-card";
 import { BabyHome } from "@/components/baby/baby-home";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
+import { PageFrame } from "@/components/shell/page";
 import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
 
 // "This week": the acting parent's plan from the rules engine, the reason and
@@ -22,7 +23,8 @@ import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/toda
 // - weekly card: the baby's week only (size, development, birth prep);
 // - guides: only reading the plan does not already cover;
 // - the top bar: the week of pregnancy and the due date.
-// The DOM order is the phone order; from xl the plan and the rest sit side by side.
+// The DOM order is the phone order. From lg the plan and the rest sit side by
+// side; from 2xl the rest splits in two, the questions card on its own column.
 export default function WeekPage({ params }: PageProps<"/family/[memberId]">) {
   return (
     <Suspense fallback={<WeekFallback />}>
@@ -79,7 +81,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const late = family.stage === "pregnancy" && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && shifts;
 
   return (
-    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
+    <PageFrame className="grid content-start gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
       <section aria-labelledby="week-headline" className="min-w-0">
         <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
@@ -92,16 +94,20 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <PlanWithNote items={plan.items} memberId={memberId} tier={family.tier} talkHref={talkHref} />
       </section>
 
-      <aside aria-label="You and your visits" className="flex min-w-0 flex-col gap-6 xl:pt-1">
+      {/* From 2xl: two columns. The questions card is placed first in the right one and spans
+          into the last, flexible row, so its height never opens gaps between the cards on the left. */}
+      <aside aria-label="You and your visits" className="grid min-w-0 content-start items-start gap-6 lg:pt-1 2xl:grid-cols-2 2xl:grid-rows-[repeat(4,auto)_1fr]">
         <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} />
-        <Suspense fallback={null}>
-          <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
-        </Suspense>
+        <div className="min-w-0 empty:hidden 2xl:col-start-2 2xl:row-span-5 2xl:row-start-1">
+          <Suspense fallback={null}>
+            <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
+          </Suspense>
+        </div>
         <WeekCardSlot card={card} babyOnly />
         <GuidesSlot guides={guides} plan={plan.items} />
         {late && <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />}
       </aside>
-    </main>
+    </PageFrame>
   );
 }
 

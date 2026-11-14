@@ -10,6 +10,7 @@ import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
 import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 
 // "Care": the psychologist agenda, booking and the note after a session.
 // Links to the private journal and the mood questionnaires sit under the agenda. Everything here belongs to the acting parent only.
@@ -68,8 +69,8 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires }: Vi
   else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8">
-      <section aria-labelledby="care-headline" className="flex min-w-0 max-w-5xl flex-col gap-6">
+    <PageFrame>
+      <section aria-labelledby="care-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
@@ -83,7 +84,8 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires }: Vi
         {!agenda ? (
           <Unavailable />
         ) : (
-          <div className="flex max-w-2xl flex-col gap-3">
+          // The session step, the agenda and the wellbeing links: side by side from lg, three across from 2xl.
+          <PageGrid cols={3}>
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
@@ -93,11 +95,10 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires }: Vi
             ) : null}
             <AgendaCard topics={topics} />
             <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
-          </div>
+          </PageGrid>
         )}
       </section>
-
-    </main>
+    </PageFrame>
   );
 }
 

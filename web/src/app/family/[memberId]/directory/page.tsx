@@ -10,6 +10,7 @@ import { providerTypes } from "@/lib/visuals";
 import { DirectoryFilters } from "@/components/directory/directory-filters";
 import { ProviderCard, whenLabel } from "@/components/directory/provider-card";
 import { recommend, type Recommendation } from "@/components/directory/recommend";
+import { PageFrame } from "@/components/shell/page";
 
 // Provider directory: synthetic providers by type and state, with a booking
 // request that is saved and shown as "Requested". Filters are URL search
@@ -71,8 +72,8 @@ async function Directory({
   for (const p of everyone) if (!state || p.state === state) counts[p.type] = (counts[p.type] ?? 0) + 1;
 
   return (
-    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8">
-      <section aria-labelledby="directory-headline" className="min-w-0 max-w-5xl">
+    <PageFrame>
+      <section aria-labelledby="directory-headline" className="min-w-0">
         <h1 id="directory-headline" className="max-w-2xl text-headline text-balance">
           {headline(picks, pattern !== undefined, failed)}
         </h1>
@@ -121,7 +122,7 @@ async function Directory({
                   </Link>
                 </Empty>
               ) : (
-                <ul className="mt-4 flex flex-col gap-3">
+                <ul className="mt-4 grid items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
                   {items.map((p) => (
                     <ProviderCard key={p.id} provider={p} memberId={memberId} requested={requested.has(p.id)} />
                   ))}
@@ -131,7 +132,7 @@ async function Directory({
           </>
         )}
       </section>
-    </main>
+    </PageFrame>
   );
 }
 

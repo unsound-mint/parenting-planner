@@ -11,6 +11,7 @@ import { addDays, todayKey } from "@/lib/schedule";
 import { CalendarSubscribe } from "@/components/schedule/calendar-subscribe";
 import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { WeekView, type Owner } from "@/components/schedule/week-view";
 import { cn } from "@/lib/utils";
 
@@ -71,7 +72,7 @@ async function Calendar({
   const weekHref = (f: string) => `/family/${memberId}/calendar?scope=${scope}${f === today ? "" : `&from=${f}`}`;
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame>
       <header>
         <h1 className="max-w-2xl text-headline text-balance">{headline(items, from === today, caregiver)}</h1>
         {caregiver ? (
@@ -108,26 +109,29 @@ async function Calendar({
         <Unavailable />
       )}
 
-      {agreed.length > 0 && (
-        <section aria-labelledby="agreed-title" className="flex flex-col gap-3">
-          <div>
-            <h2 id="agreed-title" className="text-title">
-              Agreed, starts when the baby is home
-            </h2>
-            <p className="text-label font-normal text-muted-foreground">These move into the week above on the day you switch.</p>
-          </div>
-          <ul className="grid max-w-3xl gap-3">
-            {agreed.map((s) => (
-              <li key={s.id}>
-                <ShiftCard shift={s} owner={owners[s.memberId]} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* Under the week, side by side from lg: the agreed shifts and the subscribe card. */}
+      <PageGrid className="empty:hidden">
+        {agreed.length > 0 && (
+          <section aria-labelledby="agreed-title" className="flex min-w-0 flex-col gap-3">
+            <div>
+              <h2 id="agreed-title" className="text-title">
+                Agreed, starts when the baby is home
+              </h2>
+              <p className="text-label font-normal text-muted-foreground">These move into the week above on the day you switch.</p>
+            </div>
+            <ul className="grid gap-3">
+              {agreed.map((s) => (
+                <li key={s.id}>
+                  <ShiftCard shift={s} owner={owners[s.memberId]} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-      {feed.data && <CalendarSubscribe memberId={memberId} initial={feed.data} canChooseScope={!caregiver} />}
-    </main>
+        {feed.data && <CalendarSubscribe memberId={memberId} initial={feed.data} canChooseScope={!caregiver} />}
+      </PageGrid>
+    </PageFrame>
   );
 }
 

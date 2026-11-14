@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { PageGrid } from "@/components/shell/page";
 
 type Partner = { id: string; name: string };
 
@@ -36,7 +37,7 @@ export function Journal({ memberId, partner, entries: initial, moods }: { member
   for (const m of moods) if (!moodByDay.has(dayKey(m.recordedAt))) moodByDay.set(dayKey(m.recordedAt), m.mood);
 
   return (
-    <div className="mt-2 flex max-w-2xl flex-col gap-6">
+    <div className="mt-2 flex flex-col gap-6">
       <div>
         <h1 className="flex items-center gap-3 text-headline">
           <Diary className="size-7 text-primary" aria-hidden />
@@ -48,30 +49,33 @@ export function Journal({ memberId, partner, entries: initial, moods }: { member
         </p>
       </div>
 
-      <WriteBox memberId={memberId} partner={partner} onSaved={(e) => setEntries((cur) => [e, ...cur])} />
+      {/* From lg: the write box on the left, the entries beside it. */}
+      <PageGrid>
+        <WriteBox memberId={memberId} partner={partner} onSaved={(e) => setEntries((cur) => [e, ...cur])} />
 
-      {entries.length === 0 ? (
-        <p className="text-label text-muted-foreground">Nothing written yet. Whatever you put down stays yours.</p>
-      ) : (
-        <section aria-label="Entries" className="flex flex-col gap-3">
-          <h2 className="font-mono text-caption tracking-[0.07em] text-muted-foreground uppercase">
-            Entries
-          </h2>
-          <ul className="flex flex-col gap-3">
-            {entries.map((e) => (
-              <li key={e.id}>
-                <Entry
-                  memberId={memberId}
-                  entry={e}
-                  partner={partner}
-                  mood={moodByDay.get(dayKey(e.writtenAt))}
-                  onChange={(next) => setEntries((cur) => cur.map((x) => (x.id === next.id ? next : x)))}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {entries.length === 0 ? (
+          <p className="text-label text-muted-foreground">Nothing written yet. Whatever you put down stays yours.</p>
+        ) : (
+          <section aria-label="Entries" className="flex min-w-0 flex-col gap-3">
+            <h2 className="font-mono text-caption tracking-[0.07em] text-muted-foreground uppercase">
+              Entries
+            </h2>
+            <ul className="flex flex-col gap-3">
+              {entries.map((e) => (
+                <li key={e.id}>
+                  <Entry
+                    memberId={memberId}
+                    entry={e}
+                    partner={partner}
+                    mood={moodByDay.get(dayKey(e.writtenAt))}
+                    onChange={(next) => setEntries((cur) => cur.map((x) => (x.id === next.id ? next : x)))}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </PageGrid>
     </div>
   );
 }
@@ -239,7 +243,7 @@ function Entry({ memberId, entry, partner, mood, onChange }: { memberId: string;
           </span>
         </div>
       </header>
-      <p className="mt-3 text-body whitespace-pre-line">{entry.body}</p>
+      <p className="mt-3 max-w-prose text-body whitespace-pre-line">{entry.body}</p>
       {entry.agendaTopic && (
         <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-status-up-soft px-3 py-1 text-caption font-medium text-status-up">
           <Agenda className="size-3.5" aria-hidden />

@@ -12,6 +12,7 @@ import { ProfileCard } from "@/components/passport/profile-card";
 import { attentionCount, followUps, tally } from "@/components/passport/summary";
 import { SummaryCard } from "@/components/passport/summary-card";
 import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 
 // Health passport: labs, vaccines, allergies, growth and care team for each
 // person. The API decides what the acting parent may see; this page draws it.
@@ -52,7 +53,7 @@ async function Passport({
   const showVisibility = person.isActingParent;
 
   return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="block">
       <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
       <div className="mt-4">
         <PersonTabs people={data.people} selectedId={person.id} base={`/family/${memberId}/passport`} attention={attentionById} />
@@ -64,21 +65,23 @@ async function Passport({
         </p>
       )}
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-6">
+      {/* Two rows of cards: the status row (summary, next step, profile) and the records row
+          (labs, vaccines, growth). Two across from lg, three from 2xl. */}
+      <PageGrid cols={3} className="mt-6 items-stretch gap-4 lg:gap-6">
         <SummaryCard tally={tally(person)} />
         <NextStep person={person} items={items} />
-      </div>
-      <div className="mt-4 lg:mt-6">
-        <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
-      </div>
-      <div className="mt-4 grid items-start gap-4 lg:mt-6 lg:grid-cols-2 lg:gap-6">
+        <div className="min-w-0 lg:col-span-2 2xl:col-span-1">
+          <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
+        </div>
+      </PageGrid>
+      <PageGrid cols={3} className="mt-4 gap-4 lg:mt-6 lg:gap-6">
         <LabsCard labs={person.labs} showVisibility={showVisibility} />
-        <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-4 lg:gap-6 2xl:contents">
           <VaccineTimeline vaccines={person.vaccines} />
           {person.kind === "child" && <GrowthCard growth={person.growth} />}
         </div>
-      </div>
-    </main>
+      </PageGrid>
+    </PageFrame>
   );
 }
 
@@ -86,7 +89,7 @@ async function Passport({
 function PassportEmpty() {
   const sections = [passportIcon.labs, passportIcon.vaccines, passportIcon.allergies, passportIcon.growth, passportIcon.careTeam];
   return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="block">
       <h1 className="max-w-2xl text-headline text-balance">Your family&apos;s health passport is empty for now.</h1>
       <div className="mt-8 flex max-w-2xl flex-col items-center gap-5 rounded-2xl border border-dashed border-border px-6 py-12 text-center">
         <div className="flex gap-3" aria-hidden>
@@ -98,7 +101,7 @@ function PassportEmpty() {
         </div>
         <p className="max-w-sm text-body text-muted-foreground">Labs, vaccines, allergies, growth and your care team appear here once they are recorded. Check back soon.</p>
       </div>
-    </main>
+    </PageFrame>
   );
 }
 
