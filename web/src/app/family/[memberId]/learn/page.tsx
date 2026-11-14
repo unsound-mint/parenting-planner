@@ -22,6 +22,7 @@ import { CapsuleLink } from "@/components/capsule/capsule-link";
 import { StickerShelf } from "@/components/missions/sticker-shelf";
 import { PracticeSection } from "@/components/simulator/practice-section";
 import { VirtualBabyEntry } from "@/components/virtual-baby/entry-card";
+import { NamesQuestCard } from "@/components/names/names-quest-card";
 
 // Learn: the one place to learn and prepare together. Learning paths with both
 // parents' progress, lessons that open in place, a quiz to compare answers and
@@ -140,9 +141,15 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
         />
       )}
 
-      {/* Virtual Baby (its own route) is for every parent, planning included, so it sits outside the practice gate. */}
+      {/* Virtual Baby (its own route) is for every parent, planning included, so it sits outside the practice gate.
+          The names quest is open before the birth only (the API answers 409 after); loss support never reaches here. */}
       <Rise i={3} className="grid gap-4 @4xl:grid-cols-2 @7xl:grid-cols-3">
         <VirtualBabyEntry memberId={memberId} />
+        {["planning", "trying", "pregnancy"].includes(family.data.stage) && (
+          <Suspense fallback={null}>
+            <NamesQuestCard memberId={memberId} parents={family.data.parents} />
+          </Suspense>
+        )}
       </Rise>
 
       {practice && (

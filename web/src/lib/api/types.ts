@@ -162,6 +162,12 @@ export type Together = S["Together"];
 export type CoupleTalk = S["CoupleTalk"];
 export type BabyName = S["BabyName"];
 export type BabyNameList = S["BabyNameList"];
+export type NamesQuest = S["NamesQuest"];
+export type NameCard = S["NameCard"];
+export type NameDeck = S["NameDeck"];
+export type NameVerdict = S["NameVerdict"];
+export type NameSex = S["NameSex"];
+export type NameSwipeResult = S["NameSwipeResult"];
 
 export type Postcard = S["Postcard"];
 export type PostcardLove = S["PostcardLove"];

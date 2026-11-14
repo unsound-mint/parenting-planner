@@ -318,7 +318,21 @@ func AddName(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID,
 		if err := q.LikeBabyName(ctx, store.LikeBabyNameParams{MemberID: actor, CreatedAt: now, NameID: row.ID, FamilyID: familyID}); err != nil {
 			return err
 		}
-		out = nameOut(row.ID, row.Name, row.AddedBy, []uuid.UUID{actor}, row.CreatedAt, parents)
+		// The other parent may already love it in the names quest: then it is a match.
+		swipes, err := q.ListNameSwipes(ctx, familyID)
+		if err != nil {
+			return err
+		}
+		liked := []uuid.UUID{actor}
+		for _, s := range swipes {
+			if s.MemberID != actor && slices.Contains(parents, s.MemberID) && s.Verdict == string(Love) && strings.EqualFold(s.Name, name) {
+				if err := q.LikeBabyName(ctx, store.LikeBabyNameParams{MemberID: s.MemberID, CreatedAt: now, NameID: row.ID, FamilyID: familyID}); err != nil {
+					return err
+				}
+				liked = append(liked, s.MemberID)
+			}
+		}
+		out = nameOut(row.ID, row.Name, row.AddedBy, liked, row.CreatedAt, parents)
 		return nil
 	})
 	return out, err
@@ -339,6 +353,13 @@ func SetLike(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID,
 			err = q.LikeBabyName(ctx, store.LikeBabyNameParams{MemberID: actor, CreatedAt: now, NameID: nameID, FamilyID: familyID})
 		} else {
 			err = q.UnlikeBabyName(ctx, store.UnlikeBabyNameParams{NameID: nameID, FamilyID: familyID, MemberID: actor})
+			if err == nil {
+				// Taking back a like also takes back a "love" from the names quest.
+				var row store.GetBabyNameRow
+				if row, err = q.GetBabyName(ctx, store.GetBabyNameParams{FamilyID: familyID, ID: nameID}); err == nil {
+					err = q.DeleteNameSwipe(ctx, store.DeleteNameSwipeParams{FamilyID: familyID, MemberID: actor, Name: row.Name})
+				}
+			}
 		}
 		if err != nil {
 			return err

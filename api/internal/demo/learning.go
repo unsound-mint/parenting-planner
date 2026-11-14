@@ -42,6 +42,15 @@ type learnName struct {
 	day    int
 }
 
+// learnSwipe is a names quest answer. A name both parents love is seeded as a
+// match: on the shared list, liked by both.
+type learnSwipe struct {
+	who     who
+	name    string
+	verdict string
+	day     int
+}
+
 type learnTalk struct {
 	prompt string
 	by     who
@@ -53,6 +62,9 @@ type learnStory struct {
 	answers []learnAnswer
 	names   []learnName
 	talks   []learnTalk
+	// The names quest: the lists the couple picked and each parent's swipes.
+	nameLists []string
+	swipes    []learnSwipe
 }
 
 var learnStories = map[Template]learnStory{
@@ -90,6 +102,23 @@ var learnStories = map[Template]learnStory{
 			{"Miles", partner, []who{partner}, -2},
 		},
 		talks: []learnTalk{{"p08", partner, -6}},
+		// Names quest: Hazel is a match from the deck (four matches with Ada,
+		// June and Theo, one short of the final round). Iris, Finn and Eleanor
+		// are love/maybe pairs to talk about. Jake loved Eloise, Rowan, Willow,
+		// Leo and Grace, which Emily has not seen yet: they lead her deck, so a
+		// match can happen in the demo.
+		nameLists: []string{"english", "irish", "french", "vintage"},
+		swipes: []learnSwipe{
+			{mother, "Hazel", "love", -9}, {mother, "Iris", "love", -9}, {mother, "Maeve", "maybe", -8},
+			{mother, "Henry", "love", -8}, {mother, "Josephine", "no", -8}, {mother, "Claire", "maybe", -7},
+			{mother, "Finn", "love", -7}, {mother, "Violet", "love", -6}, {mother, "Charlotte", "no", -6},
+			{mother, "Connor", "no", -6}, {mother, "Audrey", "maybe", -5}, {mother, "Eleanor", "love", -5},
+			{partner, "Hazel", "love", -4}, {partner, "Iris", "maybe", -4}, {partner, "Henry", "no", -4},
+			{partner, "Finn", "maybe", -3}, {partner, "Eloise", "love", -3}, {partner, "Rowan", "love", -3},
+			{partner, "Violet", "no", -2}, {partner, "Willow", "love", -2}, {partner, "Sophie", "maybe", -2},
+			{partner, "Leo", "love", -1}, {partner, "Maeve", "no", -1}, {partner, "Grace", "love", -1},
+			{partner, "Eleanor", "maybe", -1},
+		},
 	},
 	// Maya and Daniel, planning: dreaming and getting the paperwork straight.
 	Planning: {
@@ -104,6 +133,17 @@ var learnStories = map[Template]learnStory{
 		names: []learnName{
 			{"Nora", mother, []who{mother, partner}, -15},
 			{"Felix", partner, []who{partner}, -3},
+		},
+		// Names quest: River is a match from the deck (two with Nora); Camila,
+		// Mateo and Willow are love/maybe pairs.
+		nameLists: []string{"latino", "english", "neutral"},
+		swipes: []learnSwipe{
+			{mother, "Camila", "love", -6}, {mother, "River", "love", -6}, {mother, "Mateo", "maybe", -5},
+			{mother, "Sienna", "no", -5}, {mother, "Daisy", "love", -5}, {mother, "Santiago", "no", -4},
+			{mother, "Valentina", "maybe", -4}, {mother, "Willow", "love", -4},
+			{partner, "River", "love", -2}, {partner, "Camila", "maybe", -2}, {partner, "Daisy", "no", -2},
+			{partner, "Mateo", "love", -1}, {partner, "Sienna", "love", -1}, {partner, "Elena", "love", -1},
+			{partner, "Parker", "no", -1}, {partner, "Willow", "maybe", -1},
 		},
 	},
 	// Aisha and Marcus, Leo at 7 weeks: feeding, sleep and the crying.
@@ -180,6 +220,36 @@ func seedLearning(ctx context.Context, q *store.Queries, t Template, fam, mom, d
 			if err := q.LikeBabyName(ctx, store.LikeBabyNameParams{
 				MemberID: id(w), CreatedAt: at(n.day, 60+i), NameID: row.ID, FamilyID: fam,
 			}); err != nil {
+				return err
+			}
+		}
+	}
+	if len(story.nameLists) > 0 {
+		if err := q.SetNamesQuestLists(ctx, store.SetNamesQuestListsParams{FamilyID: fam, Lists: story.nameLists, UpdatedBy: mom, UpdatedAt: at(-10, 0)}); err != nil {
+			return err
+		}
+	}
+	loved := map[string][]learnSwipe{}
+	for _, sw := range story.swipes {
+		if err := q.UpsertNameSwipe(ctx, store.UpsertNameSwipeParams{FamilyID: fam, MemberID: id(sw.who), Name: sw.name, Verdict: sw.verdict, SwipedAt: at(sw.day, 70)}); err != nil {
+			return err
+		}
+		if sw.verdict == "love" {
+			loved[sw.name] = append(loved[sw.name], sw)
+		}
+	}
+	for _, sw := range story.swipes {
+		both := loved[sw.name]
+		if len(both) != 2 || both[1] != sw {
+			continue
+		}
+		// The second love makes the match, as together.Swipe does.
+		row, err := q.CreateBabyName(ctx, store.CreateBabyNameParams{FamilyID: fam, Name: sw.name, AddedBy: id(sw.who), CreatedAt: at(sw.day, 70)})
+		if err != nil {
+			return err
+		}
+		for _, l := range both {
+			if err := q.LikeBabyName(ctx, store.LikeBabyNameParams{MemberID: id(l.who), CreatedAt: at(sw.day, 70), NameID: row.ID, FamilyID: fam}); err != nil {
 				return err
 			}
 		}
