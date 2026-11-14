@@ -135,6 +135,7 @@ func (s *Server) AcceptInvitation(ctx context.Context, req AcceptInvitationReque
 		return nil, err
 	}
 	fam.SessionMemberId = &cg.ID // the new session is bound to the caregiver
+	fam.PregnancyLoss = nil      // a caregiver must not learn why pregnancy updates stopped
 	cookie := (&http.Cookie{
 		Name: sessionCookie, Value: token, Path: "/", HttpOnly: true,
 		Secure: s.cfg.SecureCookies, SameSite: http.SameSiteLaxMode, MaxAge: int(demo.SessionTTL.Seconds()),

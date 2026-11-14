@@ -165,7 +165,7 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, author uuid.UUID,
 			}
 		}
 		out, err = q.CreateAppointmentQuestion(ctx, store.CreateAppointmentQuestionParams{
-			FamilyID: familyID, OwnerMemberID: author, Visibility: visibility, AskedForEventID: target.ID, Body: text,
+			FamilyID: familyID, OwnerMemberID: author, Visibility: visibility, AskedForEventID: target.ID, Body: text, CreatedAt: now,
 		})
 		if err != nil {
 			return err
