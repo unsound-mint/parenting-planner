@@ -292,6 +292,24 @@ type SessionNote struct {
 	Text          string
 }
 
+type StripeEvent struct {
+	ID         string
+	Type       string
+	ReceivedAt time.Time
+}
+
+type Subscription struct {
+	FamilyID             uuid.UUID
+	Tier                 string
+	Status               string
+	StripeCustomerID     *string
+	StripeSubscriptionID *string
+	CheckoutSessionID    string
+	StartedAt            time.Time
+	CurrentPeriodEnd     pgtype.Timestamptz
+	UpdatedAt            time.Time
+}
+
 type UpgradeIntent struct {
 	FamilyID    uuid.UUID
 	Tier        string
