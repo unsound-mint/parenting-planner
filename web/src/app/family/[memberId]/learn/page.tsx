@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { optional } from "@/components/today/slots";
@@ -46,7 +47,14 @@ async function Learn({ params }: { params: Promise<{ memberId: string }> }) {
       <h1 className="max-w-2xl text-headline text-balance">
         {lessons.length === 0 ? "You are up to date on lessons." : `${countWord(lessons.length)} short ${lessons.length === 1 ? "lesson" : "lessons"} for you right now.`}
       </h1>
-      <p className="mt-2 text-label font-normal text-muted-foreground">{familyContext(family.data)}</p>
+      <p className="mt-2 text-label font-normal text-muted-foreground">
+        {familyContext(family.data)}
+        {/* Journey has no nav entry of its own: Learn is where it lives. */}
+        {" · "}
+        <Link href={`/family/${memberId}/journey`} className="underline decoration-line-2 underline-offset-3 hover:text-ink">
+          Your journey, week by week
+        </Link>
+      </p>
       {lessons.length > 0 && (
         <ul className="mt-6 grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {lessons.map((g) => {

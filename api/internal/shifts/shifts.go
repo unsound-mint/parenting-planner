@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -138,7 +140,7 @@ type New struct {
 
 // Create stores a shift for a person: agreed before the baby is home, active
 // from today after. It refuses a shift that overlaps one of the person's own.
-func Create(ctx context.Context, pool *pgxpool.Pool, familyID, memberID uuid.UUID, in New, today time.Time) (store.Shift, error) {
+func Create(ctx context.Context, pool *pgxpool.Pool, familyID, memberID uuid.UUID, in New, today, now time.Time) (store.Shift, error) {
 	if in.Start == in.End {
 		return store.Shift{}, ErrSameTime
 	}
@@ -165,10 +167,25 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, memberID uuid.UUI
 	if in.RoundID != nil {
 		round = uuid.NullUUID{UUID: *in.RoundID, Valid: true}
 	}
-	return q.CreateShift(ctx, store.CreateShiftParams{
-		FamilyID: familyID, MemberID: memberID, Title: in.Title, Days: in.Days, StartTime: in.Start, EndTime: in.End,
-		Status: status, StartsOn: startsOn, RoundID: round,
+	var created store.Shift
+	err = pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		tq := store.New(tx)
+		var err error
+		created, err = tq.CreateShift(ctx, store.CreateShiftParams{
+			FamilyID: familyID, MemberID: memberID, Title: in.Title, Days: in.Days, StartTime: in.Start, EndTime: in.End,
+			Status: status, StartsOn: startsOn, RoundID: round,
+		})
+		if err != nil {
+			return err
+		}
+		// The parents and the person on the shift are told.
+		audience, err := live.ParentsAnd(ctx, tq, familyID, memberID)
+		if err != nil {
+			return err
+		}
+		return live.Publish(ctx, tq, familyID, live.Event{Kind: live.Shift, EntityID: created.ID.String(), Actor: memberID, Audience: audience}, now)
 	})
+	return created, err
 }
 
 // List returns shifts ordered by first weekday, then start time. Everyone's for
