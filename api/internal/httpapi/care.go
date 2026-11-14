@@ -21,7 +21,7 @@ func (s *Server) GetPsychologistAgenda(ctx context.Context, req GetPsychologistA
 	case kind == errNotFound:
 		return GetPsychologistAgenda404JSONResponse(errNoMember), nil
 	}
-	a, err := care.GetAgenda(ctx, s.pool, familyID, req.MemberId, s.now(ctx))
+	a, err := care.GetAgenda(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,18 @@ func bookingOut(b care.Booking) PsychologistBooking {
 func agendaOut(a care.Agenda) PsychologistAgenda {
 	out := PsychologistAgenda{Topics: make([]AgendaTopic, 0, len(a.Topics))}
 	for _, t := range a.Topics {
-		out.Topics = append(out.Topics, AgendaTopic{Id: t.ID, Text: t.Text, AddedAt: t.AddedAt.UTC()})
+		at := AgendaTopic{Id: t.ID, Text: t.Text, AddedAt: t.AddedAt.UTC()}
+		if t.DiaryEntryID.Valid {
+			at.DiaryEntryId = &t.DiaryEntryID.UUID
+		}
+		out.Topics = append(out.Topics, at)
+	}
+	if len(a.Suggestions) > 0 {
+		sg := make([]AgendaSuggestion, 0, len(a.Suggestions))
+		for _, x := range a.Suggestions {
+			sg = append(sg, AgendaSuggestion{Text: x.Text, Reason: x.Reason, DiaryEntryId: x.DiaryEntryID})
+		}
+		out.Suggestions = &sg
 	}
 	if a.NextSession != nil {
 		b := bookingOut(*a.NextSession)

@@ -171,6 +171,22 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ChildcareOption struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	Name             string
+	Kind             string
+	Contact          *string
+	MonthlyCost      pgtype.Int4
+	Status           string
+	WaitlistPosition pgtype.Int4
+	AppliedOn        *time.Time
+	DecideBy         *time.Time
+	Notes            *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
 type ContentOverride struct {
 	FamilyID  uuid.UUID
 	Kind      string
@@ -196,6 +212,8 @@ type DiaryEntry struct {
 	BodySealed    []byte
 	AgendaTopic   *string
 	CreatedAt     time.Time
+	Mood          pgtype.Int2
+	IsFirst       bool
 }
 
 type Family struct {
@@ -532,6 +550,16 @@ type Task struct {
 	SourceCheckedOn         *time.Time
 	CreatedByMemberID       uuid.UUID
 	CreatedAt               time.Time
+}
+
+type Thank struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	FromMemberID  uuid.UUID
+	ToMemberID    uuid.UUID
+	Body          string
+	SuggestionKey *string
+	CreatedAt     time.Time
 }
 
 type UpgradeIntent struct {
