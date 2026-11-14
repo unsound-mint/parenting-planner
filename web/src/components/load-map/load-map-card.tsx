@@ -84,7 +84,7 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
   }
 
   return (
-    <SoftCard as="section" aria-labelledby="load-map-title" className="flex flex-col gap-5">
+    <SoftCard as="section" aria-labelledby="load-map-title" className="@container flex flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div>
           <h2 id="load-map-title" className="text-headline">
@@ -102,7 +102,7 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
         </ul>
       </header>
 
-      <ul className="flex flex-col gap-1">
+      <ul className="grid gap-1 @2xl:grid-cols-2 @2xl:gap-x-6">
         {map.areas.map((area, n) => (
           <AreaRow
             key={area.key}
@@ -146,52 +146,30 @@ function AreaRow({
   const Icon = areaIcon[area.key];
   const total = totalOf(area.owned);
   const line = warmLine(area, self, partner, people);
-  const mine = countOf(area.owned, self.id);
-  const theirs = partner ? countOf(area.owned, partner.id) : 0;
   const offeredToMe = area.offeredToMeTaskIds.length;
   const offeredByMe = area.offeredByMeTaskIds.length;
   const canHandOver = !!partner && area.handoverTaskIds.length > 0;
   const nameOf = (id: string) => people.find((p) => p.id === id)?.displayName ?? "Someone";
   const caption = area.owned.map((s) => `${s.memberId === self.id ? "You" : nameOf(s.memberId)} ${s.count}`).join(", ");
 
+  // Parents first, in bar order (mother left), then anyone else with a share.
+  const order = [...people.filter((p) => p.role === "mother" || p.role === "partner").map((p) => p.id), ...area.owned.map((s) => s.memberId)].filter((id, k, all) => all.indexOf(id) === k);
+  const counts = order.filter((id) => id === self.id || id === partner?.id || countOf(area.owned, id) > 0);
+
   return (
-    <Rise as="li" i={n + 1} className="rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/60 md:grid md:grid-cols-[11rem_1fr_auto] md:items-center md:gap-5">
+    <Rise as="li" i={n + 1} className="flex min-w-0 flex-col gap-3 rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/60">
       <div className="flex items-center gap-2.5">
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-sun text-ink-2">
           <Icon aria-hidden className="size-5" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-label font-semibold">{area.label}</p>
           <p className="font-mono text-caption text-muted-foreground">
             {total} {unitLabel(area.unit, total)}
           </p>
         </div>
-      </div>
-
-      <div className="relative mt-3 flex min-w-0 flex-col gap-1.5 md:mt-0">
-        <SplitBar shares={area.owned} people={people} i={n} label={`Carries now: ${caption}`} />
-        {area.started && (
-          <div className="flex items-center gap-2">
-            <SplitBar shares={area.started} people={people} i={n + 1} thin label={`Thought of first: ${area.started.map((s) => `${nameOf(s.memberId)} ${s.count}`).join(", ")}`} />
-            <span className="shrink-0 text-caption text-muted-foreground">thought of</span>
-          </div>
-        )}
-        <p className="flex justify-between font-mono text-caption text-muted-foreground">
-          <span>{mine} you</span>
-          {partner && (
-            <span>
-              {theirs} {partner.displayName}
-            </span>
-          )}
-        </p>
-        <AnimatePresence>
-          {celebrate && <Sparkle key="spark" tone={roleAccent[self.role].bg} />}
-        </AnimatePresence>
-      </div>
-
-      <div className="mt-2 flex flex-col items-start gap-2 md:mt-0 md:items-end">
         {offeredToMe > 0 && partner ? (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <span className="text-label text-ink-2">
               {partner.displayName} offered you {offeredToMe}
             </span>
@@ -201,7 +179,7 @@ function AreaRow({
             </Button>
           </div>
         ) : canHandOver ? (
-          <Button variant="outline" size="sm" disabled={busy} className="press min-h-11 gap-1.5 px-4" onClick={onHandOver}>
+          <Button variant="outline" size="sm" disabled={busy} className="press min-h-11 shrink-0 gap-1.5 px-4" onClick={onHandOver}>
             <ArrowRightLeft aria-hidden className="size-4" />
             Hand over this area
           </Button>
@@ -213,7 +191,28 @@ function AreaRow({
         ) : null}
       </div>
 
-      {line && <p className="mt-2 text-label font-normal text-ink-2 md:col-span-3 md:mt-0">{line}</p>}
+      <div className="relative flex min-w-0 flex-col gap-1.5">
+        <SplitBar shares={area.owned} people={people} i={n} label={`Carries now: ${caption}`} />
+        {area.started && (
+          <div className="flex items-center gap-2">
+            <SplitBar shares={area.started} people={people} i={n + 1} thin label={`Thought of first: ${area.started.map((s) => `${nameOf(s.memberId)} ${s.count}`).join(", ")}`} />
+            <span className="shrink-0 text-caption text-muted-foreground">thought of</span>
+          </div>
+        )}
+        <p className="flex justify-between gap-3 font-mono text-caption text-muted-foreground">
+          {counts.map((id) => {
+            const who = people.find((p) => p.id === id);
+            return (
+              <span key={id} className="inline-flex items-center gap-1.5">
+                <i aria-hidden className={cn("size-2 rounded-full", who ? roleAccent[who.role].bg : "bg-muted-foreground")} />
+                {id === self.id ? "You" : nameOf(id)} {countOf(area.owned, id)}
+              </span>
+            );
+          })}
+        </p>
+        {line && <p className="text-label font-normal text-ink-2">{line}</p>}
+        <AnimatePresence>{celebrate && <Sparkle key="spark" tone={roleAccent[self.role].bg} />}</AnimatePresence>
+      </div>
     </Rise>
   );
 }

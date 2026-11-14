@@ -85,7 +85,7 @@ export function ThanksSection({
       })}
 
       <ul className="flex flex-col gap-3">
-        {suggestions.map((s) => (
+        {suggestions.slice(0, 3).map((s) => (
           <ThanksSuggestion key={s.key} memberId={memberId} suggestion={s} people={people} onSent={onSent} />
         ))}
         {starter && <ThanksSuggestion key={starter.text} memberId={memberId} suggestion={starter} people={people} onSent={onSent} />}

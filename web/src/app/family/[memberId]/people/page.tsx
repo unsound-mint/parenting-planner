@@ -64,9 +64,9 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
       {/* The couple's own section comes first: who carries what, and a way to say thanks.
           Either part is left out when its endpoint is not available. */}
       {(loadMap.data || (thanks.data && suggestions.data)) && (
-        <PageGrid cols={3}>
+        <PageGrid className="@4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           {loadMap.data && (
-            <Rise i={1} className="min-w-0 @7xl:col-span-2">
+            <Rise i={1} className="min-w-0">
               <LoadMapCard memberId={memberId} initial={loadMap.data} people={people} />
             </Rise>
           )}
