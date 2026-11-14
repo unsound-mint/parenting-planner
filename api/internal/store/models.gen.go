@@ -81,6 +81,21 @@ type Immunization struct {
 	Dose            *string
 }
 
+type InsuranceCall struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	CalledAt        time.Time
+	Insurer         string
+	Representative  *string
+	ReferenceNumber *string
+	Topic           string
+	Summary         string
+	FollowUpOn      *time.Time
+	CreatedAt       time.Time
+}
+
 type LabResult struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
