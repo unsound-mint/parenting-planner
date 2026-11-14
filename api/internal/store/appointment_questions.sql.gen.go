@@ -55,8 +55,8 @@ func (q *Queries) AnswerAppointmentQuestionVisibleToParent(ctx context.Context, 
 }
 
 const createAppointmentQuestion = `-- name: CreateAppointmentQuestion :one
-INSERT INTO appointment_questions (family_id, owner_member_id, visibility, asked_for_event_id, body)
-VALUES ($1, $2, $3, $4, $5) RETURNING id, seq, family_id, owner_member_id, visibility, asked_for_event_id, body, answered, answer, answered_at, created_at
+INSERT INTO appointment_questions (family_id, owner_member_id, visibility, asked_for_event_id, body, created_at)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, seq, family_id, owner_member_id, visibility, asked_for_event_id, body, answered, answer, answered_at, created_at
 `
 
 type CreateAppointmentQuestionParams struct {
@@ -65,6 +65,7 @@ type CreateAppointmentQuestionParams struct {
 	Visibility      string
 	AskedForEventID uuid.UUID
 	Body            string
+	CreatedAt       time.Time
 }
 
 func (q *Queries) CreateAppointmentQuestion(ctx context.Context, arg CreateAppointmentQuestionParams) (AppointmentQuestion, error) {
@@ -74,6 +75,7 @@ func (q *Queries) CreateAppointmentQuestion(ctx context.Context, arg CreateAppoi
 		arg.Visibility,
 		arg.AskedForEventID,
 		arg.Body,
+		arg.CreatedAt,
 	)
 	var i AppointmentQuestion
 	err := row.Scan(
