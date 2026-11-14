@@ -14,6 +14,7 @@ import {
   Lock,
   MessageCircleHeart,
   Milk,
+  PenLine,
   Sparkles,
   Sprout,
   Stethoscope,
@@ -78,6 +79,9 @@ export const statusTint: Record<PlanItemStatus, string> = {
   due: "bg-status-due-soft text-status-due",
   upcoming: "bg-status-up-soft text-status-up",
 };
+
+/** The written weekly note from the AI plan (components/week/ai-plan.tsx). */
+export const weeklyNoteIcon: LucideIcon = PenLine;
 
 /** A detected pattern in the parent's own check-ins. */
 export const patternIcon = Activity;
