@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/unsound-mint/parenting-planner/api/internal/content"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
 )
@@ -32,7 +33,7 @@ func TestContentItemsListTheCatalog(t *testing.T) {
 	if len(weeks.Items) != 37 || weeks.Items[0].Id != "week-4" || weeks.Items[36].Id != "week-40" {
 		t.Errorf("weekly cards: %d items, want week-4 to week-40", len(weeks.Items))
 	}
-	if len(guides.Items) == 0 || len(questions.Items) != 5 {
+	if len(guides.Items) == 0 || len(questions.Items) != len(content.PracticeQuestions()) {
 		t.Errorf("guides %d, practice questions %d", len(guides.Items), len(questions.Items))
 	}
 	for _, it := range append(weeks.Items, guides.Items...) {

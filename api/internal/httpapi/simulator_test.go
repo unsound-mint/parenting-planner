@@ -21,7 +21,7 @@ func TestSimulatorRoundsScoreAndAdapt(t *testing.T) {
 	mother, partner := member(httpapi.ParentRoleMother), member(httpapi.ParentRolePartner)
 	var progress httpapi.SimulatorProgress
 	c.Get(mother+"/simulator", http.StatusOK, &progress)
-	if len(progress.Scenarios) != 2 || progress.RoundsCompleted != 0 || len(progress.WeakSpots) != 0 {
+	if len(progress.Scenarios) != 4 || progress.RoundsCompleted != 0 || len(progress.WeakSpots) != 0 {
 		t.Fatalf("unexpected fresh progress: %+v", progress)
 	}
 	c.Post(mother+"/simulator-rounds", map[string]string{"mode": "practice"}, http.StatusConflict, nil)
