@@ -33,6 +33,7 @@ tags:
   - name: simulator
   - name: learn
   - name: together
+  - name: virtualbaby
   - name: couplelab
   - name: timecapsule
   - name: shifts
@@ -9057,6 +9058,185 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/virtual-baby:
+    get:
+      operationId: getVirtualBaby
+      tags: [virtualbaby]
+      summary: The family's Virtual Baby practice sessions and stickers
+      description: |
+        Parents only; a grandparent or nanny gets 404. Sessions belong to the
+        family: both parents see every session and who handled each moment.
+        Newest first, the active session (if any) first; at most 10. Stickers
+        are earned for taking part (a topic practised, both parents took a
+        turn, the 48 hours finished), never for which choice someone made.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualBaby"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/virtual-baby-sessions:
+    post:
+      operationId: createVirtualBabySession
+      tags: [virtualbaby]
+      summary: Start a Virtual Baby session (one evening or the 48-hour challenge)
+      description: |
+        Parents only. One active session per family: 409 session_active while
+        another is not finished. The simulated clock is not real time: the web
+        app runs it only while the page is open, so nothing ever arrives at
+        night.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualBabySessionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualBabySession"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/virtual-baby-sessions/{sessionId}:
+    patch:
+      operationId: updateVirtualBabySession
+      tags: [virtualbaby]
+      summary: End a Virtual Baby session early
+      description: |
+        Parents only. Ending a finished session again returns it unchanged.
+        404 not_found for a session of another family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/VirtualBabySessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualBabySessionUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualBabySession"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/virtual-baby-sessions/{sessionId}/moments:
+    post:
+      operationId: createVirtualBabyMoment
+      tags: [virtualbaby]
+      summary: Respond to the baby's current moment
+      description: |
+        Parents only. The acting parent (memberId) is recorded as the one who
+        handled it, so partners can take turns. seq must be the session's next
+        moment: 409 moment_taken if it was already handled (the other parent
+        was faster) or the session is finished. 400 unknown_choice for a choice
+        that is not offered. Returns kind feedback with its source and the
+        session after the answer. The last moment finishes the session.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - $ref: "#/components/parameters/VirtualBabySessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualBabyMomentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VirtualBabyMomentResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MissionKey:
@@ -9078,6 +9258,14 @@ components:
         operations written for parents return 404 for a caregiver id, and
         operations open to caregivers return 403 forbidden when their role
         or permissions do not allow the action.
+      schema:
+        type: string
+        format: uuid
+
+    VirtualBabySessionId:
+      name: sessionId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -14858,6 +15046,262 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Portrait"
+
+    VirtualBabyMode:
+      type: string
+      description: |
+        evening = six simulated hours (18:00 to midnight), a few minutes to play;
+        challenge = the 48-hour challenge, two simulated days and nights played
+        in short sittings.
+      enum: [evening, challenge]
+
+    VirtualBabyNeed:
+      type: string
+      enum: [hungry, wet, sleepy, fussy]
+
+    VirtualBabyAction:
+      type: string
+      description: What a choice does, so the baby can react (offer a feed, change the diaper, lay her down, comfort her, wait, step away to calm down, carry her somewhere else).
+      enum: [offer_feed, change_diaper, lay_down, comfort, wait, step_away, carry]
+
+    VirtualBabyFit:
+      type: string
+      description: |
+        recommended = what the guideline says; another_way = the feedback
+        shows a safer or easier way. Never totalled into a score.
+      enum: [recommended, another_way]
+
+    VirtualBabySessionInput:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          $ref: "#/components/schemas/VirtualBabyMode"
+
+    VirtualBabySessionUpdate:
+      type: object
+      required: [finished]
+      properties:
+        finished:
+          type: boolean
+          enum: [true]
+          description: End the session now.
+
+    VirtualBabyMomentInput:
+      type: object
+      required: [seq, choiceId]
+      properties:
+        seq:
+          type: integer
+          minimum: 0
+          description: The moment being answered, VirtualBabySession.next.seq.
+        choiceId:
+          type: string
+          minLength: 1
+          maxLength: 40
+
+    VirtualBabyChoice:
+      type: object
+      required: [id, label, action]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        action:
+          $ref: "#/components/schemas/VirtualBabyAction"
+
+    VirtualBabyPrompt:
+      type: object
+      description: The moment the baby is waiting on.
+      required: [seq, minute, need, scenarioId, title, cue, choices]
+      properties:
+        seq:
+          type: integer
+        minute:
+          type: integer
+          description: Simulated minutes since the session started.
+        need:
+          $ref: "#/components/schemas/VirtualBabyNeed"
+        scenarioId:
+          type: string
+        title:
+          type: string
+          example: Hands to mouth
+        cue:
+          type: string
+          description: What the baby is doing, in one or two sentences.
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/VirtualBabyChoice"
+
+    VirtualBabyFeedback:
+      type: object
+      required: [fit, headline, why, source]
+      properties:
+        fit:
+          $ref: "#/components/schemas/VirtualBabyFit"
+        headline:
+          type: string
+        why:
+          type: string
+        source:
+          $ref: "#/components/schemas/Source"
+
+    VirtualBabyMoment:
+      type: object
+      description: A moment someone handled.
+      required: [seq, minute, need, scenarioId, title, choiceId, choiceLabel, action, handledBy, handledAt, feedback]
+      properties:
+        seq:
+          type: integer
+        minute:
+          type: integer
+        need:
+          $ref: "#/components/schemas/VirtualBabyNeed"
+        scenarioId:
+          type: string
+        title:
+          type: string
+        choiceId:
+          type: string
+        choiceLabel:
+          type: string
+        action:
+          $ref: "#/components/schemas/VirtualBabyAction"
+        handledBy:
+          type: string
+          format: uuid
+          description: The parent who answered.
+        handledAt:
+          type: string
+          format: date-time
+        feedback:
+          $ref: "#/components/schemas/VirtualBabyFeedback"
+
+    VirtualBabyNeedClock:
+      type: object
+      description: |
+        How a need builds up on the simulated clock: the level at minute m is
+        (m - since) / every, capped at 1. The web app draws it as a meter.
+      required: [need, since, every]
+      properties:
+        need:
+          $ref: "#/components/schemas/VirtualBabyNeed"
+        since:
+          type: integer
+          description: Simulated minute this need was last cared for.
+        every:
+          type: integer
+          description: Simulated minutes until it is full again.
+
+    VirtualBabyPractised:
+      type: object
+      description: One topic of the "what you practised" summary, counted per parent.
+      required: [need, byMember]
+      properties:
+        need:
+          $ref: "#/components/schemas/VirtualBabyNeed"
+        byMember:
+          type: array
+          items:
+            $ref: "#/components/schemas/VirtualBabyCount"
+
+    VirtualBabyCount:
+      type: object
+      required: [memberId, count]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        count:
+          type: integer
+
+    VirtualBabySession:
+      type: object
+      required: [id, mode, startedAt, startedBy, startClock, lengthMinutes, moments, needs, practised, momentCount]
+      properties:
+        id:
+          type: string
+          format: uuid
+        mode:
+          $ref: "#/components/schemas/VirtualBabyMode"
+        startedAt:
+          type: string
+          format: date-time
+        startedBy:
+          type: string
+          format: uuid
+        finishedAt:
+          type: string
+          format: date-time
+        startClock:
+          type: integer
+          description: Simulated time of day the session starts at, in minutes after midnight (1080 = 18:00).
+        lengthMinutes:
+          type: integer
+          description: Simulated length (360 for an evening, 2880 for the challenge).
+        momentCount:
+          type: integer
+          description: How many moments the session has in all.
+        moments:
+          type: array
+          description: Handled moments, oldest first.
+          items:
+            $ref: "#/components/schemas/VirtualBabyMoment"
+        next:
+          $ref: "#/components/schemas/VirtualBabyPrompt"
+        needs:
+          type: array
+          items:
+            $ref: "#/components/schemas/VirtualBabyNeedClock"
+        practised:
+          type: array
+          items:
+            $ref: "#/components/schemas/VirtualBabyPractised"
+
+    VirtualBabySticker:
+      type: object
+      required: [id, title, earnedAt, earnedBy]
+      properties:
+        id:
+          type: string
+          enum: [feeding_cues, fresh_diaper, back_to_sleep, calm_and_steady, tag_team, night_owl, forty_eight]
+        title:
+          type: string
+        earnedAt:
+          type: string
+          format: date-time
+        earnedBy:
+          type: array
+          description: The parents whose moments earned it.
+          items:
+            type: string
+            format: uuid
+
+    VirtualBaby:
+      type: object
+      required: [items, stickers]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/VirtualBabySession"
+        stickers:
+          type: array
+          description: Earned stickers, in the order they were earned.
+          items:
+            $ref: "#/components/schemas/VirtualBabySticker"
+
+    VirtualBabyMomentResult:
+      type: object
+      required: [moment, session]
+      properties:
+        moment:
+          $ref: "#/components/schemas/VirtualBabyMoment"
+        session:
+          $ref: "#/components/schemas/VirtualBabySession"
 
     RecoveryBleeding:
       type: string
