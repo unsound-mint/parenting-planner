@@ -122,3 +122,26 @@ func TestInsuranceCallsAreAuditedAndScoped(t *testing.T) {
 		}
 	}
 }
+
+// care_team means the author and their professionals, never the partner
+// (access.CanParentRead). The list filter must keep it from the other parent.
+func TestInsuranceCareTeamCallsStayFromThePartner(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	b := callBody("care_team")
+	b["summary"] = "Shared with my care team only"
+	c.Post(callsPath(mom.Id), b, http.StatusCreated, nil)
+	for _, s := range callSummaries(c, jake.Id) {
+		if s == b["summary"] {
+			t.Fatal("a care_team call must not reach the partner")
+		}
+	}
+	found := false
+	for _, s := range callSummaries(c, mom.Id) {
+		found = found || s == b["summary"]
+	}
+	if !found {
+		t.Error("the author sees their own care_team call")
+	}
+}
