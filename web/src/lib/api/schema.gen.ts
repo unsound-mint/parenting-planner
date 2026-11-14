@@ -1878,6 +1878,25 @@ export interface components {
             /** Format: date */
             takenOn: string;
             visibility: components["schemas"]["Visibility"];
+            flag?: components["schemas"]["LabFlag"];
+        };
+        /**
+         * @description Set only when the value is outside the reference range stored with the
+         *     result (below refLow or above refHigh; a value equal to a bound is in
+         *     range). Computed by the server from database state. The wording is
+         *     fixed and never diagnostic: it only says to discuss the value with a
+         *     doctor.
+         */
+        LabFlag: {
+            /** @enum {string} */
+            direction: "low" | "high";
+            /** @example Outside the usual range. Discuss with your doctor. */
+            message: string;
+            /**
+             * @description Where the range comes from.
+             * @example Reference range reported with this lab result
+             */
+            basis: string;
         };
         /** @enum {string} */
         VaccineStatus: "done" | "overdue" | "due" | "upcoming";
