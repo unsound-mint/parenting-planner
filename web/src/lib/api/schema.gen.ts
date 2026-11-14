@@ -1619,7 +1619,8 @@ export interface paths {
          * Start or finish a lesson for the acting parent
          * @description Both parents only; a grandparent or nanny gets 404. The first call sets startedAt. finished true sets
          *     finishedAt (kept on later calls); finished false clears it again, so
-         *     "mark as unread" works. 404 unknown_lesson for a lesson that is not
+         *     "mark as unread" works. Reopening a finished lesson to read it again
+         *     needs no call: send finished false only to take the finish back. 404 unknown_lesson for a lesson that is not
          *     in the family's paths, 409 lesson_locked before unlocksAtWeek.
          */
         put: operations["updateLessonRead"];
@@ -1642,9 +1643,9 @@ export interface paths {
         /**
          * Answer one quiz question of a lesson
          * @description Both parents only; a grandparent or nanny gets 404. One answer per parent per question, so a couple can
-         *     compare; 409 already_answered for a second one. 404 for a question
-         *     not in the family's paths, 400 for a choice that is not in the
-         *     question. No scores, streaks or badges: the result is only whether
+         *     compare; 409 already_answered for a second one, 409 lesson_locked
+         *     before the lesson opens. 404 for a question not in the family's
+         *     paths, 400 for a choice that is not in the question. No scores, streaks or badges: the result is only whether
          *     this answer was right, why, and what the other parent chose.
          */
         post: operations["createQuizAnswer"];
@@ -4444,6 +4445,11 @@ export interface components {
             extraSources: components["schemas"]["Source"][];
             /** @description A question for the couple to talk about after reading. */
             talkPrompt?: string;
+            /**
+             * Format: date-time
+             * @description When either parent marked this lesson's talk prompt (prompt id `lesson:<lessonId>`) as talked about. Absent until then.
+             */
+            talkedAt?: string;
             /** @description True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there. */
             urgentHelpLink: boolean;
             /** @description Reading state of each parent who opened it, acting parent first. */
@@ -6235,15 +6241,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     listBookingRequests: {
@@ -6286,15 +6283,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6366,15 +6354,6 @@ export interface operations {
             };
             /** @description Error */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9133,15 +9112,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     updateLessonRead: {
@@ -9207,15 +9177,6 @@ export interface operations {
             };
             /** @description Error */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9294,15 +9255,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     getTogether: {
@@ -9345,15 +9297,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9423,15 +9366,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     listBabyNames: {
@@ -9474,15 +9408,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9561,15 +9486,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     likeBabyName: {
@@ -9620,15 +9536,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     unlikeBabyName: {
@@ -9672,15 +9579,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
