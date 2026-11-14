@@ -94,7 +94,7 @@ export function ChildcareCard({ memberId, initial, today, budgetNames }: { membe
         </Link>
       </div>
 
-      <ul className="grid gap-4 @4xl:grid-cols-2 @7xl:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-4 @4xl:grid-cols-2 @7xl:grid-cols-3">
         {list.items.map((o) => {
           const meta = childcareKindMeta[o.kind];
           const days = o.decideBy ? daysUntil(o.decideBy, now) : null;
@@ -109,13 +109,13 @@ export function ChildcareCard({ memberId, initial, today, budgetNames }: { membe
             );
           }
           return (
-            <li key={o.id} className={cn("flex flex-col gap-3 rounded-2xl bg-muted p-4", o.status === "declined" && "opacity-70")}>
+            <li key={o.id} className={cn("flex min-w-0 flex-col gap-3 rounded-2xl bg-muted p-4", o.status === "declined" && "opacity-70")}>
               <button type="button" onClick={() => setEditing(o.id)} className="press -m-1 flex items-start gap-3 rounded-xl p-1 text-left" aria-label={`Edit ${o.name}`}>
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-card text-ink-2">
                   <meta.icon aria-hidden className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-title">{o.name}</span>
+                  <span className="block text-title [overflow-wrap:anywhere]">{o.name}</span>
                   <span className="block text-label text-muted-foreground">{meta.label}</span>
                 </span>
                 <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-caption font-medium", statusTone[o.status])}>{childcareStatusLabel[o.status]}</span>
@@ -123,7 +123,7 @@ export function ChildcareCard({ memberId, initial, today, budgetNames }: { membe
 
               {o.monthlyCost != null && (
                 <div className="flex items-baseline justify-between">
-                  <span className="font-mono text-body">{dollars(o.monthlyCost)}</span>
+                  <span className="font-mono text-body">{dollars(o.monthlyCost * 100)}</span>
                   <span className="text-caption text-muted-foreground">a month</span>
                 </div>
               )}
