@@ -164,12 +164,16 @@ type DiaryEntry struct {
 }
 
 type Family struct {
-	ID             uuid.UUID
-	Template       string
-	Stage          string
-	DueDate        *time.Time
-	CreatedAt      time.Time
-	DemoOffsetDays int32
+	ID                        uuid.UUID
+	Template                  string
+	Stage                     string
+	DueDate                   *time.Time
+	CreatedAt                 time.Time
+	DemoOffsetDays            int32
+	PregnancyLossRecordedAt   pgtype.Timestamptz
+	PregnancyLossOccurredOn   *time.Time
+	PregnancyLossPriorStage   *string
+	PregnancyLossPriorDueDate *time.Time
 }
 
 type GrowthMeasurement struct {

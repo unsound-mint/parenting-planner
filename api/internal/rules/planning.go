@@ -26,6 +26,25 @@ var (
 // Stages before a pregnancy starts.
 var preconceptionStages = map[string]bool{"planning": true, "trying": true}
 
+// tryingForABaby is true for the nudges that assume the family wants to get
+// pregnant. They stay off while the family is in pregnancy loss support, which
+// also sets the stage to planning.
+func tryingForABaby(f Facts) bool { return preconceptionStages[f.Stage] && !f.PregnancyLoss }
+
+// lossSuppressedPlanningRules are the planning rules tryingForABaby gates.
+var lossSuppressedPlanningRules = []string{"folic-acid", "mmr-before-pregnancy"}
+
+// PregnancyItemRuleIDs are the rules that go quiet when pregnancy loss support
+// turns on: every pregnancy rule and the trying-for-a-baby nudges. Used to drop
+// their unread plan_item_due notifications.
+func PregnancyItemRuleIDs() []string {
+	ids := append([]string{}, lossSuppressedPlanningRules...)
+	for _, r := range pregnancyRules {
+		ids = append(ids, r.ID)
+	}
+	return ids
+}
+
 const tetanusBoosterYears = 10
 
 var planningRules = []Rule{
@@ -37,7 +56,7 @@ var planningRules = []Rule{
 		Audience: ForMother,
 		Source:   srcCDCFolicAcid,
 		Evaluate: func(f Facts) (Result, bool) {
-			if !preconceptionStages[f.Stage] {
+			if !tryingForABaby(f) {
 				return Result{}, false
 			}
 			return Result{Status: Due, Reason: "Your family is planning a pregnancy, and folic acid works best when it is started at least a month before conception."}, true
@@ -51,7 +70,7 @@ var planningRules = []Rule{
 		Audience: ForMother,
 		Source:   srcCDCVaccinesBeforePregnancy,
 		Evaluate: func(f Facts) (Result, bool) {
-			if !preconceptionStages[f.Stage] || f.MotherRubella != "not immune" || f.everVaccinated(Mother, "mmr") {
+			if !tryingForABaby(f) || f.MotherRubella != "not immune" || f.everVaccinated(Mother, "mmr") {
 				return Result{}, false
 			}
 			return Result{Status: Due, Reason: "Your preconception blood test shows you are not immune to rubella, and no MMR vaccine is on record."}, true
