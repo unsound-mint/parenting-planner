@@ -6,7 +6,7 @@ import { SourceLine } from "@/components/joy/source-line";
 import { formatShortDate, givenName, stageLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ARC_H, ARC_W, GrowthArc, arcPoint } from "./growth-arc";
-import { babyBubble, developmentTopic, lengthLabel, warmLine, weekFraction, weightLabel } from "./this-week";
+import { babyBubble, developmentTopic, inches, lengthLabel, poundsOunces, warmLine, weekFraction } from "./this-week";
 
 // The one hero of This week. Every stage uses the same frame: words on the
 // left, the baby or the stage mascot on the right (on top on phones), on the
@@ -35,14 +35,22 @@ function When({ pill, now }: { pill?: string; now: Date }) {
   );
 }
 
-function Stat({ n, unit, label }: { n: string; unit: string; label: string }) {
+/** A drawn number: the US value large ("1 lb 11 oz"), the metric one small after it, then what it is. */
+function Stat({ parts, metric, label }: { parts: [string, string][]; metric?: string; label: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-headline leading-none">
-        {n}
-        <span className="ml-1 font-sans text-label font-medium text-muted-foreground">{unit}</span>
+      <p className="text-headline leading-none whitespace-nowrap">
+        {parts.map(([n, unit], i) => (
+          <span key={unit} className={i > 0 ? "ml-1.5" : undefined}>
+            {n}
+            <span className="ml-1 font-sans text-label font-medium text-muted-foreground">{unit}</span>
+          </span>
+        ))}
       </p>
-      <p className="mt-1.5 max-w-[13ch] text-label font-normal text-muted-foreground @4xl:max-w-none">{label}</p>
+      <p className="mt-1.5 max-w-[16ch] text-label font-normal text-muted-foreground @4xl:max-w-none">
+        {label}
+        {metric && <span className="ml-1.5 font-mono text-caption">{metric}</span>}
+      </p>
     </div>
   );
 }
@@ -54,6 +62,7 @@ export function PregnancyHero({
   ends,
   partnerName,
   now,
+  actions,
 }: {
   family: Family;
   week: number;
@@ -62,6 +71,8 @@ export function PregnancyHero({
   ends: [string | undefined, string | undefined];
   partnerName?: string;
   now: Date;
+  /** Quiet buttons under the facts: the 3D baby, sharing the week. */
+  actions?: React.ReactNode;
 }) {
   const size = card?.size;
   const topic = developmentTopic(card?.development);
@@ -98,9 +109,9 @@ export function PregnancyHero({
       <p className="mt-4.5 max-w-[40ch] text-body text-ink-2">{warmLine(topic, partnerName)}</p>
       {size && (
         <div className="mt-auto flex gap-x-5.5 pt-6 @4xl:gap-x-10 @4xl:pt-8">
-          <Stat n={size.lengthCm.toFixed(1)} unit="cm" label={lengthLabel(size)} />
-          {size.weightG != null && <Stat n={String(Math.round(size.weightG))} unit="g" label={weightLabel(size.weightG)} />}
-          <Stat n={String(toGo)} unit={toGo === 1 ? "week" : "weeks"} label={family.dueDate ? `to go, due ${formatShortDate(family.dueDate)}` : "to go"} />
+          <Stat parts={[[inches(size.lengthCm), "in"]]} metric={`${size.lengthCm.toFixed(1)} cm`} label={lengthLabel(size)} />
+          {size.weightG != null && <Stat parts={poundsOunces(size.weightG)} metric={`${Math.round(size.weightG)} g`} label="median weight" />}
+          <Stat parts={[[String(toGo), toGo === 1 ? "week" : "weeks"]]} label={family.dueDate ? `to go, due ${formatShortDate(family.dueDate)}` : "to go"} />
         </div>
       )}
       {card?.development && (
@@ -109,11 +120,12 @@ export function PregnancyHero({
           {size && <SourceLine sources={size.sources} />}
         </div>
       )}
+      {actions && <div className="mt-5 flex flex-wrap items-center gap-2.5">{actions}</div>}
     </Frame>
   );
 }
 
-export function StageHero({ family, now, stageNow }: { family: Family; now: Date; stageNow?: StageNow }) {
+export function StageHero({ family, now, stageNow, actions }: { family: Family; now: Date; stageNow?: StageNow; actions?: React.ReactNode }) {
   const art = (
     <div className="relative mx-auto aspect-[760/470] w-full">
       <svg viewBox="0 0 760 470" className="absolute inset-0 size-full" aria-hidden focusable="false">
@@ -147,6 +159,7 @@ export function StageHero({ family, now, stageNow }: { family: Family; now: Date
           </div>
         </>
       )}
+      {actions && <div className={cn("flex flex-wrap items-center gap-2.5", stageNow ? "mt-5" : "mt-auto pt-8")}>{actions}</div>}
     </Frame>
   );
 }
