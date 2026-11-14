@@ -1,8 +1,24 @@
 package httpapi
 
-import "context"
+import (
+	"context"
 
-// Stub until the backend lands (#176): the contract exists, the behaviour does not.
-func (s *Server) CreateUpgradeIntent(_ context.Context, _ CreateUpgradeIntentRequestObject) (CreateUpgradeIntentResponseObject, error) {
-	return CreateUpgradeIntent501JSONResponse(Error{Code: "not_implemented", Message: "upgrade intents are not stored yet"}), nil
+	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/upgrade"
+)
+
+func (s *Server) CreateUpgradeIntent(ctx context.Context, req CreateUpgradeIntentRequestObject) (CreateUpgradeIntentResponseObject, error) {
+	familyID, ok := familyFrom(ctx)
+	if !ok {
+		return CreateUpgradeIntent401JSONResponse(errNoSession), nil
+	}
+	in, err := upgrade.Request(ctx, s.pool, familyID, string(req.Body.Tier), s.cfg.Now())
+	if err != nil {
+		return nil, err
+	}
+	return CreateUpgradeIntent201JSONResponse(upgradeIntentOut(in)), nil
+}
+
+func upgradeIntentOut(in store.UpgradeIntent) UpgradeIntent {
+	return UpgradeIntent{Tier: PaidTier(in.Tier), RequestedAt: in.RequestedAt.UTC()}
 }

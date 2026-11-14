@@ -56,13 +56,6 @@ func TestHealthzNeedsNoSession(t *testing.T) {
 	c.Get("/api/healthz", http.StatusOK, nil)
 }
 
-// Stub until #176 lands; replace with real tests (validation, per-family storage).
-func TestUpgradeIntentIsNotImplementedYet(t *testing.T) {
-	c := testutil.New(t)
-	c.StartDemo("pregnancy")
-	c.Post("/api/family/upgrade-intents", map[string]any{"tier": "plus"}, http.StatusNotImplemented, nil)
-}
-
 // Temporary: the weekly plan is a 501 stub until #171 lands. Replace this
 // with real tests when the handler is implemented.
 func TestWeeklyPlanIsNotImplementedYet(t *testing.T) {
