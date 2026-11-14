@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { Plus } from "lucide-react";
 import type { HospitalBag, Task } from "@/lib/api/types";
+import { HOSPITAL_BAGS } from "@/lib/hospital";
 import { openFirst } from "@/lib/tasks";
 import { bagIcon, bagLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -10,14 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TaskRow, type TaskCtx } from "./task-row";
 
-const BAGS: HospitalBag[] = ["mother", "partner", "baby"];
-
 // Three hospital bag lists, each with a progress ring. Every item shows who packs
 // it (the owner avatar) and can be handed to the other parent like any task.
 export function HospitalBags({ tasks, ctx, onAdd }: { tasks: Task[]; ctx: TaskCtx; onAdd: (title: string, bag: HospitalBag) => Promise<boolean> }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      {BAGS.map((bag) => (
+      {HOSPITAL_BAGS.map((bag) => (
         <BagList key={bag} bag={bag} tasks={tasks.filter((t) => t.bag === bag)} ctx={ctx} onAdd={onAdd} />
       ))}
     </div>

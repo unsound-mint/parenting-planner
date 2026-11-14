@@ -7,16 +7,16 @@ import { daysUntil } from "@/lib/format";
 export type DueTone = "ok" | "late" | "due" | "up" | "none";
 
 /** Whole days to the due date, negative once passed; undefined without a date. */
-export function taskDays(task: Task): number | undefined {
-  return task.dueOn ? daysUntil(task.dueOn) : undefined;
+export function taskDays(task: Task, now: Date): number | undefined {
+  return task.dueOn ? daysUntil(task.dueOn, now) : undefined;
 }
 
 /** Window in days where a deadline reads as "due" (ochre) instead of "upcoming". */
 const DUE_SOON_DAYS = 14;
 
-export function dueTone(task: Task): DueTone {
+export function dueTone(task: Task, now: Date): DueTone {
   if (task.done) return "ok";
-  const days = taskDays(task);
+  const days = taskDays(task, now);
   if (days === undefined) return "none";
   if (days < 0) return "late";
   return days <= DUE_SOON_DAYS ? "due" : "up";

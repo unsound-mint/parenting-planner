@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -82,6 +83,16 @@ func (s *seeder) lab(sub subject, owner uuid.UUID, visibility, kind string, take
 	})
 }
 
+// scheduledDose is a dose that is not given yet; the passport lists it as due
+// or upcoming from its due date.
+func (s *seeder) scheduledDose(sub subject, vaccine, dose string, dueOn time.Time) {
+	if s.err != nil {
+		return
+	}
+	m, c := sub.ids()
+	_, s.err = s.q.CreateScheduledDose(s.ctx, store.CreateScheduledDoseParams{FamilyID: s.fam, SubjectMemberID: m, SubjectChildID: c, Vaccine: vaccine, Dose: dose, DueOn: dueOn})
+}
+
 func (s *seeder) vaccine(sub subject, vaccine string, givenOn time.Time) {
 	if s.err != nil {
 		return
@@ -104,6 +115,27 @@ func (s *seeder) mood(owner uuid.UUID, visibility string, daysAgo, mood, energy 
 		FamilyID: s.fam, OwnerMemberID: owner, Visibility: visibility,
 		RecordedAt: s.today.AddDate(0, 0, -daysAgo).Add(20 * time.Hour),
 		Mood:       int16(mood), Energy: int16(energy), SleepHours: sleep, Note: n,
+	})
+}
+
+// moodScreening records a scored questionnaire daysAgo days before today.
+func (s *seeder) moodScreening(owner uuid.UUID, visibility, instrument string, daysAgo int, answers []int) {
+	if s.err != nil {
+		return
+	}
+	sc, err := rules.Score(instrument, answers)
+	if err != nil {
+		s.err = err
+		return
+	}
+	stored := make([]int16, len(answers))
+	for i, a := range answers {
+		stored[i] = int16(a)
+	}
+	_, s.err = s.q.CreateMoodScreening(s.ctx, store.CreateMoodScreeningParams{
+		FamilyID: s.fam, OwnerMemberID: owner, Visibility: visibility,
+		TakenAt:    s.today.AddDate(0, 0, -daysAgo).Add(14 * time.Hour),
+		Instrument: instrument, Answers: stored, Score: int16(sc.Score), Band: string(sc.Band), Urgent: sc.Urgent,
 	})
 }
 
@@ -142,6 +174,8 @@ func seedPlanning(ctx context.Context, q *store.Queries, today time.Time) (uuid.
 // Leo had his birth hepatitis B dose but not the 2-month vaccines; Aisha has
 // not had her full postpartum visit; Marcus is sleeping little and logged
 // three low days this week (kept private, so only his own plan sees them).
+// Aisha took a mood questionnaire two weeks ago (green, private); Marcus has
+// not taken one, so his plan asks for it.
 func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error) {
 	born := today.AddDate(0, 0, -49)
 	s := newSeeder(ctx, q, today, Newborn, "postpartum", nil)
@@ -159,12 +193,18 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.vaccine(parent(aisha), "tdap", born.AddDate(0, 0, -70))
 	s.vaccine(parent(marcus), "tdap", born.AddDate(0, 0, -40))
 	s.vaccine(childOf(leo), "hepb", born)
+	// The 2-month visit, so the passport lists the same doses the plan item
+	// "infant-2-month-vaccines" asks the parents to book.
+	for _, v := range []string{"dtap", "ipv", "hib", "pcv", "rotavirus"} {
+		s.scheduledDose(childOf(leo), v, "Dose 1", born.AddDate(0, 2, 0))
+	}
 	for _, m := range []struct{ daysAgo, mood, energy int }{{1, 3, 2}, {3, 3, 2}, {5, 4, 3}} {
 		s.mood(aisha, "partner", m.daysAgo, m.mood, m.energy, 5.5, "")
 	}
 	s.mood(marcus, "private", 1, 2, 1, 4.5, "Back at work, nights are rough.")
 	s.mood(marcus, "private", 2, 2, 2, 4, "")
 	s.mood(marcus, "private", 4, 2, 2, 5, "")
+	s.moodScreening(aisha, "private", rules.EPDS, 14, []int{1, 1, 1, 1, 0, 1, 0, 0, 0, 0})
 	return s.done()
 }
 

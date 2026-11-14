@@ -1,7 +1,7 @@
-import type { DiaryEntry, MoodScreeningResult, ScreeningBand, ScreeningChoice, ScreeningQuestionnaire } from "@/lib/api/types";
+import type { DiaryEntry, MoodScreeningDraft, MoodScreeningResult, ScreeningBand, ScreeningChoice, ScreeningQuestionnaire } from "@/lib/api/types";
 import { mock } from "../registry";
 import { CHECKED, isoAt, uid } from "./dates";
-import { couple } from "../timeline";
+import { couple, isNewborn, olderStage } from "../timeline";
 
 // Private journal and mood screening. Nothing is stored: a reload shows the
 // seed again, and the screens keep what you just saved in their own state.
@@ -79,6 +79,8 @@ const phqQuestionnaire: ScreeningQuestionnaire = {
   ].map((text, i) => ({ number: i + 1, text, choices: phqChoices })),
 };
 
+const drafts = new Map<string, MoodScreeningDraft>();
+
 const bandMessage: Record<ScreeningBand, string> = {
   green: "Your answers are below the cutoff for this questionnaire. Check in again in a few weeks.",
   amber: "Your answers are close to the cutoff. Take the questionnaire again in two weeks and mention it at your next visit.",
@@ -92,7 +94,10 @@ function band(instrument: "epds" | "phq9", score: number): ScreeningBand {
 
 export const wellbeingMocks = {
   ...mock("/members/{memberId}/diary-entries", "get", async (ctx) => {
-    const { mother } = couple(await ctx.family());
+    const family = await ctx.family();
+    // The demo entries are about the pregnancy; the other families, newborn included, start with an empty journal.
+    if (olderStage(family) || isNewborn(family)) return { items: [] };
+    const { mother } = couple(family);
     if (ctx.path.memberId === mother.id) return { items: diarySeed(mother.id) };
     // The partner sees Emily's shared entry, never her topics.
     return { items: diarySeed(mother.id).filter((e) => e.visibility === "partner").map((e) => ({ ...e, agendaTopic: undefined })) };
@@ -156,4 +161,35 @@ export const wellbeingMocks = {
       visibility: ctx.body.visibility,
     };
   }),
+
+  // Drafts and sharing answer 501 until the backend exists. A draft lives in
+  // this module only, so it survives leaving the questionnaire but not a reload.
+  ...mock("/members/{memberId}/mood-screening-drafts", "get", () => ({ items: [...drafts.values()] })),
+  ...mock("/members/{memberId}/mood-screening-drafts/{instrument}", "put", (ctx) => {
+    const draft = { instrument: ctx.path.instrument as "epds" | "phq9", answers: ctx.body.answers, updatedAt: new Date().toISOString() };
+    drafts.set(draft.instrument, draft);
+    return draft;
+  }),
+  ...mock(
+    "/members/{memberId}/mood-screening-drafts/{instrument}",
+    "delete",
+    (ctx) => {
+      drafts.delete(ctx.path.instrument);
+      return undefined as never;
+    },
+    204,
+  ),
+  ...mock("/members/{memberId}/mood-screenings/{screeningId}", "patch", (ctx): MoodScreeningResult => ({
+    id: ctx.path.screeningId,
+    authorId: ctx.path.memberId,
+    instrument: "epds",
+    takenAt: new Date().toISOString(),
+    score: 12,
+    maxScore: 30,
+    band: "amber",
+    urgent: false,
+    message: bandMessage.amber,
+    source: epdsQuestionnaire.source,
+    visibility: ctx.body.visibility,
+  })),
 };

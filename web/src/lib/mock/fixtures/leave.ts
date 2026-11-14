@@ -1,6 +1,7 @@
+import { mockNow } from "@/lib/clock";
 import type { Family, LeaveDeadline, LeavePlan, LeavePlanInput, LeaveProgram, LeaveSegment, ParentLeave } from "@/lib/api/types";
 import { mock } from "../registry";
-import { couple, taskId } from "../timeline";
+import { couple, isNewborn, taskId } from "../timeline";
 import { CHECKED } from "./dates";
 import { paperworkN } from "./tasks";
 
@@ -11,7 +12,7 @@ import { paperworkN } from "./tasks";
 const DAY = 86_400_000;
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * DAY).toISOString().slice(0, 10);
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / DAY);
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => mockNow().toISOString().slice(0, 10);
 
 const src = (title: string, url: string) => ({ title, url, checkedAt: CHECKED });
 const DOL = src("U.S. Department of Labor: Family and Medical Leave Act", "https://www.dol.gov/agencies/whd/fmla");
@@ -108,7 +109,12 @@ async function planFor(family: () => Promise<Family>, actingId: string): Promise
 }
 
 export const leaveMocks = {
-  ...mock("/members/{memberId}/leave-plan", "get", (ctx) => planFor(ctx.family, ctx.path.memberId)),
+  // The catalog above is California's. The newborn family lives in Boston (state
+  // programs differ), so it gets no leave plan until the Go catalog answers: the tab stays hidden.
+  ...mock("/members/{memberId}/leave-plan", "get", async (ctx) => {
+    if (isNewborn(await ctx.family())) return undefined as never;
+    return planFor(ctx.family, ctx.path.memberId);
+  }),
   ...mock("/members/{memberId}/leave-plan", "put", async (ctx) => {
     inputs(await ctx.family()).set(ctx.path.memberId, ctx.body);
     return planFor(ctx.family, ctx.path.memberId);

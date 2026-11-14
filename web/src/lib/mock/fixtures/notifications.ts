@@ -1,6 +1,7 @@
-import type { Notification } from "@/lib/api/types";
+import type { Notification, Parent } from "@/lib/api/types";
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
-import { events, taskPlan, couple } from "../timeline";
+import { childEvents, childTaskPlan, events, olderStage, planningEvents, planningTaskPlan, taskPlan, couple, type OlderStage } from "../timeline";
 import { uid } from "./dates";
 
 // Preview data for the bell. Titles are fixed templates with names and dates
@@ -32,15 +33,32 @@ function seed(memberId: string, role: string, mother: string, partner: string): 
   ].map((x) => ({ ...x, id: x.id + memberId.slice(-2) }));
 }
 
+// Planning and preschool: the next visit, and the task the partner offered (the second task of each seed).
+function seedOlder(stage: OlderStage, role: string, mother: Parent, partner: Parent): Notification[] {
+  const visit = stage === "planning" ? planningEvents.preconceptionVisit : childEvents.checkup;
+  const offered = stage === "planning" ? "Ask the insurer what fertility and prenatal care it covers" : "Collect the immunization record for the kindergarten forms";
+  const taken = stage === "planning" ? planningTaskPlan.budgetTalk.title : childTaskPlan.tour.title;
+  const reminder = { kind: "appointment_reminder" as const, title: `${visit.title} is in ${visit.day - 1} days`, createdAt: ago(60 * 5) };
+  if (role === "mother") return [{ id: uid(9101), kind: "task_offered", title: `${partner.displayName} offered you "${offered}"`, actorId: partner.id, createdAt: ago(25) }, { id: uid(9102), ...reminder }];
+  if (role === "partner") return [{ id: uid(9111), kind: "task_offer_answered", title: `${mother.displayName} took "${taken}" back`, actorId: mother.id, createdAt: ago(80) }, { id: uid(9112), ...reminder }];
+  return [];
+}
+
+// About the pregnancy or the baby: pregnancy loss support drops them, like the
+// server deletes unread ones (the caregiver's shift reminder is not one).
+const aboutPregnancy = new Set([1, 3, 11, 12, 13].map((i) => uid(9000 + i)));
+
 async function list(memberId: string, family: () => Promise<import("@/lib/api/types").Family>) {
+  const f = await family();
   let items = store.get(memberId);
   if (!items) {
-    const f = await family();
     const { mother, partner } = couple(f);
     const role = f.parents.find((p) => p.id === memberId)?.role ?? "caregiver";
-    items = seed(memberId, role, mother.id, partner.id);
+    const stage = olderStage(f);
+    items = stage ? seedOlder(stage, role, mother, partner) : seed(memberId, role, mother.id, partner.id);
     store.set(memberId, items);
   }
+  if (inLossSupport(f)) items = items.filter((i) => !aboutPregnancy.has(i.id));
   return { items, unreadCount: items.filter((i) => !i.readAt).length };
 }
 

@@ -341,6 +341,7 @@ Overlapping PRs:
 | `immunizations` | Subject only. No owner. | none | Plan facts (vaccine rules), Passport (#342) |
 | `audit_log` | Family; actor is a member | It is the audit. | Written by `wellbeing` and `care`. `GET .../access-log` is a stub on main; #363 builds it. |
 | `mood_checkins` | Owner | `visibility`, audited on read and write | Home: mood and sleep card (check-in, seven-day chart, pattern), `GET/POST .../mood-checkins`, `GET .../mood-patterns`; plan facts |
+| `mood_screenings` | Owner | `visibility`, audited on read and write; another parent's shared result never shows `urgent` or the message | Care: mood questionnaire (EPDS, PHQ-9), `GET .../screening-questionnaires`, `GET/POST .../mood-screenings`; plan facts (own results only) |
 | `upgrade_intents` | One row per family | n/a | Pricing: `POST /family/upgrade-intents` |
 | `psychologists` | Global demo row | n/a | Care screen |
 | `psychologist_slots` | Family. No owner until booked. | n/a | Care: `GET .../psychologist-slots` |

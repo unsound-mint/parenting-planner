@@ -8,12 +8,21 @@ import { toast } from "sonner";
 import { api, isPreviewMock } from "@/lib/api/client";
 import type { AgendaTopic } from "@/lib/api/types";
 import { careIcon } from "@/lib/visuals";
+import { isLocalTopic, localTopics, rememberMockEntry, useMockDiary } from "@/lib/mock/diary-store";
 
 // Topics for the next session, as the parent chose them. Topics only: private
 // text never reaches the agenda. Every reorder and removal is saved as the full
 // list of kept ids in order (PUT psychologist-agenda); a failed save puts the
 // last saved list back.
 export function AgendaCard({ memberId, topics }: { memberId: string; topics: AgendaTopic[] }) {
+  // While the diary is a mock the server agenda cannot know about new entries, so their topics come from the browser.
+  const remembered = useMockDiary(memberId);
+  const all = [...localTopics(topics, remembered), ...topics];
+  return <Agenda key={all.map((t) => t.id).join()} memberId={memberId} topics={all} />;
+}
+
+function Agenda({ memberId, topics }: { memberId: string; topics: AgendaTopic[] }) {
+  const remembered = useMockDiary(memberId);
   const router = useRouter();
   const [items, setItems] = useState(topics);
   const latest = useRef(items);
@@ -25,9 +34,20 @@ export function AgendaCard({ memberId, topics }: { memberId: string; topics: Age
   // Drag fires many reorder events; save once when the drop settles, and skip a save when nothing moved.
   async function save(next = latest.current) {
     if (next.length === saved.current.length && next.every((t, i) => t.id === saved.current[i].id)) return;
+    // Topics from mocked diary entries live in the browser: removing one clears it there and the API never gets its id.
+    for (const t of saved.current.filter((t) => isLocalTopic(t.id) && !next.some((n) => n.id === t.id))) {
+      const entry = remembered.find((e) => e.id === t.diaryEntryId);
+      if (entry) rememberMockEntry(memberId, { ...entry, agendaTopic: undefined });
+    }
+    const ids = next.filter((t) => !isLocalTopic(t.id)).map((t) => t.id);
+    const before = saved.current.filter((t) => !isLocalTopic(t.id)).map((t) => t.id);
+    if (ids.length === before.length && ids.every((id, i) => id === before[i])) {
+      saved.current = next;
+      return;
+    }
     const { data, error, response } = await api.PUT("/members/{memberId}/psychologist-agenda", {
       params: { path: { memberId } },
-      body: { topicIds: next.map((t) => t.id) },
+      body: { topicIds: ids },
     });
     if (error || !data) {
       toast.error("Could not save your agenda. Please try again.");
@@ -38,12 +58,12 @@ export function AgendaCard({ memberId, topics }: { memberId: string; topics: Age
     // The headline counts topics on the server; a mock stored nothing, so a refresh would bring the old list back.
     if (!isPreviewMock(response)) router.refresh();
   }
-  const Agenda = careIcon.agenda;
+  const AgendaIcon = careIcon.agenda;
   return (
     <section aria-labelledby="agenda-title" className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-          <Agenda className="size-4.5" aria-hidden />
+          <AgendaIcon className="size-4.5" aria-hidden />
         </span>
         <h2 id="agenda-title" className="flex-1 text-title">
           Your agenda
@@ -128,4 +148,11 @@ function Topic({ topic, index, count, onMove, onRemove, onDrop }: { topic: Agend
       </button>
     </Reorder.Item>
   );
+}
+
+/** Care headline while a session still has to be picked: counts the topics, including the ones the diary mock holds in the browser. */
+export function TopicsReadyHeadline({ memberId, topics, fallback }: { memberId: string; topics: AgendaTopic[]; fallback: string }) {
+  const count = topics.length + localTopics(topics, useMockDiary(memberId)).length;
+  if (count === 0) return fallback;
+  return `${count} ${count === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 }
