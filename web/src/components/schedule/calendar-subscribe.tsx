@@ -135,7 +135,7 @@ export function CalendarSubscribe({ memberId, initial, canChooseScope }: { membe
       <ul className="flex flex-col gap-2 border-t border-border pt-3 text-label text-muted-foreground">
         <li className="flex items-center gap-2">
           <LockKeyhole aria-hidden className="size-4 shrink-0 text-foreground" />
-          Psychologist sessions are never included.
+          Psychologist sessions and private visits are never included; shared visits show as &ldquo;Appointment&rdquo;.
         </li>
         <li className="flex items-start gap-2">
           <RefreshCw aria-hidden className="mt-0.5 size-4 shrink-0" />

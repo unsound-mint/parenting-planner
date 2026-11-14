@@ -121,6 +121,25 @@ func Revoke(ctx context.Context, pool *pgxpool.Pool, familyID, parentID, id uuid
 	return inv, err
 }
 
+// RevokeCaregiver removes the access of a caregiver who has no invitation of their own.
+// It is logged under the invitation entity so the access log lists it with the other access changes.
+func RevokeCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, parentID, caregiverID uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		m, err := q.GetPerson(ctx, store.GetPersonParams{ID: caregiverID, FamilyID: familyID})
+		if errors.Is(err, pgx.ErrNoRows) || (err == nil && m.Role != "grandparent" && m.Role != "nanny") {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if err := q.RevokeCaregiver(ctx, store.RevokeCaregiverParams{ID: caregiverID, FamilyID: familyID, RevokedAt: ts(now)}); err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, parentID, access.ActionRevoke, Entity, caregiverID.String())
+	})
+}
+
 // Preview is what the accept page shows. It works for any status.
 func Preview(ctx context.Context, pool *pgxpool.Pool, token string) (store.GetInvitationByTokenRow, error) {
 	row, err := store.New(pool).GetInvitationByToken(ctx, demo.HashToken(token))

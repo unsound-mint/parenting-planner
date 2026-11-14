@@ -144,7 +144,7 @@ func (q *Queries) CreateChild(ctx context.Context, arg CreateChildParams) (Child
 }
 
 const createFamily = `-- name: CreateFamily :one
-INSERT INTO families (template, stage, due_date) VALUES ($1, $2, $3) RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of
+INSERT INTO families (template, stage, due_date) VALUES ($1, $2, $3) RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through
 `
 
 type CreateFamilyParams struct {
@@ -168,6 +168,7 @@ func (q *Queries) CreateFamily(ctx context.Context, arg CreateFamilyParams) (Fam
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }
@@ -269,7 +270,7 @@ func (q *Queries) FamilyInPregnancyLoss(ctx context.Context, id uuid.UUID) (bool
 }
 
 const getFamily = `-- name: GetFamily :one
-SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of FROM families WHERE id = $1
+SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through FROM families WHERE id = $1
 `
 
 func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
@@ -287,12 +288,13 @@ func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }
 
 const getFamilyForUpdate = `-- name: GetFamilyForUpdate :one
-SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of FROM families WHERE id = $1 FOR UPDATE
+SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through FROM families WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family, error) {
@@ -310,6 +312,7 @@ func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family,
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }
@@ -503,7 +506,7 @@ const recordPregnancyLoss = `-- name: RecordPregnancyLoss :one
 UPDATE families SET stage = 'planning', due_date = NULL,
     pregnancy_loss_recorded_at = $1, pregnancy_loss_occurred_on = $2,
     pregnancy_loss_prior_stage = stage, pregnancy_loss_prior_due_date = due_date
-WHERE id = $3 AND stage = 'pregnancy' RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of
+WHERE id = $3 AND stage = 'pregnancy' RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through
 `
 
 type RecordPregnancyLossParams struct {
@@ -528,6 +531,7 @@ func (q *Queries) RecordPregnancyLoss(ctx context.Context, arg RecordPregnancyLo
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }
@@ -536,7 +540,7 @@ const restorePregnancyLoss = `-- name: RestorePregnancyLoss :one
 UPDATE families SET stage = pregnancy_loss_prior_stage, due_date = pregnancy_loss_prior_due_date,
     pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,
     pregnancy_loss_prior_stage = NULL, pregnancy_loss_prior_due_date = NULL
-WHERE id = $1 AND pregnancy_loss_recorded_at IS NOT NULL RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of
+WHERE id = $1 AND pregnancy_loss_recorded_at IS NOT NULL RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through
 `
 
 // Turns support off and restores what it replaced.
@@ -555,6 +559,7 @@ func (q *Queries) RestorePregnancyLoss(ctx context.Context, id uuid.UUID) (Famil
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }
@@ -575,7 +580,7 @@ func (q *Queries) RevokeCaregiver(ctx context.Context, arg RevokeCaregiverParams
 }
 
 const skipFamilyDemoClock = `-- name: SkipFamilyDemoClock :one
-UPDATE families SET demo_offset_days = demo_offset_days + $1::int WHERE id = $2 RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of
+UPDATE families SET demo_offset_days = demo_offset_days + $1::int WHERE id = $2 RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through
 `
 
 type SkipFamilyDemoClockParams struct {
@@ -598,6 +603,7 @@ func (q *Queries) SkipFamilyDemoClock(ctx context.Context, arg SkipFamilyDemoClo
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }
@@ -683,7 +689,7 @@ const updateFamilyStage = `-- name: UpdateFamilyStage :one
 UPDATE families SET stage = $2, due_date = $3,
     pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,
     pregnancy_loss_prior_stage = NULL, pregnancy_loss_prior_due_date = NULL
-WHERE id = $1 RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of
+WHERE id = $1 RETURNING id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date, friend_of, provider_slots_through
 `
 
 type UpdateFamilyStageParams struct {
@@ -708,6 +714,7 @@ func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStagePa
 		&i.PregnancyLossPriorStage,
 		&i.PregnancyLossPriorDueDate,
 		&i.FriendOf,
+		&i.ProviderSlotsThrough,
 	)
 	return i, err
 }

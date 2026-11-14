@@ -268,6 +268,7 @@ type Family struct {
 	PregnancyLossPriorStage   *string
 	PregnancyLossPriorDueDate *time.Time
 	FriendOf                  uuid.NullUUID
+	ProviderSlotsThrough      *time.Time
 }
 
 type FertilityEntry struct {
@@ -526,6 +527,13 @@ type Notification struct {
 	ReadAt            pgtype.Timestamptz
 }
 
+type NudgeDismissal struct {
+	FamilyID    uuid.UUID
+	MemberID    uuid.UUID
+	NudgeKey    string
+	DismissedAt time.Time
+}
+
 type PartnerOffer struct {
 	ID          uuid.UUID
 	FamilyID    uuid.UUID
@@ -607,6 +615,29 @@ type Provider struct {
 	AvailableInDays int16
 	PriceUsd        int32
 	Summary         string
+	Credentials     string
+	Bio             string
+	VisitModes      []string
+	OpeningsPct     int16
+	SessionMinutes  int16
+}
+
+type ProviderBooking struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	SlotID        uuid.UUID
+	Note          *string
+	CreatedAt     time.Time
+}
+
+type ProviderSlot struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	ProviderID      uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
 }
 
 type Psychologist struct {
@@ -665,6 +696,23 @@ type Session struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 	MemberID  uuid.NullUUID
+}
+
+type SessionBrief struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	OwnerMemberID  uuid.UUID
+	Visibility     string
+	BookingID      uuid.NullUUID
+	IncludeMood    bool
+	EntryIds       []uuid.UUID
+	NoteSealed     []byte
+	Status         string
+	SendAt         pgtype.Timestamptz
+	SentAt         pgtype.Timestamptz
+	SnapshotSealed []byte
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type SessionNote struct {
