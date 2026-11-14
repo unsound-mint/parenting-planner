@@ -12,13 +12,13 @@ import { bagIcon, insuranceIcon, leaveIcon, paperworkIcon, planIcon } from "@/li
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { HospitalBags } from "./hospital-bags";
 import { InsuranceLog, insuranceHeadline } from "./insurance-log";
 import { LeavePlanner, leaveHeadline } from "./leave-planner";
 import { PaperworkTimeline } from "./paperwork-timeline";
 import { TaskRow, type TaskCtx } from "./task-row";
-import { WeekTracker } from "./week-tracker";
+import { SuggestionRow, WeekHeading, hasWeeklyCard, unplannedSuggestions, weekGroups } from "./week-groups";
 import { useFamilyNow } from "@/components/shell/family-clock";
 
 type Tab = "task" | "paperwork" | "hospital_bag" | "leave" | "insurance";
@@ -45,7 +45,7 @@ export function PlanScreen({
   leave?: LeavePlan;
   calls?: InsuranceCall[];
   dueOn?: string;
-  /** Show the week tracker: a pregnancy with a due date, not in loss support. */
+  /** Group the shared plan by week: a pregnancy with a due date, not in loss support. */
   trackWeeks?: boolean;
   /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
   weekTasks?: string[];
@@ -58,7 +58,7 @@ export function PlanScreen({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("task");
 
-  // A leave deadline or a tracker item sends you to its task: bring it into view once the tab has rendered.
+  // A leave deadline sends you to its task: bring it into view once the tab has rendered.
   useEffect(() => {
     if (focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [tab, focusTask]);
@@ -154,8 +154,8 @@ export function PlanScreen({
       ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
       : mine.length > 0
         ? active === "hospital_bag"
-          ? `${countThings(mine.length)} still to pack for you. Next: ${mine[0].title}.`
-          : `${countThings(mine.length)} ${mine.length === 1 ? "is" : "are"} yours here. Next: ${mine[0].title}.`
+          ? `${countThings(mine.length)} still to pack for you.`
+          : `${countThings(mine.length)} ${mine.length === 1 ? "is" : "are"} yours here.`
         : active === "hospital_bag"
           ? "Your bags are packed."
           : "Nothing is waiting on you here.";
@@ -193,26 +193,10 @@ export function PlanScreen({
         </div>
       )}
 
-      {trackWeeks && dueOn && (active === "task" || active === "paperwork") && (
-        <WeekTracker
-          tasks={[...plan, ...paperwork]}
-          people={people}
-          dueOn={dueOn}
-          now={now}
-          suggestions={weekTasks}
-          onOpen={(t) => {
-            if (t.kind === active) document.getElementById(`task-${t.id}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
-            else {
-              setFocusTask(t.id);
-              setTab(t.kind as Tab);
-            }
-          }}
-          onAdd={(title, due) => add(title, { dueOn: due })}
-        />
-      )}
-
       <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`} className="min-w-0">
-        {active === "task" && <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} onAdd={(title, dueOn) => add(title, { dueOn })} />}
+        {active === "task" && (
+          <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} now={now} weekOf={trackWeeks ? dueOn : undefined} suggestions={weekTasks} onAdd={(title, dueOn) => add(title, { dueOn })} />
+        )}
         {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />}
         {active === "leave" && leave && (
           <LeavePlanner
@@ -234,27 +218,80 @@ export function PlanScreen({
   );
 }
 
-function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: TaskCtx; offersToMe: Task[]; onAdd: (title: string, dueOn?: string) => Promise<boolean> }) {
+// Open tasks are grouped by the week they fall due (week-groups.tsx), each fact
+// once: an offer waiting for your answer is only in its own group. Without a due
+// date to count from, the open tasks are one flat list.
+function SharedPlan({
+  tasks,
+  ctx,
+  offersToMe,
+  now,
+  weekOf,
+  suggestions,
+  onAdd,
+}: {
+  tasks: Task[];
+  ctx: TaskCtx;
+  offersToMe: Task[];
+  now: Date;
+  /** The due date to count weeks from; left out when the plan is not grouped by week. */
+  weekOf?: string;
+  /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
+  suggestions: string[];
+  onAdd: (title: string, dueOn?: string) => Promise<boolean>;
+}) {
+  const [adding, setAdding] = useState<string>();
   const waiting = tasks.filter((t) => offersToMe.some((o) => o.id === t.id));
   const rest = openFirst(tasks.filter((t) => !waiting.includes(t)));
   const open = rest.filter((t) => !t.done);
   const done = rest.filter((t) => t.done);
+  const groups = weekOf ? weekGroups(open, weekOf, now) : undefined;
+  const cards = weekOf && hasWeeklyCard(weekOf, now) ? unplannedSuggestions(suggestions, tasks) : [];
   return (
-    // Two columns: what is still open on the left, what is done on the right.
-    <PageGrid>
-      <Stack>
-        {waiting.length > 0 && (
-          <section aria-labelledby="waiting-title">
-            <h2 id="waiting-title" className="text-title">
-              Waiting for your answer
-            </h2>
-            <ul className="mt-1 divide-y divide-border">
-              {waiting.map((t) => (
-                <TaskRow key={t.id} task={t} ctx={ctx} />
-              ))}
-            </ul>
+    // Cells side by side on wide screens in time order: waiting, this week, next week, and so on; done last.
+    <PageGrid cols={3}>
+      {waiting.length > 0 && (
+        <section aria-labelledby="waiting-title">
+          <h2 id="waiting-title" className="text-title">
+            Waiting for your answer
+          </h2>
+          <ul className="mt-1 divide-y divide-border">
+            {waiting.map((t) => (
+              <TaskRow key={t.id} task={t} ctx={ctx} />
+            ))}
+          </ul>
+        </section>
+      )}
+      {groups ? (
+        groups.map((g) => (
+          <section key={g.key} aria-labelledby={`${g.key}-title`}>
+            <WeekHeading group={g} id={`${g.key}-title`} />
+            {g.tasks.length > 0 || (g.current && cards.length > 0) ? (
+              <ul className="mt-1 divide-y divide-border">
+                {g.tasks.map((t) => (
+                  <TaskRow key={t.id} task={t} ctx={ctx} />
+                ))}
+                {g.current &&
+                  cards.map((s) => (
+                    <SuggestionRow
+                      key={s}
+                      title={s.replace(/\.$/, "")}
+                      busy={adding === s}
+                      onAdd={async () => {
+                        setAdding(s);
+                        await onAdd(s.replace(/\.$/, ""), g.endOfWeek);
+                        setAdding(undefined);
+                      }}
+                    />
+                  ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-body text-muted-foreground">Nothing due this week. Add the next thing below.</p>
+            )}
+            {g.current && <AddTask onAdd={onAdd} />}
           </section>
-        )}
+        ))
+      ) : (
         <section aria-labelledby="open-title">
           <h2 id="open-title" className="text-title">
             Open
@@ -270,7 +307,7 @@ function SharedPlan({ tasks, ctx, offersToMe, onAdd }: { tasks: Task[]; ctx: Tas
           )}
           <AddTask onAdd={onAdd} />
         </section>
-      </Stack>
+      )}
       {done.length > 0 && (
         <section aria-labelledby="done-title">
           <h2 id="done-title" className="text-title text-muted-foreground">

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
+import { hasOlderChild, isPlanning } from "@/lib/stage";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
 import { ResetDemo } from "@/components/shell/reset-demo";
@@ -55,7 +56,8 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   const hidden = unavailableScreens({
     calendar: calendar.response.status,
     // Newborn practice is baby prep: none of it while the family is in pregnancy loss support.
-    simulator: inLossSupport(family) ? 404 : simulator.response.status,
+    // The practice rounds are first-night-home scenarios: nothing for a family that is planning or has a child past toddler age.
+    simulator: inLossSupport(family) || isPlanning(family) || hasOlderChild(family) ? 404 : simulator.response.status,
     // Stage lessons give way to the support card in loss support (the page does the same).
     ...(inLossSupport(family) ? { learn: 404 } : {}),
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
@@ -71,7 +73,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink memberId={memberId} />
           </div>
         </div>
-        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} hidden={hidden} />
+        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} hidden={hidden} childName={hasOlderChild(family) ? family.children[0]?.name : undefined} />
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>

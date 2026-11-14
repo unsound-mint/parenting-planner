@@ -19,10 +19,13 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: questionnaires }, { data: past }] = await Promise.all([
+  const [{ data: questionnaires }, { data: past }, { data: drafts }, { data: family }] = await Promise.all([
     api.GET("/members/{memberId}/screening-questionnaires", path),
     api.GET("/members/{memberId}/mood-screenings", path),
+    api.GET("/members/{memberId}/mood-screening-drafts", path),
+    api.GET("/family"),
   ]);
+  const partner = family?.parents.find((p) => p.id !== memberId);
 
   return (
     <PageFrame className="block pt-4">
@@ -34,6 +37,8 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
           memberId={memberId}
           questionnaires={questionnaires.items}
           past={(past?.items ?? []).filter((r) => r.authorId === memberId)}
+          drafts={drafts?.items ?? []}
+          partner={partner ? { id: partner.id, name: partner.displayName } : undefined}
         />
       )}
     </PageFrame>
