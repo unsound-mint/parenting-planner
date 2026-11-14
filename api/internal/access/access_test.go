@@ -39,18 +39,6 @@ func TestCanParentReadHealthRecord(t *testing.T) {
 	}
 }
 
-func TestCanCaregiverReadChildRecord(t *testing.T) {
-	if !CanCaregiverReadChildRecord([]string{"care_log", "baby_passport"}, true) {
-		t.Error("a caregiver with baby_passport reads the child's records")
-	}
-	if CanCaregiverReadChildRecord([]string{"care_log", "schedule"}, true) {
-		t.Error("a caregiver without baby_passport reads no child records")
-	}
-	if CanCaregiverReadChildRecord([]string{"baby_passport"}, false) {
-		t.Error("a caregiver never reads a parent's records")
-	}
-}
-
 func TestCanSessionActAs(t *testing.T) {
 	mom, partner, nanny := uuid.New(), uuid.New(), uuid.New()
 	demo := uuid.NullUUID{}

@@ -6,11 +6,7 @@
 // viewer kind, update both and the tests.
 package access
 
-import (
-	"slices"
-
-	"github.com/google/uuid"
-)
+import "github.com/google/uuid"
 
 type Visibility string
 
@@ -43,15 +39,6 @@ func CanParentRead(viewer, owner uuid.UUID, v Visibility) bool {
 // CanParentRead.
 func CanParentReadHealthRecord(viewer, owner uuid.UUID, v Visibility, aboutChild bool) bool {
 	return aboutChild || CanParentRead(viewer, owner, v)
-}
-
-// CanCaregiverReadChildRecord reports whether a grandparent or nanny may read a
-// record about the child (an allergy) in the baby passport: only with the
-// baby_passport permission, and then whatever visibility its owner set, because
-// it is safety information about the child. Records about a parent never reach
-// a caregiver.
-func CanCaregiverReadChildRecord(permissions []string, aboutChild bool) bool {
-	return aboutChild && slices.Contains(permissions, "baby_passport")
 }
 
 // CanSessionActAs reports whether a pp_session may act as member in a
