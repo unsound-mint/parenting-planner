@@ -214,6 +214,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedInsuranceCalls(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedAppointments(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
@@ -397,6 +400,25 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 			}); err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+// seedInsuranceCalls gives the family three calls with the insurer: one the mother
+// shared with the family, one only she can see, and one the partner shared with her.
+func seedInsuranceCalls(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID, today time.Time) error {
+	for _, c := range []store.CreateInsuranceCallParams{
+		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", CalledAt: today.AddDate(0, 0, -6).Add(15 * time.Hour), Insurer: "Lakeside Health Plan",
+			Representative: ptr("Dana"), ReferenceNumber: ptr("CL-48213"), Topic: "add_baby",
+			Summary: "Asked how to add the baby after the birth. Dana said the plan needs the birth date and a request within 30 days; she will send the form.", FollowUpOn: ptr(today.AddDate(0, 0, 7))},
+		{FamilyID: familyID, OwnerMemberID: mom, Visibility: "private", CalledAt: today.AddDate(0, 0, -2).Add(11 * time.Hour), Insurer: "Lakeside Health Plan",
+			Topic: "claim", Summary: "Asked about the status of a lab claim; still being processed."},
+		{FamilyID: familyID, OwnerMemberID: partner, Visibility: "partner", CalledAt: today.AddDate(0, 0, -20).Add(9 * time.Hour), Insurer: "Lakeside Health Plan",
+			Topic: "coverage", Summary: "Checked that the breast pump is covered; a prescription is needed."},
+	} {
+		if _, err := q.CreateInsuranceCall(ctx, c); err != nil {
+			return err
 		}
 	}
 	return nil
