@@ -3421,6 +3421,36 @@ export interface components {
             /** @example 32 */
             unlocksAtWeek?: number;
             source: components["schemas"]["Source"];
+            /**
+             * @description The plan rule this guide explains, same format as PlanItem.ruleId. Absent when no rule covers it. A guide whose rule is already a plan item is not shown again as a lesson.
+             * @example tdap-pregnancy
+             */
+            ruleId?: string;
+            action?: components["schemas"]["GuideAction"];
+        };
+        /** @description The one thing a lesson ends in. Absent means the default, ask_at_visit with a question about the guide title. */
+        GuideAction: {
+            /**
+             * @description add_task = put title on the plan (POST tasks); ask_at_visit = add question to the visit list; commit_shift = take the shift; practice = open the simulator.
+             * @enum {string}
+             */
+            kind: "add_task" | "ask_at_visit" | "commit_shift" | "practice";
+            /**
+             * @description Button text, when the default for the kind does not fit.
+             * @example Take 22:00 to 02:00
+             */
+            label?: string;
+            /**
+             * @description The task title. Required for add_task.
+             * @example Get the Tdap vaccine
+             */
+            title?: string;
+            /**
+             * @description The question text. Required for ask_at_visit.
+             * @example Is the RSV vaccine right for me this season?
+             */
+            question?: string;
+            shift?: components["schemas"]["ShiftSuggestion"];
         };
         GuideList: {
             /** @description Most relevant first. */
