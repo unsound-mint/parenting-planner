@@ -3,7 +3,7 @@ import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { isoAt, uid } from "./dates";
 import { mockNow } from "@/lib/clock";
-import { calendarEvent, childEvents, couple, events, lastVisit, olderStage, planningEvents, type Couple } from "../timeline";
+import { calendarEvent, childEvents, couple, events, isNewborn, lastVisit, newbornEvents, olderStage, planningEvents, type Couple } from "../timeline";
 
 const obVisit = events.prenatalVisit.id;
 const scan = events.anatomyScan.id;
@@ -15,6 +15,28 @@ export function demoQuestions(memberId: string): AppointmentQuestion[] {
     { id: uid(611), authorId: memberId, text: "Can I keep running at 25 weeks?", appointmentId: obVisit, askedForAppointmentId: obVisit, carriedOver: false, answered: false, visibility: "private", createdAt: isoAt(-1, 8) },
     { id: uid(612), authorId: memberId, text: "How do we know when to leave for the hospital?", appointmentId: obVisit, askedForAppointmentId: lastVisit.id, carriedOver: true, answered: false, visibility: "partner", createdAt: isoAt(-21, 12) },
     { id: uid(613), authorId: memberId, text: "Is mild back pain normal this week?", appointmentId: scan, askedForAppointmentId: scan, carriedOver: false, answered: true, answer: "Common now. Heat and a support belt help; call if it comes in waves.", answeredAt: isoAt(-14, 17), visibility: "private", createdAt: isoAt(-25, 10) },
+  ];
+}
+
+/** The newborn family's questions, shared with the appointment prep mock like demoQuestions. */
+export function newbornQuestions(me: string): AppointmentQuestion[] {
+  const weigh = newbornEvents.weightCheck.id;
+  const feed = newbornEvents.lactationVisit.id;
+  const q = (n: number, o: Pick<AppointmentQuestion, "text" | "appointmentId" | "askedForAppointmentId" | "visibility"> & Partial<AppointmentQuestion>): AppointmentQuestion => ({
+    id: uid(660 + n),
+    authorId: me,
+    carriedOver: false,
+    answered: false,
+    createdAt: isoAt(-n, 19),
+    ...o,
+  });
+  return [
+    q(1, { text: "Which vaccines does Leo get at 2 months, and can they be split over two visits?", appointmentId: weigh, askedForAppointmentId: weigh, visibility: "partner" }),
+    q(2, { text: "Is the spit-up after most feeds normal at his age?", appointmentId: weigh, askedForAppointmentId: weigh, visibility: "partner" }),
+    q(3, { text: "At what temperature do we call you in the night?", appointmentId: weigh, askedForAppointmentId: lastVisit.id, carriedOver: true, visibility: "partner" }),
+    q(4, { text: "The left side hurts at the start of a feed. Could the latch be off?", appointmentId: feed, askedForAppointmentId: feed, visibility: "private" }),
+    q(5, { text: "How do I build a pumping routine before I go back to work?", appointmentId: feed, askedForAppointmentId: feed, visibility: "partner" }),
+    q(6, { text: "Is evening cluster feeding normal?", appointmentId: feed, askedForAppointmentId: feed, answered: true, answer: "Common in the first months. Feed on demand, and call if Leo has fewer than 6 wet diapers a day.", answeredAt: isoAt(-9, 17), visibility: "private", createdAt: isoAt(-20, 10) }),
   ];
 }
 
@@ -61,6 +83,12 @@ export const appointmentQuestionMocks = {
     const c = couple(family);
     const stage = olderStage(family);
     if (stage) return older(stage, family, c, ctx.path.memberId);
+    if (isNewborn(family)) {
+      // The feeding visit is Aisha's alone: Marcus sees the weight check and its questions only.
+      const items = newbornQuestions(ctx.path.memberId).filter((q) => ctx.path.memberId === c.mother.id || q.appointmentId === newbornEvents.weightCheck.id);
+      const visits = [newbornEvents.weightCheck, newbornEvents.lactationVisit].map((e) => calendarEvent(e, c)).filter((v) => items.some((q) => q.appointmentId === v.id));
+      return { appointments: visits, items };
+    }
     // As the real list does: an unanswered question of a visit that has passed moves
     // to the next upcoming visit of the same kind (carried over), or to none.
     const now = mockNow().getTime();

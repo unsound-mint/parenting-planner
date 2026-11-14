@@ -1,7 +1,7 @@
 import { mockNow } from "@/lib/clock";
 import type { Family, LeaveDeadline, LeavePlan, LeavePlanInput, LeaveProgram, LeaveSegment, ParentLeave } from "@/lib/api/types";
 import { mock } from "../registry";
-import { couple, taskId } from "../timeline";
+import { couple, isNewborn, taskId } from "../timeline";
 import { CHECKED } from "./dates";
 import { paperworkN } from "./tasks";
 
@@ -109,7 +109,12 @@ async function planFor(family: () => Promise<Family>, actingId: string): Promise
 }
 
 export const leaveMocks = {
-  ...mock("/members/{memberId}/leave-plan", "get", (ctx) => planFor(ctx.family, ctx.path.memberId)),
+  // The catalog above is California's. The newborn family lives in Boston (state
+  // programs differ), so it gets no leave plan until the Go catalog answers: the tab stays hidden.
+  ...mock("/members/{memberId}/leave-plan", "get", async (ctx) => {
+    if (isNewborn(await ctx.family())) return undefined as never;
+    return planFor(ctx.family, ctx.path.memberId);
+  }),
   ...mock("/members/{memberId}/leave-plan", "put", async (ctx) => {
     inputs(await ctx.family()).set(ctx.path.memberId, ctx.body);
     return planFor(ctx.family, ctx.path.memberId);
