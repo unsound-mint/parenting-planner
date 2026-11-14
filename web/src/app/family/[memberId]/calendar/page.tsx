@@ -8,7 +8,6 @@ import { countThings, daysUntilInstant, formatClock, formatShortDate, whenWords 
 import { familyPeople, isCaregiver, type Role } from "@/lib/roles";
 import { roleAccent } from "@/lib/visuals";
 import { addDays, todayKey } from "@/lib/schedule";
-import { OTHER_PARENT } from "@/lib/mock/fixtures/schedule";
 import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { WeekView, type Owner } from "@/components/schedule/week-view";
@@ -64,9 +63,6 @@ async function Calendar({
   const owners: Record<string, Owner> = Object.fromEntries(
     people.map((p) => [p.id, { name: p.displayName, role: p.role }]),
   );
-  // Preview mocks cannot see the family; they name the other parent with this key (lib/mock/fixtures/schedule.ts).
-  const other = family.parents.find((p) => p.id !== memberId);
-  if (other) owners[OTHER_PARENT] = { name: other.displayName, role: other.role };
   const items = events.data?.items ?? [];
   const agreed = (shifts.data?.items ?? []).filter((s) => s.status === "agreed");
   const hrefFor = (s: CalendarScope) => `/family/${memberId}/calendar?scope=${s}${from === today ? "" : `&from=${from}`}`;

@@ -23,7 +23,7 @@ export const passportFixture: Passport = {
       growth: [],
       careTeam: [
         { id: id(40), name: "Dr. Maya Reyes", role: "obstetrician", clinic: "Lakeside Women's Health" },
-        { id: id(41), name: "Dr. Anna Weiss", role: "psychologist", clinic: "Harbor Counseling" },
+        { id: id(41), name: "Dr. Maya Ellison (demo)", role: "psychologist", clinic: "Harbor Counseling" },
       ],
     },
     {
