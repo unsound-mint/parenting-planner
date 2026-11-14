@@ -264,7 +264,7 @@ var scenarios = []Scenario{
 				"When crying gets too much, calling in someone you trust, a partner, friend or relative, is the right move.", srcCrying)},
 			{ID: "push-on", Label: "Keep going, you should be able to fix this", Action: Soothe, Feedback: other(
 				"It is not yours to fix.",
-				"Crying, even long inconsolable crying, is normal in the first months and gets better. If you feel frustrated, put her somewhere safe and step away for a few minutes.", srcCrying)},
+				"Long, inconsolable crying is normal in the first months. It is worst between about 4 and 20 weeks, the stretch known as the period of PURPLE crying, and it gets better. If you feel frustrated, put her somewhere safe and step away to calm down.", srcCrying)},
 		},
 	},
 }
