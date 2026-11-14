@@ -26,7 +26,7 @@ func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSe
 	}
 	// Caregivers cannot be resolved here yet; once they are members, this
 	// is the check that answers them with 403.
-	if !isParent(m.Role) {
+	if !isParent(m) {
 		return CreateCheckoutSession403JSONResponse(errForbidden), nil
 	}
 	if !s.cfg.Billing.Enabled() {
@@ -61,7 +61,7 @@ func (s *Server) GetCheckoutSession(ctx context.Context, req GetCheckoutSessionR
 	}
 	// Caregivers cannot be resolved here yet; once they are members, this
 	// is the check that answers them with 403.
-	if !isParent(m.Role) {
+	if !isParent(m) {
 		return GetCheckoutSession403JSONResponse(errForbidden), nil
 	}
 	if !s.cfg.Billing.Enabled() {
@@ -136,8 +136,4 @@ func (s *Server) verifyStripeSignature(next http.Handler) http.Handler {
 		r.Body = io.NopCloser(bytes.NewReader(body))
 		next.ServeHTTP(w, r)
 	})
-}
-
-func isParent(role string) bool {
-	return role == string(ParentRoleMother) || role == string(ParentRolePartner)
 }
