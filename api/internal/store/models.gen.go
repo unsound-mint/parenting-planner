@@ -8,7 +8,22 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Allergy struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	Substance       string
+	Certainty       string
+	Reaction        *string
+	NotedOn         *time.Time
+	CreatedAt       time.Time
+}
 
 type AuditLog struct {
 	ID            int64
@@ -32,12 +47,15 @@ type BookingRequest struct {
 }
 
 type CareTeam struct {
-	ID       uuid.UUID
-	FamilyID uuid.UUID
-	Role     string
-	Name     string
-	Phone    *string
-	Address  *string
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	Role            string
+	Name            string
+	Phone           *string
+	Address         *string
+	Clinic          *string
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
 }
 
 type Child struct {
@@ -48,11 +66,21 @@ type Child struct {
 }
 
 type Family struct {
-	ID        uuid.UUID
-	Template  string
-	Stage     string
-	DueDate   *time.Time
-	CreatedAt time.Time
+	ID             uuid.UUID
+	Template       string
+	Stage          string
+	DueDate        *time.Time
+	CreatedAt      time.Time
+	DemoOffsetDays int32
+}
+
+type GrowthMeasurement struct {
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	ChildID    uuid.UUID
+	MeasuredOn time.Time
+	WeightKg   float64
+	HeightCm   float64
 }
 
 type Immunization struct {
@@ -62,6 +90,7 @@ type Immunization struct {
 	SubjectChildID  uuid.NullUUID
 	Vaccine         string
 	GivenOn         time.Time
+	Dose            *string
 }
 
 type LabResult struct {
@@ -76,6 +105,11 @@ type LabResult struct {
 	Result          []byte
 	Note            *string
 	CreatedAt       time.Time
+	Name            *string
+	Value           *float64
+	Unit            *string
+	RefLow          *float64
+	RefHigh         *float64
 }
 
 type Member struct {
@@ -98,6 +132,62 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type MoodScreening struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	TakenAt       time.Time
+	Instrument    string
+	Answers       []int16
+	Score         int16
+	Band          string
+	Urgent        bool
+}
+
+type Notification struct {
+	ID                uuid.UUID
+	FamilyID          uuid.UUID
+	RecipientMemberID uuid.UUID
+	Kind              string
+	EntityID          *string
+	ActorMemberID     uuid.NullUUID
+	Title             string
+	OnDay             *time.Time
+	CreatedAt         time.Time
+	ReadAt            pgtype.Timestamptz
+}
+
+type PartnerOffer struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	PartnerName string
+	Title       string
+	Detail      string
+	Url         string
+	Stages      []string
+	Audience    []string
+	Active      bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type PartnerOfferClick struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	OfferID   uuid.UUID
+	ClickedAt time.Time
+}
+
+type PlanItemProgress struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	RuleID    string
+	Status    string
+	UpdatedAt time.Time
+}
+
 type Provider struct {
 	ID              uuid.UUID
 	Name            string
@@ -110,9 +200,71 @@ type Provider struct {
 	Summary         string
 }
 
+type Psychologist struct {
+	ID          uuid.UUID
+	Name        string
+	Credentials string
+	Focus       string
+}
+
+type PsychologistBooking struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	SlotID        uuid.UUID
+	CreatedAt     time.Time
+}
+
+type PsychologistSlot struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	PsychologistID  uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
+}
+
 type Session struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID
 	CreatedAt time.Time
 	ExpiresAt time.Time
+}
+
+type SessionNote struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	BookingID     uuid.UUID
+	WrittenAt     time.Time
+	Text          string
+}
+
+type UpgradeIntent struct {
+	FamilyID    uuid.UUID
+	Tier        string
+	RequestedAt time.Time
+}
+
+type VaccineSchedule struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	Vaccine         string
+	Dose            string
+	DueOn           time.Time
+}
+
+type VoiceNote struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	UploaderMemberID uuid.UUID
+	HandoffID        uuid.NullUUID
+	ContentType      string
+	SizeBytes        int32
+	DurationSeconds  pgtype.Int4
+	Audio            []byte
+	CreatedAt        time.Time
 }

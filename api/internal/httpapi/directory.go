@@ -24,7 +24,7 @@ func (s *Server) ListProviders(ctx context.Context, req ListProvidersRequestObje
 		st := string(*req.Params.State)
 		f.State = &st
 	}
-	rows, err := directory.ListProviders(ctx, s.pool, s.today(), f)
+	rows, err := directory.ListProviders(ctx, s.pool, s.today(ctx), f)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (s *Server) CreateBookingRequest(ctx context.Context, req CreateBookingRequ
 		return CreateBookingRequest404JSONResponse(errNoMember), nil
 	}
 	b, err := directory.CreateBookingRequest(ctx, s.pool, familyID, req.MemberId, directory.NewBookingRequest{
-		ProviderID: req.Body.ProviderId, Note: req.Body.Note, CreatedAt: s.cfg.Now(),
+		ProviderID: req.Body.ProviderId, Note: req.Body.Note, CreatedAt: s.now(ctx),
 	})
 	switch {
 	case errors.Is(err, directory.ErrUnknownProvider):

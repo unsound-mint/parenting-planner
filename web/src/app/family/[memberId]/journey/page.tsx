@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
+import { requireParent } from "@/lib/guard";
 import { familyContext } from "@/lib/format";
 import { formatShortDate } from "@/lib/format";
 import { categoryIcon, statusTint } from "@/lib/visuals";
@@ -20,6 +21,7 @@ export default function JourneyPage({ params }: PageProps<"/family/[memberId]/jo
 
 async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const api = await serverApi();
   const [{ data: family }, { data: plan }] = await Promise.all([
     api.GET("/family"),
@@ -35,7 +37,7 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
         <div>
           <h1 className="text-headline text-balance">{headline}</h1>
           {/* The top bar shows this line from sm up; repeat it here only on phones. */}
-          <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+          <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         </div>
       </header>
 

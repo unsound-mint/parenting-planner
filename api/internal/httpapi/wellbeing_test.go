@@ -30,6 +30,12 @@ func TestMoodCheckinPrivacy(t *testing.T) {
 	fam := c.StartDemo("pregnancy")
 	mom, partner := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
 	momPath := "/api/members/" + mom.Id.String() + "/mood-checkins"
+	partnerPath := "/api/members/" + partner.Id.String() + "/mood-checkins"
+
+	// The demo seed already has some of the mother's check-ins; count from there.
+	var ownBefore, partnerBefore httpapi.MoodCheckinList
+	c.Get(momPath, http.StatusOK, &ownBefore)
+	c.Get(partnerPath, http.StatusOK, &partnerBefore)
 
 	c.Post(momPath, checkin(2, httpapi.VisibilityPrivate), http.StatusCreated, nil)
 	c.Post(momPath, checkin(4, httpapi.VisibilityPartner), http.StatusCreated, nil)
@@ -37,12 +43,17 @@ func TestMoodCheckinPrivacy(t *testing.T) {
 
 	var own, seenByPartner httpapi.MoodCheckinList
 	c.Get(momPath, http.StatusOK, &own)
-	c.Get("/api/members/"+partner.Id.String()+"/mood-checkins", http.StatusOK, &seenByPartner)
-	if len(own.Items) != 3 {
-		t.Errorf("author sees %d check-ins, want 3", len(own.Items))
+	c.Get(partnerPath, http.StatusOK, &seenByPartner)
+	if len(own.Items)-len(ownBefore.Items) != 3 {
+		t.Errorf("author sees %d new check-ins, want 3", len(own.Items)-len(ownBefore.Items))
 	}
-	if len(seenByPartner.Items) != 1 || seenByPartner.Items[0].Visibility != httpapi.VisibilityPartner {
+	if len(seenByPartner.Items)-len(partnerBefore.Items) != 1 || seenByPartner.Items[0].Visibility != httpapi.VisibilityPartner {
 		t.Errorf("partner must see only the shared check-in, got %+v", seenByPartner.Items)
+	}
+	for _, it := range seenByPartner.Items {
+		if it.Visibility != httpapi.VisibilityPartner && it.Visibility != httpapi.VisibilityFamily {
+			t.Errorf("partner sees a check-in with visibility %s", it.Visibility)
+		}
 	}
 }
 
@@ -85,5 +96,19 @@ func TestLowMoodChangesThePlan(t *testing.T) {
 	}
 	if !hasLowMood() {
 		t.Fatal("three low check-ins must add the low-mood item to the partner's plan")
+	}
+}
+
+// Replaced by Sofia's diary tests from #202.
+func TestDiaryIsNotImplementedYet(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
+	for _, call := range []stubCall{
+		{"POST", m + "/diary-entries", map[string]any{"body": "Scared about the birth.", "visibility": "private", "agendaTopic": "Birth anxiety"}},
+		{"GET", m + "/diary-entries", nil},
+		{"PATCH", m + "/diary-entries/00000000-0000-4000-8000-000000000001", map[string]any{"visibility": "private", "agendaTopic": ""}},
+	} {
+		call.expectNotImplemented(t, c)
 	}
 }
