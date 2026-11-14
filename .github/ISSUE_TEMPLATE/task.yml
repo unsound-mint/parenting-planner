@@ -1,0 +1,31 @@
+name: Task
+description: A piece of work for the MVP
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What the user does and sees
+      placeholder: "Jake finishes the training and sees a button to take the evening shift."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checklist someone can verify on the live site.
+      value: |
+        - [ ] 
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [frontend, backend, product]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Links to the demo script step, related issues, open questions.

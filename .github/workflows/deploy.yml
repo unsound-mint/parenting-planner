@@ -1,0 +1,25 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+# Never run two deploys at once; the newest push wins.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to musicroombot
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # The server key is restricted to deploy/deploy.sh; the command here is ignored.
+          ssh denis@46.62.161.228 deploy
+      - name: Smoke test
+        run: curl -fsS -o /dev/null https://parenting.unsoundmint.com/

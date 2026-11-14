@@ -1,0 +1,5 @@
+// Working name. The final product name is Dayana's call (see docs/product.md);
+// change it here and in README.md only.
+export const PRODUCT_NAME = "Parenting Planner";
+export const PRODUCT_TAGLINE =
+  "Two parents, one plan: prepare together, then hand off care without dropping anything.";
