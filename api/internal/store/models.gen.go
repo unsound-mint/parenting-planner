@@ -93,3 +93,13 @@ type Session struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
+
+type Task struct {
+	ID                      uuid.UUID
+	FamilyID                uuid.UUID
+	Title                   string
+	DueOn                   *time.Time
+	AssigneeMemberID        uuid.UUID
+	PendingAssigneeMemberID uuid.NullUUID
+	CreatedAt               time.Time
+}

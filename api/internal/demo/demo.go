@@ -84,7 +84,8 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err != nil {
 		return uuid.Nil, err
 	}
-	if _, err := q.CreateMember(ctx, store.CreateMemberParams{FamilyID: fam.ID, Role: "partner", DisplayName: "Jake", BirthDate: ptr(time.Date(1991, 9, 3, 0, 0, 0, 0, time.UTC))}); err != nil {
+	jake, err := q.CreateMember(ctx, store.CreateMemberParams{FamilyID: fam.ID, Role: "partner", DisplayName: "Jake", BirthDate: ptr(time.Date(1991, 9, 3, 0, 0, 0, 0, time.UTC))})
+	if err != nil {
 		return uuid.Nil, err
 	}
 	for _, c := range []store.CreateCareTeamMemberParams{
@@ -102,6 +103,31 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		Result: []byte(`{"hemoglobin_g_dl": 12.4, "blood_type": "O+", "rubella": "immune"}`),
 	}); err != nil {
 		return uuid.Nil, err
+	}
+	// Tasks: one each, and a pediatrician search Emily has offered to Jake but he has not accepted yet.
+	for _, t := range []struct {
+		title    string
+		dueIn    int
+		assignee uuid.UUID
+		offerTo  uuid.UUID
+	}{
+		{"Book the birth center tour", 10, mom.ID, uuid.Nil},
+		{"Choose a pediatrician", 30, mom.ID, jake.ID},
+		{"Install the car seat", 70, jake.ID, uuid.Nil},
+	} {
+		task, err := q.CreateTask(ctx, store.CreateTaskParams{
+			FamilyID: fam.ID, Title: t.title, DueOn: ptr(today.AddDate(0, 0, t.dueIn)), AssigneeMemberID: t.assignee, CreatedAt: today,
+		})
+		if err != nil {
+			return uuid.Nil, err
+		}
+		if t.offerTo != uuid.Nil {
+			if _, err := q.ProposeTaskAssignee(ctx, store.ProposeTaskAssigneeParams{
+				ToMemberID: uuid.NullUUID{UUID: t.offerTo, Valid: true}, ID: task.ID, FamilyID: fam.ID, ActorID: t.assignee,
+			}); err != nil {
+				return uuid.Nil, err
+			}
+		}
 	}
 	return fam.ID, nil
 }
