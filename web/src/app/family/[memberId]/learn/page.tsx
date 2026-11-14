@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { Pill } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import type { Family } from "@/lib/api/types";
 import { serverApi } from "@/lib/api/server";
@@ -90,6 +92,10 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
             {items.length > 0 ? `${countWord(items.length)} ${items.length === 1 ? "path" : "paths"} for ${forWhen(family.data)}. ` : ""}
             {them ? "A few unhurried minutes a week, side by side." : "A few unhurried minutes a week."}
           </p>
+          <Link href={`/family/${memberId}/learn/reference`} className="press mt-3 inline-flex h-11 items-center gap-2 rounded-full border border-line-2 bg-card px-4 text-label text-ink-2 transition-colors hover:border-ink-2">
+            <Pill className="size-4" aria-hidden />
+            Can I eat or take this?
+          </Link>
         </div>
         {journey && <JourneyStrip journey={journey} memberId={memberId} className="@7xl:max-w-[50rem] @7xl:flex-nowrap" />}
       </Rise>

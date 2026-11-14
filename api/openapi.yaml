@@ -2667,6 +2667,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/safety-reference:
+    get:
+      operationId: listSafetyReference
+      tags: [content]
+      summary: Pregnancy and breastfeeding reference for common foods and over-the-counter medicines
+      description: |
+        Educational, sourced and not personal: each entry gives a calm
+        general reading (ok, limit, avoid, ask) with one line why, for
+        pregnancy and, where a source was opened, for breastfeeding. It
+        never says something is safe for the reader and has no doses. Every
+        medicine entry has `ask`, the line that sends the question to a
+        pharmacist or clinician. Entries cite the pages they paraphrase with
+        the date each was checked. `learn` points at an existing nutrition
+        lesson so fish and fridge advice is not repeated here.
+
+        General reference content: any member of the family may read it and
+        it carries no health record. The same list for every family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SafetyReferenceList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/pregnancy-weeks/{week}:
     get:
       operationId: getPregnancyWeek
@@ -8036,6 +8075,75 @@ components:
           description: The rule plan item this point comes from, when it has one.
         source:
           $ref: "#/components/schemas/Source"
+
+    SafetyReferenceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SafetyEntry"
+
+    SafetyEntry:
+      type: object
+      required: [id, category, topic, name, aliases, pregnancy, sources]
+      properties:
+        id:
+          type: string
+          example: soft-cheese
+        category:
+          type: string
+          enum: [food, medicine]
+        topic:
+          type: string
+          description: The group a filter chip is built from ("Dairy and eggs", "Pain and fever").
+        name:
+          type: string
+        aliases:
+          type: array
+          description: Brand names and other words people search for.
+          items:
+            type: string
+        pregnancy:
+          $ref: "#/components/schemas/SafetyAdvice"
+        breastfeeding:
+          $ref: "#/components/schemas/SafetyAdvice"
+        ask:
+          type: string
+          description: Present on every medicine entry; the screen ends the entry with it.
+          example: Ask your pharmacist, OB or midwife, or other clinician before you take it.
+        learn:
+          $ref: "#/components/schemas/SafetyLearnLink"
+        sources:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Source"
+
+    SafetyAdvice:
+      type: object
+      required: [status, why]
+      properties:
+        status:
+          type: string
+          description: ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your OB, midwife or pharmacist.
+          enum: [ok, limit, avoid, ask]
+          # Plain Ok/Limit/Ask collide with other Go identifiers in httpapi.
+          x-enum-varnames: [SafetyOk, SafetyLimit, SafetyAvoid, SafetyAsk]
+        why:
+          type: string
+          description: One plain line. Never a personal approval.
+
+    SafetyLearnLink:
+      type: object
+      description: A nutrition lesson that covers the same topic, opened with /learn?path=...&lesson=...
+      required: [pathId, lessonId]
+      properties:
+        pathId:
+          type: string
+        lessonId:
+          type: string
 
     StageNow:
       type: object
