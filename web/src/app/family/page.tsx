@@ -22,7 +22,7 @@ async function Family() {
 
   return (
     <>
-      <p className="mb-6 text-zinc-600">
+      <p className="mb-6 text-muted-foreground">
         Stage: {family.stage}
         {family.gestationalWeek != null && `, week ${family.gestationalWeek}`}
       </p>
@@ -41,12 +41,12 @@ async function ParentPlan({ parent }: { parent: Parent }) {
     params: { path: { memberId: parent.id } },
   });
   return (
-    <section className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
-      <p className="text-sm uppercase tracking-wide text-zinc-500">{parent.role}</p>
+    <section className="rounded-2xl border border-border bg-card p-5">
+      <p className="text-sm uppercase tracking-wide text-muted-foreground">{parent.role}</p>
       <h2 className="mb-4 text-2xl font-semibold">{parent.displayName}&apos;s week</h2>
       <ul className="flex flex-col gap-4">
         {plan?.items.map((it) => <Item key={it.ruleId} item={it} />)}
-        {plan?.items.length === 0 && <li className="text-zinc-500">Nothing due right now.</li>}
+        {plan?.items.length === 0 && <li className="text-muted-foreground">Nothing due right now.</li>}
       </ul>
     </section>
   );
@@ -56,10 +56,10 @@ function Item({ item }: { item: PlanItem }) {
   return (
     <li>
       <p className="font-medium">
-        {item.title} <span className="text-sm text-zinc-500">({item.status}{item.dueBy && `, by ${item.dueBy}`})</span>
+        {item.title} <span className="text-sm text-muted-foreground">({item.status}{item.dueBy && `, by ${item.dueBy}`})</span>
       </p>
       <p className="text-sm">{item.detail}</p>
-      <p className="text-sm text-zinc-500">Why: {item.reason}</p>
+      <p className="text-sm text-muted-foreground">Why: {item.reason}</p>
       <a className="text-sm underline" href={item.source.url} target="_blank" rel="noreferrer">
         {item.source.title}
       </a>

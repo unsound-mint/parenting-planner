@@ -45,3 +45,6 @@ next-env.d.ts
 /private/
 .claude/settings.local.json
 deploy/.env
+
+# Impeccable engine binary, downloaded on demand by the skill launcher
+.claude/skills/impeccable/scripts/bin/

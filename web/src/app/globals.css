@@ -1,26 +1,210 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Design tokens. Direction and rules: docs/design.md. Light is direction A
+   (Steady), .dark is direction D (Night light). Every text/background pair
+   below passes WCAG AA; re-check contrast when changing a value. */
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-heading: var(--font-inter);
+
+  /* shadcn semantic colors */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Plan item status. Overdue is warm clay, never alarm red: red (urgent) is
+     reserved for urgent symptoms and the crisis path. Use as text-status-due
+     on bg-status-due-soft. */
+  --color-status-ok: var(--status-ok);
+  --color-status-ok-soft: var(--status-ok-soft);
+  --color-status-up: var(--status-up);
+  --color-status-up-soft: var(--status-up-soft);
+  --color-status-due: var(--status-due);
+  --color-status-due-soft: var(--status-due-soft);
+  --color-status-late: var(--status-late);
+  --color-status-late-soft: var(--status-late-soft);
+  --color-urgent: var(--urgent);
+
+  /* Each parent owns an accent: ownership in the shared plan and handoffs. */
+  --color-mom: var(--mom);
+  --color-partner: var(--partner);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Motion. ease-out for things entering or responding to the user; never
+     ease-in on UI. Keep UI transitions at or under --duration-slow. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.75rem;
+
+  --background: #f7f5f1;
+  --foreground: #1e2a2c;
+  --card: #ffffff;
+  --card-foreground: #1e2a2c;
+  --popover: #ffffff;
+  --popover-foreground: #1e2a2c;
+  --primary: #3e6e5e;
+  --primary-foreground: #ffffff;
+  --secondary: #e4ede8;
+  --secondary-foreground: #2f5649;
+  --muted: #efece6;
+  --muted-foreground: #5a6668;
+  --accent: #e4ede8;
+  --accent-foreground: #2f5649;
+  --destructive: #b3261e;
+  --border: #e3e0da;
+  --input: #d9d5ce;
+  --ring: #3e6e5e;
+
+  --status-ok: #3e6e5e;
+  --status-ok-soft: #e4ede8;
+  --status-up: #4f6475;
+  --status-up-soft: #e6ecf1;
+  --status-due: #8a6414;
+  --status-due-soft: #f6ebd3;
+  --status-late: #a24e32;
+  --status-late-soft: #f6e2da;
+  --urgent: #b3261e;
+
+  --mom: #3e6e5e;
+  --partner: #5b5aa8;
+
+  --chart-1: #3e6e5e;
+  --chart-2: #5b5aa8;
+  --chart-3: #4f6475;
+  --chart-4: #8a6414;
+  --chart-5: #a24e32;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1e2a2c;
+  --sidebar-primary: #3e6e5e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e4ede8;
+  --sidebar-accent-foreground: #2f5649;
+  --sidebar-border: #e3e0da;
+  --sidebar-ring: #3e6e5e;
+}
+
+.dark {
+  --background: #14151e;
+  --foreground: #ede7db;
+  --card: #1d1f2c;
+  --card-foreground: #ede7db;
+  --popover: #1d1f2c;
+  --popover-foreground: #ede7db;
+  --primary: #e9b872;
+  --primary-foreground: #14151e;
+  --secondary: #252838;
+  --secondary-foreground: #ede7db;
+  --muted: #252838;
+  --muted-foreground: #a6a3b4;
+  --accent: #252838;
+  --accent-foreground: #ede7db;
+  --destructive: #ff6b5e;
+  --border: #2f3244;
+  --input: #3a3d52;
+  --ring: #e9b872;
+
+  --status-ok: #7cc2b3;
+  --status-ok-soft: rgb(124 194 179 / 0.14);
+  --status-up: #b3a9e6;
+  --status-up-soft: rgb(179 169 230 / 0.14);
+  --status-due: #e9b872;
+  --status-due-soft: rgb(233 184 114 / 0.14);
+  --status-late: #f09a7e;
+  --status-late-soft: rgb(240 154 126 / 0.15);
+  --urgent: #ff6b5e;
+
+  --mom: #e9b872;
+  --partner: #7cc2b3;
+
+  --chart-1: #7cc2b3;
+  --chart-2: #b3a9e6;
+  --chart-3: #e9b872;
+  --chart-4: #f09a7e;
+  --chart-5: #a6a3b4;
+
+  --sidebar: #1d1f2c;
+  --sidebar-foreground: #ede7db;
+  --sidebar-primary: #e9b872;
+  --sidebar-primary-foreground: #14151e;
+  --sidebar-accent: #252838;
+  --sidebar-accent-foreground: #ede7db;
+  --sidebar-border: #2f3244;
+  --sidebar-ring: #e9b872;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Motion components read MotionConfig reducedMotion="user"; this covers CSS
+   transitions, keyframes and React view transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
