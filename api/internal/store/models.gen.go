@@ -192,6 +192,42 @@ type Family struct {
 	PregnancyLossOccurredOn   *time.Time
 	PregnancyLossPriorStage   *string
 	PregnancyLossPriorDueDate *time.Time
+	FriendOf                  uuid.NullUUID
+}
+
+type FriendCode struct {
+	FamilyID  uuid.UUID
+	Code      string
+	CreatedBy uuid.UUID
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+type FriendConnection struct {
+	ID              uuid.UUID
+	RequesterFamily uuid.UUID
+	AddresseeFamily uuid.UUID
+	RequestedBy     uuid.NullUUID
+	CreatedAt       time.Time
+	AcceptedAt      pgtype.Timestamptz
+}
+
+type FriendReaction struct {
+	UpdateID  uuid.UUID
+	MemberID  uuid.UUID
+	FamilyID  uuid.UUID
+	Reaction  string
+	CreatedAt time.Time
+}
+
+type FriendUpdate struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	AuthorMemberID uuid.UUID
+	Kind           string
+	Headline       *string
+	Body           string
+	CreatedAt      time.Time
 }
 
 type GrowthMeasurement struct {

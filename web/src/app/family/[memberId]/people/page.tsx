@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { UsersRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
@@ -53,6 +54,18 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           Privacy and your data
         </Link>
       </header>
+      <Link
+        href={`/family/${memberId}/people/friends`}
+        className="press lift flex w-full max-w-2xl items-center gap-4 rounded-3xl bg-them-soft p-5 text-left"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-card text-them">
+          <UsersRound className="size-5" aria-hidden />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-title">Friend families</span>
+          <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
+        </span>
+      </Link>
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
       <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
