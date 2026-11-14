@@ -50,6 +50,8 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 			out.GestationalWeek = &w
 		}
 	}
+	// TODO(#363): the session has no person yet. Once it does, leave pregnancyLoss
+	// out for a grandparent or nanny: they must not learn why updates stopped.
 	if fam.PregnancyLossRecordedAt.Valid {
 		loss := PregnancyLoss{RecordedAt: fam.PregnancyLossRecordedAt.Time}
 		if fam.PregnancyLossOccurredOn != nil {

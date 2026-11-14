@@ -45,6 +45,17 @@ UPDATE families SET stage = 'planning', due_date = NULL,
     pregnancy_loss_prior_stage = stage, pregnancy_loss_prior_due_date = due_date
 WHERE id = @id AND stage = 'pregnancy' RETURNING *;
 
+-- Turning support on drops what the family has not read yet about the pregnancy
+-- and the baby: plan_item_due for the given rules, and handoffs.
+-- name: DeleteUnreadPregnancyNotifications :execrows
+DELETE FROM notifications
+WHERE family_id = @family_id AND read_at IS NULL
+  AND (kind IN ('handoff_received', 'handoff_accepted')
+       OR (kind = 'plan_item_due' AND entity_id = ANY (@rule_ids::text[])));
+
+-- name: FamilyInPregnancyLoss :one
+SELECT (pregnancy_loss_recorded_at IS NOT NULL)::bool FROM families WHERE id = $1;
+
 -- Turns support off and restores what it replaced.
 -- name: RestorePregnancyLoss :one
 UPDATE families SET stage = pregnancy_loss_prior_stage, due_date = pregnancy_loss_prior_due_date,

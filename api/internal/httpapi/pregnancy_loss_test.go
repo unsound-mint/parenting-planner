@@ -92,3 +92,64 @@ func TestPregnancyLossValidationAndAccess(t *testing.T) {
 	c.StartDemo("pregnancy")
 	c.Post(lossPath(mom.Id), map[string]any{}, http.StatusNotFound, nil)
 }
+
+// Turning support on sets the stage to planning, so the planning nudges, the
+// planning partner offers and any unread pregnancy reminders must not show.
+func TestPregnancyLossSilencesPlanningNudgesOffersAndUnreadReminders(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	member := "/api/members/" + mom.Id.String()
+
+	var pl httpapi.Plan
+	c.Get(member+"/plan", http.StatusOK, &pl) // writes plan_item_due for the due pregnancy items
+	var bell httpapi.NotificationList
+	c.Get(member+"/notifications", http.StatusOK, &bell)
+	if bell.UnreadCount == 0 {
+		t.Fatal("setup: a pregnant family has an unread plan_item_due")
+	}
+	// An unread reminder that has nothing to do with the pregnancy must stay.
+	if _, err := c.Pool.Exec(t.Context(), `INSERT INTO notifications (family_id, recipient_member_id, kind, title, created_at)
+		VALUES ($1, $2, 'appointment_reminder', 'Appointment tomorrow', $3)`, fam.Id, mom.Id, testutil.Now); err != nil {
+		t.Fatal(err)
+	}
+
+	c.Post(lossPath(mom.Id), map[string]any{}, http.StatusCreated, nil)
+
+	c.Get(member+"/notifications", http.StatusOK, &bell)
+	kept := false
+	for _, n := range bell.Items {
+		if string(n.Kind) == "plan_item_due" {
+			t.Errorf("an unread pregnancy reminder survived: %+v", n)
+		}
+		kept = kept || string(n.Kind) == "appointment_reminder"
+	}
+	if !kept {
+		t.Errorf("unrelated unread notifications must stay: %+v", bell.Items)
+	}
+	c.Get(member+"/plan", http.StatusOK, &pl) // must not write new ones either
+	for _, it := range pl.Items {
+		if it.RuleId == "folic-acid" || it.RuleId == "mmr-before-pregnancy" {
+			t.Errorf("planning nudge %s must be off in loss support", it.RuleId)
+		}
+	}
+	c.Get(member+"/notifications", http.StatusOK, &bell)
+	for _, n := range bell.Items {
+		if string(n.Kind) == "plan_item_due" && n.EntityId != nil && *n.EntityId == "folic-acid" {
+			t.Error("no folic acid reminder may be created in loss support")
+		}
+	}
+
+	var offers httpapi.PartnerOfferList
+	c.Get(member+"/partner-offers", http.StatusOK, &offers)
+	if len(offers.Items) != 0 {
+		t.Errorf("no partner offers in loss support: %+v", offers.Items)
+	}
+
+	// Undo brings the pregnancy things back.
+	c.Delete(lossPath(mom.Id), http.StatusOK, nil)
+	c.Get(member+"/partner-offers", http.StatusOK, &offers)
+	if len(offers.Items) == 0 {
+		t.Error("offers return after an undo")
+	}
+}

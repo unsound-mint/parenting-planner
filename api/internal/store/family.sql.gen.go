@@ -176,6 +176,39 @@ func (q *Queries) DeleteFamily(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteUnreadPregnancyNotifications = `-- name: DeleteUnreadPregnancyNotifications :execrows
+DELETE FROM notifications
+WHERE family_id = $1 AND read_at IS NULL
+  AND (kind IN ('handoff_received', 'handoff_accepted')
+       OR (kind = 'plan_item_due' AND entity_id = ANY ($2::text[])))
+`
+
+type DeleteUnreadPregnancyNotificationsParams struct {
+	FamilyID uuid.UUID
+	RuleIds  []string
+}
+
+// Turning support on drops what the family has not read yet about the pregnancy
+// and the baby: plan_item_due for the given rules, and handoffs.
+func (q *Queries) DeleteUnreadPregnancyNotifications(ctx context.Context, arg DeleteUnreadPregnancyNotificationsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUnreadPregnancyNotifications, arg.FamilyID, arg.RuleIds)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const familyInPregnancyLoss = `-- name: FamilyInPregnancyLoss :one
+SELECT (pregnancy_loss_recorded_at IS NOT NULL)::bool FROM families WHERE id = $1
+`
+
+func (q *Queries) FamilyInPregnancyLoss(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, familyInPregnancyLoss, id)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getFamily = `-- name: GetFamily :one
 SELECT id, template, stage, due_date, created_at, demo_offset_days, pregnancy_loss_recorded_at, pregnancy_loss_occurred_on, pregnancy_loss_prior_stage, pregnancy_loss_prior_due_date FROM families WHERE id = $1
 `
