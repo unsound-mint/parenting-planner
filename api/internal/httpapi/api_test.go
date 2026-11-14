@@ -51,6 +51,26 @@ func TestOtherFamiliesAreUnreachable(t *testing.T) {
 	c.Get("/api/members/"+stranger.Id.String()+"/mood-checkins", http.StatusNotFound, nil)
 }
 
+func TestCaregiversAreListedButCannotActAsParents(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	if len(fam.Caregivers) != 2 {
+		t.Fatalf("want a grandparent and a nanny, got %+v", fam.Caregivers)
+	}
+	for _, cg := range fam.Caregivers {
+		// A caregiver id is not a parent: every parent-only route refuses it,
+		// so no parent health data (plan, mood check-ins) is reachable.
+		for _, path := range []string{"/plan", "/mood-checkins"} {
+			c.Get("/api/members/"+cg.Id.String()+path, http.StatusNotFound, nil)
+		}
+	}
+	// A new demo family gets its own caregivers.
+	other := c.StartDemo("pregnancy")
+	if other.Caregivers[0].Id == fam.Caregivers[0].Id {
+		t.Error("caregivers must be per family")
+	}
+}
+
 func TestHealthzNeedsNoSession(t *testing.T) {
 	c := testutil.New(t)
 	c.Get("/api/healthz", http.StatusOK, nil)

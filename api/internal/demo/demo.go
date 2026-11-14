@@ -87,6 +87,15 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if _, err := q.CreateMember(ctx, store.CreateMemberParams{FamilyID: fam.ID, Role: "partner", DisplayName: "Jake", BirthDate: ptr(time.Date(1991, 9, 3, 0, 0, 0, 0, time.UTC))}); err != nil {
 		return uuid.Nil, err
 	}
+	// Helpers who are not parents. They see the baby's care, never a parent's health data.
+	for _, c := range []store.CreateCaregiverParams{
+		{FamilyID: fam.ID, Role: "grandparent", DisplayName: "Linda"},
+		{FamilyID: fam.ID, Role: "nanny", DisplayName: "Maria"},
+	} {
+		if _, err := q.CreateCaregiver(ctx, c); err != nil {
+			return uuid.Nil, err
+		}
+	}
 	for _, c := range []store.CreateCareTeamMemberParams{
 		{FamilyID: fam.ID, Role: "obgyn", Name: "Dr. Priya Shah", Phone: ptr("(512) 555-0142")},
 		{FamilyID: fam.ID, Role: "birth_clinic", Name: "Riverbend Women's Hospital", Address: ptr("Austin, TX")},

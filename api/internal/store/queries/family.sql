@@ -24,3 +24,9 @@ INSERT INTO care_team (family_id, role, name, phone, address) VALUES ($1, $2, $3
 
 -- name: ListCareTeam :many
 SELECT * FROM care_team WHERE family_id = $1 ORDER BY role, name;
+
+-- name: CreateCaregiver :one
+INSERT INTO caregivers (family_id, role, display_name) VALUES ($1, $2, $3) RETURNING *;
+
+-- name: ListCaregivers :many
+SELECT * FROM caregivers WHERE family_id = $1 ORDER BY role;

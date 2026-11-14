@@ -29,6 +29,13 @@ type CareTeam struct {
 	Address  *string
 }
 
+type Caregiver struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	Role        string
+	DisplayName string
+}
+
 type Child struct {
 	ID        uuid.UUID
 	FamilyID  uuid.UUID

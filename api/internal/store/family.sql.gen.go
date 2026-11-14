@@ -44,6 +44,28 @@ func (q *Queries) CreateCareTeamMember(ctx context.Context, arg CreateCareTeamMe
 	return i, err
 }
 
+const createCaregiver = `-- name: CreateCaregiver :one
+INSERT INTO caregivers (family_id, role, display_name) VALUES ($1, $2, $3) RETURNING id, family_id, role, display_name
+`
+
+type CreateCaregiverParams struct {
+	FamilyID    uuid.UUID
+	Role        string
+	DisplayName string
+}
+
+func (q *Queries) CreateCaregiver(ctx context.Context, arg CreateCaregiverParams) (Caregiver, error) {
+	row := q.db.QueryRow(ctx, createCaregiver, arg.FamilyID, arg.Role, arg.DisplayName)
+	var i Caregiver
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Role,
+		&i.DisplayName,
+	)
+	return i, err
+}
+
 const createChild = `-- name: CreateChild :one
 INSERT INTO children (family_id, name, birth_date) VALUES ($1, $2, $3) RETURNING id, family_id, name, birth_date
 `
@@ -177,6 +199,35 @@ func (q *Queries) ListCareTeam(ctx context.Context, familyID uuid.UUID) ([]CareT
 			&i.Name,
 			&i.Phone,
 			&i.Address,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCaregivers = `-- name: ListCaregivers :many
+SELECT id, family_id, role, display_name FROM caregivers WHERE family_id = $1 ORDER BY role
+`
+
+func (q *Queries) ListCaregivers(ctx context.Context, familyID uuid.UUID) ([]Caregiver, error) {
+	rows, err := q.db.Query(ctx, listCaregivers, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Caregiver{}
+	for rows.Next() {
+		var i Caregiver
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.Role,
+			&i.DisplayName,
 		); err != nil {
 			return nil, err
 		}
