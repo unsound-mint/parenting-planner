@@ -1,31 +1,5 @@
-import type { Family, PlanItem, Stage } from "@/lib/api/types";
+import type { Family, PlanItem } from "@/lib/api/types";
 import { countThings, daysUntil } from "@/lib/format";
-
-// The path from planning to age 9. "Birth" is a milestone between Pregnancy
-// and Newborn, so it has a node but no API stage of its own.
-export type JourneyNode = { key: string; label: string };
-
-export const journeyNodes: JourneyNode[] = [
-  { key: "planning", label: "Planning" },
-  { key: "pregnancy", label: "Pregnancy" },
-  { key: "birth", label: "Birth" },
-  { key: "newborn", label: "Newborn" },
-  { key: "first-year", label: "First year" },
-  { key: "toddler", label: "Toddler" },
-  { key: "preschool", label: "Preschool" },
-  { key: "school-age", label: "School age" },
-];
-
-export const nodeIndex: Record<Stage, number> = {
-  planning: 0,
-  trying: 0,
-  pregnancy: 1,
-  postpartum: 3,
-  infant: 4,
-  toddler: 5,
-  preschool: 6,
-  school_age: 7,
-};
 
 const MIN_WEEKS = 6;
 const MAX_WEEKS = 16;

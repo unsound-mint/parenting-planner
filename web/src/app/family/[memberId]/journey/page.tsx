@@ -6,7 +6,6 @@ import { formatShortDate } from "@/lib/format";
 import { categoryIcon, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { NextWeeks } from "@/components/journey/next-weeks";
-import { PathStrip } from "@/components/journey/path-strip";
 import { journeyHeadline, laneWindow } from "@/components/journey/stages";
 
 // "Journey": the coming weeks with this parent's next steps on them, from the
@@ -33,7 +32,6 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
   return (
     <main className="flex min-w-0 max-w-4xl flex-1 flex-col gap-8 px-4 pt-6 pb-16 md:px-8">
       <header className="flex flex-col gap-4">
-        <PathStrip family={family} />
         <div>
           <h1 className="text-headline text-balance">{headline}</h1>
           {/* The top bar shows this line from sm up; repeat it here only on phones. */}
