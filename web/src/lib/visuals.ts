@@ -13,6 +13,11 @@ import {
   ConciergeBell,
   ClipboardCheck,
   Droplet,
+  Droplets,
+  Handshake,
+  IdCard,
+  Moon,
+  CalendarDays,
   Flower2,
   Footprints,
   GraduationCap,
@@ -43,7 +48,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { AllergyCertainty, CareRole, PlanCategory, PlanItemStatus, ProviderType, Tier, Visibility } from "@/lib/api/types";
+import type { AllergyCertainty, CareLogKind, CaregiverPermission, DiaperContent, FeedMethod, CareRole, PlanCategory, PlanItemStatus, ProviderType, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -209,3 +214,51 @@ export const statusBar: Record<PlanItemStatus, string> = {
   due: "bg-status-due",
   upcoming: "bg-status-up",
 };
+
+/** Care log kinds (feed, sleep, diaper): the same icon and tint on the tiles, the day timeline and the handoff. */
+export const careLogIcon: Record<CareLogKind, LucideIcon> = {
+  feed: Milk,
+  sleep: Moon,
+  diaper: Droplets,
+};
+
+export const careLogLabel: Record<CareLogKind, string> = {
+  feed: "Feed",
+  sleep: "Sleep",
+  diaper: "Diaper",
+};
+
+/** Tint classes per kind; status tokens only, no new colours. */
+export const careLogTint: Record<CareLogKind, { soft: string; solid: string }> = {
+  feed: { soft: "bg-status-up-soft text-status-up", solid: "bg-status-up" },
+  sleep: { soft: "bg-secondary text-secondary-foreground", solid: "bg-primary" },
+  diaper: { soft: "bg-status-due-soft text-status-due", solid: "bg-status-due" },
+};
+
+export const feedMethodLabel: Record<FeedMethod, string> = {
+  breast_left: "Left breast",
+  breast_right: "Right breast",
+  bottle_breast_milk: "Bottle, breast milk",
+  bottle_formula: "Bottle, formula",
+};
+
+export const diaperLabel: Record<DiaperContent, string> = { wet: "Wet", dirty: "Dirty", both: "Wet and dirty" };
+
+/** One icon and a plain label per permission: the invite toggles and the preview use the same pair. */
+export const permissionIcon: Record<CaregiverPermission, LucideIcon> = {
+  care_log: Milk,
+  baby_passport: IdCard,
+  schedule: CalendarDays,
+  family_plan: ListChecks,
+  pregnancy_updates: HeartPulse,
+};
+
+export const permissionLabel: Record<CaregiverPermission, { name: string; hint: string }> = {
+  care_log: { name: "Feeding, sleep and diapers", hint: "Logs them and takes over at a handoff" },
+  baby_passport: { name: "Baby card", hint: "Allergies, pediatrician and emergency contacts" },
+  schedule: { name: "Their shifts and visits", hint: "Only the ones they are part of" },
+  family_plan: { name: "Shared to-do list", hint: "Tasks offered to them" },
+  pregnancy_updates: { name: "Pregnancy updates", hint: "The weekly card and guides" },
+};
+
+export const handoffIcon = Handshake;

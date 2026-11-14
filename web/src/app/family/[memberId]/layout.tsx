@@ -4,7 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/product";
-import { familyPeople } from "@/lib/roles";
+import { familyPeople, isCaregiver } from "@/lib/roles";
+import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
@@ -28,6 +29,17 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   const person = people.find((p) => p.id === memberId);
   if (!person) notFound();
 
+  // Screens that wait on their endpoint appear only once it answers 200 (a 501 hides them).
+  const path = { params: { path: { memberId } } };
+  const child = family.children[0];
+  const [care, invitations] = isCaregiver(person.role)
+    ? []
+    : await Promise.all([
+        child ? api.GET("/members/{memberId}/care-log", path) : undefined,
+        api.GET("/members/{memberId}/invitations", path),
+      ]);
+  const available = [care?.response.ok && "baby", invitations?.response.ok && "people"].filter((s): s is string => !!s);
+
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
       <aside className="flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
@@ -37,7 +49,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink />
           </div>
         </div>
-        <FamilyNav memberId={memberId} role={person.role} />
+        <FamilyNav memberId={memberId} role={person.role} available={available} />
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
@@ -59,6 +71,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink />
           </div>
         </header>
+        <LiveUpdates memberId={memberId} />
         <ViewTransition>{children}</ViewTransition>
       </div>
     </div>

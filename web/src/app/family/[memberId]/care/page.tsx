@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { CloudOff } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
+import { requireParent } from "@/lib/guard";
 import type { PsychologistAgenda, PsychologistSlots } from "@/lib/api/types";
 import { daysUntilInstant, familyContext, whenWords } from "@/lib/format";
 import { AgendaCard } from "@/components/care/agenda-card";
@@ -21,6 +22,7 @@ export default function CarePage({ params }: PageProps<"/family/[memberId]/care"
 
 async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
   const [{ data: family }, { data: agenda }, { data: slots }] = await Promise.all([

@@ -1,4 +1,4 @@
-import type { Caregiver, Family, Parent } from "@/lib/api/types";
+import type { Caregiver, CaregiverPermission, Family, Parent } from "@/lib/api/types";
 
 // The people in a family and what each may open. The API returns who exists
 // (parents and caregivers); a role the API does not return never shows up.
@@ -10,17 +10,22 @@ export type Role = Parent["role"] | Caregiver["role"];
 export type Person = { id: string; role: Role; displayName: string };
 
 /** First path segment under /family/<id>: "" is the home screen. */
-export type Screen = "" | "journey";
+export type Screen = "" | "journey" | "baby" | "people";
 
 const screens: Record<Role, readonly Screen[]> = {
-  mother: ["", "journey"],
-  partner: ["", "journey"],
+  mother: ["", "journey", "baby", "people"],
+  partner: ["", "journey", "baby", "people"],
   grandparent: [""],
   nanny: [""],
 };
 
 export function canOpen(role: Role, screen: string): boolean {
   return (screens[role] as readonly string[]).includes(screen);
+}
+
+/** What a caregiver was granted; parents may do everything the caregiver permissions cover. */
+export function allows(person: { role: Role; permissions?: readonly CaregiverPermission[] }, permission: CaregiverPermission): boolean {
+  return !isCaregiver(person.role) || (person.permissions ?? []).includes(permission);
 }
 
 export function isCaregiver(role: Role): role is Caregiver["role"] {

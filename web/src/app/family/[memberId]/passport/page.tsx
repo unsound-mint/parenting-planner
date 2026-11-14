@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
+import { requireParent } from "@/lib/guard";
 import { countThings } from "@/lib/format";
 import { passportIcon } from "@/lib/visuals";
 import { AllergiesCard } from "@/components/passport/allergies-card";
@@ -31,6 +32,7 @@ async function Passport({
   searchParams: Promise<{ person?: string | string[] }>;
 }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const { person: personParam } = await searchParams;
   const api = await serverApi();
   const { data, response } = await api.GET("/members/{memberId}/passport", { params: { path: { memberId } } });
