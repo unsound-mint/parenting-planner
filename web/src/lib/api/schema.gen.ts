@@ -54,6 +54,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/upgrade-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record that the family wants a paid plan
+         * @description There are no payments. This stores which tier the family asked for and
+         *     when; it shows as "upgrade requested" on the family. Either parent of the
+         *     session's family may send it. A second request replaces the first.
+         */
+        post: operations["createUpgradeIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/plan": {
         parameters: {
             query?: never;
@@ -127,6 +149,21 @@ export interface components {
         Stage: "planning" | "trying" | "pregnancy" | "postpartum" | "infant" | "toddler" | "preschool" | "school_age";
         /** @enum {string} */
         ParentRole: "mother" | "partner";
+        /**
+         * @description The plan the family is on. Demo families start on free; there is no billing.
+         * @enum {string}
+         */
+        Tier: "free" | "plus" | "concierge";
+        /** @enum {string} */
+        PaidTier: "plus" | "concierge";
+        UpgradeIntentInput: {
+            tier: components["schemas"]["PaidTier"];
+        };
+        UpgradeIntent: {
+            tier: components["schemas"]["PaidTier"];
+            /** Format: date-time */
+            requestedAt: string;
+        };
         Family: {
             /** Format: uuid */
             id: string;
@@ -139,6 +176,8 @@ export interface components {
             dueDate?: string;
             /** @description Completed weeks of pregnancy today, derived from dueDate. */
             gestationalWeek?: number;
+            tier?: components["schemas"]["Tier"];
+            upgradeRequest?: components["schemas"]["UpgradeIntent"];
             parents: components["schemas"]["Parent"][];
             children: components["schemas"]["Child"][];
         };
@@ -312,6 +351,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createUpgradeIntent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpgradeIntentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpgradeIntent"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             /** @description Error */

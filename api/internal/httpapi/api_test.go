@@ -55,3 +55,10 @@ func TestHealthzNeedsNoSession(t *testing.T) {
 	c := testutil.New(t)
 	c.Get("/api/healthz", http.StatusOK, nil)
 }
+
+// Stub until #176 lands; replace with real tests (validation, per-family storage).
+func TestUpgradeIntentIsNotImplementedYet(t *testing.T) {
+	c := testutil.New(t)
+	c.StartDemo("pregnancy")
+	c.Post("/api/family/upgrade-intents", map[string]any{"tier": "plus"}, http.StatusNotImplemented, nil)
+}

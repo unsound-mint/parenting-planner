@@ -85,6 +85,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /family/upgrade-intents:
+    post:
+      operationId: createUpgradeIntent
+      tags: [family]
+      summary: Record that the family wants a paid plan
+      description: |
+        There are no payments. This stores which tier the family asked for and
+        when; it shows as "upgrade requested" on the family. Either parent of the
+        session's family may send it. A second request replaces the first.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpgradeIntentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpgradeIntent"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/plan:
     get:
       operationId: getMemberPlan
@@ -231,6 +266,32 @@ components:
       type: string
       enum: [mother, partner]
 
+    Tier:
+      type: string
+      description: The plan the family is on. Demo families start on free; there is no billing.
+      enum: [free, plus, concierge]
+
+    PaidTier:
+      type: string
+      enum: [plus, concierge]
+
+    UpgradeIntentInput:
+      type: object
+      required: [tier]
+      properties:
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+
+    UpgradeIntent:
+      type: object
+      required: [tier, requestedAt]
+      properties:
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+        requestedAt:
+          type: string
+          format: date-time
+
     Family:
       type: object
       required: [id, template, stage, parents, children]
@@ -249,6 +310,10 @@ components:
         gestationalWeek:
           type: integer
           description: Completed weeks of pregnancy today, derived from dueDate.
+        tier:
+          $ref: "#/components/schemas/Tier"
+        upgradeRequest:
+          $ref: "#/components/schemas/UpgradeIntent"
         parents:
           type: array
           items:

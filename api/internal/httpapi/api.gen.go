@@ -38,6 +38,24 @@ func (e DemoTemplate) Valid() bool {
 	}
 }
 
+// Defines values for PaidTier.
+const (
+	PaidTierConcierge PaidTier = "concierge"
+	PaidTierPlus      PaidTier = "plus"
+)
+
+// Valid indicates whether the value is a known member of the PaidTier enum.
+func (e PaidTier) Valid() bool {
+	switch e {
+	case PaidTierConcierge:
+		return true
+	case PaidTierPlus:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ParentRole.
 const (
 	ParentRoleMother  ParentRole = "mother"
@@ -146,6 +164,27 @@ func (e Stage) Valid() bool {
 	}
 }
 
+// Defines values for Tier.
+const (
+	TierConcierge Tier = "concierge"
+	TierFree      Tier = "free"
+	TierPlus      Tier = "plus"
+)
+
+// Valid indicates whether the value is a known member of the Tier enum.
+func (e Tier) Valid() bool {
+	switch e {
+	case TierConcierge:
+		return true
+	case TierFree:
+		return true
+	case TierPlus:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Visibility.
 const (
 	VisibilityCareTeam Visibility = "care_team"
@@ -211,6 +250,10 @@ type Family struct {
 
 	// Template Which synthetic family to copy. Add a value here when its seed exists.
 	Template DemoTemplate `json:"template"`
+
+	// Tier The plan the family is on. Demo families start on free; there is no billing.
+	Tier           *Tier          `json:"tier,omitempty"`
+	UpgradeRequest *UpgradeIntent `json:"upgradeRequest,omitempty"`
 }
 
 // MoodCheckin defines model for MoodCheckin.
@@ -251,6 +294,9 @@ type MoodCheckinList struct {
 	// Items Newest first.
 	Items []MoodCheckin `json:"items"`
 }
+
+// PaidTier defines model for PaidTier.
+type PaidTier string
 
 // Parent defines model for Parent.
 type Parent struct {
@@ -306,6 +352,20 @@ type Source struct {
 // Stage Where the family is on the journey from planning to age 9.
 type Stage string
 
+// Tier The plan the family is on. Demo families start on free; there is no billing.
+type Tier string
+
+// UpgradeIntent defines model for UpgradeIntent.
+type UpgradeIntent struct {
+	RequestedAt time.Time `json:"requestedAt"`
+	Tier        PaidTier  `json:"tier"`
+}
+
+// UpgradeIntentInput defines model for UpgradeIntentInput.
+type UpgradeIntentInput struct {
+	Tier PaidTier `json:"tier"`
+}
+
 // Visibility Who besides the author may see a sensitive record.
 // private = author only; partner = author and the other parent;
 // care_team = author and their professionals, not the partner; family = both parents.
@@ -316,6 +376,9 @@ type MemberId = openapi_types.UUID
 
 // CreateDemoSessionJSONRequestBody defines body for CreateDemoSession for application/json ContentType.
 type CreateDemoSessionJSONRequestBody = CreateDemoSessionRequest
+
+// CreateUpgradeIntentJSONRequestBody defines body for CreateUpgradeIntent for application/json ContentType.
+type CreateUpgradeIntentJSONRequestBody = UpgradeIntentInput
 
 // CreateMoodCheckinJSONRequestBody defines body for CreateMoodCheckin for application/json ContentType.
 type CreateMoodCheckinJSONRequestBody = MoodCheckinInput
@@ -328,6 +391,9 @@ type ServerInterface interface {
 	// GetFamily The family of the current session, with parents and children
 	// (GET /family)
 	GetFamily(w http.ResponseWriter, r *http.Request)
+	// CreateUpgradeIntent Record that the family wants a paid plan
+	// (POST /family/upgrade-intents)
+	CreateUpgradeIntent(w http.ResponseWriter, r *http.Request)
 
 	// (GET /healthz)
 	Healthz(w http.ResponseWriter, r *http.Request)
@@ -370,6 +436,20 @@ func (siw *ServerInterfaceWrapper) GetFamily(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetFamily(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateUpgradeIntent operation middleware
+func (siw *ServerInterfaceWrapper) CreateUpgradeIntent(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateUpgradeIntent(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -594,6 +674,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/healthz", wrapper.Healthz)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/demo/sessions", wrapper.CreateDemoSession)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/family", wrapper.GetFamily)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/family/upgrade-intents", wrapper.CreateUpgradeIntent)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/plan", wrapper.GetMemberPlan)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.ListMoodCheckins)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.CreateMoodCheckin)
@@ -671,6 +752,56 @@ func (response GetFamily200JSONResponse) VisitGetFamilyResponse(w http.ResponseW
 type GetFamily401JSONResponse Error
 
 func (response GetFamily401JSONResponse) VisitGetFamilyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateUpgradeIntentRequestObject struct {
+	Body *CreateUpgradeIntentJSONRequestBody
+}
+
+type CreateUpgradeIntentResponseObject interface {
+	VisitCreateUpgradeIntentResponse(w http.ResponseWriter) error
+}
+
+type CreateUpgradeIntent201JSONResponse UpgradeIntent
+
+func (response CreateUpgradeIntent201JSONResponse) VisitCreateUpgradeIntentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateUpgradeIntent400JSONResponse Error
+
+func (response CreateUpgradeIntent400JSONResponse) VisitCreateUpgradeIntentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateUpgradeIntent401JSONResponse Error
+
+func (response CreateUpgradeIntent401JSONResponse) VisitCreateUpgradeIntentResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -879,6 +1010,9 @@ type StrictServerInterface interface {
 	// GetFamily The family of the current session, with parents and children
 	// (GET /family)
 	GetFamily(ctx context.Context, request GetFamilyRequestObject) (GetFamilyResponseObject, error)
+	// CreateUpgradeIntent Record that the family wants a paid plan
+	// (POST /family/upgrade-intents)
+	CreateUpgradeIntent(ctx context.Context, request CreateUpgradeIntentRequestObject) (CreateUpgradeIntentResponseObject, error)
 
 	// (GET /healthz)
 	Healthz(ctx context.Context, request HealthzRequestObject) (HealthzResponseObject, error)
@@ -980,6 +1114,37 @@ func (sh *strictHandler) GetFamily(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetFamilyResponseObject); ok {
 		if err := validResponse.VisitGetFamilyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateUpgradeIntent operation middleware
+func (sh *strictHandler) CreateUpgradeIntent(w http.ResponseWriter, r *http.Request) {
+	var request CreateUpgradeIntentRequestObject
+
+	var body CreateUpgradeIntentJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateUpgradeIntent(ctx, request.(CreateUpgradeIntentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateUpgradeIntent")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateUpgradeIntentResponseObject); ok {
+		if err := validResponse.VisitCreateUpgradeIntentResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1101,45 +1266,50 @@ func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, m
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"5Fpbb9y28v8qA/3/QFtA3nXa9OHY6IPrpq3RpDFit33IGilXnJUYU6RKUt7oBPvdD4akbpac3Z7cDtAX",
+	"w6vlZa6/mflp3yaZLiutUDmbnLxNKmZYiQ6N//QMyzWaC07/c7SZEZUTWiUnyXWBwDInVA4VM6jcAq4L",
+	"NAjCgtIgdS5UClaDKxB+uwDLGgvbQmRFXA/CrlRt6QBawqrq1P9zdnkBWYHZrQVXMAeuELbdskapVW7B",
+	"hWMtWiu0+sLChpVCNouVStJEkHgVc0WSJoqVmJwkZatGmhj8qxYGeXLiTI1pYrMCS0b6bbQpmUtOkroW",
+	"tNI1Fe21zgiVJ7vdrl3sLXNeCOnNUhldoXEC/WOW4zOtXOE/xBOEcpijSXZpshbGFT8wh6MLOT2YXJgm",
+	"gh8gV6vk24nAQ2VfJn6vXzoUIx1IfNOdrdevMXN09rlB5vAHLPVVMPYL/KtG66aaOywrGTX7f4Ob5CT5",
+	"v2UfW8touyWddd2uvS9kd8icLKOdk4D8w8eWbZQr0IkshgSFSqarZgFnnAODOyZrBB+o2wIVCGfBInLA",
+	"N8I6u0jSBFVdkiyVwVwxlTUDYXqjPzFGm6kVMs29bPiGlZWkLUq7Vxtdq1nXlWgtyw/wnj+3Xz9nnh+9",
+	"wjMiUaQaVPS/cFjafR4Kob3rrmDGsIY+8xp/mLX9FTrgtfFg0FqNTLk3wnO0jtEhTP6BeDs9+VyTGR1y",
+	"2CLeWtCb/gZwmrMmBY5G3CGHjdElRBkX/W2D9DswoQLa2IMNdunXz1nMuujdd22/8oto93+VQmniBJp9",
+	"e65FMEFd5YZxHKTxu3b9FlZfKOcVnIOUTuhW295+aR97cwH7TGt+Tkgv1AyQ1q7QsfLsdRgqNHkzD7kH",
+	"+rzUms8foLSbS1AyRaYNR37mJmh+5EQ5G/BWIlY/69oMC4SqqTzR13fCirWQwjX7PPN7v3LWLZ39RnJG",
+	"PTuLjQQaXb/HYReqqmeKQO+Ikr0RJQHpt2lSChX+fzSXlK3lx4n/CL6DOzQNSL1N4dv2U641p9w+/PjW",
+	"fSV78xRV7ork5Nvj472uGUvjH4OVWDkQyjcfklkHXz+Ggr4aifT144FM/U0f2MsfyJFPxVwx72BvbIZf",
+	"cYvWwUYY60jlg9BxmOYTiLwfuv7AOZEvmeDXEee6Ci1rDzJaZQLNqCz2bo3gPFGRC1tJ1vw63zwdjBtG",
+	"SzysPryglbO56s9IRxLNm6A7ZmCEUrsCTUBdp9DMG0GyGYzNKXiY+3sI9kBoXGlDVXrdAFX02sKX+g4N",
+	"rzEF/6euMl0KlX+VUvYoegg8FurDiqxk6sJhOVdmy8GYsq+Nv5dF/WQwtEb6rkiUTJ0zh7k2zdARNjOI",
+	"ii5JkzuWZUJhzESPu6gck68KZNJPJjQgWSeyEMB15SNAIjP+hId86A0w7fAG0uwzYSc59XPomJBzrTTN",
+	"XRq4TgntKsmEAslUXrN82Fn1svEav28OmmkMMqvV3J1NGPVYVUmBccbrRz9FZWDNLHLQHoCFofhhs+KY",
+	"WmKIhr4Pz2WdaYtHwU2ztVnXJtvfrYVVoblz9cFxexVW+3bNyQNa/qhEu75zV3dx2ju+s2unxUOROxBl",
+	"ELsxVxPvyYS6xJCts4F41dnp/qCB2W0LJve9iwqsLlGrWDkzrTbClMh9Mc1rwVEKhWCdkDKwBeT+g6aI",
+	"hwyaJrWR+w3d2pcWpwMt5kx41Tb0E/0Mek3i2ClsDFN4rWujsAnTSSWZUp7y0MByhH+NBs74JalomvBP",
+	"P4SmSaWtI5CvS89ybJgiYHGacxkKgEGbFVr7EPH/vGIPFMW2kk45HRJiosgCaOQIjyg3rWPGkYIbg+hp",
+	"m474WQsphcqHetEiEu+Qaj0eOCYhZsLY8vcq1iHjUddeTIPD23Z48VxcjOR+oDl+fznmbv591EzeD0sN",
+	"a7SCE54WCGEogJI1YBGBgUVlhRN3CGFIWKxUZcQdcwjftau1ks0pxO6if8xUSF3ffkSUPl2pjBl85ZCV",
+	"k5XCQGX0JtBITNoUlHb+iHj2aRtz38Fau5YntIHV61kZL96g3yEYjHcSWAQW5Gau8FvMaiNcc0XGDj6J",
+	"FKLveclimda3AnvmsKpetUv6tqMSv2ATGEGhNnqOtVDOsMzBGt0WUcEW10tvB1aJ5QK+J/WCW9quAzLN",
+	"MYCEL3sbIXGlvvyzZLdIi/786hQU3qEB5MJ123jYt26gYIov4LxgKsf+iNCrpyslAteltwouX4A24HSO",
+	"3nVb4YpgcEGl0jcqpAcZfqXOalecjDLcU7sLuHx+dQ1LjqVeRgtZyDxbaIEB7/CiIb1XyqKzwBQUzlXP",
+	"lWxa8haCxQPXazNdoQX0o14IrIxJGXoB5kY0bwT92BUTplJ5oxA9u7ygxgtN8GxyvHi0OKZU0RUqVonk",
+	"JPlmcbz4xsdQpGrHivjc1WEwogz29qCGYsqH9tjwveZNoAA78PK9TOZ3L1/HtqcnnN/JwT3Eu+7GwOBM",
+	"jf6BrbSyIaa/Pn70weSIpKK/dRzj4Zvocn46JORbnwoLFv2gWCDj8ZXCFbqj85BlIykmdPsuTR4fH38w",
+	"TQJhO6NI+0WPD8nJy5s0sXVZMmqqqegb1wa1TxdGlc8WnloGvSEkvUc8U4Sy3BJk0bbkhi5YbjqONseZ",
+	"6PoJ3Y/t7nsuPf4ELn3+S+KN/uiTGr0z83XfdeiNj6esNr75j3GVBuPHuuDxtCMYe3O3FWBg8GVkPY+E",
+	"12mU35MWyCAwg4R0FWtKX4HgmvDUOm2wfYlF9XjYJzF7ixw2odyt1LZAdQrCgS301gKzsGqpV+h6iVXS",
+	"NokR2OCJGFTTaAXCzvF7rljAFQfhFnAGFjOteHsuGKwky2LJD1yNR8w5JBv3Wx8Hy2Z6o0+MYvdp7Ek4",
+	"BmPw5BNjzmdMthe+32tfsXZhvGU+s6BigvtZ4KHECkTGvx+Esp/j9+8JZOMOup+4+7le3+4leeK2afc8",
+	"NdV1fAPNfHJZTzGsmQ2QUFeLSZ3wxggskl2+bemk3bLUmh9lgfa0AytNrhPGN2V+6ZFQFmhOmnTWX9jB",
+	"ClswgzyAoSuwXEyS+6mwbsC72o9ZT+6Tyf8ThYVue/x5Muu881Ps5iPj8c0x8EBrxJQb/XyiHcoG+bZF",
+	"KdfoWZjwUrL7YcbLeXH7Jcvuhxu7m/SdreyQnf848D95a/SJwX/0/uEfCv2fMR0mPxSKVIOFQm8pDxrY",
+	"IMrwMv+B6H8AY6v4VmMWWi8clhYyXWKfhz3NaGpJg6bKhcIU8I7J2k/TLGdC2WFJXCmqASMuWlhgUuot",
+	"cppMLeICnrCsAOGwbH/o1FDz13LZviXMBI3G/gcnnkCda8p+Qhcy9zKU3vdI+o+G9160fzrI+4Fgi3j7",
+	"hQ2U6cYzZRhDZBDHPkhvdvf6hgHz9PKG3GXR3LVu9qx1smSV8J6MJ71tOSk/T+7S7nPsywZP/J2Dz30u",
+	"7W52/wkAAP//",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
