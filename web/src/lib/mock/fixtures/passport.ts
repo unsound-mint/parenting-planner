@@ -19,7 +19,7 @@ export const passportMocks = {
         isActingParent: ctx.path.memberId === mother.id,
         labs: [
           { id: uid(110), name: "Vitamin D", value: 31, unit: "ng/mL", refLow: 20, refHigh: 50, takenOn: isoDate(-40), visibility: "partner" },
-          { id: uid(111), name: "Ferritin", value: 18, unit: "ng/mL", refLow: 30, refHigh: 200, takenOn: isoDate(-40), visibility: "partner" },
+          { id: uid(111), name: "Ferritin", value: 18, unit: "ng/mL", refLow: 30, refHigh: 200, takenOn: isoDate(-40), visibility: "partner", flag: { direction: "low", message: "Outside the usual range. Discuss with your doctor.", basis: "Reference range reported with this lab result" } },
           { id: uid(112), name: "Hemoglobin", value: 11.6, unit: "g/dL", refLow: 11, refHigh: 14, takenOn: isoDate(-40), visibility: "family" },
           { id: uid(113), name: "TSH", value: 2.1, unit: "mIU/L", refLow: 0.4, refHigh: 4, takenOn: isoDate(-40), visibility: "private" },
         ],

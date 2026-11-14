@@ -90,7 +90,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
         <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
       </div>
       <div className="mt-4 grid items-start gap-4 lg:mt-6 lg:grid-cols-2 lg:gap-6">
-        <LabsCard labs={person.labs} showVisibility={person.isActingParent} />
+        <LabsCard labs={person.labs} showVisibility={person.isActingParent} memberId={memberId} canAsk={canLog} owner={person.kind === "child" ? person.name : undefined} />
         <div className="flex min-w-0 flex-col gap-4 lg:gap-6">
           <VaccineTimeline vaccines={person.vaccines} />
           {person.kind === "child" && <GrowthCard growth={person.growth} />}

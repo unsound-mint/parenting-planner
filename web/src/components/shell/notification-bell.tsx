@@ -171,6 +171,7 @@ function Panel({
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
                     <span className={cn("text-label text-balance", unread ? "font-semibold" : "font-normal text-muted-foreground")}>{n.title}</span>
+                    {n.kind === "value_flagged" && <span className="text-caption text-status-due">Discuss with your doctor</span>}
                     <time dateTime={n.createdAt} className="font-mono text-caption text-muted-foreground">
                       {agoWords(n.createdAt)}
                     </time>
