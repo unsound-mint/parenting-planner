@@ -154,6 +154,8 @@ export type Together = S["Together"];
 export type CoupleTalk = S["CoupleTalk"];
 export type BabyName = S["BabyName"];
 export type BabyNameList = S["BabyNameList"];
+export type Journey = S["Journey"];
+export type JourneyStage = S["JourneyStage"];
 
 export type LoadMap = S["LoadMap"];
 export type LoadMapArea = S["LoadMapArea"];
@@ -164,6 +166,3 @@ export type Thanks = S["Thanks"];
 export type ThanksInput = S["ThanksInput"];
 export type ThanksSuggestion = S["ThanksSuggestion"];
 export type ThanksBasis = S["ThanksBasis"];
-||||||| 43b114e
-export type Journey = S["Journey"];
-export type JourneyStage = S["JourneyStage"];
