@@ -2313,6 +2313,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/tasks/{taskId}/reassignment/withdraw:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: withdrawTaskReassignment
+      tags: [tasks]
+      summary: The assignee takes back an offer nobody has answered yet
+      description: |
+        Only the current assignee; 409 not_assignee for anyone else and
+        409 not_offered when the task has no open offer. The task never
+        moved, so it simply stops being offered. Sends a live update of kind task.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/load-map:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -2341,9 +2385,11 @@ paths:
         third colour.
 
         The area is handed over with the existing reassignment flow: the
-        screen offers each id in handoverTaskIds to the other parent with
+        screen offers each id in handoverTaskIds to anyone in takers with
         proposeTaskReassignment, and the task moves only when they accept.
-        offeredToMeTaskIds are offers waiting for the acting parent.
+        offeredToMeTaskIds are offers waiting for the acting parent;
+        withdrawTaskReassignment takes back an offer nobody answered.
+        items lists the tasks behind a task area, so the screen can open them.
       responses:
         "200":
           description: OK
@@ -8347,10 +8393,44 @@ components:
           minimum: 0
           description: Of count, how many fall in the last 7 days. Only on care log areas, so a screen can say who has picked up more this week.
 
+    LoadMapItem:
+      type: object
+      required: [taskId, title, kind, done, assigneeId, createdById]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        kind:
+          $ref: "#/components/schemas/TaskKind"
+        dueOn:
+          type: string
+          format: date
+        done:
+          type: boolean
+        assigneeId:
+          type: string
+          format: uuid
+          description: Who carries it now.
+        createdById:
+          type: string
+          format: uuid
+          description: Who first put it on the plan (noticed it).
+        pendingAssigneeId:
+          type: string
+          format: uuid
+          description: Who it is offered to, while nobody has answered.
+
     LoadMapArea:
       type: object
-      required: [key, label, unit, owned, handoverTaskIds, offeredToMeTaskIds, offeredByMeTaskIds]
+      required: [key, label, unit, owned, handoverTaskIds, offeredToMeTaskIds, offeredByMeTaskIds, items]
       properties:
+        items:
+          type: array
+          description: The tasks counted in this area, open ones first then soonest due. Empty for care areas.
+          items:
+            $ref: "#/components/schemas/LoadMapItem"
         key:
           $ref: "#/components/schemas/LoadMapAreaKey"
         label:
@@ -8389,8 +8469,14 @@ components:
 
     LoadMap:
       type: object
-      required: [windowDays, areas]
+      required: [windowDays, areas, takers]
       properties:
+        takers:
+          type: array
+          description: Everyone but the acting parent who can take a task, meaning the other parent and any grandparent or nanny with family_plan.
+          items:
+            type: string
+            format: uuid
         windowDays:
           type: integer
           example: 14
