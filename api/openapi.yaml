@@ -854,6 +854,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /members/{memberId}/growth-measurements:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createGrowthMeasurement
+      tags: [health]
+      summary: The acting parent records a child's weight, length and head size
+      description: |
+        Parents only (404 for a caregiver id). childId must be a child of
+        the family (404 otherwise); measuredOn not after today (400). The
+        passport lists it on the next read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowthMeasurementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowthPoint"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/growth-measurements/{measurementId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/GrowthMeasurementId"
+    patch:
+      operationId: updateGrowthMeasurement
+      tags: [health]
+      summary: Correct a growth measurement
+      description: |
+        Parents only. Replaces the date and values with the body; the child
+        stays (childId in the body is ignored). 404 when the measurement is
+        not in the family.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowthMeasurementInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowthPoint"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteGrowthMeasurement
+      tags: [health]
+      summary: Remove a growth measurement
+      description: Parents only. 404 when the measurement is not in the family.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/screenings:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -4403,13 +4508,22 @@ paths:
         Mother and partner; a grandparent or nanny with care_log (403
         without it). Newest first. latest holds the last feed, sleep and
         diaper even when older than 48 hours, and who is on duty now.
-        Empty before "Baby is home".
+        Empty before "Baby is home". days widens the window to that many
+        days back (the week view of the Baby screen); default 2.
       parameters:
         - name: kind
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/CareLogKind"
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 7
+            default: 2
       responses:
         "200":
           description: OK
@@ -4448,6 +4562,86 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/care-log/{entryId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/CareLogEntryId"
+    patch:
+      operationId: updateCareLogEntry
+      tags: [carelog]
+      summary: Correct a logged feed, sleep or diaper
+      description: |
+        Same people as createCareLogEntry. Replaces the times and details
+        with the body; kind must match the entry (400 otherwise) and the
+        child stays. 404 when the entry is not in the family. A caregiver's
+        change is written to the access log. Sends a live update of kind
+        care_log.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareLogEntryInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareLogEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteCareLogEntry
+      tags: [carelog]
+      summary: Remove a feed, sleep or diaper logged by mistake
+      description: |
+        Same people as createCareLogEntry. 404 when the entry is not in the
+        family. A caregiver's delete is written to the access log. Sends a
+        live update of kind care_log.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/handoffs:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -6796,12 +6990,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     post:
       operationId: createPortrait
       tags: [portraits]
@@ -6887,12 +7075,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/portraits/{portraitId}:
     parameters:
@@ -6927,12 +7109,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/portraits/{portraitId}/image:
     parameters:
@@ -6963,12 +7139,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -7359,6 +7529,22 @@ components:
         operations written for parents return 404 for a caregiver id, and
         operations open to caregivers return 403 forbidden when their role
         or permissions do not allow the action.
+      schema:
+        type: string
+        format: uuid
+
+    CareLogEntryId:
+      name: entryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    GrowthMeasurementId:
+      name: measurementId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -8570,17 +8756,27 @@ components:
 
     GrowthPoint:
       type: object
-      required: [measuredOn, ageMonths, weightKg, heightCm]
+      required: [id, measuredOn, ageMonths, ageDays, weightKg, heightCm]
       properties:
+        id:
+          type: string
+          format: uuid
         measuredOn:
           type: string
           format: date
         ageMonths:
           type: integer
+        ageDays:
+          type: integer
+          description: Days since birth on the visit day, for labelling the first weeks.
         weightKg:
           type: number
         heightCm:
           type: number
+          description: Length lying down under 2 years, standing height after.
+        headCm:
+          type: number
+          description: Head circumference, when it was measured.
         weightPercentile:
           type: integer
           minimum: 1
@@ -8590,6 +8786,29 @@ components:
           type: integer
           minimum: 1
           maximum: 99
+
+    GrowthMeasurementInput:
+      type: object
+      required: [childId, measuredOn, weightKg, heightCm]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        measuredOn:
+          type: string
+          format: date
+        weightKg:
+          type: number
+          minimum: 0.3
+          maximum: 80
+        heightCm:
+          type: number
+          minimum: 20
+          maximum: 200
+        headCm:
+          type: number
+          minimum: 20
+          maximum: 65
 
     CareRole:
       type: string
@@ -10696,7 +10915,10 @@ components:
 
     FeedMethod:
       type: string
-      enum: [breast_left, breast_right, bottle_breast_milk, bottle_formula]
+      description: |
+        A breastfeed names its side (both = switched sides); its length is
+        endedAt minus startedAt. A bottle names the milk; amountMl its amount.
+      enum: [breast_left, breast_right, breast_both, bottle_breast_milk, bottle_formula]
 
     DiaperContent:
       type: string

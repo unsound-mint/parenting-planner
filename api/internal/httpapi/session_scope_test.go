@@ -186,6 +186,9 @@ func sampleValue(s *openapi3.Schema) any {
 		}
 		return items
 	case s.Type.Is("integer") || s.Type.Is("number"):
+		if s.Min != nil && s.Type.Is("number") {
+			return *s.Min
+		}
 		if s.Min != nil {
 			return int(*s.Min)
 		}
