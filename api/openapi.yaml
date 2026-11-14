@@ -150,6 +150,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /family/demo-time-skips:
+    post:
+      operationId: createDemoTimeSkip
+      tags: [demo]
+      summary: Skip the session's family ahead one week (demo time)
+      description: |
+        Moves this family's demo clock forward 7 days. From then on every date
+        the API computes for the family (plan, due items, gestational week,
+        timeline) uses the shifted day, from the same stored data. Only this
+        family moves; other demo families keep the real date. Starting a new
+        demo creates a new family at real time, which is the reset. The UI
+        must label the shifted date as demo time.
+      responses:
+        "200":
+          description: The family as of its new demo date.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /family/upgrade-intents:
     post:
       operationId: createUpgradeIntent
@@ -3059,13 +3091,20 @@ components:
 
     Family:
       type: object
-      required: [id, template, stage, parents, caregivers, children]
+      required: [id, template, stage, demoDaysAhead, parents, caregivers, children]
       properties:
         id:
           type: string
           format: uuid
         template:
           $ref: "#/components/schemas/DemoTemplate"
+        demoDaysAhead:
+          type: integer
+          minimum: 0
+          description: |
+            Days this family's demo clock has been skipped ahead of the real
+            date (createDemoTimeSkip). 0 means real time; anything else must be
+            shown as demo time.
         stage:
           $ref: "#/components/schemas/Stage"
         dueDate:
