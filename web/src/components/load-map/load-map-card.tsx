@@ -11,27 +11,47 @@ import { AreaRow } from "./area-row";
 
 const POLL_MS = 20_000;
 
-type Step = "reassignment" | "reassignment/accept" | "reassignment/decline" | "reassignment/withdraw";
+type Step =
+  | "reassignment"
+  | "reassignment/accept"
+  | "reassignment/decline"
+  | "reassignment/withdraw";
 
 // "Who carries what": per area, a thick bar of who is doing it and a thin one of
 // who noticed it first, over the last two weeks. All of it is counted by the API.
 // Each area opens to its tasks. A task or a whole area can be offered to anyone
 // the API lists as a taker; it stays with its owner until they accept, and the
 // owner can take the offer back. The bars morph on the next refetch.
-export function LoadMapCard({ memberId, initial, people }: { memberId: string; initial: LoadMap; people: Person[] }) {
+export function LoadMapCard({
+  memberId,
+  initial,
+  people,
+}: {
+  memberId: string;
+  initial: LoadMap;
+  people: Person[];
+}) {
   const [map, setMap] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
   const [celebrate, setCelebrate] = useState<string | null>(null);
   const busyRef = useRef(false);
   const self = people.find((p) => p.id === memberId)!;
-  const parents = people.filter((p) => p.role === "mother" || p.role === "partner");
-  const takers = map.takers.map((id) => people.find((p) => p.id === id)).filter((p): p is Person => !!p);
+  const parents = people.filter(
+    (p) => p.role === "mother" || p.role === "partner",
+  );
+  const takers = map.takers
+    .map((id) => people.find((p) => p.id === id))
+    .filter((p): p is Person => !!p);
 
-  const others = people.filter((p) => p.id !== memberId && !takers.some((t) => t.id === p.id));
+  const others = people.filter(
+    (p) => p.id !== memberId && !takers.some((t) => t.id === p.id),
+  );
 
   const refresh = useCallback(async () => {
     if (busyRef.current) return;
-    const { data } = await api.GET("/members/{memberId}/load-map", { params: { path: { memberId } } });
+    const { data } = await api.GET("/members/{memberId}/load-map", {
+      params: { path: { memberId } },
+    });
     if (data) setMap(data);
   }, [memberId]);
 
@@ -44,15 +64,23 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
   }, [refresh]);
 
   /** Runs one reassignment step on each task; returns how many failed. */
-  async function each(key: string, ids: string[], step: Step, body?: { toMemberId: string }) {
+  async function each(
+    key: string,
+    ids: string[],
+    step: Step,
+    body?: { toMemberId: string },
+  ) {
     busyRef.current = true;
     setBusy(key);
     let failed = 0;
     for (const taskId of ids) {
-      const res = await api.POST(`/members/{memberId}/tasks/{taskId}/${step}` as "/members/{memberId}/tasks/{taskId}/reassignment", {
-        params: { path: { memberId, taskId } },
-        body: body as { toMemberId: string },
-      });
+      const res = await api.POST(
+        `/members/{memberId}/tasks/{taskId}/${step}` as "/members/{memberId}/tasks/{taskId}/reassignment",
+        {
+          params: { path: { memberId, taskId } },
+          body: body as { toMemberId: string },
+        },
+      );
       if (res.error) failed++;
     }
     busyRef.current = false;
@@ -63,8 +91,13 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
 
   async function offer(key: string, ids: string[], to: Person) {
     const failed = await each(key, ids, "reassignment", { toMemberId: to.id });
-    if (failed === ids.length) toast.error("Could not offer that. Please try again.");
-    else toast(`Offered ${ids.length - failed === 1 ? "1 task" : `${ids.length - failed} tasks`} to ${to.displayName}`, { description: "It stays with you until they accept." });
+    if (failed === ids.length)
+      toast.error("Could not offer that. Please try again.");
+    else
+      toast(
+        `Offered ${ids.length - failed === 1 ? "1 task" : `${ids.length - failed} tasks`} to ${to.displayName}`,
+        { description: "It stays with you until they accept." },
+      );
   }
 
   async function accept(key: string, ids: string[]) {
@@ -80,24 +113,34 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
 
   async function decline(key: string, ids: string[]) {
     const failed = await each(key, ids, "reassignment/decline");
-    if (failed === ids.length) toast.error("Could not save that. Please try again.");
-    else toast("Left with them", { description: "Nothing changed on your side." });
+    if (failed === ids.length)
+      toast.error("Could not save that. Please try again.");
+    else
+      toast("Left with them", { description: "Nothing changed on your side." });
   }
 
   async function withdraw(key: string, ids: string[]) {
     const failed = await each(key, ids, "reassignment/withdraw");
-    if (failed === ids.length) toast.error("Could not take that back. Please try again.");
+    if (failed === ids.length)
+      toast.error("Could not take that back. Please try again.");
     else toast("Offer taken back", { description: "It is still with you." });
   }
 
   return (
-    <SoftCard as="section" aria-labelledby="load-map-title" className="@container flex flex-col gap-5">
+    <SoftCard
+      as="section"
+      aria-labelledby="load-map-title"
+      className="@container flex flex-col gap-5"
+    >
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="max-w-prose">
           <h2 id="load-map-title" className="text-headline">
             Who carries what
           </h2>
-          <p className="mt-1 text-label font-normal text-muted-foreground">The last two weeks, counted from your plan and care log. Open an area to see what is in it.</p>
+          <p className="mt-1 text-label font-normal text-muted-foreground">
+            The last two weeks, counted from your plan and care log. Open an
+            area to see what is in it.
+          </p>
         </div>
         <ul className="flex items-center gap-4 text-label text-ink-2">
           {parents.map((p) => (
@@ -111,43 +154,68 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
 
       <dl className="grid gap-x-8 gap-y-2 rounded-2xl bg-muted/60 p-3 text-label @2xl:grid-cols-2">
         <div className="flex items-start gap-3">
-          <span aria-hidden className="mt-1.5 block h-3 w-10 shrink-0 rounded-full bg-ink-2/70" />
+          <span
+            aria-hidden
+            className="mt-1.5 block h-3 w-10 shrink-0 rounded-full bg-ink-2/70"
+          />
           <div>
             <dt className="font-semibold">Doing</dt>
-            <dd className="font-normal text-muted-foreground">Who has the task now, or who logged the feed, change or night.</dd>
+            <dd className="font-normal text-muted-foreground">
+              Who has the task now, or who logged the feed, change or night.
+            </dd>
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <span aria-hidden className="mt-2 block h-1.5 w-10 shrink-0 rounded-full bg-ink-2/70" />
+          <span
+            aria-hidden
+            className="mt-2 block h-1.5 w-10 shrink-0 rounded-full bg-ink-2/70"
+          />
           <div>
             <dt className="font-semibold">Noticed first</dt>
-            <dd className="font-normal text-muted-foreground">Who put the task on the plan. Remembering is work too.</dd>
+            <dd className="font-normal text-muted-foreground">
+              Who put the task on the plan. Remembering is work too.
+            </dd>
           </div>
         </div>
       </dl>
 
-      <ul className="@2xl:columns-2 @2xl:gap-x-6">
-        {map.areas.map((area, n) => (
-          <AreaRow
-            key={area.key}
-            area={area}
-            n={n}
-            memberId={memberId}
-            people={people}
-            self={self}
-            takers={takers}
-            others={others}
-            busy={busy === area.key}
-            celebrate={celebrate === area.key}
-            onOffer={(ids, to) => offer(area.key, ids, to)}
-            onAccept={(ids) => accept(area.key, ids)}
-            onDecline={(ids) => decline(area.key, ids)}
-            onWithdraw={(ids) => withdraw(area.key, ids)}
-          />
+      {/* Two fixed columns, first half left and second half right: reading order stays the
+          same on a phone, and opening an area only pushes down its own column. CSS columns
+          rebalanced unevenly once an area opened. */}
+      <div className="grid gap-x-6 @2xl:grid-cols-2 @2xl:items-start">
+        {halves(map.areas).map(([offset, areas]) => (
+          <ul key={offset} className="min-w-0">
+            {areas.map((area, n) => (
+              <AreaRow
+                key={area.key}
+                area={area}
+                n={offset + n}
+                memberId={memberId}
+                people={people}
+                self={self}
+                takers={takers}
+                others={others}
+                busy={busy === area.key}
+                celebrate={celebrate === area.key}
+                onOffer={(ids, to) => offer(area.key, ids, to)}
+                onAccept={(ids) => accept(area.key, ids)}
+                onDecline={(ids) => decline(area.key, ids)}
+                onWithdraw={(ids) => withdraw(area.key, ids)}
+              />
+            ))}
+          </ul>
         ))}
-      </ul>
+      </div>
     </SoftCard>
   );
 }
 
 export type { LoadMapArea };
+
+function halves<T>(items: T[]): [number, T[]][] {
+  const cut = Math.ceil(items.length / 2);
+  return [
+    [0, items.slice(0, cut)],
+    [cut, items.slice(cut)],
+  ];
+}
