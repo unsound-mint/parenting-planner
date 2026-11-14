@@ -3824,12 +3824,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/mood-screenings:
     parameters:
@@ -3884,12 +3878,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     get:
       operationId: listMoodScreenings
       tags: [screening]
@@ -3915,12 +3903,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
