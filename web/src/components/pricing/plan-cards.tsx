@@ -55,9 +55,10 @@ export function PlanCards({ currentTier, requested, memberId }: { currentTier?: 
 
   return (
     <div>
-      <ul className="grid items-stretch gap-4 md:grid-cols-3 md:gap-5">
+      {/* Subgrid: the five parts of every card (title, price, level, features, button) share rows, so they line up across tiers. */}
+      <ul className="grid items-stretch gap-4 md:grid-cols-3 md:grid-rows-[repeat(5,auto)] md:gap-x-6 md:gap-y-0">
         {PLANS.map((plan) => (
-          <li key={plan.tier} className={cn("flex", plan.recommended && "order-first md:order-none")}>
+          <li key={plan.tier} className={cn("flex md:contents", plan.recommended && "order-first md:order-none")}>
             <PlanCard
               plan={plan}
               isCurrent={(currentTier ?? "free") === plan.tier}
@@ -110,7 +111,7 @@ function PlanCard({
     <section
       aria-labelledby={`plan-${plan.tier}`}
       className={cn(
-        "relative flex w-full flex-col rounded-2xl border bg-card p-6",
+        "relative flex w-full flex-col rounded-2xl border bg-card p-6 md:row-span-5 md:grid md:grid-rows-subgrid",
         plan.recommended ? "border-2 border-primary shadow-lg shadow-primary/10 md:-my-3 md:py-9" : "border-border",
       )}
     >
@@ -148,7 +149,7 @@ function PlanCard({
         ))}
       </div>
 
-      <ul className="mt-6 flex flex-1 flex-col gap-3">
+      <ul className="mt-6 flex flex-col gap-3">
         {plan.features.map((f) => (
           <li key={f} className="flex items-start gap-3 text-body">
             <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-status-ok-soft text-status-ok">
