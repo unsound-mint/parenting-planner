@@ -100,6 +100,26 @@ func (c *Client) PostWithHeaders(path string, headers map[string]string, body an
 	c.doWithHeaders(http.MethodPost, path, headers, body, wantStatus, out)
 }
 
+// Stream opens a server-sent-events endpoint and returns the open response; the
+// caller reads resp.Body and cancels ctx to end the stream.
+func (c *Client) Stream(ctx context.Context, path string, wantStatus int) *http.Response {
+	c.t.Helper()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.base+path, nil)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	res, err := c.http.Do(req)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	if res.StatusCode != wantStatus {
+		raw, _ := io.ReadAll(res.Body)
+		res.Body.Close()
+		c.t.Fatalf("GET %s: status %d, want %d; body: %s", path, res.StatusCode, wantStatus, raw)
+	}
+	return res
+}
+
 func (c *Client) do(method, path string, body any, wantStatus int, out any) {
 	c.t.Helper()
 	c.doWithHeaders(method, path, nil, body, wantStatus, out)

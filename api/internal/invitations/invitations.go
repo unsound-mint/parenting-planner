@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -54,6 +55,15 @@ func StatusOf(inv store.Invitation, now time.Time) Status {
 	return Pending
 }
 
+// publish tells the parents that an invitation changed.
+func publish(ctx context.Context, q *store.Queries, familyID, actor, invitationID uuid.UUID, now time.Time) error {
+	parents, err := live.ParentsAnd(ctx, q, familyID)
+	if err != nil {
+		return err
+	}
+	return live.Publish(ctx, q, familyID, live.Event{Kind: live.Invitation, EntityID: invitationID.String(), Actor: actor, Audience: parents}, now)
+}
+
 func ts(t time.Time) pgtype.Timestamptz { return pgtype.Timestamptz{Time: t, Valid: true} }
 
 // Create stores an invitation and returns it with the raw token. The token is
@@ -74,7 +84,10 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, parentID uuid.UUI
 		if err != nil {
 			return err
 		}
-		return access.Audit(ctx, q, familyID, parentID, access.ActionCreate, Entity, inv.ID.String())
+		if err := access.Audit(ctx, q, familyID, parentID, access.ActionCreate, Entity, inv.ID.String()); err != nil {
+			return err
+		}
+		return publish(ctx, q, familyID, parentID, inv.ID, now)
 	})
 	return inv, token, err
 }
@@ -109,7 +122,10 @@ func Revoke(ctx context.Context, pool *pgxpool.Pool, familyID, parentID, id uuid
 			}
 		}
 		inv.RevokedAt = ts(now)
-		return access.Audit(ctx, q, familyID, parentID, access.ActionRevoke, Entity, id.String())
+		if err := access.Audit(ctx, q, familyID, parentID, access.ActionRevoke, Entity, id.String()); err != nil {
+			return err
+		}
+		return publish(ctx, q, familyID, parentID, id, now)
 	})
 	return inv, err
 }
@@ -159,7 +175,10 @@ func Accept(ctx context.Context, pool *pgxpool.Pool, token string, now time.Time
 		if err := q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: inv.FamilyID, ExpiresAt: now.Add(demo.SessionTTL)}); err != nil {
 			return err
 		}
-		return access.Audit(ctx, q, inv.FamilyID, cg.ID, access.ActionAccept, Entity, inv.ID.String())
+		if err := access.Audit(ctx, q, inv.FamilyID, cg.ID, access.ActionAccept, Entity, inv.ID.String()); err != nil {
+			return err
+		}
+		return publish(ctx, q, inv.FamilyID, cg.ID, inv.ID, now)
 	})
 	return familyID, cg, sessionToken, err
 }

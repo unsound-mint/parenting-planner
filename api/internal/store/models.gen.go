@@ -162,6 +162,17 @@ type LabResult struct {
 	RefHigh         *float64
 }
 
+type LiveEvent struct {
+	ID              int64
+	FamilyID        uuid.UUID
+	Kind            string
+	EntityID        *string
+	ActorMemberID   uuid.UUID
+	Audience        []uuid.UUID
+	NeedsPermission *string
+	At              time.Time
+}
+
 type Member struct {
 	ID          uuid.UUID
 	FamilyID    uuid.UUID

@@ -36,7 +36,7 @@ func (s *Server) UpdateFamily(ctx context.Context, req UpdateFamilyRequestObject
 			ch.DueDate = &d
 		}
 	}
-	if _, err := family.Update(ctx, s.pool, familyID, req.MemberId, ch, s.today(ctx)); err != nil {
+	if _, err := family.Update(ctx, s.pool, familyID, req.MemberId, ch, s.today(ctx), s.now(ctx)); err != nil {
 		switch {
 		case errors.Is(err, family.ErrNoChild):
 			return UpdateFamily409JSONResponse(Error{Code: "no_child", Message: err.Error()}), nil
@@ -64,7 +64,7 @@ func (s *Server) CreateBabyArrival(ctx context.Context, req CreateBabyArrivalReq
 	case !isParentRole(m.Role):
 		return CreateBabyArrival403JSONResponse(errForbidden), nil
 	}
-	_, err = family.BabyIsHome(ctx, s.pool, familyID, m.ID, req.Body.Name, req.Body.BirthDate.Time, s.today(ctx))
+	_, err = family.BabyIsHome(ctx, s.pool, familyID, m.ID, req.Body.Name, req.Body.BirthDate.Time, s.today(ctx), s.now(ctx))
 	switch {
 	case errors.Is(err, family.ErrBadBirthDate):
 		return CreateBabyArrival400JSONResponse(Error{Code: "bad_birth_date", Message: err.Error()}), nil

@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -68,7 +69,7 @@ type NewEvent struct {
 }
 
 // Create stores an event owned by a parent. Attendees must be people of the family.
-func Create(ctx context.Context, pool *pgxpool.Pool, familyID, ownerID uuid.UUID, in NewEvent) (Event, error) {
+func Create(ctx context.Context, pool *pgxpool.Pool, familyID, ownerID uuid.UUID, in NewEvent, now time.Time) (Event, error) {
 	if in.EndsAt != nil && in.EndsAt.Before(in.StartsAt) {
 		return Event{}, ErrBadTimes
 	}
@@ -95,7 +96,17 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, ownerID uuid.UUID
 			}
 		}
 		out = fromRow(e, in.Attendees)
-		return access.Audit(ctx, q, familyID, ownerID, access.ActionCreate, entity, e.ID.String())
+		if err := access.Audit(ctx, q, familyID, ownerID, access.ActionCreate, entity, e.ID.String()); err != nil {
+			return err
+		}
+		// A private event is only the owner's business; a family event goes to both parents and the attendees.
+		audience := []uuid.UUID{ownerID}
+		if in.Visibility == "family" {
+			if audience, err = live.ParentsAnd(ctx, q, familyID, in.Attendees...); err != nil {
+				return err
+			}
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.CalendarEvent, EntityID: e.ID.String(), Actor: ownerID, Audience: audience}, now)
 	})
 	return out, err
 }
