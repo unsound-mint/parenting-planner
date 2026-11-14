@@ -54,7 +54,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             Demo data
           </span>
           <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
-            Plans
+            {family.tier === "free" ? "Plans" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           </Link>
           <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
           <div className="order-5 hidden md:block">

@@ -37,6 +37,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/demo/custom-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start with a new family built from the visitor's own details
+         * @description "Try it with your own details": creates a new family for this visitor
+         *     from what they typed, through the same seed and rules path as the demo
+         *     families, and sets the same session cookie as createDemoSession. The
+         *     family's template is `custom`. No auth; nothing is stored beyond the
+         *     typed fields, and each call makes a separate family.
+         *
+         *     Dates are checked against the stage (400 `bad_details` otherwise):
+         *     - pregnancy: dueDate is required, from 14 days ago to 280 days ahead.
+         *     - postpartum, infant, toddler, preschool, school_age: childBirthDate is
+         *       required, not in the future, and the child's age must fit the stage:
+         *       postpartum under 3 months, infant 3 to 11 months, toddler 12 to 35
+         *       months, preschool 36 to 59 months, school_age 60 months to 9 years.
+         *     - planning, trying: no dates.
+         *     A date that does not belong to the stage is ignored and not stored, and
+         *     childName is ignored before birth.
+         */
+        post: operations["createCustomSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family": {
         parameters: {
             query?: never;
@@ -1399,12 +1433,29 @@ export interface components {
             message: string;
         };
         /**
-         * @description Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists.
+         * @description Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists. `custom` marks a family built from the visitor's own details (createCustomSession); createDemoSession rejects it with 400.
          * @enum {string}
          */
-        DemoTemplate: "planning" | "pregnancy" | "newborn" | "preschool";
+        DemoTemplate: "planning" | "pregnancy" | "newborn" | "preschool" | "custom";
         CreateDemoSessionRequest: {
             template: components["schemas"]["DemoTemplate"];
+        };
+        CustomFamilyInput: {
+            stage: components["schemas"]["Stage"];
+            /**
+             * Format: date
+             * @description Required for pregnancy.
+             */
+            dueDate?: string;
+            /**
+             * Format: date
+             * @description Required once the child is born (postpartum and later).
+             */
+            childBirthDate?: string;
+            /** @description Optional; "Baby" when left out. */
+            childName?: string;
+            motherName: string;
+            partnerName: string;
         };
         /**
          * @description Where the family is on the journey from planning to age 9.
@@ -2035,9 +2086,9 @@ export interface components {
         PregnancyWeek: {
             week: number;
             isCurrentWeek: boolean;
-            size: components["schemas"]["BabySize"];
-            /** @description What is developing this week, in plain words. */
-            development: string;
+            size?: components["schemas"]["BabySize"];
+            /** @description What is developing this week, in plain words. Present only when sourced. */
+            development?: string;
             /** @description Why this week matters for the parents, never a diagnosis. */
             whyItMatters: string;
             /** @description For the acting person's role. */
@@ -2662,6 +2713,49 @@ export interface operations {
             };
             /** @description Error */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createCustomSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomFamilyInput"];
+            };
+        };
+        responses: {
+            /** @description Family created; the session cookie is set. */
+            201: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };

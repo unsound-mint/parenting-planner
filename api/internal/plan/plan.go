@@ -100,5 +100,32 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 			f.RecentMoods = append(f.RecentMoods, rules.MoodSample{At: m.RecordedAt, Mood: int(m.Mood)})
 		}
 	}
+
+	// Only the viewer's own session notes and bookings; the plan sees when a
+	// note was written, never its text.
+	notes, err := q.ListSessionNotesVisibleToParent(ctx, store.ListSessionNotesVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID, Since: now.Add(-14 * 24 * time.Hour),
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, n := range notes {
+		if n.OwnerMemberID == memberID {
+			at := n.WrittenAt
+			f.LastSessionNoteAt = &at
+			break
+		}
+	}
+	bookings, err := q.ListPsychologistBookingsVisibleToParent(ctx, store.ListPsychologistBookingsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID,
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, b := range bookings {
+		if b.OwnerMemberID == memberID && b.StartsAt.After(now) {
+			f.NextSessionBooked = true
+		}
+	}
 	return f, nil
 }
