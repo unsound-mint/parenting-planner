@@ -71,11 +71,3 @@ func TestDemoTimeSkipIsNotImplementedYet(t *testing.T) {
 	c.StartDemo("pregnancy")
 	c.Post("/api/family/demo-time-skips", nil, http.StatusNotImplemented, nil)
 }
-
-// The plan status endpoint is in the contract but not built yet (web hides its
-// button behind BOOKING_ENABLED). Replace with real tests when it lands.
-func TestPlanStatusIsNotImplementedYet(t *testing.T) {
-	c := testutil.New(t)
-	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
-	c.Put("/api/members/"+mom.Id.String()+"/plan/glucose-screen/status", map[string]string{"status": "booked"}, http.StatusNotImplemented, nil)
-}

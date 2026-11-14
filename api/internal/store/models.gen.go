@@ -119,6 +119,15 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type PlanItemProgress struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	RuleID    string
+	Status    string
+	UpdatedAt time.Time
+}
+
 type Psychologist struct {
 	ID          uuid.UUID
 	Name        string
