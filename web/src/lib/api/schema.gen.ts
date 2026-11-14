@@ -147,6 +147,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/childcare-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The childcare options the family is tracking, newest first
+         * @description Daycares, nannies and family care the parents are looking at, with
+         *     where each one stands (researching to accepted or declined), waitlist
+         *     position and dates. Family-wide: both parents see and edit the same
+         *     list. A caregiver's session gets 403. An offered option with a
+         *     decideBy date puts "Decide on a childcare offer" on both parents' plans.
+         */
+        get: operations["listChildcareOptions"];
+        put?: never;
+        /**
+         * Start tracking a childcare option
+         * @description Either parent may add one. A caregiver's session gets 403.
+         */
+        post: operations["createChildcareOption"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/childcare-options/{optionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                optionId: components["parameters"]["ChildcareOptionId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * One childcare option
+         * @description A caregiver's session gets 403.
+         */
+        get: operations["getChildcareOption"];
+        /**
+         * Replace a childcare option with the values sent
+         * @description A full replace: optional fields left out are cleared. Send the whole
+         *     option, for example with a new status and waitlist position.
+         *     A caregiver's session gets 403.
+         */
+        put: operations["updateChildcareOption"];
+        post?: never;
+        /**
+         * Stop tracking a childcare option
+         * @description A caregiver's session gets 403.
+         */
+        delete: operations["deleteChildcareOption"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/plan": {
         parameters: {
             query?: never;
@@ -3320,6 +3380,56 @@ export interface components {
         Tier: "free" | "plus" | "concierge";
         /** @enum {string} */
         PaidTier: "plus" | "concierge";
+        /**
+         * @description daycare = a center; nanny = care at home; family = a relative or a home-based family daycare.
+         * @enum {string}
+         */
+        ChildcareKind: "daycare" | "nanny" | "family";
+        /**
+         * @description Where the family stands with this option, in the order it usually goes.
+         * @enum {string}
+         */
+        ChildcareStatus: "researching" | "toured" | "applied" | "waitlisted" | "offered" | "accepted" | "declined";
+        ChildcareOptionInput: {
+            /** @example Little Harbor Early Learning */
+            name: string;
+            kind: components["schemas"]["ChildcareKind"];
+            /** @description Free text, such as a person, phone number or email. */
+            contact?: string;
+            /** @description Cost per month in whole US dollars. */
+            monthlyCost?: number;
+            status: components["schemas"]["ChildcareStatus"];
+            waitlistPosition?: number;
+            /** Format: date */
+            appliedOn?: string;
+            /**
+             * Format: date
+             * @description The date the family must answer by, such as the deadline to accept an offered place.
+             */
+            decideBy?: string;
+            notes?: string;
+        };
+        ChildcareOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            kind: components["schemas"]["ChildcareKind"];
+            contact?: string;
+            /** @description Cost per month in whole US dollars. */
+            monthlyCost?: number;
+            status: components["schemas"]["ChildcareStatus"];
+            waitlistPosition?: number;
+            /** Format: date */
+            appliedOn?: string;
+            /** Format: date */
+            decideBy?: string;
+            notes?: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ChildcareOptionList: {
+            items: components["schemas"]["ChildcareOption"][];
+        };
         UpgradeIntentInput: {
             tier: components["schemas"]["PaidTier"];
         };
@@ -5687,6 +5797,7 @@ export interface components {
         PortraitId: string;
         EventId: string;
         TaskId: string;
+        ChildcareOptionId: string;
         InvitationId: string;
         /** @description The secret from the invitation link. */
         InvitationToken: string;
@@ -5958,6 +6069,298 @@ export interface operations {
             };
             /** @description Error */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listChildcareOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChildcareOptionList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createChildcareOption: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChildcareOptionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChildcareOption"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getChildcareOption: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                optionId: components["parameters"]["ChildcareOptionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChildcareOption"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateChildcareOption: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                optionId: components["parameters"]["ChildcareOptionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChildcareOptionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChildcareOption"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteChildcareOption: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                optionId: components["parameters"]["ChildcareOptionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
