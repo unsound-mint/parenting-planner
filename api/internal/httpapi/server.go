@@ -17,6 +17,9 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/ai"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -28,6 +31,11 @@ type Config struct {
 	SecureCookies bool
 	// Now is the clock; tests override it.
 	Now func() time.Time
+	// AI is the optional Claude API setup. Without a key the AI plan is off
+	// and the rule plan is shown. Never put any of it in a response or a log.
+	AI ai.Config
+	// Diary encrypts diary text at rest; see internal/crypt. The zero key works for tests.
+	Diary crypt.Key
 }
 
 type Server struct {
@@ -128,13 +136,45 @@ type ctxKey struct{}
 // clockKey holds the session family's demo clock offset in days.
 type clockKey struct{}
 
-// session resolves the cookie to a family id and its demo clock offset and
-// stores both in the context.
+// sessionMemberKey holds the person the session belongs to (uuid.NullUUID):
+// not Valid for a demo session, the caregiver for an accepted invitation.
+type sessionMemberKey struct{}
+
+// sessionRoleKey holds the role of the member the session is bound to; it is
+// absent for a demo session.
+type sessionRoleKey struct{}
+
+// managingFamily is familyFrom for endpoints that act on the family as a
+// whole (access.CanManageFamily): a caregiver's session gets errNotParent.
+func managingFamily(ctx context.Context) (uuid.UUID, errKind) {
+	familyID, ok := familyFrom(ctx)
+	if !ok {
+		return uuid.Nil, errUnauthorized
+	}
+	role, _ := ctx.Value(sessionRoleKey{}).(string)
+	if !access.CanManageFamily(role) {
+		return familyID, errNotParent
+	}
+	return familyID, errNone
+}
+
+// canActAs applies access.CanSessionActAs to the request's session.
+func canActAs(ctx context.Context, memberID uuid.UUID) bool {
+	bound, _ := ctx.Value(sessionMemberKey{}).(uuid.NullUUID)
+	return access.CanSessionActAs(bound, memberID)
+}
+
+// session resolves the cookie to a family id, the member the session is bound
+// to (if any) and the demo clock offset, and stores them in the context.
 func (s *Server) session(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if c, err := r.Cookie(sessionCookie); err == nil && c.Value != "" {
 			if row, err := s.q.GetSessionFamily(r.Context(), demo.HashToken(c.Value)); err == nil {
 				ctx := context.WithValue(r.Context(), ctxKey{}, row.FamilyID)
+				ctx = context.WithValue(ctx, sessionMemberKey{}, row.MemberID)
+				if row.MemberRole != nil {
+					ctx = context.WithValue(ctx, sessionRoleKey{}, *row.MemberRole)
+				}
 				r = r.WithContext(context.WithValue(ctx, clockKey{}, row.DemoOffsetDays))
 			} else if !errors.Is(err, pgx.ErrNoRows) {
 				slog.Error("session lookup", "err", err)
@@ -167,6 +207,12 @@ var (
 	errAlreadyRequested = Error{Code: "already_requested", Message: "you already asked this provider for an appointment"}
 )
 
+var (
+	errNoInvitation         = Error{Code: "not_found", Message: "no such invitation"}
+	errInvitationNotPending = Error{Code: "invitation_not_pending", Message: "this invitation was already used, revoked or has expired"}
+	errInvitationNotActive  = Error{Code: "invitation_not_active", Message: "this invitation is already revoked or has expired"}
+)
+
 // errKind tells a handler which typed error response to return.
 type errKind int
 
@@ -174,14 +220,19 @@ const (
 	errNone errKind = iota
 	errUnauthorized
 	errNotFound
+	errNotParent
 )
 
 // actingMember resolves the session's family and checks that memberID is a
 // parent in it. Every /members/{memberId}/... handler starts with this.
+// A session bound to a caregiver gets errNotFound for every other id.
 func (s *Server) actingMember(ctx context.Context, memberID uuid.UUID) (familyID uuid.UUID, m store.Member, kind errKind, err error) {
 	familyID, ok := ctx.Value(ctxKey{}).(uuid.UUID)
 	if !ok {
 		return uuid.Nil, store.Member{}, errUnauthorized, nil
+	}
+	if !canActAs(ctx, memberID) {
+		return familyID, m, errNotFound, nil
 	}
 	m, err = s.q.GetMember(ctx, store.GetMemberParams{ID: memberID, FamilyID: familyID})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -189,6 +240,26 @@ func (s *Server) actingMember(ctx context.Context, memberID uuid.UUID) (familyID
 	}
 	return familyID, m, errNone, err
 }
+
+// actingPerson is actingMember for endpoints that a caregiver may also call:
+// it accepts a parent or a caregiver with access, and returns the person's role
+// in m.Role. Endpoints that are parent-only check kind == errNotParent.
+func (s *Server) actingPerson(ctx context.Context, memberID uuid.UUID) (familyID uuid.UUID, m store.Member, kind errKind, err error) {
+	familyID, ok := ctx.Value(ctxKey{}).(uuid.UUID)
+	if !ok {
+		return uuid.Nil, store.Member{}, errUnauthorized, nil
+	}
+	if !canActAs(ctx, memberID) {
+		return familyID, m, errNotFound, nil
+	}
+	m, err = s.q.GetPerson(ctx, store.GetPersonParams{ID: memberID, FamilyID: familyID})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return familyID, m, errNotFound, nil
+	}
+	return familyID, m, errNone, err
+}
+
+func isParentRole(role string) bool { return role == "mother" || role == "partner" }
 
 func familyFrom(ctx context.Context) (uuid.UUID, bool) {
 	id, ok := ctx.Value(ctxKey{}).(uuid.UUID)

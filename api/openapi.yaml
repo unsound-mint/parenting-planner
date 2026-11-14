@@ -170,6 +170,7 @@ paths:
         cookie. Other families are untouched. The old cookie gets 401
         afterwards. Nothing is soft-deleted. Backups: see "Deletion and
         backups" in docs/data-model.md.
+        Only a parent's session may do this; a caregiver's session gets 403.
       responses:
         "204":
           description: Deleted; the session cookie is cleared.
@@ -178,6 +179,12 @@ paths:
               schema:
                 type: string
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -195,7 +202,7 @@ paths:
         timeline) uses the shifted day, from the same stored data. Only this
         family moves; other demo families keep the real date. Starting a new
         demo creates a new family at real time, which is the reset. The UI
-        must label the shifted date as demo time.
+        must label the shifted date as demo time. A caregiver's session gets 403.
       responses:
         "200":
           description: The family as of its new demo date.
@@ -204,6 +211,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Family"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -225,6 +238,7 @@ paths:
         There are no payments. This stores which tier the family asked for and
         when; it shows as "upgrade requested" on the family. Either parent of the
         session's family may send it. A second request replaces the first.
+        A caregiver's session gets 403.
       requestBody:
         required: true
         content:
@@ -245,6 +259,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4628,7 +4648,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Every catalog item of the kind, with this family's edits applied and
         edited set on the ones changed here. Ordered as the catalog is (week
@@ -4653,6 +4673,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4689,7 +4715,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Only title and body change; the Source and checked date stay the
         catalog's, so health content keeps its citation. Every screen that
@@ -4716,6 +4742,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4758,7 +4790,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Returns the catalog version. 404 for an unknown slug.
       responses:
@@ -4769,6 +4801,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ContentItem"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4798,7 +4836,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Newest first, with click counts.
       responses:
@@ -4809,6 +4847,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/PartnerOfferList"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4830,7 +4874,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         Shows up in listPartnerOffers for matching stages and roles when active.
       requestBody:
@@ -4858,6 +4902,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
           content:
@@ -4878,7 +4928,7 @@ paths:
         session's family (stored as overrides with family_id over the catalog
         in code) and never to other visitors. A real product would put this
         behind staff sign-in; that is out of scope for the demo. 401 without a
-        session.
+        session, 403 for a caregiver's session.
 
         404 for an offer not in this family.
       requestBody:
@@ -4901,6 +4951,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -4930,7 +4986,8 @@ paths:
         free text, and nothing from health tables (mood check-ins, diary,
         labs, vaccines, screenings, session notes, insurance calls, care log
         contents). Every family is synthetic demo data. Not linked from the
-        family screens; any session can open it. 401 without a session.
+        family screens; any parent's session can open it. 401 without a
+        session, 403 for a caregiver's session.
 
         Counts per day for the last `days` days (UTC), from audit_log and row
         counts of non-health tables.
@@ -4957,6 +5014,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -5284,6 +5347,15 @@ components:
             Days this family's demo clock has been skipped ahead of the real
             date (createDemoTimeSkip). Absent or 0 means real time; anything else must be
             shown as demo time.
+        sessionMemberId:
+          type: string
+          format: uuid
+          description: |
+            Set when the session belongs to one person: a caregiver who accepted
+            an invitation. That session acts only as this member (other ids are
+            404) and cannot manage the family (skip demo time, upgrade, delete,
+            demo admin: 403). Absent for a demo session, which acts as either
+            parent.
         stage:
           $ref: "#/components/schemas/Stage"
         dueDate:

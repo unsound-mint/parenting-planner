@@ -56,9 +56,12 @@ func (s *Server) GetMemberExport(ctx context.Context, req GetMemberExportRequest
 }
 
 func (s *Server) DeleteFamily(ctx context.Context, _ DeleteFamilyRequestObject) (DeleteFamilyResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return DeleteFamily401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return DeleteFamily403JSONResponse(errForbidden), nil
 	}
 	if err := account.DeleteFamily(ctx, s.pool, familyID); err != nil {
 		return nil, err

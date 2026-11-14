@@ -58,6 +58,105 @@ func (q *Queries) CreateMoodScreening(ctx context.Context, arg CreateMoodScreeni
 	return i, err
 }
 
+const deleteMoodScreeningDraft = `-- name: DeleteMoodScreeningDraft :exec
+DELETE FROM mood_screening_drafts WHERE owner_member_id = $1 AND instrument = $2
+`
+
+type DeleteMoodScreeningDraftParams struct {
+	OwnerMemberID uuid.UUID
+	Instrument    string
+}
+
+func (q *Queries) DeleteMoodScreeningDraft(ctx context.Context, arg DeleteMoodScreeningDraftParams) error {
+	_, err := q.db.Exec(ctx, deleteMoodScreeningDraft, arg.OwnerMemberID, arg.Instrument)
+	return err
+}
+
+const deleteStaleMoodScreeningDrafts = `-- name: DeleteStaleMoodScreeningDrafts :exec
+DELETE FROM mood_screening_drafts WHERE owner_member_id = $1 AND updated_at < $2
+`
+
+type DeleteStaleMoodScreeningDraftsParams struct {
+	OwnerMemberID uuid.UUID
+	UpdatedAt     time.Time
+}
+
+func (q *Queries) DeleteStaleMoodScreeningDrafts(ctx context.Context, arg DeleteStaleMoodScreeningDraftsParams) error {
+	_, err := q.db.Exec(ctx, deleteStaleMoodScreeningDrafts, arg.OwnerMemberID, arg.UpdatedAt)
+	return err
+}
+
+const getOwnMoodScreeningVisibleToParent = `-- name: GetOwnMoodScreeningVisibleToParent :one
+SELECT id, family_id, owner_member_id, visibility, taken_at, instrument, answers, score, band, urgent FROM mood_screenings WHERE id = $1 AND family_id = $2 AND owner_member_id = $3 FOR UPDATE
+`
+
+type GetOwnMoodScreeningVisibleToParentParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+}
+
+// Mirrors access.CanParentRead for a change: only the author, so another parent's result
+// cannot be found (and does not reveal that it exists). Locks the row.
+func (q *Queries) GetOwnMoodScreeningVisibleToParent(ctx context.Context, arg GetOwnMoodScreeningVisibleToParentParams) (MoodScreening, error) {
+	row := q.db.QueryRow(ctx, getOwnMoodScreeningVisibleToParent, arg.ID, arg.FamilyID, arg.ViewerID)
+	var i MoodScreening
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.TakenAt,
+		&i.Instrument,
+		&i.Answers,
+		&i.Score,
+		&i.Band,
+		&i.Urgent,
+	)
+	return i, err
+}
+
+const listMoodScreeningDraftsVisibleToParent = `-- name: ListMoodScreeningDraftsVisibleToParent :many
+SELECT family_id, owner_member_id, visibility, instrument, answers, updated_at FROM mood_screening_drafts
+WHERE family_id = $1 AND owner_member_id = $2 AND updated_at >= $3
+ORDER BY updated_at DESC
+`
+
+type ListMoodScreeningDraftsVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+	Since    time.Time
+}
+
+// Mirrors access.CanParentRead: a draft is never shared, so only the author's own are read.
+// Drafts older than the cutoff are not returned.
+func (q *Queries) ListMoodScreeningDraftsVisibleToParent(ctx context.Context, arg ListMoodScreeningDraftsVisibleToParentParams) ([]MoodScreeningDraft, error) {
+	rows, err := q.db.Query(ctx, listMoodScreeningDraftsVisibleToParent, arg.FamilyID, arg.ViewerID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MoodScreeningDraft{}
+	for rows.Next() {
+		var i MoodScreeningDraft
+		if err := rows.Scan(
+			&i.FamilyID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.Instrument,
+			&i.Answers,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMoodScreeningsVisibleToParent = `-- name: ListMoodScreeningsVisibleToParent :many
 SELECT id, family_id, owner_member_id, visibility, taken_at, instrument, answers, score, band, urgent FROM mood_screenings
 WHERE family_id = $1
@@ -102,4 +201,68 @@ func (q *Queries) ListMoodScreeningsVisibleToParent(ctx context.Context, arg Lis
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateOwnMoodScreeningVisibilityVisibleToParent = `-- name: UpdateOwnMoodScreeningVisibilityVisibleToParent :one
+UPDATE mood_screenings SET visibility = $1 WHERE id = $2 AND owner_member_id = $3 RETURNING id, family_id, owner_member_id, visibility, taken_at, instrument, answers, score, band, urgent
+`
+
+type UpdateOwnMoodScreeningVisibilityVisibleToParentParams struct {
+	Visibility string
+	ID         uuid.UUID
+	ViewerID   uuid.UUID
+}
+
+// Mirrors access.CanParentRead for a change: only the author.
+func (q *Queries) UpdateOwnMoodScreeningVisibilityVisibleToParent(ctx context.Context, arg UpdateOwnMoodScreeningVisibilityVisibleToParentParams) (MoodScreening, error) {
+	row := q.db.QueryRow(ctx, updateOwnMoodScreeningVisibilityVisibleToParent, arg.Visibility, arg.ID, arg.ViewerID)
+	var i MoodScreening
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.TakenAt,
+		&i.Instrument,
+		&i.Answers,
+		&i.Score,
+		&i.Band,
+		&i.Urgent,
+	)
+	return i, err
+}
+
+const upsertMoodScreeningDraft = `-- name: UpsertMoodScreeningDraft :one
+INSERT INTO mood_screening_drafts (family_id, owner_member_id, instrument, answers, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (owner_member_id, instrument) DO UPDATE SET answers = EXCLUDED.answers, updated_at = EXCLUDED.updated_at
+RETURNING family_id, owner_member_id, visibility, instrument, answers, updated_at
+`
+
+type UpsertMoodScreeningDraftParams struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Instrument    string
+	Answers       []int16
+	UpdatedAt     time.Time
+}
+
+func (q *Queries) UpsertMoodScreeningDraft(ctx context.Context, arg UpsertMoodScreeningDraftParams) (MoodScreeningDraft, error) {
+	row := q.db.QueryRow(ctx, upsertMoodScreeningDraft,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+		arg.Instrument,
+		arg.Answers,
+		arg.UpdatedAt,
+	)
+	var i MoodScreeningDraft
+	err := row.Scan(
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Instrument,
+		&i.Answers,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

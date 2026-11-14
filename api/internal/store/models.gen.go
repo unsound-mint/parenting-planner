@@ -54,6 +54,25 @@ type BookingRequest struct {
 	CreatedAt     time.Time
 }
 
+type CalendarEvent struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Kind          string
+	Title         string
+	StartsAt      time.Time
+	EndsAt        pgtype.Timestamptz
+	AllDay        bool
+	Location      *string
+	CreatedAt     time.Time
+}
+
+type CalendarEventAttendee struct {
+	EventID  uuid.UUID
+	MemberID uuid.UUID
+}
+
 type CareTeam struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -80,6 +99,17 @@ type ContentOverride struct {
 	Title     *string
 	Body      *string
 	UpdatedAt time.Time
+}
+
+type DiaryEntry struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	WrittenAt     time.Time
+	BodySealed    []byte
+	AgendaTopic   *string
+	CreatedAt     time.Time
 }
 
 type Family struct {
@@ -110,6 +140,21 @@ type Immunization struct {
 	Dose            *string
 }
 
+type Invitation struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	InvitedBy   uuid.UUID
+	MemberID    uuid.NullUUID
+	Role        string
+	DisplayName string
+	Permissions []string
+	TokenHash   []byte
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+	AcceptedAt  pgtype.Timestamptz
+	RevokedAt   pgtype.Timestamptz
+}
+
 type LabResult struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -135,6 +180,8 @@ type Member struct {
 	Role        string
 	DisplayName string
 	BirthDate   *time.Time
+	Permissions []string
+	RevokedAt   pgtype.Timestamptz
 }
 
 type MoodCheckin struct {
@@ -160,6 +207,15 @@ type MoodScreening struct {
 	Score         int16
 	Band          string
 	Urgent        bool
+}
+
+type MoodScreeningDraft struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Instrument    string
+	Answers       []int16
+	UpdatedAt     time.Time
 }
 
 type Notification struct {
@@ -246,6 +302,7 @@ type Session struct {
 	FamilyID  uuid.UUID
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	MemberID  uuid.NullUUID
 }
 
 type SessionNote struct {
