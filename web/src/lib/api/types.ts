@@ -13,3 +13,6 @@ export type Visibility = S["Visibility"];
 export type MoodCheckin = S["MoodCheckin"];
 export type MoodCheckinInput = S["MoodCheckinInput"];
 export type PlanCategory = S["PlanCategory"];
+export type WeeklyPlan = S["WeeklyPlan"];
+export type WeeklyPlanSection = S["WeeklyPlanSection"];
+export type WeeklyPlanPoint = S["WeeklyPlanPoint"];

@@ -35,3 +35,9 @@ func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObje
 	}
 	return GetMemberPlan200JSONResponse(out), nil
 }
+
+// GetMemberWeeklyPlan is a stub until the AI weekly plan lands (#171). The web
+// screen treats this as "no AI plan" and shows the rule plan alone.
+func (s *Server) GetMemberWeeklyPlan(_ context.Context, _ GetMemberWeeklyPlanRequestObject) (GetMemberWeeklyPlanResponseObject, error) {
+	return GetMemberWeeklyPlan501JSONResponse(Error{Code: "not_implemented", Message: "the weekly plan is not built yet"}), nil
+}

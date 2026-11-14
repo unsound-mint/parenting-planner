@@ -10,6 +10,7 @@ import {
   HeartPulse,
   Lock,
   Milk,
+  PenLine,
   Sparkles,
   Sprout,
   Stethoscope,
@@ -68,3 +69,6 @@ export const statusTint: Record<PlanItemStatus, string> = {
   due: "bg-status-due-soft text-status-due",
   upcoming: "bg-status-up-soft text-status-up",
 };
+
+/** The written weekly note from the AI plan (components/week/ai-plan.tsx). */
+export const weeklyNoteIcon: LucideIcon = PenLine;

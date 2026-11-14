@@ -76,6 +76,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/weekly-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A short written plan for this parent's week
+         * @description A note written for the acting parent from the data they may see: their
+         *     due plan items, their own recent mood and sleep, diary topics the
+         *     partner shared with them, and the family's stage. The other parent
+         *     gets a different plan. Private records (diary, mood, labs, session
+         *     notes) that were not shared with this parent never feed it. The text
+         *     never diagnoses. Urgent symptoms and self-harm mentions are not
+         *     written here; they go to the fixed urgent-help screen. When the AI
+         *     call fails, fallback is true and the sections are built from the rule
+         *     plan.
+         */
+        get: operations["getMemberWeeklyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/mood-checkins": {
         parameters: {
             query?: never;
@@ -181,6 +209,31 @@ export interface components {
             /** @description Why this applies to this parent now, based on their data. */
             reason: string;
             source: components["schemas"]["Source"];
+        };
+        WeeklyPlan: {
+            /** Format: uuid */
+            memberId: string;
+            /** Format: date-time */
+            generatedAt: string;
+            /** @description True when the rule-based plan was used because the AI call failed. */
+            fallback: boolean;
+            /** @description One or two warm sentences that open the note. */
+            intro: string;
+            sections: components["schemas"]["WeeklyPlanSection"][];
+        };
+        WeeklyPlanSection: {
+            /** @example For you */
+            title: string;
+            points: components["schemas"]["WeeklyPlanPoint"][];
+        };
+        WeeklyPlanPoint: {
+            /** @description What to do, in one or two plain sentences. Never a diagnosis. Any medical point must carry a source. */
+            text: string;
+            /** @description The data behind the point, for example "You slept 5.5 hours on average this week." */
+            reason: string;
+            /** @description The rule plan item this point comes from, when it has one. */
+            ruleId?: string;
+            source?: components["schemas"]["Source"];
         };
         Source: {
             title: string;
@@ -360,6 +413,59 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getMemberWeeklyPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyPlan"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };

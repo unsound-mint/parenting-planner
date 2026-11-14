@@ -55,3 +55,12 @@ func TestHealthzNeedsNoSession(t *testing.T) {
 	c := testutil.New(t)
 	c.Get("/api/healthz", http.StatusOK, nil)
 }
+
+// Temporary: the weekly plan is a 501 stub until #171 lands. Replace this
+// with real tests when the handler is implemented.
+func TestWeeklyPlanIsNotImplementedYet(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mother := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	c.Get("/api/members/"+mother.Id.String()+"/weekly-plan", http.StatusNotImplemented, nil)
+}

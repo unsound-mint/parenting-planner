@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
+import { AiPlan } from "@/components/week/ai-plan";
 import { PlanBoard } from "@/components/week/plan-board";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
 import { SleepChart } from "@/components/week/sleep-chart";
@@ -49,6 +50,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <p className="mt-2 text-label font-normal text-muted-foreground">
           {familyContext(family)} · built from your family&apos;s data and current guidelines
         </p>
+        <AiPlan memberId={memberId} />
         <PlanBoard items={plan.items} />
       </section>
 
