@@ -121,6 +121,19 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type Notification struct {
+	ID                uuid.UUID
+	FamilyID          uuid.UUID
+	RecipientMemberID uuid.UUID
+	Kind              string
+	EntityID          *string
+	ActorMemberID     uuid.NullUUID
+	Title             string
+	OnDay             *time.Time
+	CreatedAt         time.Time
+	ReadAt            pgtype.Timestamptz
+}
+
 type PartnerOffer struct {
 	ID          uuid.UUID
 	FamilyID    uuid.UUID
