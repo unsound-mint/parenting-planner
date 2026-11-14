@@ -2448,13 +2448,15 @@ paths:
       tags: [calendar]
       summary: What to bring, when to leave and what to ask for one appointment
       description: |
-        The prep view of an upcoming appointment the acting parent can see
-        (CalendarEvent of kind appointment). Questions are the ones
+        The prep view of an appointment the acting parent can see
+        (CalendarEvent of kind appointment), also after the visit has
+        passed (the web then shows the after-visit view). Questions are the ones
         listAppointmentQuestions would return for it, with the same
         visibility rules. Documents and the travel estimate are computed
         from the appointment's kind and location. Mother and partner only;
         a grandparent or nanny, and any appointment that is not visible to
-        the acting parent, get 404.
+        the acting parent, get 404. note is the acting parent's own private
+        note for this appointment, absent until saved.
       responses:
         "200":
           description: OK
@@ -2481,6 +2483,71 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/appointments/{appointmentId}/note:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: appointmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: saveAppointmentNote
+      tags: [calendar]
+      summary: The acting parent saves their private note after a visit
+      description: |
+        One note per parent per appointment; saving again replaces it, and
+        an empty text deletes it. The note is health data and always private
+        to its author: it has no visibility field, the partner never reads
+        it, and getAppointmentPrep returns only the acting parent's own.
+        Allowed from the appointment's start time on (the family clock,
+        s.now(ctx)); earlier gets 409 visit_not_started. Mother and partner
+        only; a grandparent or nanny, and any appointment that is not
+        visible to the acting parent, get 404. Writes are audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentNoteInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentNote"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/appointment-questions/{questionId}:
     patch:
       operationId: updateAppointmentQuestion
@@ -6927,6 +6994,28 @@ components:
           description: Unanswered first, then oldest first.
           items:
             $ref: "#/components/schemas/AppointmentQuestion"
+        note:
+          $ref: "#/components/schemas/AppointmentNote"
+
+    AppointmentNoteInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          maxLength: 2000
+          description: Empty deletes the note.
+
+    AppointmentNote:
+      type: object
+      required: [text, updatedAt]
+      description: A parent's private note after one visit. Never shared.
+      properties:
+        text:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
 
     SimulatorSkill:
       type: string

@@ -1357,16 +1357,57 @@ export interface paths {
         };
         /**
          * What to bring, when to leave and what to ask for one appointment
-         * @description The prep view of an upcoming appointment the acting parent can see
-         *     (CalendarEvent of kind appointment). Questions are the ones
+         * @description The prep view of an appointment the acting parent can see
+         *     (CalendarEvent of kind appointment), also after the visit has
+         *     passed (the web then shows the after-visit view). Questions are the ones
          *     listAppointmentQuestions would return for it, with the same
          *     visibility rules. Documents and the travel estimate are computed
          *     from the appointment's kind and location. Mother and partner only;
          *     a grandparent or nanny, and any appointment that is not visible to
-         *     the acting parent, get 404.
+         *     the acting parent, get 404. note is the acting parent's own private
+         *     note for this appointment, absent until saved.
          */
         get: operations["getAppointmentPrep"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/appointments/{appointmentId}/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The acting parent saves their private note after a visit
+         * @description One note per parent per appointment; saving again replaces it, and
+         *     an empty text deletes it. The note is health data and always private
+         *     to its author: it has no visibility field, the partner never reads
+         *     it, and getAppointmentPrep returns only the acting parent's own.
+         *     Allowed from the appointment's start time on (the family clock,
+         *     s.now(ctx)); earlier gets 409 visit_not_started. Mother and partner
+         *     only; a grandparent or nanny, and any appointment that is not
+         *     visible to the acting parent, get 404. Writes are audited.
+         */
+        put: operations["saveAppointmentNote"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3834,6 +3875,17 @@ export interface components {
             documents: components["schemas"]["BringItem"][];
             /** @description Unanswered first, then oldest first. */
             questions: components["schemas"]["AppointmentQuestion"][];
+            note?: components["schemas"]["AppointmentNote"];
+        };
+        AppointmentNoteInput: {
+            /** @description Empty deletes the note. */
+            text: string;
+        };
+        /** @description A parent's private note after one visit. Never shared. */
+        AppointmentNote: {
+            text: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         /** @enum {string} */
         SimulatorSkill: "feeding" | "soothing" | "safe_sleep" | "diapering" | "warning_signs" | "teamwork";
@@ -7887,6 +7939,87 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    saveAppointmentNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                appointmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AppointmentNoteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentNote"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
