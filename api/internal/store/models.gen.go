@@ -11,6 +11,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AgendaTopicPref struct {
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	TopicID   uuid.UUID
+	Position  pgtype.Int4
+	RemovedAt pgtype.Timestamptz
+}
+
 type Allergy struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -33,6 +41,25 @@ type AuditLog struct {
 	Entity        string
 	EntityID      *string
 	At            time.Time
+}
+
+type CalendarEvent struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Kind          string
+	Title         string
+	StartsAt      time.Time
+	EndsAt        pgtype.Timestamptz
+	AllDay        bool
+	Location      *string
+	CreatedAt     time.Time
+}
+
+type CalendarEventAttendee struct {
+	EventID  uuid.UUID
+	MemberID uuid.UUID
 }
 
 type CareTeam struct {
@@ -63,6 +90,17 @@ type ContentOverride struct {
 	UpdatedAt time.Time
 }
 
+type DiaryEntry struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	WrittenAt     time.Time
+	BodySealed    []byte
+	AgendaTopic   *string
+	CreatedAt     time.Time
+}
+
 type Family struct {
 	ID             uuid.UUID
 	Template       string
@@ -91,6 +129,21 @@ type Immunization struct {
 	Dose            *string
 }
 
+type Invitation struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	InvitedBy   uuid.UUID
+	MemberID    uuid.NullUUID
+	Role        string
+	DisplayName string
+	Permissions []string
+	TokenHash   []byte
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+	AcceptedAt  pgtype.Timestamptz
+	RevokedAt   pgtype.Timestamptz
+}
+
 type LabResult struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -116,6 +169,8 @@ type Member struct {
 	Role        string
 	DisplayName string
 	BirthDate   *time.Time
+	Permissions []string
+	RevokedAt   pgtype.Timestamptz
 }
 
 type MoodCheckin struct {
@@ -141,6 +196,15 @@ type MoodScreening struct {
 	Score         int16
 	Band          string
 	Urgent        bool
+}
+
+type MoodScreeningDraft struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Instrument    string
+	Answers       []int16
+	UpdatedAt     time.Time
 }
 
 type Notification struct {
@@ -215,6 +279,7 @@ type Session struct {
 	FamilyID  uuid.UUID
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	MemberID  uuid.NullUUID
 }
 
 type SessionNote struct {
@@ -247,6 +312,24 @@ type SimulatorRound struct {
 	QuestionIds []string
 	CreatedAt   time.Time
 	CompletedAt pgtype.Timestamptz
+}
+
+type StripeEvent struct {
+	ID         string
+	Type       string
+	ReceivedAt time.Time
+}
+
+type Subscription struct {
+	FamilyID             uuid.UUID
+	Tier                 string
+	Status               string
+	StripeCustomerID     *string
+	StripeSubscriptionID *string
+	CheckoutSessionID    string
+	StartedAt            time.Time
+	CurrentPeriodEnd     pgtype.Timestamptz
+	UpdatedAt            time.Time
 }
 
 type UpgradeIntent struct {

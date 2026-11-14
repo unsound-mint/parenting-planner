@@ -8,9 +8,12 @@ import (
 )
 
 func (s *Server) CreateUpgradeIntent(ctx context.Context, req CreateUpgradeIntentRequestObject) (CreateUpgradeIntentResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return CreateUpgradeIntent401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return CreateUpgradeIntent403JSONResponse(errForbidden), nil
 	}
 	in, err := upgrade.Request(ctx, s.pool, familyID, string(req.Body.Tier), s.now(ctx))
 	if err != nil {
