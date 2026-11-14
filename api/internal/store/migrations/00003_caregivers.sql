@@ -7,8 +7,7 @@ CREATE TABLE caregivers (
     id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     family_id     uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
     role          text NOT NULL CHECK (role IN ('grandparent','nanny')),
-    display_name  text NOT NULL,
-    UNIQUE (family_id, role)
+    display_name  text NOT NULL
 );
 
 -- +goose Down

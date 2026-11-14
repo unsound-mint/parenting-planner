@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
+	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
 func (s *Server) GetFamily(ctx context.Context, _ GetFamilyRequestObject) (GetFamilyResponseObject, error) {
@@ -54,7 +55,7 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		out.Parents = append(out.Parents, Parent{Id: m.ID, Role: ParentRole(m.Role), DisplayName: m.DisplayName})
 	}
 	for _, c := range caregivers {
-		out.Caregivers = append(out.Caregivers, Caregiver{Id: c.ID, Role: CaregiverRole(c.Role), DisplayName: c.DisplayName})
+		out.Caregivers = append(out.Caregivers, caregiverOut(c))
 	}
 	for _, c := range children {
 		out.Children = append(out.Children, Child{Id: c.ID, Name: c.Name, BirthDate: openapi_types.Date{Time: c.BirthDate}, AgeMonths: monthsBetween(c.BirthDate, today)})
@@ -68,4 +69,12 @@ func monthsBetween(from, to time.Time) int {
 		m--
 	}
 	return max(m, 0)
+}
+
+func caregiverOut(c store.Caregiver) Caregiver {
+	perms := make([]CaregiverPermission, 0, len(c.Permissions))
+	for _, p := range c.Permissions {
+		perms = append(perms, CaregiverPermission(p))
+	}
+	return Caregiver{Id: c.ID, Role: CaregiverRole(c.Role), DisplayName: c.DisplayName, Permissions: &perms}
 }

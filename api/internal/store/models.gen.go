@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AuditLog struct {
@@ -34,6 +35,7 @@ type Caregiver struct {
 	FamilyID    uuid.UUID
 	Role        string
 	DisplayName string
+	Permissions []string
 }
 
 type Child struct {
@@ -58,6 +60,20 @@ type Immunization struct {
 	SubjectChildID  uuid.NullUUID
 	Vaccine         string
 	GivenOn         time.Time
+}
+
+type Invitation struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	CreatedBy   uuid.UUID
+	Role        string
+	DisplayName string
+	Permissions []string
+	TokenHash   []byte
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+	AcceptedAt  pgtype.Timestamptz
+	RevokedAt   pgtype.Timestamptz
 }
 
 type LabResult struct {

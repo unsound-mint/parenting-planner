@@ -45,7 +45,7 @@ func (q *Queries) CreateCareTeamMember(ctx context.Context, arg CreateCareTeamMe
 }
 
 const createCaregiver = `-- name: CreateCaregiver :one
-INSERT INTO caregivers (family_id, role, display_name) VALUES ($1, $2, $3) RETURNING id, family_id, role, display_name
+INSERT INTO caregivers (family_id, role, display_name) VALUES ($1, $2, $3) RETURNING id, family_id, role, display_name, permissions
 `
 
 type CreateCaregiverParams struct {
@@ -62,6 +62,7 @@ func (q *Queries) CreateCaregiver(ctx context.Context, arg CreateCaregiverParams
 		&i.FamilyID,
 		&i.Role,
 		&i.DisplayName,
+		&i.Permissions,
 	)
 	return i, err
 }
@@ -211,7 +212,7 @@ func (q *Queries) ListCareTeam(ctx context.Context, familyID uuid.UUID) ([]CareT
 }
 
 const listCaregivers = `-- name: ListCaregivers :many
-SELECT id, family_id, role, display_name FROM caregivers WHERE family_id = $1 ORDER BY role
+SELECT id, family_id, role, display_name, permissions FROM caregivers WHERE family_id = $1 ORDER BY role
 `
 
 func (q *Queries) ListCaregivers(ctx context.Context, familyID uuid.UUID) ([]Caregiver, error) {
@@ -228,6 +229,7 @@ func (q *Queries) ListCaregivers(ctx context.Context, familyID uuid.UUID) ([]Car
 			&i.FamilyID,
 			&i.Role,
 			&i.DisplayName,
+			&i.Permissions,
 		); err != nil {
 			return nil, err
 		}

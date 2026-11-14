@@ -102,6 +102,9 @@ func (s *Server) session(next http.Handler) http.Handler {
 var (
 	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
+
+	errNoInvitation   = Error{Code: "not_found", Message: "no such invitation"}
+	errInvitationGone = Error{Code: "invitation_gone", Message: "this invitation expired, was revoked or was already used"}
 )
 
 // errKind tells a handler which typed error response to return.

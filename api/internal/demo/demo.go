@@ -37,7 +37,7 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 	if !ok {
 		return uuid.Nil, "", ErrUnknownTemplate
 	}
-	token, hash, err := newToken()
+	token, hash, err := NewToken()
 	if err != nil {
 		return uuid.Nil, "", err
 	}
@@ -60,7 +60,8 @@ func HashToken(token string) []byte {
 	return h[:]
 }
 
-func newToken() (string, []byte, error) {
+// NewToken returns a random token and its hash, the only form that is stored.
+func NewToken() (string, []byte, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", nil, err
@@ -88,11 +89,11 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	// Helpers who are not parents. They see the baby's care, never a parent's health data.
-	for _, c := range []store.CreateCaregiverParams{
-		{FamilyID: fam.ID, Role: "grandparent", DisplayName: "Linda"},
-		{FamilyID: fam.ID, Role: "nanny", DisplayName: "Maria"},
+	for _, c := range []store.CreateCaregiverWithPermissionsParams{
+		{FamilyID: fam.ID, Role: "grandparent", DisplayName: "Linda", Permissions: []string{"schedule", "feeding", "sleep", "visits", "milestones"}},
+		{FamilyID: fam.ID, Role: "nanny", DisplayName: "Maria", Permissions: []string{"schedule", "feeding", "sleep", "allergies"}},
 	} {
-		if _, err := q.CreateCaregiver(ctx, c); err != nil {
+		if _, err := q.CreateCaregiverWithPermissions(ctx, c); err != nil {
 			return uuid.Nil, err
 		}
 	}
