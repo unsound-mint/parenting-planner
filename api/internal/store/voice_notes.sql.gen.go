@@ -64,6 +64,33 @@ func (q *Queries) CreateVoiceNote(ctx context.Context, arg CreateVoiceNoteParams
 	return i, err
 }
 
+const deleteExcessUnattachedVoiceNotes = `-- name: DeleteExcessUnattachedVoiceNotes :execrows
+DELETE FROM voice_notes v
+WHERE v.family_id = $1 AND v.uploader_member_id = $2 AND v.handoff_id IS NULL
+  AND v.id NOT IN (
+    SELECT k.id FROM voice_notes k
+    WHERE k.family_id = $1 AND k.uploader_member_id = $2 AND k.handoff_id IS NULL
+    ORDER BY k.created_at DESC, k.id DESC
+    LIMIT $3::int
+  )
+`
+
+type DeleteExcessUnattachedVoiceNotesParams struct {
+	FamilyID         uuid.UUID
+	UploaderMemberID uuid.UUID
+	Keep             int32
+}
+
+// An uploader keeps at most @keep notes waiting for a handoff; older ones go
+// first. Bounds what a loop of uploads can store (docs/security-review.md).
+func (q *Queries) DeleteExcessUnattachedVoiceNotes(ctx context.Context, arg DeleteExcessUnattachedVoiceNotesParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteExcessUnattachedVoiceNotes, arg.FamilyID, arg.UploaderMemberID, arg.Keep)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteStaleVoiceNotes = `-- name: DeleteStaleVoiceNotes :execrows
 DELETE FROM voice_notes
 WHERE family_id = $1 AND handoff_id IS NULL AND created_at < $2

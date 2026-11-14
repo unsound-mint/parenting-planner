@@ -1,37 +1,10 @@
-import type { DiaryEntry, MoodScreeningDraft, MoodScreeningResult, ScreeningBand, ScreeningChoice, ScreeningQuestionnaire } from "@/lib/api/types";
+import type { MoodScreeningDraft, MoodScreeningResult, ScreeningBand, ScreeningChoice, ScreeningQuestionnaire } from "@/lib/api/types";
 import { mock } from "../registry";
 import { CHECKED, isoAt, uid } from "./dates";
-import { couple, isNewborn, olderStage } from "../timeline";
 
-// Private journal and mood screening. Nothing is stored: a reload shows the
-// seed again, and the screens keep what you just saved in their own state.
-// Emily (mother) has the diary seed; Jake sees only what she shared with him,
-// without its agenda topic, like the real endpoint.
-
-const diarySeed = (authorId: string): DiaryEntry[] => [
-  {
-    id: uid(450),
-    authorId,
-    writtenAt: isoAt(-1, 22),
-    body: "I keep picturing the birth going wrong. I lie awake running through it. I want to say this out loud to someone who is not Jake yet.",
-    visibility: "private",
-    agendaTopic: "Birth anxiety",
-  },
-  {
-    id: uid(451),
-    authorId,
-    writtenAt: isoAt(-3, 20),
-    body: "Felt the baby kick during the class today. For a minute everything felt calm. Want to remember this one.",
-    visibility: "partner",
-  },
-  {
-    id: uid(452),
-    authorId,
-    writtenAt: isoAt(-6, 21),
-    body: "Back pain again and too tired to cook. Jake did dinner without being asked, which helped more than he knows.",
-    visibility: "private",
-  },
-];
+// Mood screening. Nothing is stored: a reload shows the seed again, and the
+// screens keep what you just saved in their own state. The diary is served by
+// the API and has no mocks.
 
 const epds = (rows: [string, ScreeningChoice[]][]) =>
   rows.map(([text, choices], i) => ({ number: i + 1, text, choices }));
@@ -93,35 +66,6 @@ function band(instrument: "epds" | "phq9", score: number): ScreeningBand {
 }
 
 export const wellbeingMocks = {
-  ...mock("/members/{memberId}/diary-entries", "get", async (ctx) => {
-    const family = await ctx.family();
-    // The demo entries are about the pregnancy; the other families, newborn included, start with an empty journal.
-    if (olderStage(family) || isNewborn(family)) return { items: [] };
-    const { mother } = couple(family);
-    if (ctx.path.memberId === mother.id) return { items: diarySeed(mother.id) };
-    // The partner sees Emily's shared entry, never her topics.
-    return { items: diarySeed(mother.id).filter((e) => e.visibility === "partner").map((e) => ({ ...e, agendaTopic: undefined })) };
-  }),
-  ...mock("/members/{memberId}/diary-entries", "post", (ctx) => ({
-    id: crypto.randomUUID(),
-    authorId: ctx.path.memberId,
-    writtenAt: new Date().toISOString(),
-    body: ctx.body.body,
-    visibility: ctx.body.visibility,
-    ...(ctx.body.agendaTopic ? { agendaTopic: ctx.body.agendaTopic } : {}),
-  })),
-  ...mock("/members/{memberId}/diary-entries/{entryId}", "patch", (ctx) => {
-    const seed = diarySeed(ctx.path.memberId).find((e) => e.id === ctx.path.entryId);
-    return {
-      id: ctx.path.entryId,
-      authorId: ctx.path.memberId,
-      writtenAt: seed?.writtenAt ?? new Date().toISOString(),
-      body: seed?.body ?? "",
-      visibility: ctx.body.visibility,
-      ...(ctx.body.agendaTopic ? { agendaTopic: ctx.body.agendaTopic } : {}),
-    };
-  }),
-
   ...mock("/members/{memberId}/screening-questionnaires", "get", () => ({ items: [epdsQuestionnaire, phqQuestionnaire] })),
   ...mock("/members/{memberId}/mood-screenings", "get", (ctx): { items: MoodScreeningResult[] } => ({
     items: [

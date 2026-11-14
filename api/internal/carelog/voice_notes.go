@@ -21,6 +21,11 @@ const MaxVoiceNoteBytes = 1 << 20
 // UnattachedTTL is how long a note may wait for a handoff before it is deleted.
 const UnattachedTTL = 24 * time.Hour
 
+// MaxUnattached is how many notes one person may have waiting for a handoff.
+// A new upload past it deletes their oldest waiting note, so a loop of 1 MB
+// uploads cannot fill the database. A handoff takes one note.
+const MaxUnattached = 5
+
 // voiceNoteTypes are what browsers' MediaRecorder produces: webm (Chrome,
 // Firefox), mp4 (Safari) and ogg (older Firefox).
 var voiceNoteTypes = map[string]bool{"audio/webm": true, "audio/mp4": true, "audio/ogg": true}
@@ -51,6 +56,12 @@ func CreateVoiceNote(ctx context.Context, pool *pgxpool.Pool, familyID, actor uu
 		q := store.New(tx)
 		if _, err := q.DeleteStaleVoiceNotes(ctx, store.DeleteStaleVoiceNotesParams{
 			FamilyID: familyID, Before: in.CreatedAt.Add(-UnattachedTTL),
+		}); err != nil {
+			return err
+		}
+		// Room for the new note within MaxUnattached.
+		if _, err := q.DeleteExcessUnattachedVoiceNotes(ctx, store.DeleteExcessUnattachedVoiceNotesParams{
+			FamilyID: familyID, UploaderMemberID: actor, Keep: MaxUnattached - 1,
 		}); err != nil {
 			return err
 		}

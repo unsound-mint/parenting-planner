@@ -22,7 +22,7 @@ func (s *Server) UpdatePsychologistAgenda(ctx context.Context, req UpdatePsychol
 	case kind == errNotFound:
 		return UpdatePsychologistAgenda404JSONResponse(errNoMember), nil
 	}
-	a, err := care.UpdateAgenda(ctx, s.pool, familyID, req.MemberId, req.Body.TopicIds, s.now(ctx))
+	a, err := care.UpdateAgenda(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, req.Body.TopicIds, s.now(ctx))
 	if errors.Is(err, care.ErrUnknownTopic) {
 		return UpdatePsychologistAgenda400JSONResponse(errUnknownTopic), nil
 	}
