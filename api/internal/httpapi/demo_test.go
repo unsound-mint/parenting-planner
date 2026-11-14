@@ -1,6 +1,7 @@
 package httpapi_test
 
 import (
+	"context"
 	"net/http"
 	"slices"
 	"testing"
@@ -100,4 +101,56 @@ func TestNewbornPartnerSeesHisOwnMoodItem(t *testing.T) {
 	if got := planIDs(testutil.Parent(t, fam, httpapi.ParentRoleMother)); slices.Contains(got, "low-mood-mother") || slices.Contains(got, "low-mood-partner") {
 		t.Errorf("mother plan = %v, want no low-mood item", got)
 	}
+}
+
+// The same rules give each demo family and each parent a different plan,
+// computed from the seeded data.
+func TestDemoFamilyPlansFollowTheirData(t *testing.T) {
+	c := testutil.New(t)
+	cases := []struct {
+		template        string
+		mother, partner []string
+	}{
+		{"planning", []string{"folic-acid", "mmr-before-pregnancy"}, []string{"tetanus-booster"}},
+		{"newborn", []string{"infant-2-month-vaccines"}, []string{"low-mood-partner", "infant-2-month-vaccines"}},
+		{"preschool", []string{"vision-screen", "preschool-boosters"}, []string{"vision-screen", "preschool-boosters"}},
+	}
+	for _, tc := range cases {
+		fam := c.StartDemo(tc.template)
+		for role, want := range map[httpapi.ParentRole][]string{httpapi.ParentRoleMother: tc.mother, httpapi.ParentRolePartner: tc.partner} {
+			if got := planRuleIDs(c, testutil.Parent(t, fam, role)); !slices.Equal(got, want) {
+				t.Errorf("%s %s plan = %v, want %v", tc.template, role, got, want)
+			}
+		}
+	}
+}
+
+// Recording the data a rule asks for clears the item.
+func TestVisionScreenOnFileClearsThePlanItem(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("preschool")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	if !slices.Contains(planRuleIDs(c, mom), "vision-screen") {
+		t.Fatal("vision-screen missing before the screening is recorded")
+	}
+	_, err := c.Pool.Exec(context.Background(),
+		`INSERT INTO lab_results (family_id, subject_child_id, owner_member_id, visibility, kind, taken_on)
+		 VALUES ($1, $2, $3, 'family', 'vision_screen', $4)`,
+		fam.Id, fam.Children[0].Id, mom.Id, testutil.Now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if slices.Contains(planRuleIDs(c, mom), "vision-screen") {
+		t.Fatal("vision-screen still in the plan after the screening was recorded")
+	}
+}
+
+func planRuleIDs(c *testutil.Client, p httpapi.Parent) []string {
+	var pl httpapi.Plan
+	c.Get("/api/members/"+p.Id.String()+"/plan", http.StatusOK, &pl)
+	ids := []string{}
+	for _, it := range pl.Items {
+		ids = append(ids, it.RuleId)
+	}
+	return ids
 }
