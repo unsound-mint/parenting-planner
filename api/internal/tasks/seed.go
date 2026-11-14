@@ -46,7 +46,9 @@ func SeedPaperwork(ctx context.Context, q *store.Queries, familyID, mother, part
 }
 
 // SeedHospitalBag adds the three bag lists, each item with the parent who packs it.
-func SeedHospitalBag(ctx context.Context, q *store.Queries, familyID, mother, partner uuid.UUID) error {
+// The mother has already packed three of hers, a day ago.
+func SeedHospitalBag(ctx context.Context, q *store.Queries, familyID, mother, partner uuid.UUID, now time.Time) error {
+	packed := 0
 	for _, b := range []struct {
 		bag, title string
 		owner      uuid.UUID
@@ -61,39 +63,93 @@ func SeedHospitalBag(ctx context.Context, q *store.Queries, familyID, mother, pa
 		{"partner", "Hospital paperwork folder", partner},
 	} {
 		bag := b.bag
-		if _, err := q.CreateTask(ctx, store.CreateTaskParams{
+		t, err := q.CreateTask(ctx, store.CreateTaskParams{
 			FamilyID: familyID, Kind: "hospital_bag", Title: b.title, Bag: &bag, AssigneeMemberID: b.owner, CreatedByMemberID: mother,
-		}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// SeedPlanTasks adds a few shared tasks, one of them offered to the other parent.
-func SeedPlanTasks(ctx context.Context, q *store.Queries, familyID, mother, partner uuid.UUID, today time.Time) error {
-	for _, t := range []struct {
-		title   string
-		due     int
-		owner   uuid.UUID
-		offered *uuid.UUID
-	}{
-		{"Book the birth class", 5, partner, nil},
-		{"Install the car seat", 21, mother, &partner},
-		{"Pick a pediatrician", 30, mother, nil},
-	} {
-		due := today.AddDate(0, 0, t.due)
-		created, err := q.CreateTask(ctx, store.CreateTaskParams{
-			FamilyID: familyID, Kind: "task", Title: t.title, DueOn: &due, AssigneeMemberID: t.owner, CreatedByMemberID: t.owner,
 		})
 		if err != nil {
 			return err
 		}
-		if t.offered != nil {
-			if _, err := q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: created.ID, FamilyID: familyID, PendingAssigneeMemberID: uuid.NullUUID{UUID: *t.offered, Valid: true}}); err != nil {
+		if b.owner == mother && packed < 3 {
+			packed++
+			if err := markDone(ctx, q, familyID, t.ID, mother, now.AddDate(0, 0, -1)); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func markDone(ctx context.Context, q *store.Queries, familyID, id, by uuid.UUID, at time.Time) error {
+	_, err := q.SetTaskDone(ctx, store.SetTaskDoneParams{ID: id, FamilyID: familyID, Done: true, DoneAt: ts(at), DoneByMemberID: uuid.NullUUID{UUID: by, Valid: true}})
+	return err
+}
+
+// SeedTask is one free task of a demo family. DueDays counts from today. Creator
+// is who remembered it, which is not always the owner. DoneDaysAgo above 0 means
+// the owner finished it that many days ago.
+type SeedTask struct {
+	Title       string
+	DueDays     int
+	Owner       uuid.UUID
+	Creator     uuid.UUID
+	OfferedTo   *uuid.UUID
+	DoneDaysAgo int
+}
+
+// SeedTasks adds free tasks to the shared plan.
+func SeedTasks(ctx context.Context, q *store.Queries, familyID uuid.UUID, rows []SeedTask, today time.Time) (map[string]uuid.UUID, error) {
+	ids := map[string]uuid.UUID{}
+	for _, r := range rows {
+		due := today.AddDate(0, 0, r.DueDays)
+		created, err := q.CreateTask(ctx, store.CreateTaskParams{
+			FamilyID: familyID, Kind: "task", Title: r.Title, DueOn: &due, AssigneeMemberID: r.Owner, CreatedByMemberID: r.Creator,
+		})
+		if err != nil {
+			return nil, err
+		}
+		ids[r.Title] = created.ID
+		if r.OfferedTo != nil {
+			if _, err := q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: created.ID, FamilyID: familyID, PendingAssigneeMemberID: uuid.NullUUID{UUID: *r.OfferedTo, Valid: true}}); err != nil {
+				return nil, err
+			}
+		}
+		if r.DoneDaysAgo > 0 {
+			if err := markDone(ctx, q, familyID, created.ID, r.Owner, today.AddDate(0, 0, -r.DoneDaysAgo).Add(18*time.Hour)); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return ids, nil
+}
+
+// SeedPlanTasks adds the pregnancy family's shared tasks: most of them
+// remembered by the mother, one offered to the partner, two the partner has
+// finished lately. It returns the day the partner finished the crib (for the
+// thank-you note that goes with it).
+func SeedPlanTasks(ctx context.Context, q *store.Queries, familyID, mother, partner uuid.UUID, today time.Time) error {
+	_, err := SeedTasks(ctx, q, familyID, []SeedTask{
+		{Title: "Book the birth class", DueDays: 5, Owner: partner, Creator: partner},
+		{Title: "Install the car seat", DueDays: 21, Owner: mother, Creator: mother, OfferedTo: &partner},
+		{Title: "Pick a pediatrician", DueDays: 30, Owner: mother, Creator: mother},
+		{Title: "Book the 28-week checkup", DueDays: 12, Owner: mother, Creator: mother},
+		{Title: "Call the clinic about the glucose test", DueDays: 8, Owner: mother, Creator: mother},
+		{Title: "Buy newborn diapers and wipes", DueDays: 35, Owner: partner, Creator: mother},
+		{Title: "Order the crib", DueDays: -2, Owner: partner, Creator: mother, DoneDaysAgo: CribDoneDaysAgo},
+	}, today)
+	return err
+}
+
+// CribDoneDaysAgo is when the partner finished the crib in the pregnancy seed;
+// the seeded thank-you note names that day.
+const CribDoneDaysAgo = 2
+
+// SeedBabyTasks adds the newborn family's shared tasks.
+func SeedBabyTasks(ctx context.Context, q *store.Queries, familyID, mother, partner uuid.UUID, today time.Time) error {
+	_, err := SeedTasks(ctx, q, familyID, []SeedTask{
+		{Title: "Book the 2-month checkup", DueDays: 6, Owner: mother, Creator: mother},
+		{Title: "Call the insurer about the baby's coverage", DueDays: 9, Owner: partner, Creator: mother},
+		{Title: "Buy the next size of diapers", DueDays: 3, Owner: partner, Creator: mother},
+		{Title: "Order a sleep sack", DueDays: 10, Owner: mother, Creator: mother},
+	}, today)
+	return err
 }
