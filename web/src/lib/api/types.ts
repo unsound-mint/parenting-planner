@@ -156,3 +156,6 @@ export type BabyName = S["BabyName"];
 export type BabyNameList = S["BabyNameList"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+||||||| 61418c3
+export type Journey = S["Journey"];
+export type JourneyStage = S["JourneyStage"];
