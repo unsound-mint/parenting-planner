@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
+	"github.com/unsound-mint/parenting-planner/api/internal/upgrade"
 )
 
 func (s *Server) GetFamily(ctx context.Context, _ GetFamilyRequestObject) (GetFamilyResponseObject, error) {
@@ -34,10 +35,13 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	if err != nil {
 		return Family{}, err
 	}
-	today := s.today()
+	// The family row's offset, not the session's: right after a skip or a new
+	// demo, the request context still holds the old value.
+	today := s.realToday().AddDate(0, 0, int(fam.DemoOffsetDays))
+	daysAhead := int(fam.DemoOffsetDays)
 	out := Family{
-		Id: fam.ID, Template: DemoTemplate(fam.Template), Stage: Stage(fam.Stage),
-		Parents: make([]Parent, 0, len(members)), Children: make([]Child, 0, len(children)),
+		Id: fam.ID, Template: DemoTemplate(fam.Template), Stage: Stage(fam.Stage), DemoDaysAhead: &daysAhead,
+		Parents: make([]Parent, 0, len(members)), Caregivers: []Caregiver{}, Children: make([]Child, 0, len(children)),
 	}
 	if fam.DueDate != nil {
 		out.DueDate = &openapi_types.Date{Time: *fam.DueDate}
@@ -45,6 +49,20 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		if w, ok := f.GestationalWeek(); ok {
 			out.GestationalWeek = &w
 		}
+	}
+	// Caregivers are not stored yet: the seed and a table come with the backend half of #1.
+
+	// There is no billing, so every family stays on free; an upgrade intent
+	// only shows as "upgrade requested".
+	tier := TierFree
+	out.Tier = &tier
+	intent, ok, err := upgrade.Current(ctx, s.q, id)
+	if err != nil {
+		return Family{}, err
+	}
+	if ok {
+		req := upgradeIntentOut(intent)
+		out.UpgradeRequest = &req
 	}
 	for _, m := range members {
 		out.Parents = append(out.Parents, Parent{Id: m.ID, Role: ParentRole(m.Role), DisplayName: m.DisplayName})

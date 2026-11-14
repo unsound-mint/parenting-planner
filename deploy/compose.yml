@@ -3,6 +3,7 @@
 # Secrets live in deploy/.env on the server (git-ignored, chmod 600, survives
 # deploy.sh's git reset because it is untracked). Compose reads it automatically.
 #   POSTGRES_PASSWORD=...   required
+#   SENTRY_DSN=...          optional; API error reports, unset means none are sent
 #   ANTHROPIC_API_KEY=...   optional; without it the AI plan is off and the
 #                           rule plan shows on its own
 #   ANTHROPIC_MODEL=...     optional model id override for the AI plan
@@ -32,6 +33,7 @@ services:
       postgres: { condition: service_healthy }
     environment:
       DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
+      SENTRY_DSN: ${SENTRY_DSN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
     ports: ["127.0.0.1:8792:8080"]

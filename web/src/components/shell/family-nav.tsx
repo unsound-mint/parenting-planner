@@ -1,40 +1,110 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Route, type LucideIcon } from "lucide-react";
+import { Baby, CalendarCheck, CalendarDays, Ellipsis, GraduationCap, HeartHandshake, IdCard, Route, Search, ShieldCheck, Target, UsersRound, type LucideIcon } from "lucide-react";
+import { canOpen, isCaregiver, type Role } from "@/lib/roles";
+import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 
-// Only screens that work are listed (organizer rule: hide what does not work).
-// Add an entry here when its route lands.
-const items: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "", label: "This week", icon: CalendarCheck },
-  { href: "/journey", label: "Journey", icon: Route },
-];
+type Group = "daily" | "care" | "more";
+type Item = { href: string; screen: string; label: string; icon: LucideIcon; group: Group };
 
-export function FamilyNav({ memberId }: { memberId: string }) {
+// Grouped by how often a parent opens them: the daily screens, then care and
+// records, then the rest. On phones the daily group is the bar and the rest
+// sit behind More. Each role sees only the screens canOpen() allows (lib/roles.ts).
+const items: Item[] = [
+  { href: "", screen: "", label: "This week", icon: CalendarCheck, group: "daily" },
+  { href: "/plan", screen: "plan", label: "Plan", icon: planIcon, group: "daily" },
+  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "daily" },
+  { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "daily" },
+  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake, group: "care" },
+  { href: "/passport", screen: "passport", label: "Passport", icon: IdCard, group: "care" },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Search, group: "care" },
+  { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "more" },
+  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more" },
+  { href: "/learn", screen: "learn", label: "Learn", icon: GraduationCap, group: "more" },
+  { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
+  { href: "/settings", screen: "settings", label: "Privacy", icon: ShieldCheck, group: "more" },
+];
+const GROUPS: Group[] = ["daily", "care", "more"];
+
+// A phone bar fits five entries at 390px without wrapping or scrolling.
+const PHONE_SLOTS = 5;
+
+const linkClass = (active: boolean) =>
+  cn(
+    "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-caption whitespace-nowrap transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
+    active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+  );
+
+// hasPlan is false while GET tasks does not answer 200 (501 in production without preview mocks): no Plan entry then.
+// hidden: other screens whose endpoint refuses this person (403, 404) or is not built and has no preview mock.
+// Phones get one row: the most used entries, then More, which opens the rest in place.
+export function FamilyNav({ memberId, role, hasPlan, hidden = [], childName }: { memberId: string; role: Role; hasPlan: boolean; hidden?: string[]; childName?: string }) {
   const pathname = usePathname();
+  // Open for one path only, so the panel closes after navigating.
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const moreOpen = openAt === pathname;
   const base = `/family/${memberId}`;
+  const visible = items.filter((item) => canOpen(role, item.screen) && (item.screen !== "plan" || hasPlan) && !hidden.includes(item.screen));
+  const isActive = (item: Item) => (item.href === "" ? pathname === base : pathname.startsWith(base + item.href));
+  // Past toddler age the Baby screen is the child's own: it carries their name.
+  const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.screen === "baby" && childName ? childName : item.label);
+  const fits = visible.length <= PHONE_SLOTS;
+  const bar = fits ? visible : visible.filter((i) => i.group === "daily").slice(0, PHONE_SLOTS - 1);
+  const more = fits ? [] : visible.filter((i) => !bar.includes(i));
+  const moreActive = more.some(isActive);
+
+  const link = (item: Item, className?: string) => (
+    <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={cn(linkClass(isActive(item)), className)}>
+      <item.icon className="size-4.5 shrink-0" aria-hidden />
+      {label(item)}
+    </Link>
+  );
+
   return (
-    <nav aria-label="Family" className="flex gap-1 md:flex-col">
-      {items.map((item) => {
-        const href = base + item.href;
-        const active = pathname === href;
-        return (
-          <Link
-            key={item.href}
-            href={href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-label transition-colors duration-150",
-              active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
+    <nav aria-label="Family">
+      <div className="hidden flex-col md:flex">
+        {GROUPS.map((g) => {
+          const group = visible.filter((i) => i.group === g);
+          return group.length ? (
+            <div key={g} className="flex flex-col gap-1 border-border not-first:mt-3 not-first:border-t not-first:pt-3">
+              {group.map((item) => link(item))}
+            </div>
+          ) : null;
+        })}
+      </div>
+      <div className="flex gap-1 md:hidden">
+        {bar.map((item) => link(item))}
+        {more.length > 0 && (
+          <button
+            type="button"
+            aria-expanded={moreOpen}
+            aria-controls="nav-more"
+            onClick={() => setOpenAt(moreOpen ? null : pathname)}
+            className={linkClass(moreActive || moreOpen)}
           >
-            <item.icon className="size-4.5 shrink-0" aria-hidden />
-            {item.label}
-          </Link>
-        );
-      })}
+            <Ellipsis className="size-4.5 shrink-0" aria-hidden />
+            More
+          </button>
+        )}
+      </div>
+      {more.length > 0 && (
+        <div
+          id="nav-more"
+          inert={!moreOpen}
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out) md:hidden",
+            moreOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="mt-1 grid grid-cols-4 gap-1 border-t border-border pt-2">{more.map((item) => link(item))}</div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

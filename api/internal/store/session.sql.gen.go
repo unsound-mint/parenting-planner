@@ -28,12 +28,19 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 }
 
 const getSessionFamily = `-- name: GetSessionFamily :one
-SELECT family_id FROM sessions WHERE token_hash = $1 AND expires_at > now()
+SELECT s.family_id, f.demo_offset_days
+FROM sessions s JOIN families f ON f.id = s.family_id
+WHERE s.token_hash = $1 AND s.expires_at > now()
 `
 
-func (q *Queries) GetSessionFamily(ctx context.Context, tokenHash []byte) (uuid.UUID, error) {
+type GetSessionFamilyRow struct {
+	FamilyID       uuid.UUID
+	DemoOffsetDays int32
+}
+
+func (q *Queries) GetSessionFamily(ctx context.Context, tokenHash []byte) (GetSessionFamilyRow, error) {
 	row := q.db.QueryRow(ctx, getSessionFamily, tokenHash)
-	var family_id uuid.UUID
-	err := row.Scan(&family_id)
-	return family_id, err
+	var i GetSessionFamilyRow
+	err := row.Scan(&i.FamilyID, &i.DemoOffsetDays)
+	return i, err
 }

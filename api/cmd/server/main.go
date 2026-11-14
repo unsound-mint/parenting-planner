@@ -12,6 +12,7 @@ import (
 
 	"github.com/unsound-mint/parenting-planner/api/internal/ai"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
+	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -25,6 +26,14 @@ func main() {
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	// Error reports go to Sentry only when SENTRY_DSN is set; see
+	// internal/monitor for what is scrubbed before sending.
+	flush, err := monitor.Init(os.Getenv("SENTRY_DSN"), "production")
+	if err != nil {
+		return err
+	}
+	defer flush()
 
 	dbURL := env("DATABASE_URL", "postgres://parenting:parenting@localhost:5433/parenting?sslmode=disable")
 	pool, err := store.Open(ctx, dbURL)

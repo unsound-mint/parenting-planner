@@ -34,6 +34,48 @@ func TestGestationalWeek(t *testing.T) {
 	if w, _ := pregnantAt(25, Mother).GestationalWeek(); w != 25 {
 		t.Fatalf("got week %d, want 25", w)
 	}
+	// daysToDue is the due date minus today; 280 is the first counted day.
+	cases := []struct {
+		name      string
+		today     time.Time
+		daysToDue int
+		want      int
+		ok        bool
+	}{
+		{"first counted day", today, 280, 0, true},
+		{"last day of week 0", today, 274, 0, true},
+		{"first day of week 1", today, 273, 1, true},
+		{"last day of week 24", today, 106, 24, true},
+		{"first day of week 25", today, 105, 25, true},
+		{"due date", today, 0, 40, true},
+		{"one day past due", today, -1, 40, true},
+		{"two weeks past due", today, -14, 42, true},
+		{"day before the counted start", today, 281, 0, false},
+		{"due date years away", today, 1000, 0, false},
+		{"across a leap day", day(2028, 3, 1), 140, 20, true},
+		{"today given late in the day", today.Add(23*time.Hour + 59*time.Minute), 273, 1, true},
+		{"today given in another zone", time.Date(2026, 11, 14, 1, 0, 0, 0, time.FixedZone("UTC+5", 5*3600)), 273, 1, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			y, m, d := c.today.Date()
+			due := time.Date(y, m, d, 0, 0, 0, 0, time.UTC).AddDate(0, 0, c.daysToDue)
+			f := Facts{Today: c.today, Stage: "pregnancy", DueDate: &due}
+			w, ok := f.GestationalWeek()
+			if w != c.want || ok != c.ok {
+				t.Errorf("got (%d, %v), want (%d, %v)", w, ok, c.want, c.ok)
+			}
+		})
+	}
+	due := today.AddDate(0, 0, 100)
+	for name, f := range map[string]Facts{
+		"no due date":      {Today: today, Stage: "pregnancy"},
+		"not in pregnancy": {Today: today, Stage: "newborn", DueDate: &due},
+	} {
+		if _, ok := f.GestationalWeek(); ok {
+			t.Errorf("%s: want no week", name)
+		}
+	}
 }
 
 func TestGlucoseScreen(t *testing.T) {
@@ -165,5 +207,33 @@ func TestLowMoodGoesToTheRightParent(t *testing.T) {
 	items := Plan(All(), mom)
 	if find(items, "low-mood-mother") == nil || find(items, "low-mood-partner") != nil {
 		t.Fatalf("mother's low mood must produce low-mood-mother only, got %+v", items)
+	}
+}
+
+func TestNextPsychologistSession(t *testing.T) {
+	daysAgo := func(n int) *time.Time { d := today.AddDate(0, 0, -n); return &d }
+	cases := []struct {
+		name   string
+		viewer Role
+		noteAt *time.Time
+		booked bool
+		want   bool
+	}{
+		{"no note yet", Mother, nil, false, false},
+		{"note written, nothing booked", Mother, daysAgo(2), false, true},
+		{"note written, next session booked", Mother, daysAgo(2), true, false},
+		{"note older than the window", Mother, daysAgo(20), false, false},
+		{"the partner's own note", Partner, daysAgo(1), false, true},
+	}
+	for _, c := range cases {
+		f := pregnantAt(25, c.viewer)
+		f.LastSessionNoteAt, f.NextSessionBooked = c.noteAt, c.booked
+		it := find(Plan(All(), f), "psychologist-next-session")
+		if (it != nil) != c.want {
+			t.Errorf("%s: got %+v, want applied=%v", c.name, it, c.want)
+		}
+		if it != nil && (it.Status != Due || it.Category != MentalHealth) {
+			t.Errorf("%s: got %+v, want a due mental health item", c.name, it)
+		}
 	}
 }
