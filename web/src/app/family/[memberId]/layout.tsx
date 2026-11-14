@@ -100,7 +100,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             upgrade={family.tier === "free"}
             planLabel={`${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           />
-          <Link href="/pricing" className="order-4 text-label max-md:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
+          <Link href="/pricing" className="order-4 text-label max-[1399px]:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
             {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           </Link>
           <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
