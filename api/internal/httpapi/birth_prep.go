@@ -18,3 +18,7 @@ func (s *Server) CreateLabourAlert(_ context.Context, _ CreateLabourAlertRequest
 func (s *Server) GetAppointmentPrep(_ context.Context, _ GetAppointmentPrepRequestObject) (GetAppointmentPrepResponseObject, error) {
 	return GetAppointmentPrep501JSONResponse(Error{Code: "not_implemented", Message: "appointment prep is not available yet"}), nil
 }
+
+func (s *Server) SaveAppointmentNote(_ context.Context, _ SaveAppointmentNoteRequestObject) (SaveAppointmentNoteResponseObject, error) {
+	return SaveAppointmentNote501JSONResponse(Error{Code: "not_implemented", Message: "visit notes are not available yet"}), nil
+}
