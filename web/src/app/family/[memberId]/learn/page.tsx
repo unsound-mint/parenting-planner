@@ -96,6 +96,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
 
       {items.length > 0 && (
         <LearnBoard
+          key={memberId}
           memberId={memberId}
           couple={couple}
           initialPaths={items}

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { Check, ChevronDown, LifeBuoy, Lock, MessageCircleHeart } from "lucide-react";
 import type { LearningPath, Lesson, Parent } from "@/lib/api/types";
@@ -59,6 +59,8 @@ function LessonItem({
   pathTitle,
 }: Omit<Props, "path" | "openId" | "pathParty"> & { lesson: Lesson; n: number; state: LessonState; open: boolean; pathTitle?: string }) {
   const now = useFamilyNow();
+  // MotionConfig drops transforms under reduced motion, not height: the reader then only fades.
+  const reduce = useReducedMotion();
   const { me, them } = couple;
   const theirs = readOf(lesson, them?.id);
   const writtenFor = onlyFor(lesson);
@@ -118,9 +120,9 @@ function LessonItem({
         {open && (
           <motion.div
             key="reader"
-            initial={{ height: 0, opacity: 0 }}
+            initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
             transition={{ height: spring.ui, opacity: { duration: 0.2, ease: ease.out } }}
             className="overflow-hidden"
           >

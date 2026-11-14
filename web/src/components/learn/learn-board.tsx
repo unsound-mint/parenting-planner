@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import type { LearningPath, Lesson, QuizQuestion } from "@/lib/api/types";
@@ -39,13 +39,18 @@ type Props = {
 export function LearnBoard({ memberId, couple, initialPaths, initialPathId, initialLessonId, talked: initialTalked, helpHref }: Props) {
   const { me, them } = couple;
   const [paths, setPaths] = useState(initialPaths);
-  const lessonPath = initialLessonId ? initialPaths.find((p) => p.lessons.some((l) => l.id === initialLessonId)) : undefined;
+  // A locked lesson cannot be opened, even from a link.
+  const lessonPath = initialLessonId ? initialPaths.find((p) => p.lessons.some((l) => l.id === initialLessonId && !l.locked)) : undefined;
   const [pathId, setPathId] = useState(() => lessonPath?.id ?? initialPaths.find((p) => p.id === initialPathId)?.id ?? heroPath(initialPaths, me)?.id ?? "");
   const [openId, setOpenId] = useState<string | undefined>(lessonPath ? initialLessonId : undefined);
   const [talked, setTalked] = useState(initialTalked);
   const [justFinished, setJustFinished] = useState<Set<string>>(new Set());
   const [pathParty, setPathParty] = useState<string | null>(null);
   const [switched, setSwitched] = useState(false);
+  // Query inside this board only: Next keeps the previous parent's page mounted
+  // but hidden (Activity), so a document-wide id lookup can find its copy.
+  const root = useRef<HTMLDivElement>(null);
+  const find = (selector: string) => root.current?.querySelector<HTMLElement>(selector);
 
   const path = paths.find((p) => p.id === pathId) ?? paths[0];
   if (!path) return null;
@@ -67,7 +72,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     syncUrl(p.id);
     // Bring the new hero into view when the list was scrolled past it (long pages, phones).
     requestAnimationFrame(() => {
-      const hero = document.getElementById("path-hero");
+      const hero = find("#path-hero");
       if (hero && hero.getBoundingClientRect().top < 0) hero.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
     });
   }
@@ -86,7 +91,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
 
   function openLesson(lesson: Lesson) {
     if (openId !== lesson.id) toggle(lesson);
-    requestAnimationFrame(() => document.getElementById(`lesson-${lesson.id}`)?.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" }));
+    requestAnimationFrame(() => find(`#lesson-${lesson.id}`)?.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" }));
   }
 
   async function mark(lesson: Lesson, finished: boolean) {
@@ -168,7 +173,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
   const party = pathParty === path.id;
 
   return (
-    <div className="grid min-w-0 items-start gap-6 @4xl:grid-cols-[17rem_minmax(0,1fr)] @7xl:grid-cols-[20rem_minmax(0,1fr)_24rem] @[100rem]:grid-cols-[20.5rem_minmax(0,1fr)_26rem]">
+    <div ref={root} className="grid min-w-0 items-start gap-6 @4xl:grid-cols-[17rem_minmax(0,1fr)] @7xl:grid-cols-[20rem_minmax(0,1fr)_24rem] @[100rem]:grid-cols-[20.5rem_minmax(0,1fr)_26rem]">
       <Rise i={1} className="min-w-0 @4xl:sticky @4xl:top-4">
         <PathList paths={paths} couple={couple} currentId={path.id} onPick={pickPath} />
       </Rise>
