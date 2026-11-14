@@ -8,7 +8,20 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AppointmentQuestion struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	AppointmentID uuid.UUID
+	Text          string
+	AnsweredAt    pgtype.Timestamptz
+	Answer        *string
+	CreatedAt     time.Time
+}
 
 type AuditLog struct {
 	ID            int64
@@ -18,6 +31,20 @@ type AuditLog struct {
 	Entity        string
 	EntityID      *string
 	At            time.Time
+}
+
+type CalendarEvent struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.NullUUID
+	Visibility    string
+	Kind          string
+	Title         string
+	StartsAt      time.Time
+	EndsAt        pgtype.Timestamptz
+	AllDay        bool
+	Location      *string
+	CreatedAt     time.Time
 }
 
 type CareTeam struct {

@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -130,5 +131,45 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 			return uuid.Nil, err
 		}
 	}
+	if err := seedObVisits(ctx, q, fam.ID, mom.ID, today); err != nil {
+		return uuid.Nil, err
+	}
 	return fam.ID, nil
+}
+
+// Emily's OB visit a week ago left one question unanswered (private, so only
+// she sees it); it shows under her next visit in five days as carried over,
+// next to a new question she shared with Jake.
+func seedObVisits(ctx context.Context, q *store.Queries, familyID, momID uuid.UUID, today time.Time) error {
+	visit := func(daysFromToday int) (store.CalendarEvent, error) {
+		start := today.AddDate(0, 0, daysFromToday).Add(15 * time.Hour)
+		return q.CreateCalendarEvent(ctx, store.CreateCalendarEventParams{
+			FamilyID: familyID, OwnerMemberID: uuid.NullUUID{UUID: momID, Valid: true}, Visibility: "family",
+			Kind: "appointment", Title: "OB visit with Dr. Shah", StartsAt: start, EndsAt: pgtype.Timestamptz{Time: start.Add(45 * time.Minute), Valid: true},
+			Location: ptr("Riverbend Women's Hospital"),
+		})
+	}
+	past, err := visit(-7)
+	if err != nil {
+		return err
+	}
+	next, err := visit(5)
+	if err != nil {
+		return err
+	}
+	for _, c := range []struct {
+		appointment uuid.UUID
+		visibility  string
+		text        string
+	}{
+		{past.ID, "private", "Is the back pain at night normal, or should I mention it to Dr. Shah again?"},
+		{next.ID, "partner", "When should we call the clinic, and when do we go to the hospital?"},
+	} {
+		if _, err := q.CreateAppointmentQuestion(ctx, store.CreateAppointmentQuestionParams{
+			FamilyID: familyID, OwnerMemberID: momID, Visibility: c.visibility, AppointmentID: c.appointment, Text: c.text,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
