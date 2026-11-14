@@ -134,6 +134,8 @@ Shared building blocks for the joyful screens live in `web/src/components/joy/`:
 | `PartnerChip`, `Avatar` | A person's initial in their colour, alone or with a short note ("Jake saved it for you"). |
 | `motion.ts` | `ease`, `duration`, `stagger`, `spring` and `tap` for Motion components. |
 
+Two family-circle surfaces build on them. `components/share/` holds the share card: the PNG comes from the `week-card` route handler (`/family/<id>/week-card`, private and never cached, fonts in `web/assets/share-card`), and `ShareWeekButton` opens it in a dialog with the Web Share API and a download fallback. `components/postcard/` holds the grandparent postcard: `PostcardCard` (flip-in, Send love with a heart burst), `PostcardStudio` for the parents' weekly line, and `LoveInboxSlot` and `PostcardSlot` for This week.
+
 The frame is in `components/shell/`: `family-nav.tsx` holds the side nav and the phone tab bar.
 
 ## Libraries

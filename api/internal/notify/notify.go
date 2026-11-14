@@ -39,6 +39,7 @@ const (
 	InvitationAccepted  Kind = "invitation_accepted"
 	SubscriptionStarted Kind = "subscription_started"
 	LabourStarted       Kind = "labour_started"
+	LoveSent            Kind = "love_sent"
 )
 
 // Window is how far back List looks; Limit is the most it returns.

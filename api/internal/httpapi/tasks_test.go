@@ -34,17 +34,17 @@ func TestTasksListIsOneModelWithKindsAndOrder(t *testing.T) {
 	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
 
 	all := taskList(c, mom.Id, "")
-	if len(all) != 14 { // 3 paperwork, 8 bag, 3 plan tasks
-		t.Fatalf("want 14 items, got %d", len(all))
+	if len(all) != 18 { // 3 paperwork, 8 bag, 7 plan tasks
+		t.Fatalf("want 18 items, got %d", len(all))
 	}
-	if got := taskList(c, jake.Id, ""); len(got) != 14 {
+	if got := taskList(c, jake.Id, ""); len(got) != 18 {
 		t.Errorf("both parents see the same list, partner got %d", len(got))
 	}
 	counts := map[httpapi.TaskKind]int{}
 	for _, it := range all {
 		counts[it.Kind]++
 	}
-	if counts[httpapi.TaskKindPaperwork] != 3 || counts[httpapi.TaskKindHospitalBag] != 8 || counts[httpapi.TaskKindTask] != 3 {
+	if counts[httpapi.TaskKindPaperwork] != 3 || counts[httpapi.TaskKindHospitalBag] != 8 || counts[httpapi.TaskKindTask] != 7 {
 		t.Errorf("kinds = %v", counts)
 	}
 	if n := len(taskList(c, mom.Id, "?kind=hospital_bag")); n != 8 {
