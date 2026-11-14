@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -125,10 +126,18 @@ func CreateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p 
 // Summary is the latest of each kind and who has the baby now.
 type Summary struct {
 	LastFeed, LastSleep, LastDiaper *store.CareLogEntry
-	OnDuty                          *store.Handoff // the last accepted handoff, nil when none
+	OnDuty                          *OnDuty // nil when nobody is known to have the baby
 }
 
-func summary(ctx context.Context, q *store.Queries, familyID uuid.UUID) (Summary, error) {
+// OnDuty is who has the baby now: the receiver of the last accepted handoff, or
+// the person whose shift covers now when no handoff came after the shift began.
+type OnDuty struct {
+	MemberID uuid.UUID
+	Since    time.Time
+	Via      string // "handoff" or "shift"
+}
+
+func summary(ctx context.Context, q *store.Queries, familyID uuid.UUID, now time.Time) (Summary, error) {
 	var s Summary
 	for kind, dst := range map[string]**store.CareLogEntry{"feed": &s.LastFeed, "sleep": &s.LastSleep, "diaper": &s.LastDiaper} {
 		e, err := q.LatestCareLogEntry(ctx, store.LatestCareLogEntryParams{FamilyID: familyID, Kind: kind})
@@ -141,10 +150,25 @@ func summary(ctx context.Context, q *store.Queries, familyID uuid.UUID) (Summary
 		*dst = &e
 	}
 	h, err := q.LastAcceptedHandoff(ctx, familyID)
-	if err == nil {
-		s.OnDuty = &h
-	} else if !errors.Is(err, pgx.ErrNoRows) {
+	switch {
+	case err == nil && h.AcceptedAt.Valid:
+		s.OnDuty = &OnDuty{MemberID: h.ToMemberID, Since: h.AcceptedAt.Time, Via: "handoff"}
+	case err != nil && !errors.Is(err, pgx.ErrNoRows):
 		return s, err
+	}
+	active, err := q.ListActiveShifts(ctx, familyID)
+	if err != nil {
+		return s, err
+	}
+	for _, sh := range active {
+		o, ok := shifts.Current(sh, now)
+		if !ok {
+			continue
+		}
+		// A handoff accepted after the shift began wins; otherwise the latest-starting shift does.
+		if s.OnDuty == nil || (s.OnDuty.Via == "shift" && o.Start.After(s.OnDuty.Since)) || (s.OnDuty.Via == "handoff" && o.Start.After(s.OnDuty.Since)) {
+			s.OnDuty = &OnDuty{MemberID: sh.MemberID, Since: o.Start, Via: "shift"}
+		}
 	}
 	return s, nil
 }
@@ -160,7 +184,7 @@ func ListEntries(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p 
 		if err != nil {
 			return err
 		}
-		if sum, err = summary(ctx, q, familyID); err != nil {
+		if sum, err = summary(ctx, q, familyID, now); err != nil {
 			return err
 		}
 		return audit(ctx, q, familyID, p, access.ActionRead, entityEntry, "")
@@ -221,7 +245,7 @@ func ListHandoffs(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p
 		if err != nil {
 			return err
 		}
-		if sum, err = summary(ctx, q, familyID); err != nil {
+		if sum, err = summary(ctx, q, familyID, now); err != nil {
 			return err
 		}
 		return audit(ctx, q, familyID, p, access.ActionRead, entityHandoff, "")
@@ -252,7 +276,7 @@ func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 		if err != nil {
 			return err
 		}
-		if sum, err = summary(ctx, q, familyID); err != nil {
+		if sum, err = summary(ctx, q, familyID, now); err != nil {
 			return err
 		}
 		return audit(ctx, q, familyID, p, access.ActionUpdate, entityHandoff, id.String())
@@ -261,6 +285,6 @@ func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 }
 
 // LatestSummary is the latest of each kind and who is on duty, read on its own.
-func LatestSummary(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID) (Summary, error) {
-	return summary(ctx, store.New(pool), familyID)
+func LatestSummary(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) (Summary, error) {
+	return summary(ctx, store.New(pool), familyID, now)
 }

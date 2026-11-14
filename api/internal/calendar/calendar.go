@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -52,6 +53,7 @@ type Event struct {
 	OwnerID     *uuid.UUID
 	AttendeeIDs []uuid.UUID
 	Visibility  string
+	ShiftID     *uuid.UUID
 }
 
 type NewEvent struct {
@@ -165,6 +167,11 @@ func ListForParent(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uui
 			}
 			out = append(out, ev)
 		}
+		shiftEvents, err := shiftEvents(ctx, q, familyID, viewer, scope, from, to)
+		if err != nil {
+			return err
+		}
+		out = append(out, shiftEvents...)
 		if scope != Partner { // psychologist sessions are the owner's own, always private
 			sessions, err := ownSessions(ctx, q, familyID, viewer, from, to)
 			if err != nil {
@@ -206,6 +213,45 @@ func ownSessions(ctx context.Context, q *store.Queries, familyID, viewer uuid.UU
 	return out, nil
 }
 
+// shiftEvents turns active shifts into one event per occurrence. mine is the
+// viewer's own; partner is the other parent's; family is everyone's.
+func shiftEvents(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, scope Scope, from, to time.Time) ([]Event, error) {
+	active, err := q.ListActiveShifts(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	parents, err := q.ListMembers(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	isParent := map[uuid.UUID]bool{}
+	for _, p := range parents {
+		isParent[p.ID] = true
+	}
+	var out []Event
+	for _, sh := range active {
+		switch {
+		case scope == Mine && sh.MemberID != viewer, scope == Partner && (sh.MemberID == viewer || !isParent[sh.MemberID]):
+			continue
+		}
+		out = append(out, occurrenceEvents(sh, from, to)...)
+	}
+	return out, nil
+}
+
+func occurrenceEvents(sh store.Shift, from, to time.Time) []Event {
+	var out []Event
+	for _, o := range shifts.Occurrences(sh, from, to) {
+		owner, id := sh.MemberID, sh.ID
+		end := o.End
+		out = append(out, Event{
+			ID: sh.ID.String() + ":" + o.Date.Format("2006-01-02"), Kind: "shift", Title: sh.Title,
+			StartsAt: o.Start, EndsAt: &end, OwnerID: &owner, AttendeeIDs: []uuid.UUID{owner}, Visibility: "family", ShiftID: &id,
+		})
+	}
+	return out
+}
+
 // ListForCaregiver returns the events a grandparent or nanny attends. It never
 // includes a parent's appointments or private events.
 func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, from, to time.Time) ([]Event, error) {
@@ -225,5 +271,16 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 			StartsAt: r.StartsAt, EndsAt: r.EndsAt, AllDay: r.AllDay, Location: r.Location,
 		}, r.AttendeeIds))
 	}
+	// Their own shifts too.
+	active, err := store.New(pool).ListActiveShifts(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	for _, sh := range active {
+		if sh.MemberID == viewer {
+			out = append(out, occurrenceEvents(sh, from, to)...)
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool { return out[i].StartsAt.Before(out[j].StartsAt) })
 	return out, nil
 }
