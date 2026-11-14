@@ -1385,6 +1385,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/safety-reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pregnancy and breastfeeding reference for common foods and over-the-counter medicines
+         * @description Educational, sourced and not personal: each entry gives a calm
+         *     general reading (ok, limit, avoid, ask) with one line why, for
+         *     pregnancy and, where a source was opened, for breastfeeding. It
+         *     never says something is safe for the reader and has no doses. Every
+         *     medicine entry has `ask`, the line that sends the question to a
+         *     pharmacist or clinician. Entries cite the pages they paraphrase with
+         *     the date each was checked. `learn` points at an existing nutrition
+         *     lesson so fish and fridge advice is not repeated here.
+         *
+         *     General reference content: any member of the family may read it and
+         *     it carries no health record. The same list for every family.
+         */
+        get: operations["listSafetyReference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/pregnancy-weeks/{week}": {
         parameters: {
             query?: never;
@@ -4310,6 +4340,43 @@ export interface components {
             /** @description The rule plan item this point comes from, when it has one. */
             ruleId?: string;
             source?: components["schemas"]["Source"];
+        };
+        SafetyReferenceList: {
+            items: components["schemas"]["SafetyEntry"][];
+        };
+        SafetyEntry: {
+            /** @example soft-cheese */
+            id: string;
+            /** @enum {string} */
+            category: "food" | "medicine";
+            /** @description The group a filter chip is built from ("Dairy and eggs", "Pain and fever"). */
+            topic: string;
+            name: string;
+            /** @description Brand names and other words people search for. */
+            aliases: string[];
+            pregnancy: components["schemas"]["SafetyAdvice"];
+            breastfeeding?: components["schemas"]["SafetyAdvice"];
+            /**
+             * @description Present on every medicine entry; the screen ends the entry with it.
+             * @example Ask your pharmacist, OB or midwife, or other clinician before you take it.
+             */
+            ask?: string;
+            learn?: components["schemas"]["SafetyLearnLink"];
+            sources: components["schemas"]["Source"][];
+        };
+        SafetyAdvice: {
+            /**
+             * @description ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your OB, midwife or pharmacist.
+             * @enum {string}
+             */
+            status: "ok" | "limit" | "avoid" | "ask";
+            /** @description One plain line. Never a personal approval. */
+            why: string;
+        };
+        /** @description A nutrition lesson that covers the same topic, opened with /learn?path=...&lesson=... */
+        SafetyLearnLink: {
+            pathId: string;
+            lessonId: string;
         };
         StageNow: {
             stage: components["schemas"]["JourneyStage"];
@@ -10293,6 +10360,55 @@ export interface operations {
             };
             /** @description Error */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listSafetyReference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafetyReferenceList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
