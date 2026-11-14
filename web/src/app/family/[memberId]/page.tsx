@@ -6,32 +6,43 @@ import { familyNow } from "@/lib/clock";
 import { dayKey, daysUntilInstant, formatClock, formatShortDate } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
+import { familyPeople } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { BabyHome } from "@/components/baby/baby-home";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
 import { LossSupport } from "@/components/loss/loss-support";
 import { Rise } from "@/components/joy/rise";
 import type { Mood } from "@/components/joy/mood-face";
-import { PageFrame } from "@/components/shell/page";
+import { PageFrame, PageGrid } from "@/components/shell/page";
+import { See3DLink } from "@/components/baby-3d/see-3d-link";
+import { labLine } from "@/components/lab/lab-link";
+import { ShareWeekButton } from "@/components/share/share-week-button";
+import { pregnancyShareLine } from "@/lib/share";
 import { optional } from "@/components/today/slots";
 import type { CalmRow } from "@/components/week/calm-list";
 import { CalmSlot } from "@/components/week/calm-slot";
 import { LossHero, PregnancyHero, StageHero } from "@/components/week/hero";
 import { QuickJournal } from "@/components/week/quick-journal";
 import { ReadTogether } from "@/components/week/read-together";
-import { bagByPerson, journalPrompt, journalStarters, pickReads } from "@/components/week/this-week";
+import { bagByPerson, journalPrompt, journalStarters, pickMission, pickReads } from "@/components/week/this-week";
 import { TogetherCard } from "@/components/week/together-card";
+import { TwoOfYou } from "@/components/week/two-of-you";
+import { WeekMission } from "@/components/week/week-mission";
+import { WeekThanks } from "@/components/week/week-thanks";
 
 // This week: one hero (the baby's size in pregnancy, what is happening now in
-// other stages), then at most two rows: reads and "Tonight, together"; the
-// quick journal and the calm list of practical things. Everything is the
-// family's live data or a typed preview mock while an endpoint answers 501.
+// other stages, with the 3D baby and "Share this week" under it), then two
+// rows: reads and "Tonight, together"; the quick journal and the calm list of
+// practical things. A third row holds what the two of you do this week: one
+// mission, one suggested thank-you, and the "For the two of you" links (labor
+// coach late in pregnancy, virtual baby, Compatibility Lab, money), grouped in
+// one list rather than a card each. Everything is the family's live data.
 //
 // Each fact has one place: the hero owns the baby and the stage; the calm list
 // owns plan items, the next visit (with its questions) and the hospital bag;
 // mood is only the journal's faces. The plan page ("See all") has the rest.
-// DOM order is the phone order (hero, journal, reads, together, calm list);
-// from a wide column the cells are placed in two rows by grid position.
+// DOM order is the phone order (hero, journal, reads, together, calm list,
+// then the third row); from a wide column the cells are placed by grid position.
 export default function WeekPage({ params }: PageProps<"/family/[memberId]">) {
   return (
     <Suspense fallback={<WeekFallback />}>
@@ -74,7 +85,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const late = pregnant && week >= LATE_PREGNANCY_WEEK;
   const sizeWeek = (w: number) => optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week: w } } }));
 
-  const [{ data: plan }, { data: checkins }, { data: patterns }, questions, card, start, end, stageNow, paths, together, names, bag, birthPlan, shifts] =
+  const beforeBirth = ["pregnancy", "planning", "trying"].includes(family.stage);
+  const [{ data: plan }, { data: checkins }, { data: patterns }, questions, card, start, end, stageNow, paths, together, names, bag, birthPlan, shifts, missions, thanks, lab] =
     await Promise.all([
       api.GET("/members/{memberId}/plan", path),
       api.GET("/members/{memberId}/mood-checkins", path),
@@ -89,11 +101,15 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       !loss ? optional(api.GET("/members/{memberId}/learning-paths", path)) : undefined,
       !loss && partner ? optional(api.GET("/members/{memberId}/together", path)) : undefined,
       // Names are for before the birth: pregnancy, or dreaming while planning.
-      !loss && partner && ["pregnancy", "planning", "trying"].includes(family.stage) ? optional(api.GET("/members/{memberId}/baby-names", path)) : undefined,
+      !loss && partner && beforeBirth ? optional(api.GET("/members/{memberId}/baby-names", path)) : undefined,
       pregnant ? optional(api.GET("/members/{memberId}/tasks", { params: { path: { memberId }, query: { kind: "hospital_bag" } } })) : undefined,
       // The bag row links to "Going to the hospital" only when that screen has data, so it never opens a 404.
       pregnant ? optional(api.GET("/members/{memberId}/birth-plan", path)) : undefined,
       late ? optional(api.GET("/members/{memberId}/shifts", path)) : undefined,
+      !loss ? optional(api.GET("/members/{memberId}/missions", path)) : undefined,
+      !loss && partner ? optional(api.GET("/members/{memberId}/thanks/suggestions", path)) : undefined,
+      // The lab compares two parents' answers, before the birth.
+      !loss && partner && beforeBirth ? optional(api.GET("/members/{memberId}/lab", path)) : undefined,
     ]);
   if (!plan) notFound();
 
@@ -157,13 +173,37 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     ) : null;
   const second = hasReads || togetherCard ? "@5xl:row-start-2" : "@5xl:row-start-1";
 
+  // Sharing needs the week card's picture: the size in pregnancy, the stage's "now" otherwise.
+  const shareLine = pregnant ? (card?.size ? pregnancyShareLine(week, card.size.comparison) : undefined) : stageNow?.headline;
+  const actions =
+    pregnant || shareLine ? (
+      <>
+        {pregnant && <See3DLink memberId={memberId} week={week} />}
+        {shareLine && <ShareWeekButton memberId={memberId} shareLine={shareLine} suggestedNickname={family.children[0]?.name} />}
+      </>
+    ) : undefined;
+
+  const mission = missions && pickMission(missions.items) ? missions.items : undefined;
+  const thank = thanks?.items[0];
+  const twoOfYou = (
+    <TwoOfYou
+      memberId={memberId}
+      labor={late ? family : undefined}
+      virtualBaby={pregnant}
+      labLine={lab && partner ? labLine(lab.cards, partner.displayName) : undefined}
+      money
+      together={!!partner}
+      after={(mission ? 1 : 0) + (thank ? 1 : 0)}
+    />
+  );
+
   return (
     <PageFrame className="gap-6 @4xl:gap-7">
       <Rise i={0}>
         {pregnant ? (
-          <PregnancyHero family={family} week={week} card={card} ends={[start?.size?.comparison, end?.size?.comparison]} partnerName={partner?.displayName} now={now} />
+          <PregnancyHero family={family} week={week} card={card} ends={[start?.size?.comparison, end?.size?.comparison]} partnerName={partner?.displayName} now={now} actions={actions} />
         ) : (
-          <StageHero family={family} now={now} stageNow={stageNow} />
+          <StageHero family={family} now={now} stageNow={stageNow} actions={actions} />
         )}
       </Rise>
 
@@ -187,6 +227,20 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
           </Rise>
         )}
       </div>
+
+      <PageGrid cols={3}>
+        {mission && (
+          <Rise i={5} className="min-w-0">
+            <WeekMission memberId={memberId} items={mission} people={family.parents} className="h-full" />
+          </Rise>
+        )}
+        {thank && (
+          <Rise i={6} className="min-w-0">
+            <WeekThanks memberId={memberId} suggestion={thank} people={familyPeople(family)} />
+          </Rise>
+        )}
+        {twoOfYou}
+      </PageGrid>
     </PageFrame>
   );
 }
