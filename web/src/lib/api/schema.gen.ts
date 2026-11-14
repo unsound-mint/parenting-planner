@@ -876,6 +876,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/library-topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The Questions library, the family's current age first
+         * @description Every topic of the library (the research atlas: what parents wonder
+         *     about from planning to age 9), placed against the family's position:
+         *     the gestational week, the youngest child's age, or "getting ready"
+         *     for planning and trying. Topics whose age span covers now come first
+         *     (now true, the narrowest span on top), then topics starting within
+         *     three months (soon true), then the rest in age order. The list
+         *     carries no body text; getLibraryTopic has it. Every topic has an
+         *     evidence label so a theory or a folk belief never reads as medical
+         *     advice. No answer is generated: the text is our plain writing from
+         *     the cited pages. Mother and partner; a grandparent or nanny gets 404.
+         */
+        get: operations["listLibraryTopics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/library-topics/{topicId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One library topic with what to know, what to do and its sources
+         * @description The full topic. urgent topics are shown next to the fixed Urgent help
+         *     screen. Mother and partner; a grandparent or nanny gets 404, and so
+         *     does an unknown topic id.
+         */
+        get: operations["getLibraryTopic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/now": {
         parameters: {
             query?: never;
@@ -4027,6 +4078,52 @@ export interface components {
              */
             question?: string;
             shift?: components["schemas"]["ShiftSuggestion"];
+        };
+        /**
+         * @description How strong the evidence is. guideline = an official body recommends
+         *     it; research = studies, no formal guideline; contested = experts
+         *     disagree; theory = a historical framework (Freud, Vygotsky, Piaget),
+         *     not medical advice; folk = a popular belief, with what evidence shows.
+         * @enum {string}
+         */
+        LibraryEvidence: "guideline" | "research" | "contested" | "theory" | "folk";
+        LibraryTopicSummary: {
+            id: string;
+            title: string;
+            /** @description How parents ask it, the most common first. Search matches these. */
+            questions: string[];
+            /** @description health, safety, decisions, development, learning, feeding, emotions, behavior, family, sleep, admin, teeth, parent-wellbeing or social. */
+            category: string;
+            evidence: components["schemas"]["LibraryEvidence"];
+            /**
+             * @description The age span as a parent reads it, for example "Weeks 24 to 28" or "1 to 3 years".
+             * @example 1 to 3 years
+             */
+            ages: string;
+            /** @description The span covers the family's position. */
+            now: boolean;
+            /** @description The span starts within the next three months. */
+            soon: boolean;
+            /** @description The topic has urgent signs; the UI links the fixed Urgent help screen. */
+            urgent: boolean;
+        };
+        LibraryTopicList: {
+            /** @description Where the family is, for example "Week 25 of pregnancy" or "4 years old". */
+            position: string;
+            items: components["schemas"]["LibraryTopicSummary"][];
+        };
+        LibraryStep: {
+            when: string;
+            action: string;
+        };
+        LibraryTopic: components["schemas"]["LibraryTopicSummary"] & {
+            whatToKnow: string;
+            whatToDo: components["schemas"]["LibraryStep"][];
+            /** @description When to ask the family's own clinician. Never a diagnosis. */
+            askClinicianIf?: string;
+            evidenceNote: string;
+            sources: components["schemas"]["Source"][];
+            related: components["schemas"]["LibraryTopicSummary"][];
         };
         GuideList: {
             /** @description Most relevant first. */
@@ -7537,6 +7634,105 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listLibraryTopics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryTopicList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLibraryTopic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryTopic"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
