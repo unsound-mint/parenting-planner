@@ -15,6 +15,8 @@ import {
   HandHeart,
   ConciergeBell,
   ClipboardCheck,
+  ClipboardList,
+  FileText,
   Droplet,
   Flower2,
   Footprints,
@@ -49,7 +51,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { AllergyCertainty, CalendarEventKind, CareRole, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility } from "@/lib/api/types";
+import type { AllergyCertainty, CalendarEventKind, CareRole, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -274,4 +276,18 @@ export const roleTint: Record<Role, string> = {
   partner: "border-l-partner bg-partner/10",
   grandparent: "border-l-grandparent bg-grandparent/10",
   nanny: "border-l-nanny bg-nanny/10",
+};
+
+/** The Plan screen: its nav entry, the paperwork timeline and the three hospital bags. */
+export const planIcon: LucideIcon = ClipboardList;
+export const paperworkIcon: LucideIcon = FileText;
+export const bagIcon: Record<HospitalBag, LucideIcon> = {
+  mother: Heart,
+  partner: HeartHandshake,
+  baby: Baby,
+};
+export const bagLabel: Record<HospitalBag, string> = {
+  mother: "Mom's bag",
+  partner: "Partner's bag",
+  baby: "Baby's bag",
 };

@@ -71,3 +71,5 @@ export type SimulatorRound = S["SimulatorRound"];
 export type SimulatorQuestion = S["SimulatorQuestion"];
 export type SimulatorAnswerResult = S["SimulatorAnswerResult"];
 export type SimulatorRoundResult = S["SimulatorRoundResult"];
+export type TaskKind = S["TaskKind"];
+export type HospitalBag = S["HospitalBag"];
