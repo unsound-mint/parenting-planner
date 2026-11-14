@@ -18,7 +18,7 @@ const figtree = Figtree({
   subsets: ["latin"],
 });
 
-// Sources, checked dates and values are set in mono.
+// Values are set in mono.
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],

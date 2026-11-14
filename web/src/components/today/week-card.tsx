@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Baby, BookOpen, ChevronDown, ListChecks, Lock, Ruler, Scale } from "lucide-react";
 import type { Guide, PregnancyWeek } from "@/lib/api/types";
-import { firstSentence, formatLongDate } from "@/lib/format";
+import { firstSentence } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SourceLink } from "@/components/joy/source-line";
 
 const FULL_TERM = 40;
 // Trimester boundaries, in completed weeks, for the ticks on the progress bar.
@@ -149,8 +150,8 @@ export function WeekCard({ card, withWeek = true }: { card: PregnancyWeek; withW
         </div>
       )}
 
-      <p className="mt-5 font-mono text-caption text-muted-foreground">
-        Demo content, not medical advice. Source: {card.source.title}, checked {formatLongDate(card.source.checkedAt)}
+      <p className="mt-5 text-caption">
+        <SourceLink source={card.source} />
       </p>
     </section>
   );

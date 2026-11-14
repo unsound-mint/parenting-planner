@@ -20,6 +20,7 @@ import { postcardMocks } from "./fixtures/postcard";
 import { passportMocks } from "./fixtures/passport";
 import { peopleMocks } from "./fixtures/people";
 import { portraitMocks } from "./fixtures/portraits";
+import { pregnancyGrowthMocks } from "./fixtures/pregnancy-growth";
 import { pricingMocks } from "./fixtures/pricing";
 import { scheduleMocks } from "./fixtures/schedule";
 import { simulatorMocks } from "./fixtures/simulator";
@@ -54,6 +55,7 @@ const tables: MockTable[] = [
   peopleMocks,
   postcardMocks,
   portraitMocks,
+  pregnancyGrowthMocks,
   pricingMocks,
   taskMocks,
   todayMocks,
