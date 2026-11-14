@@ -17,7 +17,7 @@ So the product is now a joyful journey for both parents, not a list of due items
 
 1. One hero per screen, at most two rows under it. The hero is the baby, the path or the composer, not a status sentence.
 2. No empty screens. Never "Nothing yet": show a starter (chips, a suggested first entry, a sample the user can take over) or a preview mock.
-3. Every health fact carries its source and checked date, in a `SourceLine`. The AI never diagnoses.
+3. Health facts may carry a quiet inline source link (`SourceLink` or `SourceLine`, never a date or a footer list). Crisis and urgent screens carry none. The AI never diagnoses.
 4. Status colours: on track (leaf), upcoming (slate), due (ochre), overdue (clay). Overdue is never red. Red (`urgent`) is only for urgent symptoms and the crisis path.
 5. Urgent help sits in the frame of every family screen. It opens a fixed screen with hotlines, never generated text, and never animates (no press, no transition, never inside `Rise`).
 6. Two parents, two accents. `me` is the acting person, `them` the other parent; each person also keeps a fixed colour (`mom`, `partner`, caregivers neutral) for avatars and ownership.
@@ -40,7 +40,7 @@ Type scale. Use only these utilities, defined in `globals.css`:
 | `text-title` | 19 / 24 | Fraunces, SOFT 100 | Card, lesson and entry titles. |
 | `text-body` | 16 / 24 | Figtree | Running text. |
 | `text-label` | 14 / 20 | Figtree 500 | Controls, chips, list secondary lines. |
-| `text-caption` | 12 / 16 | Figtree | Timestamps, axis ticks; with `font-mono` for sources and dates. |
+| `text-caption` | 12 / 16 | Figtree | Timestamps, axis ticks; with `font-mono` for values. |
 
 The `cn` helper in `lib/utils.ts` knows these as font sizes; add any new level there too.
 
@@ -58,7 +58,7 @@ The `cn` helper in `lib/utils.ts` knows these as font sizes; add any new level t
 
 Family screens use the width of the screen they are on. The parts live in `web/src/components/shell/page.tsx`.
 
-1. The frame: a 248 px side nav (This week, Learn, Journal and care; then Calendar, Baby, Baby passport, People), a top bar (parent switch, stage label, demo controls, Urgent help) and the page. On phones the nav is a floating bottom tab bar (This week, Learn, Journal, More), and the column leaves room under it. Plan, Journey, Practice, Find help and Privacy are not in the nav: This week, Learn, Journal and care, and People link to them.
+1. The frame: a 248 px side nav (This week, Learn, Journal and care; then Calendar, Baby, Baby passport, People; then Privacy and Settings), a top bar (parent switch, stage label, demo controls, Urgent help) and the page. On phones the nav is a floating bottom tab bar (This week, Learn, Journal, More), and the column leaves room under it. Plan, Journey, Practice and Find help are not in the nav: This week, Learn and Journal and care link to them.
 2. The family layout caps the header and the page together at `max-w-page` (1600 px of content plus padding). A page never sets its own `max-w` on its wrapper.
 3. Every page renders `PageFrame` as its `<main>`. Independent cards go in a `PageGrid`: one column on phones, two from `@4xl`, three from `@7xl` with `cols={3}`. These are container queries on the family column, not viewport breakpoints. Use the width to put related things side by side, not to stretch one card.
 4. DOM order is the phone order. Columns come from grouping, spans and grid placement, never from reordering.
@@ -86,7 +86,7 @@ All tokens live in `web/src/app/globals.css`; use them through Tailwind. Never h
 
 The family layout sets `data-acting="<role>"` on its frame, and a `:root:has([data-acting=...])` rule swaps `me` and `them`, so popovers and toasts take the accent too. Outside the family area the accent is the mother's. Text pairs were computed at WCAG AA or better (muted on paper 5.7, mom on mom-soft 4.9, partner on partner-soft 5.2, leaf on leaf-soft 5.3). There is no dark theme for now.
 
-Fonts, loaded with `next/font` in `app/layout.tsx`: Fraunces (variable, with the SOFT, WONK and opsz axes) for display, headline and title; Figtree for UI and body; JetBrains Mono for sources, dates and values.
+Fonts, loaded with `next/font` in `app/layout.tsx`: Fraunces (variable, with the SOFT, WONK and opsz axes) for display, headline and title; Figtree for UI and body; JetBrains Mono for values.
 
 ## Motion
 
