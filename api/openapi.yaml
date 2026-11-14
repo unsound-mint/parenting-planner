@@ -1511,7 +1511,7 @@ paths:
       description: |
         Every provider is synthetic demo data. The directory is the same for
         every family and holds no personal records, so any parent in the session
-        may read it. Sorted by next available date, soonest first.
+        may read it. Sorted by name; open times come from listProviderSlots.
       parameters:
         - name: type
           in: query
@@ -1545,31 +1545,71 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /members/{memberId}/booking-requests:
+  /members/{memberId}/provider-slots:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listProviderSlots
+      tags: [directory]
+      summary: Open times with directory providers, next 14 days
+      description: |
+        Synthetic availability, stored per family; there is no real provider
+        integration. Soonest first. A time is left out when the acting parent
+        booked it, or when anyone in the family booked it and shared the
+        booking; the partner's private bookings hide nothing, so this list
+        never reveals them.
+      parameters:
+        - name: providerId
+          in: query
+          required: false
+          description: Only this provider's times.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSlotList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/provider-bookings:
     parameters:
       - $ref: "#/components/parameters/MemberId"
     post:
-      operationId: createBookingRequest
+      operationId: createProviderBooking
       tags: [directory]
-      summary: The acting parent asks a provider for an appointment
+      summary: The acting parent books an open time with a provider
       description: |
-        Saves a request with status requested; nothing is sent to a real
-        provider. A request is sensitive: it can reveal that a parent is seeking
-        care, so only the parent who made it can see it, never the partner.
-        Asking the same provider twice returns 409.
+        Nothing is sent to a real provider. The parent chooses who sees the
+        booking: private (only them) or family (their partner too, and it is on
+        the shared calendar). Returns 409 slot_taken if the time is gone.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BookingRequestInput"
+              $ref: "#/components/schemas/ProviderBookingInput"
       responses:
         "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BookingRequest"
+                $ref: "#/components/schemas/ProviderBooking"
         "400":
           description: Error
           content:
@@ -1595,17 +1635,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     get:
-      operationId: listBookingRequests
+      operationId: listProviderBookings
       tags: [directory]
-      summary: The acting parent's own booking requests
-      description: Only requests made by this parent, newest first. The partner's requests are never included.
+      summary: Bookings the acting parent may see, from 30 days ago on
+      description: |
+        The parent's own bookings and the ones their partner shared with the
+        family. Soonest first, so the next visit leads; past ones (up to 30
+        days) come first and are marked by their time.
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BookingRequestList"
+                $ref: "#/components/schemas/ProviderBookingList"
         "401":
           description: Error
           content:
@@ -1619,6 +1662,80 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/provider-bookings/{bookingId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: bookingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateProviderBooking
+      tags: [directory]
+      summary: Move a booking to another open time, or change who sees it or its note
+      description: |
+        Only the parent who booked it. slotId must be an open future time with
+        the same provider (409 slot_taken otherwise). A booking that has
+        started cannot move (409 booking_started).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderBookingUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderBooking"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteProviderBooking
+      tags: [directory]
+      summary: Cancel a booking; its time opens again
+      description: Only the parent who booked it.
+      responses:
+        "204":
+          description: Cancelled
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/mood-patterns:
     get:
       operationId: listMoodPatterns
@@ -7907,7 +8024,7 @@ components:
     ProviderType:
       type: string
       description: What kind of care the provider offers.
-      enum: [perinatal_therapist, psychologist, doula, lactation_consultant, sleep_consultant, child_therapist, tutor]
+      enum: [perinatal_therapist, psychologist, doula, lactation_consultant, sleep_consultant, child_therapist, tutor, pediatrician, obstetrician]
 
     UsState:
       type: string
@@ -7917,7 +8034,7 @@ components:
 
     Provider:
       type: object
-      required: [id, name, type, city, state, languages, nextAvailable, priceUsd, summary]
+      required: [id, name, type, city, state, languages, priceUsd, summary, credentials, bio, visitModes, sessionMinutes]
       properties:
         id:
           type: string
@@ -7935,15 +8052,26 @@ components:
           items:
             type: string
           example: [English, Spanish]
-        nextAvailable:
-          type: string
-          format: date
         priceUsd:
           type: integer
           description: Price of one session in US dollars.
         summary:
           type: string
           description: One plain sentence on what this provider helps with.
+        credentials:
+          type: string
+          example: IBCLC
+        bio:
+          type: string
+          description: Two or three plain sentences for the profile.
+        visitModes:
+          type: array
+          items:
+            type: string
+            enum: [in_person, video, home]
+        sessionMinutes:
+          type: integer
+          description: Length of one visit.
 
     ProviderList:
       type: object
@@ -7954,26 +8082,67 @@ components:
           items:
             $ref: "#/components/schemas/Provider"
 
-    BookingRequestInput:
+    ProviderSlot:
       type: object
-      required: [providerId]
+      required: [id, providerId, startsAt, durationMinutes]
       properties:
+        id:
+          type: string
+          format: uuid
         providerId:
           type: string
           format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+
+    ProviderSlotList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Soonest first.
+          items:
+            $ref: "#/components/schemas/ProviderSlot"
+
+    BookingVisibility:
+      type: string
+      description: private = only the parent who booked; family = their partner too, on the shared calendar.
+      enum: [private, family]
+
+    ProviderBookingInput:
+      type: object
+      required: [slotId, visibility]
+      properties:
+        slotId:
+          type: string
+          format: uuid
+        visibility:
+          $ref: "#/components/schemas/BookingVisibility"
         note:
           type: string
           maxLength: 500
-          description: Optional message for the provider.
+          description: Optional note for the visit (what to bring up).
 
-    BookingRequestStatus:
-      type: string
-      description: Only requested exists for now; the demo never confirms a booking.
-      enum: [requested]
-
-    BookingRequest:
+    ProviderBookingUpdate:
       type: object
-      required: [id, memberId, providerId, status, createdAt]
+      description: Every field optional; absent means unchanged. An empty note clears it.
+      properties:
+        slotId:
+          type: string
+          format: uuid
+        visibility:
+          $ref: "#/components/schemas/BookingVisibility"
+        note:
+          type: string
+          maxLength: 500
+
+    ProviderBooking:
+      type: object
+      required: [id, memberId, providerId, providerName, startsAt, durationMinutes, visibility, createdAt]
       properties:
         id:
           type: string
@@ -7981,27 +8150,33 @@ components:
         memberId:
           type: string
           format: uuid
-          description: The parent who made the request.
+          description: The parent who booked; only they can move or cancel it.
         providerId:
           type: string
           format: uuid
-        status:
-          $ref: "#/components/schemas/BookingRequestStatus"
+        providerName:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        visibility:
+          $ref: "#/components/schemas/BookingVisibility"
         note:
           type: string
         createdAt:
           type: string
           format: date-time
 
-    BookingRequestList:
+    ProviderBookingList:
       type: object
       required: [items]
       properties:
         items:
           type: array
-          description: Newest first.
           items:
-            $ref: "#/components/schemas/BookingRequest"
+            $ref: "#/components/schemas/ProviderBooking"
 
     Passport:
       type: object
@@ -9538,8 +9713,10 @@ components:
       description: |
         appointment, class, reminder and other are stored events; shift is
         one occurrence of an active shift; task is a task due date;
-        psychologist_session is the owner's own booking, always private.
-      enum: [appointment, class, reminder, other, shift, task, psychologist_session]
+        psychologist_session is the owner's own booking, always private;
+        provider_visit is a directory booking (the owner's own, or the
+        partner's when they shared it with the family).
+      enum: [appointment, class, reminder, other, shift, task, psychologist_session, provider_visit]
 
     CalendarEventInputKind:
       type: string

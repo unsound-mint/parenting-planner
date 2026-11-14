@@ -860,7 +860,7 @@ export interface paths {
          * Providers in the ecosystem directory, optionally filtered
          * @description Every provider is synthetic demo data. The directory is the same for
          *     every family and holds no personal records, so any parent in the session
-         *     may read it. Sorted by next available date, soonest first.
+         *     may read it. Sorted by name; open times come from listProviderSlots.
          */
         get: operations["listProviders"];
         put?: never;
@@ -871,7 +871,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/members/{memberId}/booking-requests": {
+    "/members/{memberId}/provider-slots": {
         parameters: {
             query?: never;
             header?: never;
@@ -890,23 +890,97 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * The acting parent's own booking requests
-         * @description Only requests made by this parent, newest first. The partner's requests are never included.
+         * Open times with directory providers, next 14 days
+         * @description Synthetic availability, stored per family; there is no real provider
+         *     integration. Soonest first. A time is left out when the acting parent
+         *     booked it, or when anyone in the family booked it and shared the
+         *     booking; the partner's private bookings hide nothing, so this list
+         *     never reveals them.
          */
-        get: operations["listBookingRequests"];
+        get: operations["listProviderSlots"];
         put?: never;
-        /**
-         * The acting parent asks a provider for an appointment
-         * @description Saves a request with status requested; nothing is sent to a real
-         *     provider. A request is sensitive: it can reveal that a parent is seeking
-         *     care, so only the parent who made it can see it, never the partner.
-         *     Asking the same provider twice returns 409.
-         */
-        post: operations["createBookingRequest"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/provider-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Bookings the acting parent may see, from 30 days ago on
+         * @description The parent's own bookings and the ones their partner shared with the
+         *     family. Soonest first, so the next visit leads; past ones (up to 30
+         *     days) come first and are marked by their time.
+         */
+        get: operations["listProviderBookings"];
+        put?: never;
+        /**
+         * The acting parent books an open time with a provider
+         * @description Nothing is sent to a real provider. The parent chooses who sees the
+         *     booking: private (only them) or family (their partner too, and it is on
+         *     the shared calendar). Returns 409 slot_taken if the time is gone.
+         */
+        post: operations["createProviderBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/provider-bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cancel a booking; its time opens again
+         * @description Only the parent who booked it.
+         */
+        delete: operations["deleteProviderBooking"];
+        options?: never;
+        head?: never;
+        /**
+         * Move a booking to another open time, or change who sees it or its note
+         * @description Only the parent who booked it. slotId must be an open future time with
+         *     the same provider (409 slot_taken otherwise). A booking that has
+         *     started cannot move (409 booking_started).
+         */
+        patch: operations["updateProviderBooking"];
         trace?: never;
     };
     "/members/{memberId}/mood-patterns": {
@@ -4283,7 +4357,7 @@ export interface components {
          * @description What kind of care the provider offers.
          * @enum {string}
          */
-        ProviderType: "perinatal_therapist" | "psychologist" | "doula" | "lactation_consultant" | "sleep_consultant" | "child_therapist" | "tutor";
+        ProviderType: "perinatal_therapist" | "psychologist" | "doula" | "lactation_consultant" | "sleep_consultant" | "child_therapist" | "tutor" | "pediatrician" | "obstetrician";
         /**
          * @description Two-letter US state code.
          * @example CA
@@ -4303,45 +4377,74 @@ export interface components {
              *     ]
              */
             languages: string[];
-            /** Format: date */
-            nextAvailable: string;
             /** @description Price of one session in US dollars. */
             priceUsd: number;
             /** @description One plain sentence on what this provider helps with. */
             summary: string;
+            /** @example IBCLC */
+            credentials: string;
+            /** @description Two or three plain sentences for the profile. */
+            bio: string;
+            visitModes: ("in_person" | "video" | "home")[];
+            /** @description Length of one visit. */
+            sessionMinutes: number;
         };
         ProviderList: {
             items: components["schemas"]["Provider"][];
         };
-        BookingRequestInput: {
+        ProviderSlot: {
+            /** Format: uuid */
+            id: string;
             /** Format: uuid */
             providerId: string;
-            /** @description Optional message for the provider. */
-            note?: string;
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+        };
+        ProviderSlotList: {
+            /** @description Soonest first. */
+            items: components["schemas"]["ProviderSlot"][];
         };
         /**
-         * @description Only requested exists for now; the demo never confirms a booking.
+         * @description private = only the parent who booked; family = their partner too, on the shared calendar.
          * @enum {string}
          */
-        BookingRequestStatus: "requested";
-        BookingRequest: {
+        BookingVisibility: "private" | "family";
+        ProviderBookingInput: {
+            /** Format: uuid */
+            slotId: string;
+            visibility: components["schemas"]["BookingVisibility"];
+            /** @description Optional note for the visit (what to bring up). */
+            note?: string;
+        };
+        /** @description Every field optional; absent means unchanged. An empty note clears it. */
+        ProviderBookingUpdate: {
+            /** Format: uuid */
+            slotId?: string;
+            visibility?: components["schemas"]["BookingVisibility"];
+            note?: string;
+        };
+        ProviderBooking: {
             /** Format: uuid */
             id: string;
             /**
              * Format: uuid
-             * @description The parent who made the request.
+             * @description The parent who booked; only they can move or cancel it.
              */
             memberId: string;
             /** Format: uuid */
             providerId: string;
-            status: components["schemas"]["BookingRequestStatus"];
+            providerName: string;
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+            visibility: components["schemas"]["BookingVisibility"];
             note?: string;
             /** Format: date-time */
             createdAt: string;
         };
-        BookingRequestList: {
-            /** @description Newest first. */
-            items: components["schemas"]["BookingRequest"][];
+        ProviderBookingList: {
+            items: components["schemas"]["ProviderBooking"][];
         };
         Passport: {
             /**
@@ -5258,10 +5361,12 @@ export interface components {
         /**
          * @description appointment, class, reminder and other are stored events; shift is
          *     one occurrence of an active shift; task is a task due date;
-         *     psychologist_session is the owner's own booking, always private.
+         *     psychologist_session is the owner's own booking, always private;
+         *     provider_visit is a directory booking (the owner's own, or the
+         *     partner's when they shared it with the family).
          * @enum {string}
          */
-        CalendarEventKind: "appointment" | "class" | "reminder" | "other" | "shift" | "task" | "psychologist_session";
+        CalendarEventKind: "appointment" | "class" | "reminder" | "other" | "shift" | "task" | "psychologist_session" | "provider_visit";
         /** @enum {string} */
         CalendarEventInputKind: "appointment" | "class" | "reminder" | "other";
         /**
@@ -8708,7 +8813,59 @@ export interface operations {
             };
         };
     };
-    listBookingRequests: {
+    listProviderSlots: {
+        parameters: {
+            query?: {
+                /** @description Only this provider's times. */
+                providerId?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderSlotList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listProviderBookings: {
         parameters: {
             query?: never;
             header?: never;
@@ -8734,7 +8891,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BookingRequestList"];
+                    "application/json": components["schemas"]["ProviderBookingList"];
                 };
             };
             /** @description Error */
@@ -8757,7 +8914,7 @@ export interface operations {
             };
         };
     };
-    createBookingRequest: {
+    createProviderBooking: {
         parameters: {
             query?: never;
             header?: never;
@@ -8777,7 +8934,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["BookingRequestInput"];
+                "application/json": components["schemas"]["ProviderBookingInput"];
             };
         };
         responses: {
@@ -8787,7 +8944,127 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BookingRequest"];
+                    "application/json": components["schemas"]["ProviderBooking"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteProviderBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cancelled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateProviderBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderBookingUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderBooking"];
                 };
             };
             /** @description Error */

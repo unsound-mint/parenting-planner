@@ -220,6 +220,7 @@ type Family struct {
 	PregnancyLossOccurredOn   *time.Time
 	PregnancyLossPriorStage   *string
 	PregnancyLossPriorDueDate *time.Time
+	ProviderSlotsThrough      *time.Time
 }
 
 type GrowthMeasurement struct {
@@ -464,6 +465,29 @@ type Provider struct {
 	AvailableInDays int16
 	PriceUsd        int32
 	Summary         string
+	Credentials     string
+	Bio             string
+	VisitModes      []string
+	OpeningsPct     int16
+	SessionMinutes  int16
+}
+
+type ProviderBooking struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	SlotID        uuid.UUID
+	Note          *string
+	CreatedAt     time.Time
+}
+
+type ProviderSlot struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	ProviderID      uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
 }
 
 type Psychologist struct {

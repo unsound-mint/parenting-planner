@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/directory"
 	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -192,6 +193,11 @@ func ListForParent(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uui
 			return err
 		}
 		out = append(out, taskEvents...)
+		visits, err := providerVisits(ctx, q, familyID, viewer, scope, from, to)
+		if err != nil {
+			return err
+		}
+		out = append(out, visits...)
 		if scope != Partner { // psychologist sessions are the owner's own, always private
 			sessions, err := ownSessions(ctx, q, familyID, viewer, from, to)
 			if err != nil {
@@ -228,6 +234,34 @@ func ownSessions(ctx context.Context, q *store.Queries, familyID, viewer uuid.UU
 		out = append(out, Event{
 			ID: b.ID.String(), Kind: "psychologist_session", Title: "Session with " + names[b.PsychologistID],
 			StartsAt: b.StartsAt, EndsAt: &end, OwnerID: &owner, AttendeeIDs: []uuid.UUID{}, Visibility: "private",
+		})
+	}
+	return out, nil
+}
+
+// providerVisits are directory bookings the viewer may see (directory.ListVisible
+// applies access.CanParentRead): mine are the viewer's own, partner the ones the
+// other parent shared, family both.
+func providerVisits(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, scope Scope, from, to time.Time) ([]Event, error) {
+	rows, err := directory.ListVisible(ctx, q, familyID, viewer, from, to)
+	if err != nil {
+		return nil, err
+	}
+	var out []Event
+	for _, b := range rows {
+		own := b.OwnerMemberID == viewer
+		if (scope == Mine && !own) || (scope == Partner && own) {
+			continue
+		}
+		end := b.StartsAt.Add(time.Duration(b.DurationMinutes) * time.Minute)
+		owner := b.OwnerMemberID
+		vis := "private"
+		if b.Visibility != "private" {
+			vis = "family"
+		}
+		out = append(out, Event{
+			ID: b.ID.String(), Kind: "provider_visit", Title: "Visit with " + b.ProviderName,
+			StartsAt: b.StartsAt, EndsAt: &end, OwnerID: &owner, AttendeeIDs: []uuid.UUID{}, Visibility: vis,
 		})
 	}
 	return out, nil

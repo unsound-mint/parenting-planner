@@ -12,75 +12,310 @@ import (
 	"github.com/google/uuid"
 )
 
-const createBookingRequest = `-- name: CreateBookingRequest :one
-INSERT INTO booking_requests (family_id, owner_member_id, visibility, provider_id, note, created_at)
-VALUES ($1, $2, 'private', $3, $4, $5)
-RETURNING id, family_id, owner_member_id, visibility, provider_id, status, note, created_at
+const createProviderBookingVisibleToParent = `-- name: CreateProviderBookingVisibleToParent :one
+INSERT INTO provider_bookings (family_id, owner_member_id, visibility, slot_id, note, created_at)
+SELECT s.family_id, $1::uuid, $2::text, s.id, $3::text, $4::timestamptz
+FROM provider_slots s
+WHERE s.id = $5 AND s.family_id = $6 AND s.starts_at > $4::timestamptz
+  AND NOT EXISTS (
+    SELECT 1 FROM provider_bookings b
+    WHERE b.slot_id = s.id AND b.family_id = s.family_id
+      AND (b.owner_member_id = $1::uuid OR b.visibility IN ('partner', 'family'))
+  )
+ON CONFLICT (owner_member_id, slot_id) DO NOTHING
+RETURNING id
 `
 
-type CreateBookingRequestParams struct {
-	FamilyID      uuid.UUID
+type CreateProviderBookingVisibleToParentParams struct {
 	OwnerMemberID uuid.UUID
-	ProviderID    uuid.UUID
+	Visibility    string
 	Note          *string
-	CreatedAt     time.Time
+	Now           time.Time
+	SlotID        uuid.UUID
+	FamilyID      uuid.UUID
 }
 
-func (q *Queries) CreateBookingRequest(ctx context.Context, arg CreateBookingRequestParams) (BookingRequest, error) {
-	row := q.db.QueryRow(ctx, createBookingRequest,
-		arg.FamilyID,
+// Books an open, future slot of the family. No row back means the time is
+// gone: unknown, in the past, booked by this parent, or booked and shared by
+// the partner (the same rule as ListOpenProviderSlotsVisibleToParent).
+// Mirrors access.CanParentRead: the open check reads own and shared bookings only.
+func (q *Queries) CreateProviderBookingVisibleToParent(ctx context.Context, arg CreateProviderBookingVisibleToParentParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, createProviderBookingVisibleToParent,
 		arg.OwnerMemberID,
-		arg.ProviderID,
+		arg.Visibility,
 		arg.Note,
-		arg.CreatedAt,
+		arg.Now,
+		arg.SlotID,
+		arg.FamilyID,
 	)
-	var i BookingRequest
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteProviderBooking = `-- name: DeleteProviderBooking :execrows
+DELETE FROM provider_bookings
+WHERE id = $1 AND family_id = $2 AND owner_member_id = $3
+`
+
+type DeleteProviderBookingParams struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+}
+
+func (q *Queries) DeleteProviderBooking(ctx context.Context, arg DeleteProviderBookingParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteProviderBooking, arg.ID, arg.FamilyID, arg.OwnerMemberID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const fillProviderSlots = `-- name: FillProviderSlots :exec
+INSERT INTO provider_slots (family_id, provider_id, starts_at, duration_minutes)
+SELECT $1::uuid, p.id, (d::date + make_interval(hours => h)) AT TIME ZONE 'America/New_York', p.session_minutes
+FROM providers p
+CROSS JOIN generate_series($2::date, $3::date, interval '1 day') AS d
+CROSS JOIN unnest(ARRAY[9, 10, 11, 13, 14, 15, 16, 17]) AS h
+WHERE (extract(isodow FROM d) <= 5
+       OR (extract(isodow FROM d) = 6 AND p.type IN ('doula', 'lactation_consultant', 'sleep_consultant')))
+  AND abs(hashtext(p.id::text || d::date::text || h::text)) % 100 < p.openings_pct
+ON CONFLICT (family_id, provider_id, starts_at) DO NOTHING
+`
+
+type FillProviderSlotsParams struct {
+	FamilyID uuid.UUID
+	FromDay  time.Time
+	ToDay    time.Time
+}
+
+// Fills the family's open times from from_day through to_day: every provider,
+// at fixed Eastern hours, Monday to Friday (Saturdays too for doulas,
+// lactation and sleep help, who visit at home). A stable hash of provider, day
+// and hour picks openings_pct of those hours, so a busy provider has few open
+// times and rerunning it adds nothing new.
+func (q *Queries) FillProviderSlots(ctx context.Context, arg FillProviderSlotsParams) error {
+	_, err := q.db.Exec(ctx, fillProviderSlots, arg.FamilyID, arg.FromDay, arg.ToDay)
+	return err
+}
+
+const getOwnProviderBookingVisibleToParent = `-- name: GetOwnProviderBookingVisibleToParent :one
+SELECT b.id, b.visibility, b.note, s.provider_id, s.starts_at
+FROM provider_bookings b
+JOIN provider_slots s ON s.id = b.slot_id
+WHERE b.id = $1 AND b.family_id = $2 AND b.owner_member_id = $3
+`
+
+type GetOwnProviderBookingVisibleToParentParams struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+}
+
+type GetOwnProviderBookingVisibleToParentRow struct {
+	ID         uuid.UUID
+	Visibility string
+	Note       *string
+	ProviderID uuid.UUID
+	StartsAt   time.Time
+}
+
+// The owner's own booking, for a move, an edit or a cancel.
+// Mirrors access.CanParentRead, narrowed to the owner: only they change a booking.
+func (q *Queries) GetOwnProviderBookingVisibleToParent(ctx context.Context, arg GetOwnProviderBookingVisibleToParentParams) (GetOwnProviderBookingVisibleToParentRow, error) {
+	row := q.db.QueryRow(ctx, getOwnProviderBookingVisibleToParent, arg.ID, arg.FamilyID, arg.OwnerMemberID)
+	var i GetOwnProviderBookingVisibleToParentRow
 	err := row.Scan(
 		&i.ID,
-		&i.FamilyID,
-		&i.OwnerMemberID,
 		&i.Visibility,
-		&i.ProviderID,
-		&i.Status,
 		&i.Note,
-		&i.CreatedAt,
+		&i.ProviderID,
+		&i.StartsAt,
 	)
 	return i, err
 }
 
-const listBookingRequestsVisibleToParent = `-- name: ListBookingRequestsVisibleToParent :many
-SELECT id, family_id, owner_member_id, visibility, provider_id, status, note, created_at FROM booking_requests
-WHERE family_id = $1
-  AND owner_member_id = $2
-ORDER BY created_at DESC
+const getProviderBookingVisibleToParent = `-- name: GetProviderBookingVisibleToParent :one
+SELECT b.id, b.owner_member_id, b.visibility, b.note, b.created_at,
+       s.provider_id, s.starts_at, s.duration_minutes, p.name AS provider_name
+FROM provider_bookings b
+JOIN provider_slots s ON s.id = b.slot_id
+JOIN providers p ON p.id = s.provider_id
+WHERE b.id = $1 AND b.family_id = $2
+  AND (b.owner_member_id = $3 OR b.visibility IN ('partner', 'family'))
 `
 
-type ListBookingRequestsVisibleToParentParams struct {
+type GetProviderBookingVisibleToParentParams struct {
+	ID       uuid.UUID
 	FamilyID uuid.UUID
 	ViewerID uuid.UUID
 }
 
-// Mirrors access.CanParentRead, but stricter: the contract says a booking request
-// is visible only to the parent who made it, so only owner_member_id = viewer is
-// returned whatever the visibility (rows are always stored private anyway).
-func (q *Queries) ListBookingRequestsVisibleToParent(ctx context.Context, arg ListBookingRequestsVisibleToParentParams) ([]BookingRequest, error) {
-	rows, err := q.db.Query(ctx, listBookingRequestsVisibleToParent, arg.FamilyID, arg.ViewerID)
+type GetProviderBookingVisibleToParentRow struct {
+	ID              uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	Note            *string
+	CreatedAt       time.Time
+	ProviderID      uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
+	ProviderName    string
+}
+
+// One booking in the list's shape, after a create or an update.
+// Mirrors access.CanParentRead, like ListProviderBookingsVisibleToParent.
+func (q *Queries) GetProviderBookingVisibleToParent(ctx context.Context, arg GetProviderBookingVisibleToParentParams) (GetProviderBookingVisibleToParentRow, error) {
+	row := q.db.QueryRow(ctx, getProviderBookingVisibleToParent, arg.ID, arg.FamilyID, arg.ViewerID)
+	var i GetProviderBookingVisibleToParentRow
+	err := row.Scan(
+		&i.ID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Note,
+		&i.CreatedAt,
+		&i.ProviderID,
+		&i.StartsAt,
+		&i.DurationMinutes,
+		&i.ProviderName,
+	)
+	return i, err
+}
+
+const getProviderSlotsThrough = `-- name: GetProviderSlotsThrough :one
+SELECT provider_slots_through FROM families WHERE id = $1
+`
+
+func (q *Queries) GetProviderSlotsThrough(ctx context.Context, familyID uuid.UUID) (*time.Time, error) {
+	row := q.db.QueryRow(ctx, getProviderSlotsThrough, familyID)
+	var provider_slots_through *time.Time
+	err := row.Scan(&provider_slots_through)
+	return provider_slots_through, err
+}
+
+const listOpenProviderSlotsVisibleToParent = `-- name: ListOpenProviderSlotsVisibleToParent :many
+SELECT s.id, s.provider_id, s.starts_at, s.duration_minutes
+FROM provider_slots s
+WHERE s.family_id = $1
+  AND s.starts_at > $2
+  AND s.starts_at <= $3
+  AND ($4::uuid IS NULL OR s.provider_id = $4::uuid)
+  AND NOT EXISTS (
+    SELECT 1 FROM provider_bookings b
+    WHERE b.slot_id = s.id AND b.family_id = s.family_id
+      AND (b.owner_member_id = $5 OR b.visibility IN ('partner', 'family'))
+  )
+ORDER BY s.starts_at
+`
+
+type ListOpenProviderSlotsVisibleToParentParams struct {
+	FamilyID   uuid.UUID
+	FromTime   time.Time
+	ToTime     time.Time
+	ProviderID uuid.NullUUID
+	ViewerID   uuid.UUID
+}
+
+type ListOpenProviderSlotsVisibleToParentRow struct {
+	ID              uuid.UUID
+	ProviderID      uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
+}
+
+// Open times in the window. A time is gone for the viewer when they booked it,
+// or when anyone booked it and shared the booking with the family.
+// Mirrors access.CanParentRead: a private booking of the partner hides nothing,
+// so the list never reveals that the partner booked care.
+func (q *Queries) ListOpenProviderSlotsVisibleToParent(ctx context.Context, arg ListOpenProviderSlotsVisibleToParentParams) ([]ListOpenProviderSlotsVisibleToParentRow, error) {
+	rows, err := q.db.Query(ctx, listOpenProviderSlotsVisibleToParent,
+		arg.FamilyID,
+		arg.FromTime,
+		arg.ToTime,
+		arg.ProviderID,
+		arg.ViewerID,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []BookingRequest{}
+	items := []ListOpenProviderSlotsVisibleToParentRow{}
 	for rows.Next() {
-		var i BookingRequest
+		var i ListOpenProviderSlotsVisibleToParentRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.FamilyID,
+			&i.ProviderID,
+			&i.StartsAt,
+			&i.DurationMinutes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProviderBookingsVisibleToParent = `-- name: ListProviderBookingsVisibleToParent :many
+SELECT b.id, b.owner_member_id, b.visibility, b.note, b.created_at,
+       s.provider_id, s.starts_at, s.duration_minutes, p.name AS provider_name
+FROM provider_bookings b
+JOIN provider_slots s ON s.id = b.slot_id
+JOIN providers p ON p.id = s.provider_id
+WHERE b.family_id = $1
+  AND (b.owner_member_id = $2 OR b.visibility IN ('partner', 'family'))
+  AND s.starts_at >= $3
+  AND s.starts_at < $4
+ORDER BY s.starts_at
+`
+
+type ListProviderBookingsVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+	FromTime time.Time
+	ToTime   time.Time
+}
+
+type ListProviderBookingsVisibleToParentRow struct {
+	ID              uuid.UUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	Note            *string
+	CreatedAt       time.Time
+	ProviderID      uuid.UUID
+	StartsAt        time.Time
+	DurationMinutes int16
+	ProviderName    string
+}
+
+// Mirrors access.CanParentRead: own bookings, plus the partner's shared ones.
+func (q *Queries) ListProviderBookingsVisibleToParent(ctx context.Context, arg ListProviderBookingsVisibleToParentParams) ([]ListProviderBookingsVisibleToParentRow, error) {
+	rows, err := q.db.Query(ctx, listProviderBookingsVisibleToParent,
+		arg.FamilyID,
+		arg.ViewerID,
+		arg.FromTime,
+		arg.ToTime,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListProviderBookingsVisibleToParentRow{}
+	for rows.Next() {
+		var i ListProviderBookingsVisibleToParentRow
+		if err := rows.Scan(
+			&i.ID,
 			&i.OwnerMemberID,
 			&i.Visibility,
-			&i.ProviderID,
-			&i.Status,
 			&i.Note,
 			&i.CreatedAt,
+			&i.ProviderID,
+			&i.StartsAt,
+			&i.DurationMinutes,
+			&i.ProviderName,
 		); err != nil {
 			return nil, err
 		}
@@ -93,35 +328,36 @@ func (q *Queries) ListBookingRequestsVisibleToParent(ctx context.Context, arg Li
 }
 
 const listProviders = `-- name: ListProviders :many
-SELECT id, name, type, city, state, languages, price_usd, summary,
-       ($1::date + available_in_days)::date AS next_available
+SELECT id, name, type, city, state, languages, price_usd, summary, credentials, bio, visit_modes, session_minutes
 FROM providers
-WHERE ($2::text IS NULL OR type = $2::text)
-  AND ($3::text IS NULL OR state = $3::text)
-ORDER BY available_in_days, name
+WHERE ($1::text IS NULL OR type = $1::text)
+  AND ($2::text IS NULL OR state = $2::text)
+ORDER BY name
 `
 
 type ListProvidersParams struct {
-	Today time.Time
 	Type  *string
 	State *string
 }
 
 type ListProvidersRow struct {
-	ID            uuid.UUID
-	Name          string
-	Type          string
-	City          string
-	State         string
-	Languages     []string
-	PriceUsd      int32
-	Summary       string
-	NextAvailable time.Time
+	ID             uuid.UUID
+	Name           string
+	Type           string
+	City           string
+	State          string
+	Languages      []string
+	PriceUsd       int32
+	Summary        string
+	Credentials    string
+	Bio            string
+	VisitModes     []string
+	SessionMinutes int16
 }
 
 // The directory is global synthetic data, not family data, so it has no family filter.
 func (q *Queries) ListProviders(ctx context.Context, arg ListProvidersParams) ([]ListProvidersRow, error) {
-	rows, err := q.db.Query(ctx, listProviders, arg.Today, arg.Type, arg.State)
+	rows, err := q.db.Query(ctx, listProviders, arg.Type, arg.State)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +374,10 @@ func (q *Queries) ListProviders(ctx context.Context, arg ListProvidersParams) ([
 			&i.Languages,
 			&i.PriceUsd,
 			&i.Summary,
-			&i.NextAvailable,
+			&i.Credentials,
+			&i.Bio,
+			&i.VisitModes,
+			&i.SessionMinutes,
 		); err != nil {
 			return nil, err
 		}
@@ -150,13 +389,79 @@ func (q *Queries) ListProviders(ctx context.Context, arg ListProvidersParams) ([
 	return items, nil
 }
 
-const providerExists = `-- name: ProviderExists :one
-SELECT EXISTS (SELECT 1 FROM providers WHERE id = $1)
+const moveProviderBookingVisibleToParent = `-- name: MoveProviderBookingVisibleToParent :one
+UPDATE provider_bookings b SET slot_id = s.id
+FROM provider_slots s
+WHERE b.id = $1 AND b.family_id = $2 AND b.owner_member_id = $3
+  AND s.id = $4 AND s.family_id = b.family_id AND s.provider_id = $5 AND s.starts_at > $6::timestamptz
+  AND NOT EXISTS (
+    SELECT 1 FROM provider_bookings o
+    WHERE o.slot_id = s.id AND o.family_id = s.family_id AND o.id <> b.id
+      AND (o.owner_member_id = $3 OR o.visibility IN ('partner', 'family'))
+  )
+RETURNING b.id
 `
 
-func (q *Queries) ProviderExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	row := q.db.QueryRow(ctx, providerExists, id)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
+type MoveProviderBookingVisibleToParentParams struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	SlotID        uuid.UUID
+	ProviderID    uuid.UUID
+	Now           time.Time
+}
+
+// Moves a booking to another open, future time with the same provider.
+// No row back means the new time is gone (same rule as CreateProviderBooking).
+// Mirrors access.CanParentRead: the open check reads own and shared bookings only.
+func (q *Queries) MoveProviderBookingVisibleToParent(ctx context.Context, arg MoveProviderBookingVisibleToParentParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, moveProviderBookingVisibleToParent,
+		arg.ID,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+		arg.SlotID,
+		arg.ProviderID,
+		arg.Now,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const setProviderSlotsThrough = `-- name: SetProviderSlotsThrough :exec
+UPDATE families SET provider_slots_through = $1::date WHERE id = $2
+`
+
+type SetProviderSlotsThroughParams struct {
+	Through  time.Time
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) SetProviderSlotsThrough(ctx context.Context, arg SetProviderSlotsThroughParams) error {
+	_, err := q.db.Exec(ctx, setProviderSlotsThrough, arg.Through, arg.FamilyID)
+	return err
+}
+
+const updateProviderBookingDetails = `-- name: UpdateProviderBookingDetails :exec
+UPDATE provider_bookings SET visibility = $1, note = $2
+WHERE id = $3 AND family_id = $4 AND owner_member_id = $5
+`
+
+type UpdateProviderBookingDetailsParams struct {
+	Visibility    string
+	Note          *string
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+}
+
+func (q *Queries) UpdateProviderBookingDetails(ctx context.Context, arg UpdateProviderBookingDetailsParams) error {
+	_, err := q.db.Exec(ctx, updateProviderBookingDetails,
+		arg.Visibility,
+		arg.Note,
+		arg.ID,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+	)
+	return err
 }
