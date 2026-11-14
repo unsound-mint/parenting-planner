@@ -65,7 +65,14 @@ type Prompt struct {
 type Card struct {
 	Nudge   *Nudge
 	Prompts []Prompt
+	// Closed holds the keys of nudges this parent closed in the last 30 days,
+	// so the client can hide the ones it builds itself (the quiz strip).
+	Closed []string
 }
+
+// closedFor is how long a closed nudge key is reported back. Keys carry the
+// time of the activity, so an old key can never match a new nudge anyway.
+const closedFor = 30 * 24 * time.Hour
 
 // Other is the other parent as the card names them.
 type Other struct {
@@ -96,16 +103,15 @@ func GetCard(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, me uui
 			return Card{}, err
 		}
 		card.Nudge = nudge(other, reads, answers, names, today, now)
-		if card.Nudge != nil {
-			// A closed nudge stays closed; an older activity does not take its place.
-			closed, err := q.IsNudgeDismissed(ctx, store.IsNudgeDismissedParams{FamilyID: familyID, MemberID: me, NudgeKey: card.Nudge.Key})
-			if err != nil {
-				return Card{}, err
-			}
-			if closed {
-				card.Nudge = nil
-			}
-		}
+	}
+	closed, err := q.ListNudgeDismissals(ctx, store.ListNudgeDismissalsParams{FamilyID: familyID, MemberID: me, Since: now.Add(-closedFor)})
+	if err != nil {
+		return Card{}, err
+	}
+	card.Closed = closed
+	// A closed nudge stays closed; an older activity does not take its place.
+	if card.Nudge != nil && slices.Contains(closed, card.Nudge.Key) {
+		card.Nudge = nil
 	}
 	card.Prompts = prompts(me, other.ID, st, reads, talks, now)
 	return card, nil

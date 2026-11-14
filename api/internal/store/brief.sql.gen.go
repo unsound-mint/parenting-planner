@@ -161,7 +161,8 @@ func (q *Queries) GetLatestSessionBriefVisibleToParent(ctx context.Context, arg 
 
 const moveScheduledSessionBriefs = `-- name: MoveScheduledSessionBriefs :exec
 UPDATE session_briefs SET send_at = $1, updated_at = $2
-WHERE family_id = $3 AND owner_member_id = $4 AND booking_id = $5 AND status = 'scheduled'
+WHERE family_id = $3 AND owner_member_id = $4 AND booking_id = $5
+  AND status = 'scheduled' AND send_at > $2
 `
 
 type MoveScheduledSessionBriefsParams struct {
@@ -181,6 +182,24 @@ func (q *Queries) MoveScheduledSessionBriefs(ctx context.Context, arg MoveSchedu
 		arg.OwnerMemberID,
 		arg.BookingID,
 	)
+	return err
+}
+
+const unscheduleOwnPendingSessionBriefs = `-- name: UnscheduleOwnPendingSessionBriefs :exec
+UPDATE session_briefs SET status = 'draft', send_at = NULL, snapshot_sealed = NULL, updated_at = $1
+WHERE family_id = $2 AND owner_member_id = $3 AND status = 'scheduled' AND send_at > $1
+`
+
+type UnscheduleOwnPendingSessionBriefsParams struct {
+	Now           time.Time
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+}
+
+// A topic left the agenda (its entry was deleted): a scheduled brief that is
+// not out yet goes back to a draft, so it never sends what the parent removed.
+func (q *Queries) UnscheduleOwnPendingSessionBriefs(ctx context.Context, arg UnscheduleOwnPendingSessionBriefsParams) error {
+	_, err := q.db.Exec(ctx, unscheduleOwnPendingSessionBriefs, arg.Now, arg.FamilyID, arg.OwnerMemberID)
 	return err
 }
 

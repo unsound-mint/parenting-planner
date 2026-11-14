@@ -10522,8 +10522,16 @@ components:
 
     Together:
       type: object
-      required: [prompts]
+      required: [prompts, closedNudgeIds]
       properties:
+        closedNudgeIds:
+          type: array
+          description: |
+            Ids of nudges this parent closed in the last 30 days, for nudges
+            the client builds itself (the quiz to compare answers uses
+            the same id as the partner nudge for that quiz).
+          items:
+            type: string
         nudge:
           $ref: "#/components/schemas/PartnerNudge"
         prompts:

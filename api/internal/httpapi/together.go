@@ -35,7 +35,7 @@ func (s *Server) GetTogether(ctx context.Context, req GetTogetherRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	out := Together{Prompts: make([]TalkPrompt, 0, len(card.Prompts))}
+	out := Together{Prompts: make([]TalkPrompt, 0, len(card.Prompts)), ClosedNudgeIds: card.Closed}
 	if n := card.Nudge; n != nil {
 		out.Nudge = &PartnerNudge{Id: n.Key, MemberId: n.MemberID, Kind: PartnerNudgeKind(n.Kind), At: n.At.UTC(), Text: n.Text}
 		if n.LessonID != "" {

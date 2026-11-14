@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { LearningPath, Parent } from "@/lib/api/types";
 import { Avatar } from "@/components/joy/partner-chip";
 import { cn } from "@/lib/utils";
+import { ClosableNudge } from "./closable-nudge";
 import { ReadCover } from "./read-cover";
 import { pickQuiz, pickReads, type ReadPick } from "./this-week";
 import "./week.css";
@@ -18,6 +19,7 @@ export function ReadTogether({
   me,
   partner,
   now,
+  closedNudgeIds = [],
   className,
 }: {
   memberId: string;
@@ -25,12 +27,46 @@ export function ReadTogether({
   me: Parent;
   partner?: Parent;
   now: Date;
+  /** Nudges this parent closed (GET /together). */
+  closedNudgeIds?: string[];
   className?: string;
 }) {
   const { path, reads } = pickReads(paths, me.id);
   const quiz = pickQuiz(paths, me.id);
   if (!path || reads.length === 0) return null;
   const href = (lessonId: string) => `/family/${memberId}/learn#${lessonId}`;
+  // With the partner's answers in, the strip is a nudge to compare: the parent
+  // can close it. The id is the one the server gives its own quiz nudge, so
+  // closing either one closes both; the next quiz has a new id.
+  const compareId = quiz?.partnerAnsweredAt && partner ? `quiz_answered:${quiz.lesson.id}:${Math.floor(Date.parse(quiz.partnerAnsweredAt) / 1000)}` : undefined;
+  const strip = "flex flex-wrap items-center gap-4 rounded-3xl bg-leaf-soft px-5 py-4";
+  const quizBody = quiz && (
+    <>
+  <svg viewBox="0 0 40 40" className="hidden size-10 shrink-0 sm:block" aria-hidden>
+    <path d="M20 2.5c6.9 0 13.1 3.8 15.6 9.4s1.9 13.1-1.9 18.1-10.6 7.5-16.9 6.9S5 33.1 3.1 27.5 1.9 15 5.6 9.4 13.1 2.5 20 2.5z" fill="#B7CFA4" />
+    <text x="20" y="26" textAnchor="middle" className="font-heading" fontWeight="600" fontSize="17" fill="#2F4A2A">
+      ?
+    </text>
+  </svg>
+  <div className="min-w-0 flex-1">
+    <p className="text-title">{quiz.lesson.title}</p>
+    <p className="text-label font-normal text-ink-2">
+      {countQuestions(quiz.questions.length)}
+      {quiz.partnerAnsweredAt && partner
+        ? `. ${partner.displayName} took it ${dayWords(quiz.partnerAnsweredAt, now)}, so compare answers tonight.`
+        : partner
+          ? `, then see what ${partner.displayName} picks.`
+          : "."}
+    </p>
+  </div>
+  <Link
+    href={href(quiz.lesson.id)}
+    className="press inline-flex min-h-11 items-center rounded-full border border-line-2 px-4.5 text-label font-semibold text-ink-2 transition-colors duration-(--duration-fast) hover:bg-card"
+  >
+    Try it
+  </Link>
+    </>
+  );
   const progress = (id: string) => path.progress.find((p) => p.memberId === id)?.finished ?? 0;
 
   return (
@@ -61,33 +97,17 @@ export function ReadTogether({
         ))}
       </ul>
 
-      {quiz && (
-        <div className="flex flex-wrap items-center gap-4 rounded-3xl bg-leaf-soft px-5 py-4">
-          <svg viewBox="0 0 40 40" className="hidden size-10 shrink-0 sm:block" aria-hidden>
-            <path d="M20 2.5c6.9 0 13.1 3.8 15.6 9.4s1.9 13.1-1.9 18.1-10.6 7.5-16.9 6.9S5 33.1 3.1 27.5 1.9 15 5.6 9.4 13.1 2.5 20 2.5z" fill="#B7CFA4" />
-            <text x="20" y="26" textAnchor="middle" className="font-heading" fontWeight="600" fontSize="17" fill="#2F4A2A">
-              ?
-            </text>
-          </svg>
-          <div className="min-w-0 flex-1">
-            <p className="text-title">{quiz.lesson.title}</p>
-            <p className="text-label font-normal text-ink-2">
-              {countQuestions(quiz.questions.length)}
-              {quiz.partnerAnsweredAt && partner
-                ? `. ${partner.displayName} took it ${dayWords(quiz.partnerAnsweredAt, now)}, so compare answers tonight.`
-                : partner
-                  ? `, then see what ${partner.displayName} picks.`
-                  : "."}
-            </p>
-          </div>
-          <Link
-            href={href(quiz.lesson.id)}
-            className="press inline-flex min-h-11 items-center rounded-full border border-line-2 px-4.5 text-label font-semibold text-ink-2 transition-colors duration-(--duration-fast) hover:bg-card"
-          >
-            Try it
-          </Link>
-        </div>
-      )}
+      {quiz &&
+        quizBody &&
+        (compareId ? (
+          !closedNudgeIds.includes(compareId) && (
+            <ClosableNudge memberId={memberId} id={compareId} collapseGap="-1.125rem" className={strip}>
+              {quizBody}
+            </ClosableNudge>
+          )
+        ) : (
+          <div className={strip}>{quizBody}</div>
+        ))}
     </section>
   );
 }

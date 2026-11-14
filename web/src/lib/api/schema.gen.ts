@@ -5817,6 +5817,12 @@ export interface components {
             talkedBy?: string;
         };
         Together: {
+            /**
+             * @description Ids of nudges this parent closed in the last 30 days, for nudges
+             *     the client builds itself (the quiz to compare answers uses
+             *     the same id as the partner nudge for that quiz).
+             */
+            closedNudgeIds: string[];
             nudge?: components["schemas"]["PartnerNudge"];
             prompts: components["schemas"]["TalkPrompt"][];
         };

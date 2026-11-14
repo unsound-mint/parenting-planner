@@ -28,7 +28,8 @@ RETURNING *;
 -- A brief waiting to be sent for a booking that moves keeps its day-before send time.
 -- name: MoveScheduledSessionBriefs :exec
 UPDATE session_briefs SET send_at = @send_at, updated_at = @now
-WHERE family_id = @family_id AND owner_member_id = @owner_member_id AND booking_id = @booking_id AND status = 'scheduled';
+WHERE family_id = @family_id AND owner_member_id = @owner_member_id AND booking_id = @booking_id
+  AND status = 'scheduled' AND send_at > @now;
 
 -- Nothing is sent for a cancelled session: a scheduled brief goes back to a draft.
 -- name: UnscheduleSessionBriefs :exec
@@ -47,3 +48,9 @@ SET entry_ids = array_remove(entry_ids, @entry_id::uuid),
     updated_at = @now
 WHERE family_id = @family_id AND owner_member_id = @owner_member_id AND status <> 'sent'
   AND (status <> 'scheduled' OR send_at > @now);
+
+-- A topic left the agenda (its entry was deleted): a scheduled brief that is
+-- not out yet goes back to a draft, so it never sends what the parent removed.
+-- name: UnscheduleOwnPendingSessionBriefs :exec
+UPDATE session_briefs SET status = 'draft', send_at = NULL, snapshot_sealed = NULL, updated_at = @now
+WHERE family_id = @family_id AND owner_member_id = @owner_member_id AND status = 'scheduled' AND send_at > @now;

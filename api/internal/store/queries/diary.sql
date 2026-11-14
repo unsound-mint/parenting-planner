@@ -32,8 +32,9 @@ UPDATE diary_entries SET body_sealed = @body_sealed, mood = @mood
 WHERE id = @id AND family_id = @family_id AND owner_member_id = @viewer_id RETURNING *;
 
 -- Only the author can delete an entry.
--- name: DeleteOwnDiaryEntry :execrows
-DELETE FROM diary_entries WHERE id = @id AND family_id = @family_id AND owner_member_id = @viewer_id;
+-- name: DeleteOwnDiaryEntry :one
+DELETE FROM diary_entries WHERE id = @id AND family_id = @family_id AND owner_member_id = @viewer_id
+RETURNING agenda_topic;
 
 -- Mirrors access.CanParentRead: the author's own entries, read to build their brief.
 -- name: ListOwnDiaryEntriesByIDVisibleToParent :many

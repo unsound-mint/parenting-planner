@@ -281,6 +281,7 @@ export function JournalAndCare({
             lastSession={agenda.noteDue}
             slots={slots?.items ?? []}
             brief={brief}
+            now={now}
             busy={busy > 0}
             flights={flights}
             onAddSuggestion={addSuggestion}

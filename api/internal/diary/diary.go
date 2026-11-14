@@ -177,17 +177,26 @@ func Update(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 func Delete(ctx context.Context, pool *pgxpool.Pool, familyID, actor, id uuid.UUID, now time.Time) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
-		n, err := q.DeleteOwnDiaryEntry(ctx, store.DeleteOwnDiaryEntryParams{ID: id, FamilyID: familyID, ViewerID: actor})
+		topic, err := q.DeleteOwnDiaryEntry(ctx, store.DeleteOwnDiaryEntryParams{ID: id, FamilyID: familyID, ViewerID: actor})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNoEntry
+		}
 		if err != nil {
 			return err
-		}
-		if n == 0 {
-			return ErrNoEntry
 		}
 		if err := q.DropEntryFromSessionBriefs(ctx, store.DropEntryFromSessionBriefsParams{
 			EntryID: id, Now: now, FamilyID: familyID, OwnerMemberID: actor,
 		}); err != nil {
 			return err
+		}
+		// Its topic was on the agenda, so a brief waiting to go out would
+		// still carry the title: back to a draft for the parent to look at.
+		if topic != nil {
+			if err := q.UnscheduleOwnPendingSessionBriefs(ctx, store.UnscheduleOwnPendingSessionBriefsParams{
+				Now: now, FamilyID: familyID, OwnerMemberID: actor,
+			}); err != nil {
+				return err
+			}
 		}
 		return access.Audit(ctx, q, familyID, actor, access.ActionDelete, entity, id.String())
 	})

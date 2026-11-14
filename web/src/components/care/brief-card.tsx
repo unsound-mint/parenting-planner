@@ -36,6 +36,7 @@ export function BriefCard({
   lastSession,
   slots,
   brief: serverBrief,
+  now,
   busy,
   flights,
   onAddSuggestion,
@@ -50,6 +51,8 @@ export function BriefCard({
   lastSession?: PsychologistBooking;
   slots: Slot[];
   brief?: SessionBrief;
+  /** The family clock, ISO. */
+  now: string;
   busy: boolean;
   flights: Flights;
   onAddSuggestion: (s: AgendaSuggestion) => void;
@@ -134,7 +137,10 @@ export function BriefCard({
       </div>
 
       {frozen && brief ? (
-        <FrozenItems brief={brief} />
+        <>
+          <FrozenItems brief={brief} />
+          {brief.status === "scheduled" && <Drift brief={brief} topics={topics} saving={saving} onUpdate={() => save({ status: "scheduled" }, () => `Updated. ${short} gets this version.`)} />}
+        </>
       ) : shown.length === 0 ? (
         <p className="mt-3 rounded-2xl border border-dashed border-line-2 px-4 py-3.5 text-label font-normal text-ink-2">
           Anything you write can go in it. Tap &ldquo;Bring to {short}&rdquo; on an entry and give it a title.
@@ -210,7 +216,7 @@ export function BriefCard({
       )}
       {frozen && brief?.note && <p className="mt-3 rounded-2xl bg-muted px-4 py-3 text-label whitespace-pre-line text-ink-2">{brief.note}</p>}
 
-      {brief && <Delivery memberId={memberId} brief={brief} short={short} saving={saving} onSave={save} note={note} />}
+      {brief && <Delivery memberId={memberId} brief={brief} short={short} saving={saving} onSave={save} note={note} now={now} />}
     </section>
   );
 }
@@ -315,6 +321,36 @@ function FrozenItems({ brief }: { brief: SessionBrief }) {
   );
 }
 
+/**
+ * A scheduled brief is a frozen copy. When the agenda moves on before it goes
+ * (a topic added or taken off), say what differs and offer to send the new
+ * version instead.
+ */
+function Drift({ brief, topics, saving, onUpdate }: { brief: SessionBrief; topics: AgendaTopic[]; saving: boolean; onUpdate: () => void }) {
+  const inBrief = new Set(brief.items.map((it) => it.text));
+  const onAgenda = new Set(topics.map((t) => t.text));
+  const added = topics.filter((t) => !inBrief.has(t.text)).map((t) => t.text);
+  const gone = brief.items.filter((it) => !onAgenda.has(it.text)).map((it) => it.text);
+  if (added.length === 0 && gone.length === 0) return null;
+  const quote = (xs: string[]) => xs.map((x) => `“${x}”`).join(", ");
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={spring.ui}
+      className="mt-2.5 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-line-2 py-2.5 pr-2.5 pl-4"
+    >
+      <p className="min-w-0 flex-1 text-label font-normal text-ink-2">
+        {added.length > 0 && <>Added since you scheduled it: {quote(added)}. </>}
+        {gone.length > 0 && <>Taken off your agenda: {quote(gone)}. </>}
+      </p>
+      <Button type="button" variant="outline" disabled={saving} onClick={onUpdate} className="press h-11 shrink-0 rounded-full px-4">
+        Update the brief
+      </Button>
+    </motion.div>
+  );
+}
+
 /** How the brief reaches the psychologist: scheduled for the day before, or handed over by the parent. */
 function Delivery({
   memberId,
@@ -322,6 +358,7 @@ function Delivery({
   short,
   saving,
   note,
+  now,
   onSave,
 }: {
   memberId: string;
@@ -329,6 +366,7 @@ function Delivery({
   short: string;
   saving: boolean;
   note: string;
+  now: string;
   onSave: (change: { status: SessionBrief["status"]; note?: string }, done?: (b: SessionBrief) => string) => void;
 }) {
   const session = brief.session;
@@ -342,6 +380,8 @@ function Delivery({
     </Link>
   );
   const dayBefore = session ? new Date(Date.parse(session.startsAt) - 86_400_000).toISOString() : undefined;
+  // Under a day to go, the server sends it on the spot; say so on the button.
+  const sendNow = !!dayBefore && Date.parse(dayBefore) <= Date.parse(now);
 
   return (
     <div className="mt-5 border-t border-line pt-4">
@@ -361,7 +401,7 @@ function Delivery({
                   className="press h-11 rounded-full px-5"
                 >
                   <Send aria-hidden />
-                  {dayBefore ? `Send the day before · ${formatWeekday(dayBefore)} ${formatClock(dayBefore)}` : "Send the day before"}
+                  {sendNow ? `Send to ${short} now` : dayBefore ? `Send the day before · ${formatWeekday(dayBefore)} ${formatClock(dayBefore)}` : "Send the day before"}
                 </Button>
                 {pdf}
               </div>

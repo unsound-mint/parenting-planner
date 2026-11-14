@@ -35,21 +35,34 @@ func (q *Queries) DismissNudge(ctx context.Context, arg DismissNudgeParams) erro
 	return err
 }
 
-const isNudgeDismissed = `-- name: IsNudgeDismissed :one
-SELECT EXISTS (
-  SELECT 1 FROM nudge_dismissals WHERE family_id = $1 AND member_id = $2 AND nudge_key = $3
-)
+const listNudgeDismissals = `-- name: ListNudgeDismissals :many
+SELECT nudge_key FROM nudge_dismissals
+WHERE family_id = $1 AND member_id = $2 AND dismissed_at >= $3
+ORDER BY dismissed_at DESC
 `
 
-type IsNudgeDismissedParams struct {
+type ListNudgeDismissalsParams struct {
 	FamilyID uuid.UUID
 	MemberID uuid.UUID
-	NudgeKey string
+	Since    time.Time
 }
 
-func (q *Queries) IsNudgeDismissed(ctx context.Context, arg IsNudgeDismissedParams) (bool, error) {
-	row := q.db.QueryRow(ctx, isNudgeDismissed, arg.FamilyID, arg.MemberID, arg.NudgeKey)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
+func (q *Queries) ListNudgeDismissals(ctx context.Context, arg ListNudgeDismissalsParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, listNudgeDismissals, arg.FamilyID, arg.MemberID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var nudge_key string
+		if err := rows.Scan(&nudge_key); err != nil {
+			return nil, err
+		}
+		items = append(items, nudge_key)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

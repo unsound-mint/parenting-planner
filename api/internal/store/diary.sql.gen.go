@@ -56,8 +56,9 @@ func (q *Queries) CreateDiaryEntry(ctx context.Context, arg CreateDiaryEntryPara
 	return i, err
 }
 
-const deleteOwnDiaryEntry = `-- name: DeleteOwnDiaryEntry :execrows
+const deleteOwnDiaryEntry = `-- name: DeleteOwnDiaryEntry :one
 DELETE FROM diary_entries WHERE id = $1 AND family_id = $2 AND owner_member_id = $3
+RETURNING agenda_topic
 `
 
 type DeleteOwnDiaryEntryParams struct {
@@ -67,12 +68,11 @@ type DeleteOwnDiaryEntryParams struct {
 }
 
 // Only the author can delete an entry.
-func (q *Queries) DeleteOwnDiaryEntry(ctx context.Context, arg DeleteOwnDiaryEntryParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteOwnDiaryEntry, arg.ID, arg.FamilyID, arg.ViewerID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
+func (q *Queries) DeleteOwnDiaryEntry(ctx context.Context, arg DeleteOwnDiaryEntryParams) (*string, error) {
+	row := q.db.QueryRow(ctx, deleteOwnDiaryEntry, arg.ID, arg.FamilyID, arg.ViewerID)
+	var agenda_topic *string
+	err := row.Scan(&agenda_topic)
+	return agenda_topic, err
 }
 
 const getOwnDiaryEntryVisibleToParent = `-- name: GetOwnDiaryEntryVisibleToParent :one

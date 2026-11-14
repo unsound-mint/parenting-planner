@@ -124,15 +124,24 @@ func loadCurrent(ctx context.Context, q *store.Queries, familyID, viewer uuid.UU
 	if err != nil {
 		return current{}, err
 	}
-	c := current{row: &row, status: row.Status, sentAt: ts(row.SentAt)}
-	if row.Status == BriefScheduled && row.SendAt.Valid && !row.SendAt.Time.After(now) {
-		c.status, c.sentAt = BriefSent, ts(row.SendAt)
-	}
-	over := row.SessionStartsAt.Valid && !row.SessionStartsAt.Time.After(now)
-	if over || (c.status == BriefSent && !row.BookingID.Valid) {
+	status, sentAt, finished := briefState(row.Status, ts(row.SendAt), ts(row.SentAt), ts(row.SessionStartsAt), row.BookingID.Valid, now)
+	if finished {
 		return current{status: BriefDraft}, nil
 	}
-	return c, nil
+	return current{row: &row, status: status, sentAt: sentAt}, nil
+}
+
+// briefState is the rule for a stored brief, with no worker behind it: a
+// scheduled brief counts as sent once its send time passes, and a brief is
+// finished (the parent starts a new draft) once its session has started, or
+// when it went out and its booking was cancelled afterwards.
+func briefState(stored string, sendAt, sentAt, sessionStarts *time.Time, booked bool, now time.Time) (status string, sent *time.Time, finished bool) {
+	status, sent = stored, sentAt
+	if stored == BriefScheduled && sendAt != nil && !sendAt.After(now) {
+		status, sent = BriefSent, sendAt
+	}
+	over := sessionStarts != nil && !sessionStarts.After(now)
+	return status, sent, over || (status == BriefSent && !booked)
 }
 
 // GetBrief returns the acting parent's current brief, an empty draft when

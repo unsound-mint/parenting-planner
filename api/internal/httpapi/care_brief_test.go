@@ -2,6 +2,7 @@ package httpapi_test
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -21,10 +22,14 @@ func TestNudgeDismissalStaysClosedForThatParent(t *testing.T) {
 		t.Fatalf("want a nudge with an id, got %+v", card.Nudge)
 	}
 	c.Post(memberPath(mom.Id)+"/nudge-dismissals", map[string]any{"id": ""}, http.StatusBadRequest, nil)
-	c.Post(memberPath(mom.Id)+"/nudge-dismissals", map[string]any{"id": card.Nudge.Id}, http.StatusNoContent, nil)
-	c.Post(memberPath(mom.Id)+"/nudge-dismissals", map[string]any{"id": card.Nudge.Id}, http.StatusNoContent, nil)
+	id := card.Nudge.Id
+	c.Post(memberPath(mom.Id)+"/nudge-dismissals", map[string]any{"id": id}, http.StatusNoContent, nil)
+	c.Post(memberPath(mom.Id)+"/nudge-dismissals", map[string]any{"id": id}, http.StatusNoContent, nil)
 	card = httpapi.Together{}
 	c.Get(memberPath(mom.Id)+"/together", http.StatusOK, &card)
+	if !slices.Contains(card.ClosedNudgeIds, id) {
+		t.Errorf("closed ids = %v, want %s", card.ClosedNudgeIds, id)
+	}
 	if card.Nudge != nil {
 		t.Errorf("a closed nudge came back, and an older one must not replace it: %+v", card.Nudge)
 	}
@@ -190,21 +195,37 @@ func TestSessionBriefIsPrivateUntilSent(t *testing.T) {
 	}
 }
 
-func TestScheduledBriefCountsAsSentTheDayBefore(t *testing.T) {
+func TestDeletingATopicPullsBackAScheduledBrief(t *testing.T) {
 	c := testutil.New(t)
 	fam := c.StartDemo("pregnancy")
 	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	var e httpapi.DiaryEntry
+	c.Post(diaryPath(mom), map[string]any{"body": "Sleep is hard.", "visibility": "private", "agendaTopic": "Sleep"}, http.StatusCreated, &e)
 	var slots httpapi.PsychologistSlots
 	c.Get(careBase(mom)+"/psychologist-slots", http.StatusOK, &slots)
-	// A session less than a day away: scheduling sends it now.
-	soon := slots.Items[0]
-	if soon.StartsAt.Sub(testutil.Now) >= 24*time.Hour {
-		t.Skip("no slot within a day of the test clock")
+	var later httpapi.Slot
+	for _, s := range slots.Items {
+		if s.StartsAt.Sub(testutil.Now) > 3*24*time.Hour {
+			later = s
+			break
+		}
 	}
-	c.Post(careBase(mom)+"/psychologist-bookings", httpapi.PsychologistBookingInput{SlotId: soon.Id}, http.StatusCreated, nil)
+	c.Post(careBase(mom)+"/psychologist-bookings", httpapi.PsychologistBookingInput{SlotId: later.Id}, http.StatusCreated, nil)
 	var b httpapi.SessionBrief
+	// Title only: the entry is not in sharedEntryIds, its topic still is in the brief.
 	c.Put(briefPath(mom), briefInput(httpapi.Scheduled, false), http.StatusOK, &b)
-	if b.Status != httpapi.Sent || b.SentAt == nil {
-		t.Errorf("a brief scheduled under a day before the session goes now: %+v", b)
+	if b.Status != httpapi.Scheduled {
+		t.Fatalf("brief = %+v", b)
+	}
+	c.Delete(diaryPath(mom)+"/"+e.Id.String(), http.StatusNoContent, nil)
+	b = httpapi.SessionBrief{}
+	c.Get(briefPath(mom), http.StatusOK, &b)
+	if b.Status != httpapi.Draft || b.SendAt != nil {
+		t.Errorf("a brief still waiting to go must come back as a draft once a topic is deleted: %+v", b)
+	}
+	for _, it := range b.Items {
+		if it.Text == "Sleep" {
+			t.Errorf("deleted topic is still in the brief: %+v", it)
+		}
 	}
 }
