@@ -9,6 +9,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
+    # Off until the server key, DNS and Caddy are set up (repo variable DEPLOY_ENABLED=true).
+    if: vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to musicroombot
