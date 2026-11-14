@@ -8,6 +8,7 @@ import type { ProviderType } from "@/lib/api/types";
 import { countWord } from "@/lib/format";
 import { providerTypes } from "@/lib/visuals";
 import { DirectoryFilters } from "@/components/directory/directory-filters";
+import { PartnerOffers } from "@/components/offers/partner-offers";
 import { ProviderCard, whenLabel } from "@/components/directory/provider-card";
 import { recommend, type Recommendation } from "@/components/directory/recommend";
 import { familyNow } from "@/lib/clock";
@@ -39,13 +40,14 @@ async function Directory({
   const state = stateParam && /^[A-Z]{2}$/.test(stateParam) ? stateParam : undefined;
 
   const api = await serverApi();
-  const [all, shown, requests, patterns, family] = await Promise.all([
+  const [all, shown, requests, patterns, family, offers] = await Promise.all([
     api.GET("/providers"),
     api.GET("/providers", { params: { query: { type, state } } }),
     api.GET("/members/{memberId}/booking-requests", { params: { path: { memberId } } }),
     // No pattern means recommendations come from the family's stage alone.
     api.GET("/members/{memberId}/mood-patterns", { params: { path: { memberId } } }),
     api.GET("/family"),
+    api.GET("/members/{memberId}/partner-offers", { params: { path: { memberId } } }),
   ]);
   if (all.response.status === 404 || requests.response.status === 404) notFound();
 
@@ -132,6 +134,8 @@ async function Directory({
             </details>
           </>
         )}
+        {/* Shown only when the endpoint answers; offers never touch the provider picks above. */}
+        {offers.data && <PartnerOffers memberId={memberId} offers={offers.data.items.slice(0, 3)} />}
       </section>
     </main>
   );

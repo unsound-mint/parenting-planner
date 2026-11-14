@@ -1,4 +1,5 @@
 import { mockMiddleware, type MockTable } from "./registry";
+import { adminMocks } from "./fixtures/admin";
 import { appointmentQuestionMocks } from "./fixtures/appointment-questions";
 import { babyMocks } from "./fixtures/baby";
 import { calendarFeedMocks } from "./fixtures/calendar-feed";
@@ -23,6 +24,7 @@ import { wellbeingMocks } from "./fixtures/wellbeing";
 // ./fixtures. Fixture data is synthetic and matches the demo family (Emily,
 // week 25, due 2027-02-27; partner Jake). See registry.ts for when it is used.
 const tables: MockTable[] = [
+  adminMocks,
   appointmentQuestionMocks,
   babyMocks,
   calendarFeedMocks,
