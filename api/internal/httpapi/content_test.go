@@ -236,3 +236,33 @@ func TestStageNowIsNotServedInPregnancy(t *testing.T) {
 		t.Errorf("code = %q", e.Code)
 	}
 }
+
+func TestSafetyReferenceIsSourcedForEveryRole(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	for _, role := range []httpapi.ParentRole{httpapi.ParentRoleMother, httpapi.ParentRolePartner} {
+		m := testutil.Parent(t, fam, role)
+		var got httpapi.SafetyReferenceList
+		c.Get("/api/members/"+m.Id.String()+"/safety-reference", http.StatusOK, &got)
+		if len(got.Items) < 20 {
+			t.Fatalf("%s: %d entries", role, len(got.Items))
+		}
+		for _, e := range got.Items {
+			if len(e.Sources) == 0 || e.Sources[0].CheckedAt.String() != "2026-11-14" {
+				t.Errorf("%s: sources %+v", e.Id, e.Sources)
+			}
+			if (e.Category == httpapi.Medicine) != (e.Ask != nil && *e.Ask == "Ask your pharmacist or clinician before you take it.") {
+				t.Errorf("%s: ask line %v", e.Id, e.Ask)
+			}
+		}
+	}
+}
+
+func TestSafetyReferenceNeedsASession(t *testing.T) {
+	c := testutil.New(t)
+	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
+	testutil.New(t).Get("/api/members/"+mom.Id.String()+"/safety-reference", http.StatusUnauthorized, nil)
+	c2 := testutil.New(t)
+	c2.StartDemo("pregnancy")
+	c2.Get("/api/members/"+mom.Id.String()+"/safety-reference", http.StatusNotFound, nil)
+}

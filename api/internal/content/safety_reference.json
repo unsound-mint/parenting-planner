@@ -1,0 +1,164 @@
+{
+ "about": "Pregnancy and breastfeeding reference for common foods and over-the-counter medicines. Educational only: it never says something is safe for a particular person, gives no doses, and sends every medicine question to a pharmacist or clinician. Texts are our own plain-language lines from the cited pages, each opened on its checkedAt date. Fish and fridge advice also has lessons in nutrition_paths.json; entries link there with learn.",
+ "sources": {
+  "nhs-foods": {"title": "NHS: Foods to avoid in pregnancy", "url": "https://www.nhs.uk/pregnancy/keeping-well/foods-to-avoid/", "checkedAt": "2026-11-14"},
+  "nhs-medicines": {"title": "NHS: Medicines in pregnancy", "url": "https://www.nhs.uk/pregnancy/keeping-well/medicines/", "checkedAt": "2026-11-14"},
+  "nhs-ibuprofen": {"title": "NHS: Pregnancy, breastfeeding and fertility while taking ibuprofen", "url": "https://www.nhs.uk/medicines/ibuprofen-for-adults/pregnancy-breastfeeding-and-fertility-while-taking-ibuprofen/", "checkedAt": "2026-11-14"},
+  "nhs-loratadine": {"title": "NHS: Pregnancy, breastfeeding and fertility while taking loratadine", "url": "https://www.nhs.uk/medicines/loratadine/pregnancy-breastfeeding-and-fertility-while-taking-loratadine/", "checkedAt": "2026-11-14"},
+  "nhs-indigestion": {"title": "NHS: Indigestion and heartburn in pregnancy", "url": "https://www.nhs.uk/pregnancy/common-symptoms/indigestion-and-heartburn/", "checkedAt": "2026-11-14"},
+  "fda-fish": {"title": "FDA and EPA: Advice about Eating Fish", "url": "https://www.fda.gov/food/consumers/advice-about-eating-fish", "checkedAt": "2026-11-14"},
+  "cdc-listeria": {"title": "CDC: Preventing Listeria infection", "url": "https://www.cdc.gov/listeria/prevention/index.html", "checkedAt": "2026-11-14"},
+  "cdc-maternal-diet": {"title": "CDC: Maternal diet and breastfeeding", "url": "https://www.cdc.gov/breastfeeding/breastfeeding-special-circumstances/diet-and-micronutrients/maternal-diet.html", "checkedAt": "2026-11-14"},
+  "cdc-alcohol": {"title": "CDC: Alcohol and breastfeeding", "url": "https://www.cdc.gov/breastfeeding-special-circumstances/hcp/vaccine-medication-drugs/alcohol.html", "checkedAt": "2026-11-14"},
+  "mtb-acetaminophen": {"title": "MotherToBaby: Acetaminophen", "url": "https://mothertobaby.org/fact-sheets/acetaminophen-pregnancy/", "checkedAt": "2026-11-14"},
+  "mtb-ibuprofen": {"title": "MotherToBaby: Ibuprofen", "url": "https://mothertobaby.org/fact-sheets/ibuprofen-pregnancy/", "checkedAt": "2026-11-14"},
+  "mtb-loratadine": {"title": "MotherToBaby: Loratadine", "url": "https://mothertobaby.org/fact-sheets/loratadine-pregnancy/", "checkedAt": "2026-11-14"},
+  "mtb-colds": {"title": "MotherToBaby: Colds and flu", "url": "https://mothertobaby.org/pregnancy-breastfeeding-exposures/colds-flu/", "checkedAt": "2026-11-14"},
+  "mtb-topical-steroids": {"title": "MotherToBaby: Topical corticosteroids", "url": "https://mothertobaby.org/fact-sheets/topical-corticosteroids-pregnancy/", "checkedAt": "2026-11-14"}
+ },
+ "entries": [
+  {
+   "id": "soft-cheese", "category": "food", "topic": "Dairy and eggs", "name": "Soft cheese",
+   "aliases": ["brie", "camembert", "feta", "mozzarella", "queso fresco", "blue cheese", "goat cheese", "cream cheese", "ricotta"],
+   "pregnancy": {"status": "limit", "why": "Pasteurised soft cheeses like feta, mozzarella and cream cheese are generally considered OK. Unheated queso fresco, and mould-ripened or blue cheeses unless cooked steaming hot, can carry listeria."},
+   "sources": ["nhs-foods", "cdc-listeria"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fridge-rules"}
+  },
+  {
+   "id": "unpasteurised-milk", "category": "food", "topic": "Dairy and eggs", "name": "Unpasteurised milk",
+   "aliases": ["raw milk", "raw yoghurt", "raw yogurt", "raw cream", "farm milk"],
+   "pregnancy": {"status": "avoid", "why": "Raw milk and products made from it can carry listeria, which can cause miscarriage, stillbirth or serious illness in a newborn. Pasteurised versions are the usual choice."},
+   "sources": ["nhs-foods", "cdc-listeria"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fridge-rules"}
+  },
+  {
+   "id": "raw-eggs", "category": "food", "topic": "Dairy and eggs", "name": "Raw or runny eggs",
+   "aliases": ["runny egg", "mayonnaise", "cookie dough", "tiramisu", "soft boiled egg", "egg"],
+   "pregnancy": {"status": "limit", "why": "The NHS says eggs marked British Lion are generally considered OK raw or runny; other raw or partly cooked hen eggs, and duck, goose and quail eggs, are best cooked through. The risk is salmonella food poisoning, which is unlikely to harm the baby but makes you ill."},
+   "sources": ["nhs-foods"]
+  },
+  {
+   "id": "deli-meat", "category": "food", "topic": "Meat and fish", "name": "Deli meat, hot dogs and pate",
+   "aliases": ["ham", "salami", "chorizo", "prosciutto", "cold cuts", "lunch meat", "pate", "hot dog", "sausage"],
+   "pregnancy": {"status": "limit", "why": "Ready-to-eat meats can carry listeria. Heat cured meats and hot dogs until steaming hot; keep cooked cold meats and pate chilled and eat them before the use-by date."},
+   "sources": ["nhs-foods", "cdc-listeria"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fridge-rules"}
+  },
+  {
+   "id": "liver", "category": "food", "topic": "Meat and fish", "name": "Liver and liver products",
+   "aliases": ["liver pate", "liver sausage", "vitamin a", "offal"],
+   "pregnancy": {"status": "avoid", "why": "Liver is very high in vitamin A, and too much vitamin A can harm the baby."},
+   "sources": ["nhs-foods"]
+  },
+  {
+   "id": "fish-lower-mercury", "category": "food", "topic": "Meat and fish", "name": "Fish with lower mercury",
+   "aliases": ["salmon", "shrimp", "cod", "sardines", "tilapia", "trout", "canned light tuna", "pollock", "haddock", "seafood", "mercury"],
+   "pregnancy": {"status": "ok", "why": "Fish is generally considered a good food in pregnancy. The FDA and EPA put salmon, shrimp, cod, sardines, canned light tuna and many others on a Best Choices list, with 2 to 3 servings a week; oily fish count toward the NHS limit of 2 portions a week."},
+   "breastfeeding": {"status": "ok", "why": "The CDC points to the same FDA and EPA lists while breastfeeding, since mercury can pass into milk."},
+   "sources": ["fda-fish", "nhs-foods", "cdc-maternal-diet"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fish-three-lists"}
+  },
+  {
+   "id": "tuna", "category": "food", "topic": "Meat and fish", "name": "Tuna",
+   "aliases": ["albacore", "tuna steak", "canned tuna", "bigeye", "yellowfin", "mercury"],
+   "pregnancy": {"status": "limit", "why": "Tuna has more mercury than most fish. Canned light tuna is a Best Choice in the FDA list; albacore and yellowfin are a Good Choice, one serving a week; bigeye is on the avoid list. The NHS sets a weekly cap on tuna."},
+   "breastfeeding": {"status": "limit", "why": "The same FDA and EPA lists apply while breastfeeding."},
+   "sources": ["fda-fish", "nhs-foods", "cdc-maternal-diet"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fish-three-lists"}
+  },
+  {
+   "id": "fish-high-mercury", "category": "food", "topic": "Meat and fish", "name": "Shark, swordfish, marlin and other high-mercury fish",
+   "aliases": ["king mackerel", "orange roughy", "bigeye tuna", "tilefish", "mercury"],
+   "pregnancy": {"status": "avoid", "why": "These fish have the most mercury, which can affect a baby's developing brain and nervous system. The FDA and EPA list shark, swordfish, marlin, king mackerel, orange roughy, bigeye tuna and Gulf of Mexico tilefish to avoid."},
+   "breastfeeding": {"status": "avoid", "why": "Mercury can pass into breast milk, so the CDC says to avoid the same fish while breastfeeding."},
+   "sources": ["fda-fish", "nhs-foods", "cdc-maternal-diet"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fish-three-lists"}
+  },
+  {
+   "id": "sushi", "category": "food", "topic": "Meat and fish", "name": "Sushi",
+   "aliases": ["sashimi", "raw fish", "poke", "nigiri", "maki"],
+   "pregnancy": {"status": "limit", "why": "Sushi made with cooked fish or vegetables is generally considered OK. The NHS advises against raw fish, even if it was frozen first, because raw fish may carry listeria."},
+   "sources": ["nhs-foods"]
+  },
+  {
+   "id": "raw-shellfish", "category": "food", "topic": "Meat and fish", "name": "Raw shellfish and smoked seafood",
+   "aliases": ["oysters", "mussels", "clams", "prawns", "lox", "smoked salmon", "smoked fish"],
+   "pregnancy": {"status": "avoid", "why": "Raw shellfish can carry bacteria or toxins that cause food poisoning. Refrigerated smoked fish can carry listeria; shelf-stable packs or smoked fish cooked in a dish are the usual choice."},
+   "sources": ["nhs-foods", "cdc-listeria"]
+  },
+  {
+   "id": "raw-sprouts", "category": "food", "topic": "Fruit and veg", "name": "Raw sprouts",
+   "aliases": ["alfalfa", "bean sprouts", "melon", "cut melon", "salad"],
+   "pregnancy": {"status": "limit", "why": "The CDC lists raw or lightly cooked sprouts as a listeria risk; sprouts cooked until steaming hot are the usual choice. Keep cut melon refrigerated."},
+   "sources": ["cdc-listeria"],
+   "learn": {"pathId": "eating-in-pregnancy", "lessonId": "fridge-rules"}
+  },
+  {
+   "id": "caffeine", "category": "food", "topic": "Drinks", "name": "Coffee, tea and other caffeine",
+   "aliases": ["coffee", "espresso", "cola", "energy drink", "black tea", "green tea", "matcha", "chocolate"],
+   "pregnancy": {"status": "limit", "why": "The NHS suggests keeping caffeine to 200 mg a day, about two mugs of instant coffee, because more is linked to a higher chance of miscarriage and stillbirth. Tea, cola, energy drinks and chocolate count too."},
+   "breastfeeding": {"status": "ok", "why": "Caffeine reaches breast milk in small amounts. The CDC says about 300 mg a day or less usually does not harm a baby; very high intake can leave a baby fussy and awake, and younger newborns clear it more slowly."},
+   "sources": ["nhs-foods", "cdc-maternal-diet"]
+  },
+  {
+   "id": "herbal-tea", "category": "food", "topic": "Drinks", "name": "Herbal tea",
+   "aliases": ["chamomile", "peppermint", "ginger tea", "raspberry leaf", "liquorice", "licorice", "fennel"],
+   "pregnancy": {"status": "limit", "why": "There is little research on herbal teas in pregnancy, so the NHS suggests no more than 4 cups a day and avoiding liquorice root tea, which may harm the baby's development."},
+   "sources": ["nhs-foods"]
+  },
+  {
+   "id": "alcohol", "category": "food", "topic": "Drinks", "name": "Alcohol",
+   "aliases": ["wine", "beer", "cocktail", "spirits", "mocktail", "drinking"],
+   "pregnancy": {"status": "avoid", "why": "The NHS advises not drinking alcohol in pregnancy because it can cause long-term harm to the baby."},
+   "breastfeeding": {"status": "limit", "why": "The CDC says not drinking is the safest choice. Up to one drink a day is not known to harm a baby, and the usual advice is to wait about 2 hours per drink before feeding. Pumping and discarding does not clear alcohol faster."},
+   "sources": ["nhs-foods", "cdc-alcohol"]
+  },
+  {
+   "id": "paracetamol", "category": "medicine", "topic": "Pain and fever", "name": "Paracetamol (acetaminophen)",
+   "aliases": ["tylenol", "panadol", "acetaminophen", "fever", "headache", "pain relief", "painkiller"],
+   "pregnancy": {"status": "ok", "why": "Usually the first choice for pain or fever in pregnancy. The NHS and the UK medicines regulator say it remains safe to take, and MotherToBaby says to use it only as needed unless a clinician advises otherwise."},
+   "breastfeeding": {"status": "ok", "why": "The NHS says paracetamol is usually the best painkiller while breastfeeding."},
+   "sources": ["nhs-medicines", "mtb-acetaminophen", "nhs-ibuprofen"]
+  },
+  {
+   "id": "ibuprofen", "category": "medicine", "topic": "Pain and fever", "name": "Ibuprofen and other NSAIDs",
+   "aliases": ["advil", "motrin", "nurofen", "naproxen", "aleve", "nsaid", "aspirin", "painkiller"],
+   "pregnancy": {"status": "avoid", "why": "The NHS says to avoid ibuprofen in pregnancy unless a doctor or pharmacist advises it. MotherToBaby, quoting the FDA, says NSAIDs are not advised after week 20 unless your clinician recommends one, as they can affect the baby's kidneys and heart circulation."},
+   "breastfeeding": {"status": "ask", "why": "Only small amounts reach breast milk and the NHS says ibuprofen can often be used if needed, though paracetamol is usually the first choice. Check first."},
+   "sources": ["nhs-ibuprofen", "mtb-ibuprofen"]
+  },
+  {
+   "id": "cold-flu", "category": "medicine", "topic": "Colds and allergies", "name": "Cold and flu remedies",
+   "aliases": ["decongestant", "cough syrup", "nasal spray", "pseudoephedrine", "phenylephrine", "codeine", "dextromethorphan", "lemsip", "nyquil", "multi-symptom"],
+   "pregnancy": {"status": "ask", "why": "MotherToBaby says many cold medicines are not expected to raise risks with short-term use, but some are preferred over others, and combination products mix several ingredients. Flu in pregnancy can be serious, so call your clinician early."},
+   "breastfeeding": {"status": "ask", "why": "The same ingredient-by-ingredient question applies while breastfeeding."},
+   "sources": ["mtb-colds", "nhs-medicines"]
+  },
+  {
+   "id": "antihistamine", "category": "medicine", "topic": "Colds and allergies", "name": "Antihistamines for allergies (loratadine)",
+   "aliases": ["claritin", "clarityn", "hay fever", "allergy tablet", "cetirizine", "zyrtec", "chlorphenamine", "benadryl", "diphenhydramine", "sleep aid"],
+   "pregnancy": {"status": "ok", "why": "Loratadine is generally considered OK in pregnancy by the NHS, and MotherToBaby does not expect it to raise the chance of birth defects. We did not open a source on other antihistamines, so ask about those."},
+   "breastfeeding": {"status": "ok", "why": "The NHS calls loratadine one of the best choices while breastfeeding. Tell your baby's clinician if the baby seems unusually sleepy, and note it may lower milk supply."},
+   "sources": ["nhs-loratadine", "mtb-loratadine"]
+  },
+  {
+   "id": "antacid", "category": "medicine", "topic": "Stomach and skin", "name": "Antacids and heartburn remedies",
+   "aliases": ["tums", "gaviscon", "rennie", "indigestion", "heartburn", "reflux", "alginate", "omeprazole"],
+   "pregnancy": {"status": "ask", "why": "Antacids and alginates are commonly used for heartburn, but the NHS says some are not suitable in pregnancy, so tell the pharmacist you are pregnant. They can stop iron and folic acid being absorbed, so keep them apart."},
+   "sources": ["nhs-indigestion"]
+  },
+  {
+   "id": "hydrocortisone", "category": "medicine", "topic": "Stomach and skin", "name": "Hydrocortisone and steroid creams",
+   "aliases": ["cortisone", "eczema cream", "itch cream", "rash", "topical", "ointment"],
+   "pregnancy": {"status": "ok", "why": "MotherToBaby says mild steroid creams are often a first choice for skin problems in pregnancy: little reaches the baby through the skin, especially with small, short use on unbroken skin. Stronger creams and large areas are a different question."},
+   "breastfeeding": {"status": "ok", "why": "Typical use is not expected to affect a breastfed baby. If you use it on the breast, wipe it off before feeding."},
+   "sources": ["mtb-topical-steroids"]
+  },
+  {
+   "id": "herbal-remedies", "category": "medicine", "topic": "Stomach and skin", "name": "Herbal and natural remedies",
+   "aliases": ["supplements", "essential oils", "homeopathic", "aromatherapy", "vitamin c", "zinc", "echinacea", "natural"],
+   "pregnancy": {"status": "ask", "why": "The NHS warns that natural does not mean safe in pregnancy. Tell your midwife, doctor or pharmacist about any herbal, homeopathic or aromatherapy product you use."},
+   "sources": ["nhs-medicines", "mtb-colds"]
+  }
+ ]
+}

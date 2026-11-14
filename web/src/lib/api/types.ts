@@ -158,3 +158,5 @@ export type Journey = S["Journey"];
 export type JourneyStage = S["JourneyStage"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+
+export type SafetyEntry = S["SafetyEntry"];
