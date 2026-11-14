@@ -135,14 +135,14 @@ func TestFriendFamiliesSeeOnlyWhatIsShared(t *testing.T) {
 	// B cannot remove A's update; B reacts with a preset only.
 	b.Delete(friendsPath(momB)+"/friend-updates/"+shared.Id.String(), http.StatusNotFound, nil)
 	b.Put(friendsPath(momB)+"/friend-updates/"+shared.Id.String()+"/reaction", map[string]string{"reaction": "applause"}, http.StatusBadRequest, nil)
-	b.Put(friendsPath(momB)+"/friend-updates/"+shared.Id.String()+"/reaction", httpapi.FriendReactionInput{Reaction: httpapi.Hug}, http.StatusNoContent, nil)
+	b.Put(friendsPath(momB)+"/friend-updates/"+shared.Id.String()+"/reaction", httpapi.FriendReactionInput{Reaction: httpapi.FriendReactionKindHug}, http.StatusNoContent, nil)
 
 	// A sees who reacted on its own update.
 	reacted := false
 	for _, u := range friendsOf(t, a, momA).Updates {
 		if u.Id == shared.Id {
 			for _, r := range u.Reactions {
-				reacted = reacted || (r.Name == momB.DisplayName && r.Reaction == httpapi.Hug)
+				reacted = reacted || (r.Name == momB.DisplayName && r.Reaction == httpapi.FriendReactionKindHug)
 			}
 		}
 	}
@@ -177,7 +177,7 @@ func TestFriendFamiliesSeeOnlyWhatIsShared(t *testing.T) {
 			t.Errorf("B's reaction outlived the connection: %+v", u.Reactions)
 		}
 	}
-	b.Put(friendsPath(momB)+"/friend-updates/"+shared.Id.String()+"/reaction", httpapi.FriendReactionInput{Reaction: httpapi.Heart}, http.StatusNotFound, nil)
+	b.Put(friendsPath(momB)+"/friend-updates/"+shared.Id.String()+"/reaction", httpapi.FriendReactionInput{Reaction: httpapi.FriendReactionKindHeart}, http.StatusNotFound, nil)
 }
 
 // Only the author removes an update; the other parent of the family cannot.
