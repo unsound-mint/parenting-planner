@@ -5,15 +5,9 @@ import { motion } from "motion/react";
 import { Baby } from "lucide-react";
 import type { PlanItem } from "@/lib/api/types";
 import { daysUntil, formatShortDate } from "@/lib/format";
-import { categoryIcon, statusTint } from "@/lib/visuals";
+import { categoryIcon, statusBar, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import type { Lane } from "./stages";
-
-const barTone = {
-  overdue: "bg-status-late",
-  due: "bg-status-due",
-  upcoming: "bg-status-up",
-} as const;
 
 // The next few weeks as lanes: each plan item is a bar from today to its due
 // date, so the parent sees what to do and how much time is left at a glance.
@@ -37,10 +31,10 @@ export function NextWeeks({ lane, items, weekHref }: { lane: Lane; items: PlanIt
       <div className="relative mt-6 ml-0 h-6 md:ml-[38%]" aria-hidden>
         <span className="absolute top-0 left-0 -translate-x-0 text-caption font-semibold text-primary">Today</span>
         {lane.ticks.map((t, i) => (
-          // Phones label every other tick so the labels never collide.
+          // Every tick gets a line, every other one a label, so labels never collide with "Today".
           <span
             key={t.days}
-            className={cn("absolute top-0 -translate-x-1/2 font-mono text-caption whitespace-nowrap text-muted-foreground", i % 2 === 0 && "max-md:hidden")}
+            className={cn("absolute top-0 -translate-x-1/2 font-mono text-caption whitespace-nowrap text-muted-foreground", i % 2 === 0 && "hidden")}
             style={{ left: pct(t.days / lane.days) }}
           >
             {t.label}
@@ -64,7 +58,7 @@ export function NextWeeks({ lane, items, weekHref }: { lane: Lane; items: PlanIt
           )}
         </div>
 
-        <ol className="relative flex flex-col gap-3 pt-2">
+        <ol className="relative flex flex-col gap-4 pt-3">
           {items.map((item, i) => {
             const Icon = categoryIcon[item.category];
             const days = item.dueBy ? daysUntil(item.dueBy) : undefined;
@@ -77,15 +71,15 @@ export function NextWeeks({ lane, items, weekHref }: { lane: Lane; items: PlanIt
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-body font-semibold">{item.title}</span>
-                    <span className="block text-caption text-muted-foreground">
+                    <span className="block font-mono text-caption text-muted-foreground">
                       {item.dueBy ? `by ${formatShortDate(item.dueBy)}` : "No set date"}
-                      {days !== undefined && (days < 0 ? " · overdue" : ` · ${days} days left`)}
+                      {days !== undefined && days < 0 && " · overdue"}
                     </span>
                   </span>
                 </div>
-                <div className="relative h-9" aria-hidden title={item.dueBy ? `${item.title}: by ${formatShortDate(item.dueBy)}` : item.title}>
+                <div className="relative h-9" aria-hidden>
                   <motion.span
-                    className={cn("absolute top-1/2 left-0 h-2.5 origin-left -translate-y-1/2 rounded-full opacity-80", barTone[item.status])}
+                    className={cn("absolute top-1/2 left-0 h-3.5 origin-left -translate-y-1/2 rounded-full opacity-80", statusBar[item.status])}
                     style={{ width: pct(Math.max(end, 0.015)) }}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1 }}
