@@ -153,3 +153,23 @@ func (c *Client) AuditCount(familyID any, action, entity string) int {
 	}
 	return n
 }
+
+// Raw sends a body that is not JSON (an audio upload) or reads a body that is
+// not JSON (a calendar feed) and returns the status and the raw response.
+func (c *Client) Raw(method, path, contentType string, body io.Reader) (int, []byte) {
+	c.t.Helper()
+	req, err := http.NewRequest(method, c.base+path, body)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	res, err := c.http.Do(req)
+	if err != nil {
+		c.t.Fatal(err)
+	}
+	defer res.Body.Close()
+	raw, _ := io.ReadAll(res.Body)
+	return res.StatusCode, raw
+}
