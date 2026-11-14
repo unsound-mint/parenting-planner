@@ -3984,7 +3984,7 @@ export interface paths {
          * @description 404 when the story does not exist or is the other parent's private
          *     story. Caregivers get 404. Audited.
          */
-        get: operations["getStory"];
+        get: operations["getStorybookStory"];
         put?: never;
         post?: never;
         /**
@@ -19589,7 +19589,7 @@ export interface operations {
             };
         };
     };
-    getStory: {
+    getStorybookStory: {
         parameters: {
             query?: never;
             header?: never;

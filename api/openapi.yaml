@@ -7283,7 +7283,7 @@ paths:
           type: string
           format: uuid
     get:
-      operationId: getStory
+      operationId: getStorybookStory
       tags: [storybook]
       summary: One story the acting parent may read
       description: |

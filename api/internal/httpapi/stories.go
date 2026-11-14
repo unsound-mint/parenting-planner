@@ -25,7 +25,7 @@ func signedAsFor(role string) string {
 	return "Daddy"
 }
 
-func storyOut(s storybook.Story) StorybookStory {
+func storybookOut(s storybook.Story) StorybookStory {
 	out := StorybookStory{
 		Id: s.ID, AuthorId: s.OwnerMemberID, Title: s.Title, Theme: StoryTheme(s.Theme), ChildName: s.ChildName,
 		SignedAs: s.SignedAs, Memories: s.MemoryLines, Pages: make([]StoryPage, 0, len(s.PageList)),
@@ -107,7 +107,7 @@ func (s *Server) CreateStory(ctx context.Context, req CreateStoryRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	return CreateStory201JSONResponse(storyOut(st)), nil
+	return CreateStory201JSONResponse(storybookOut(st)), nil
 }
 
 func (s *Server) ListStories(ctx context.Context, req ListStoriesRequestObject) (ListStoriesResponseObject, error) {
@@ -126,29 +126,29 @@ func (s *Server) ListStories(ctx context.Context, req ListStoriesRequestObject) 
 	}
 	out := StoryList{Items: make([]StorybookStory, 0, len(rows)), AiEnabled: s.cfg.AI.Enabled()}
 	for _, r := range rows {
-		out.Items = append(out.Items, storyOut(r))
+		out.Items = append(out.Items, storybookOut(r))
 	}
 	return ListStories200JSONResponse(out), nil
 }
 
-func (s *Server) GetStory(ctx context.Context, req GetStoryRequestObject) (GetStoryResponseObject, error) {
+func (s *Server) GetStorybookStory(ctx context.Context, req GetStorybookStoryRequestObject) (GetStorybookStoryResponseObject, error) {
 	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
 	case kind == errUnauthorized:
-		return GetStory401JSONResponse(errNoSession), nil
+		return GetStorybookStory401JSONResponse(errNoSession), nil
 	case kind == errNotFound:
-		return GetStory404JSONResponse(errNoMember), nil
+		return GetStorybookStory404JSONResponse(errNoMember), nil
 	}
 	st, err := storybook.Get(ctx, s.pool, familyID, req.MemberId, req.StoryId)
 	if errors.Is(err, storybook.ErrNoStory) {
-		return GetStory404JSONResponse(errNoStory), nil
+		return GetStorybookStory404JSONResponse(errNoStory), nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	return GetStory200JSONResponse(storyOut(st)), nil
+	return GetStorybookStory200JSONResponse(storybookOut(st)), nil
 }
 
 func (s *Server) UpdateStory(ctx context.Context, req UpdateStoryRequestObject) (UpdateStoryResponseObject, error) {
@@ -172,7 +172,7 @@ func (s *Server) UpdateStory(ctx context.Context, req UpdateStoryRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	return UpdateStory200JSONResponse(storyOut(st)), nil
+	return UpdateStory200JSONResponse(storybookOut(st)), nil
 }
 
 func (s *Server) DeleteStory(ctx context.Context, req DeleteStoryRequestObject) (DeleteStoryResponseObject, error) {
