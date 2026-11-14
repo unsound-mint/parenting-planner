@@ -104,7 +104,8 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
 
       {weekly && weekly.items.length > 0 && (
         <Rise i={1}>
-          <WeeklyReadCard key={memberId} items={weekly.items} current={weekly.current} />
+          {/* Keyed on today's read so "Skip a week" (a refresh) lands on the new week. */}
+          <WeeklyReadCard key={`${memberId}-${weekly.items[weekly.current]?.id}`} items={weekly.items} current={weekly.current} />
         </Rise>
       )}
 

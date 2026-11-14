@@ -58,7 +58,11 @@ func (r WeeklyRead) Label() string {
 	case ReadPregnancy:
 		return fmt.Sprintf("Week %d", r.N)
 	case ReadBabyWeek:
-		// Week 0 is the first week of life; people count it as week 1.
+		// Week 0 is the first week of life; people count it as week 1. The
+		// last one holds the first birthday.
+		if r.N == lastBabyWeek {
+			return "First birthday"
+		}
 		return fmt.Sprintf("Week %d", r.N+1)
 	case ReadMonth:
 		return fmt.Sprintf("%d months", r.N)

@@ -25,7 +25,8 @@ function when(r: WeeklyRead): string | undefined {
 
 /** "Week 25 of pregnancy", "Week 6", "14 months", "Age 4". */
 function heading(r: WeeklyRead): string {
-  return r.kind === "pregnancy_week" ? `${r.label} of pregnancy` : r.kind === "baby_week" ? `${r.label} with your baby` : r.label;
+  if (r.kind === "pregnancy_week") return `${r.label} of pregnancy`;
+  return r.kind === "baby_week" && r.label.startsWith("Week") ? `${r.label} with your baby` : r.label;
 }
 
 /**

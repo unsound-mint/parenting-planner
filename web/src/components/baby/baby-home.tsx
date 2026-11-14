@@ -3,7 +3,7 @@ import { Handshake, Hourglass } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today, VoiceNote } from "@/lib/api/types";
 import { agoWords, isAsleep, lastActivityAt } from "@/lib/care";
-import { familyContext, formatClock } from "@/lib/format";
+import { childCalled, familyContext, formatClock, givenName } from "@/lib/format";
 import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
 import { careLogIcon, careLogLabel, careLogTint, diaperLabel, feedMethodLabel, roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -90,10 +90,10 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
   const lastFeed = care.latest.lastFeed;
   const headline = incoming
-    ? `${byId.get(incoming.fromMemberId)?.displayName ?? "Someone"} is handing ${child.name} over to you.`
+    ? `${byId.get(incoming.fromMemberId)?.displayName ?? "Someone"} is handing ${childCalled(child)} over to you.`
     : lastFeed
-      ? `${child.name} last ate ${agoWords(lastFeed.startedAt, now)}.`
-      : `${child.name}'s day starts here. Log the first feed.`;
+      ? `${childCalled(child, { capital: true })} last ate ${agoWords(lastFeed.startedAt, now)}.`
+      : `${givenName(child) ? `${givenName(child)}'s` : "Your baby's"} day starts here. Log the first feed.`;
 
   return (
     <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -179,9 +179,9 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
             <section aria-labelledby="handoff-title" className="rounded-2xl border border-border bg-card p-4">
               <h2 id="handoff-title" className="mb-3 flex items-center gap-2 text-title">
                 <Handshake aria-hidden className="size-4.5 text-muted-foreground" />
-                Hand over {child.name}
+                Hand over {childCalled(child)}
               </h2>
-              <HandoffForm memberId={memberId} recipients={recipients} childName={child.name} voice={voice} />
+              <HandoffForm memberId={memberId} recipients={recipients} childName={childCalled(child)} voice={voice} />
             </section>
           )
         )}

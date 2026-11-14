@@ -4,8 +4,8 @@ import { dayOf } from "../timeline";
 
 // The CDC "Learn the Signs. Act Early." checklist for 4 years, as on
 // https://www.cdc.gov/act-early/milestones/4-years.html (opened 2026-11-14, page
-// reviewed 2026-05-16). The real endpoint picks the 2, 3, 4 or 5 year list by
-// age; the preview always shows the 4 year one. The wording keeps the CDC's.
+// reviewed 2026-05-16). The real endpoint picks the list the child is heading to
+// (2 months to 5 years, api/internal/milestones); the preview always shows the 4 year one. The wording keeps the CDC's.
 const CHECKLIST: { id: string; domain: MilestoneDomain; text: string; seen?: number }[] = [
   { id: "4y-social-pretend", domain: "social_emotional", text: "Pretends to be something else during play (teacher, superhero, dog)", seen: -40 },
   { id: "4y-social-play", domain: "social_emotional", text: "Asks to go play with children if none are around", seen: -30 },
