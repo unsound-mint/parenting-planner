@@ -91,6 +91,29 @@ func TestInfantTwoMonthVaccines(t *testing.T) {
 	checkStatus(t, "no children", "infant-2-month-vaccines", factsAt("planning", Mother), "")
 }
 
+func TestPostpartumVisit(t *testing.T) {
+	checkStatus(t, "2 weeks", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 14)), Upcoming)
+	it := checkStatus(t, "week six", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 37)), Due)
+	if it != nil && (it.DueBy == nil || !it.DueBy.Equal(today.AddDate(0, 0, 4)) || it.Reason != "Leo is 5 weeks old and no checkup for you after the birth is on record.") {
+		t.Errorf("week six: %+v", it)
+	}
+	checkStatus(t, "7 weeks", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 49)), Overdue)
+	checkStatus(t, "12 weeks", "postpartum-visit", factsAt("postpartum", Mother, childAged("Leo", 0, 0, 84)), "")
+
+	done := factsAt("postpartum", Mother, childAged("Leo", 0, 0, 49))
+	done.PregnancyLabs["postpartum_visit"] = today.AddDate(0, 0, -5)
+	checkStatus(t, "visit on record", "postpartum-visit", done, "")
+	old := factsAt("postpartum", Mother, childAged("Leo", 0, 0, 49))
+	old.PregnancyLabs["postpartum_visit"] = today.AddDate(-2, 0, 0)
+	checkStatus(t, "visit after an earlier birth", "postpartum-visit", old, Overdue)
+
+	checkStatus(t, "partner", "postpartum-visit", factsAt("postpartum", Partner, childAged("Leo", 0, 0, 37)), "")
+	checkStatus(t, "infant stage", "postpartum-visit", factsAt("infant", Mother, childAged("Leo", 0, 0, 37)), "")
+	checkStatus(t, "no children", "postpartum-visit", factsAt("postpartum", Mother), "")
+	// The newest baby counts, not an older sibling.
+	checkStatus(t, "sibling", "postpartum-visit", factsAt("postpartum", Mother, childAged("Ava", 4, 0, 0), childAged("Leo", 0, 0, 37)), Due)
+}
+
 func TestPreschoolBoosters(t *testing.T) {
 	checkStatus(t, "3 years", "preschool-boosters", factsAt("preschool", Mother, childAged("Ava", 3, 6, 0)), "")
 	ava := childAged("Ava", 4, 1, 0)

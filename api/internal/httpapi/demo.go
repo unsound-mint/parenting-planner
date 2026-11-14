@@ -31,3 +31,8 @@ func (s *Server) sessionCookieHeader(token string) string {
 		Secure: s.cfg.SecureCookies, SameSite: http.SameSiteLaxMode, MaxAge: int(demo.SessionTTL.Seconds()),
 	}).String()
 }
+
+// CreateDemoTimeSkip is a stub until the demo clock is stored (#325).
+func (s *Server) CreateDemoTimeSkip(_ context.Context, _ CreateDemoTimeSkipRequestObject) (CreateDemoTimeSkipResponseObject, error) {
+	return CreateDemoTimeSkip501JSONResponse(Error{Code: "not_implemented", Message: "skipping ahead is not available yet"}), nil
+}

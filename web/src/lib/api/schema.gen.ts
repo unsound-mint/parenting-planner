@@ -88,6 +88,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/demo-time-skips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Skip the session's family ahead one week (demo time)
+         * @description Moves this family's demo clock forward 7 days. From then on every date
+         *     the API computes for the family (plan, due items, gestational week,
+         *     timeline) uses the shifted day, from the same stored data. Only this
+         *     family moves; other demo families keep the real date. Starting a new
+         *     demo creates a new family at real time, which is the reset. The UI
+         *     must label the shifted date as demo time.
+         */
+        post: operations["createDemoTimeSkip"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family/upgrade-intents": {
         parameters: {
             query?: never;
@@ -1510,6 +1535,12 @@ export interface components {
             /** Format: uuid */
             id: string;
             template: components["schemas"]["DemoTemplate"];
+            /**
+             * @description Days this family's demo clock has been skipped ahead of the real
+             *     date (createDemoTimeSkip). Absent or 0 means real time; anything else must be
+             *     shown as demo time.
+             */
+            demoDaysAhead?: number;
             stage: components["schemas"]["Stage"];
             /**
              * Format: date
@@ -2860,6 +2891,44 @@ export interface operations {
             };
             /** @description Error */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createDemoTimeSkip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The family as of its new demo date. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
