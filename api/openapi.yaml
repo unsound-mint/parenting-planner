@@ -3755,8 +3755,8 @@ paths:
         Mother or partner; a grandparent or nanny gets 404. For a mistaken tap:
         restores the stage and due date stored by createPregnancyLoss and shows
         pregnancy items again. 409 no_pregnancy_loss when support is not on. A
-        family that wants to try again instead uses updateFamily with stage
-        planning or trying, which keeps support content but ends the record.
+        family that is ready to try again uses updateFamily with stage planning
+        or trying instead, which ends support mode without restoring anything.
         Sends a live update of kind family.
       responses:
         "200":
