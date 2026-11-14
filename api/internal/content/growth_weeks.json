@@ -1,0 +1,611 @@
+{
+  "about": "What develops in each pregnancy week, as body areas for the 3D baby. Each hotspot paraphrases the NHS Start for Life page for that same week; source ids resolve against size_weeks.json. Each fact is used in one week only. Survival and distress lines are left out.",
+  "checkedAt": "2026-11-14",
+  "weeks": [
+    {
+      "week": 4,
+      "hotspots": [
+        {
+          "area": "body",
+          "text": "Your tiny embryo floats in a cushion of fluid, fed for now by a little yolk sac.",
+          "source": "nhs-week-4"
+        },
+        {
+          "area": "cord",
+          "text": "Its outer layer of cells will grow into the placenta, which brings oxygen and food later on.",
+          "source": "nhs-week-4"
+        }
+      ]
+    },
+    {
+      "week": 5,
+      "hotspots": [
+        {
+          "area": "brain",
+          "text": "The brain and spinal cord are forming fast.",
+          "source": "nhs-week-5"
+        },
+        {
+          "area": "face",
+          "text": "The face is starting to take shape, with the beginnings of a tiny nose and eyes.",
+          "source": "nhs-week-5"
+        },
+        {
+          "area": "cord",
+          "text": "The first blood vessels are here, and a string of them will become the umbilical cord.",
+          "source": "nhs-week-5"
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "hotspots": [
+        {
+          "area": "heart",
+          "text": "There is a little bump where the heart is growing.",
+          "source": "nhs-week-6"
+        },
+        {
+          "area": "hands",
+          "text": "Small limb buds have appeared, the start of arms and legs.",
+          "source": "nhs-week-6"
+        },
+        {
+          "area": "ears",
+          "text": "Tiny dents mark the spots where the ears will be.",
+          "source": "nhs-week-6"
+        },
+        {
+          "area": "skin",
+          "text": "A thin, see-through layer of skin covers the whole embryo.",
+          "source": "nhs-week-6"
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "hotspots": [
+        {
+          "area": "brain",
+          "text": "The brain grows faster than the rest of the body, making about 100 new brain cells every minute.",
+          "source": "nhs-week-7"
+        },
+        {
+          "area": "eyes",
+          "text": "Eyelids are beginning to grow over the eyes.",
+          "source": "nhs-week-7"
+        },
+        {
+          "area": "hands",
+          "text": "The arm buds are getting longer, and their flat ends will soon be tiny hands.",
+          "source": "nhs-week-7"
+        }
+      ]
+    },
+    {
+      "week": 8,
+      "hotspots": [
+        {
+          "area": "body",
+          "text": "The head has started to uncurl a little.",
+          "source": "nhs-week-8"
+        },
+        {
+          "area": "hands",
+          "text": "The arms grow faster than the legs, because the upper body leads the way.",
+          "source": "nhs-week-8"
+        },
+        {
+          "area": "legs",
+          "text": "The legs are getting longer too, though knees and toes come later.",
+          "source": "nhs-week-8"
+        }
+      ]
+    },
+    {
+      "week": 9,
+      "hotspots": [
+        {
+          "area": "face",
+          "text": "The face looks more like a face now, with eyelids, a little mouth and a tongue.",
+          "source": "nhs-week-9"
+        },
+        {
+          "area": "hands",
+          "text": "Hands and feet are forming, with small grooves where fingers and toes will be.",
+          "source": "nhs-week-9"
+        },
+        {
+          "area": "bones",
+          "text": "The first bones are starting to form.",
+          "source": "nhs-week-9"
+        },
+        {
+          "area": "tummy",
+          "text": "The heart, lungs, kidneys and gut are all developing inside.",
+          "source": "nhs-week-9"
+        }
+      ]
+    },
+    {
+      "week": 10,
+      "hotspots": [
+        {
+          "area": "heart",
+          "text": "The heart beats about 180 times a minute, roughly three times faster than yours.",
+          "source": "nhs-week-10"
+        },
+        {
+          "area": "eyes",
+          "text": "The eyes are half closed but can already react to light.",
+          "source": "nhs-week-10"
+        },
+        {
+          "area": "mouth",
+          "text": "There is a delicate upper lip, two little nostrils, and tiny milk teeth waiting in the jaw.",
+          "source": "nhs-week-10"
+        },
+        {
+          "area": "movement",
+          "text": "Little jerky movements can be seen on a scan.",
+          "source": "nhs-week-10"
+        }
+      ]
+    },
+    {
+      "week": 11,
+      "hotspots": [
+        {
+          "area": "hands",
+          "text": "Fingers and toes are separating, and tiny fingernails are forming.",
+          "source": "nhs-week-11"
+        },
+        {
+          "area": "ears",
+          "text": "Miniature ears are taking shape.",
+          "source": "nhs-week-11"
+        },
+        {
+          "area": "movement",
+          "text": "Your baby is kicking already, weeks before you can feel it.",
+          "source": "nhs-week-11"
+        }
+      ]
+    },
+    {
+      "week": 12,
+      "hotspots": [
+        {
+          "area": "bones",
+          "text": "The skeleton is hardening from soft tissue into bone.",
+          "source": "nhs-week-12"
+        },
+        {
+          "area": "heart",
+          "text": "The heartbeat can now be picked up on an ultrasound scan.",
+          "source": "nhs-week-12"
+        },
+        {
+          "area": "tummy",
+          "text": "The internal organs and muscles have grown a lot.",
+          "source": "nhs-week-12"
+        }
+      ]
+    },
+    {
+      "week": 13,
+      "hotspots": [
+        {
+          "area": "movement",
+          "text": "Movements are changing from jerky and random to more deliberate.",
+          "source": "nhs-week-13"
+        },
+        {
+          "area": "mouth",
+          "text": "Some babies suck their thumb, which is practice for feeding later.",
+          "source": "nhs-week-13"
+        }
+      ]
+    },
+    {
+      "week": 14,
+      "hotspots": [
+        {
+          "area": "face",
+          "text": "The head is getting rounder and more in proportion with the body.",
+          "source": "nhs-week-14"
+        },
+        {
+          "area": "kidneys",
+          "text": "Your baby swallows a little fluid, and the kidneys pass it back out as urine.",
+          "source": "nhs-week-14"
+        },
+        {
+          "area": "heart",
+          "text": "Your midwife may be able to hear the heartbeat with a handheld monitor.",
+          "source": "nhs-week-14"
+        }
+      ]
+    },
+    {
+      "week": 15,
+      "hotspots": [
+        {
+          "area": "skin",
+          "text": "A soft layer of fine hair called lanugo is starting to grow all over.",
+          "source": "nhs-week-15"
+        },
+        {
+          "area": "eyes",
+          "text": "Eyebrows and eyelashes are starting to grow.",
+          "source": "nhs-week-15"
+        },
+        {
+          "area": "ears",
+          "text": "Hearing is beginning: your heartbeat and your tummy rumbles are the first sounds.",
+          "source": "nhs-week-15"
+        }
+      ]
+    },
+    {
+      "week": 16,
+      "hotspots": [
+        {
+          "area": "face",
+          "text": "Your baby has started pulling faces, all at random for now.",
+          "source": "nhs-week-16"
+        },
+        {
+          "area": "hands",
+          "text": "The hands can make little fists.",
+          "source": "nhs-week-16"
+        },
+        {
+          "area": "brain",
+          "text": "The growing nervous system lets the arms and legs start to move.",
+          "source": "nhs-week-16"
+        }
+      ]
+    },
+    {
+      "week": 17,
+      "hotspots": [
+        {
+          "area": "hands",
+          "text": "Fingernails are growing, and the fingertips carry fingerprints that are unique, even between identical twins.",
+          "source": "nhs-week-17"
+        },
+        {
+          "area": "eyes",
+          "text": "The eyes can move, though the eyelids stay shut for now.",
+          "source": "nhs-week-17"
+        },
+        {
+          "area": "mouth",
+          "text": "Your baby can open and close their mouth.",
+          "source": "nhs-week-17"
+        }
+      ]
+    },
+    {
+      "week": 18,
+      "hotspots": [
+        {
+          "area": "mouth",
+          "text": "Swallowing and sucking reflexes are developing this week.",
+          "source": "nhs-week-18"
+        },
+        {
+          "area": "skin",
+          "text": "The sense of touch is developing too.",
+          "source": "nhs-week-18"
+        },
+        {
+          "area": "movement",
+          "text": "There is a lot of wriggling, with arms and legs on the move.",
+          "source": "nhs-week-18"
+        }
+      ]
+    },
+    {
+      "week": 19,
+      "hotspots": [
+        {
+          "area": "mouth",
+          "text": "Adult teeth are starting to form, lined up behind the first set.",
+          "source": "nhs-week-19"
+        },
+        {
+          "area": "body",
+          "text": "Your baby keeps putting on weight, getting ready for birth.",
+          "source": "nhs-week-19"
+        }
+      ]
+    },
+    {
+      "week": 20,
+      "hotspots": [
+        {
+          "area": "skin",
+          "text": "A white, creamy coating called vernix now protects the skin.",
+          "source": "nhs-week-20"
+        },
+        {
+          "area": "legs",
+          "text": "Length is now measured head to heel, because the legs are no longer tucked out of view.",
+          "source": "nhs-week-20"
+        },
+        {
+          "area": "movement",
+          "text": "You may start to feel a flutter or bubbling, which could be your baby moving.",
+          "source": "nhs-week-20"
+        }
+      ]
+    },
+    {
+      "week": 21,
+      "hotspots": [
+        {
+          "area": "ears",
+          "text": "Your baby can hear voices from outside now, so singing to the bump counts.",
+          "source": "nhs-week-21"
+        },
+        {
+          "area": "cord",
+          "text": "Your baby now weighs more than the placenta, which keeps growing too.",
+          "source": "nhs-week-21"
+        },
+        {
+          "area": "face",
+          "text": "Hair is starting to grow on the head.",
+          "source": "nhs-week-21"
+        }
+      ]
+    },
+    {
+      "week": 22,
+      "hotspots": [
+        {
+          "area": "lungs",
+          "text": "The lungs are developing, and your baby practices breathing movements.",
+          "source": "nhs-week-22"
+        },
+        {
+          "area": "tummy",
+          "text": "Swallowed fluid collects in the bowels and will become the first poo after birth.",
+          "source": "nhs-week-22"
+        },
+        {
+          "area": "mouth",
+          "text": "Taste buds are developing and may be shaped by the flavors you eat.",
+          "source": "nhs-week-22"
+        }
+      ]
+    },
+    {
+      "week": 23,
+      "hotspots": [
+        {
+          "area": "hands",
+          "text": "The arms and legs are now in proportion with the body.",
+          "source": "nhs-week-23"
+        },
+        {
+          "area": "movement",
+          "text": "Over the next weeks you may see your tummy move when your baby kicks.",
+          "source": "nhs-week-23"
+        }
+      ]
+    },
+    {
+      "week": 24,
+      "hotspots": [
+        {
+          "area": "body",
+          "text": "Everything is in proportion now. From here on it is mostly growing and maturing.",
+          "source": "nhs-week-24"
+        }
+      ]
+    },
+    {
+      "week": 25,
+      "hotspots": [
+        {
+          "area": "movement",
+          "text": "A loud noise may make your baby jump, and you might feel the odd hiccup.",
+          "source": "nhs-week-25"
+        },
+        {
+          "area": "kidneys",
+          "text": "The fluid around your baby is now mostly their urine, a warm cushion that keeps the temperature steady.",
+          "source": "nhs-week-25"
+        }
+      ]
+    },
+    {
+      "week": 26,
+      "hotspots": [
+        {
+          "area": "eyes",
+          "text": "The eyes open for the first time around now, and blinking comes next. Eye color can keep changing for years.",
+          "source": "nhs-week-26"
+        }
+      ]
+    },
+    {
+      "week": 27,
+      "hotspots": [
+        {
+          "area": "skin",
+          "text": "Fat is filling out the folds of skin, so your baby looks less wrinkled.",
+          "source": "nhs-week-27"
+        },
+        {
+          "area": "tummy",
+          "text": "All the organs keep maturing for life outside the womb.",
+          "source": "nhs-week-27"
+        }
+      ]
+    },
+    {
+      "week": 28,
+      "hotspots": [
+        {
+          "area": "heart",
+          "text": "The heart beats about 140 times a minute. A partner may hear it with an ear to the bump, if they find the right spot.",
+          "source": "nhs-week-28"
+        }
+      ]
+    },
+    {
+      "week": 29,
+      "hotspots": [
+        {
+          "area": "skin",
+          "text": "The creamy vernix coating starts to fade from now.",
+          "source": "nhs-week-29"
+        },
+        {
+          "area": "body",
+          "text": "Every part is formed. The weeks ahead are for maturing and gaining fat.",
+          "source": "nhs-week-29"
+        }
+      ]
+    },
+    {
+      "week": 30,
+      "hotspots": [
+        {
+          "area": "eyes",
+          "text": "The eyes can focus now. After birth your baby sees a face best from about 20 to 25 cm away.",
+          "source": "nhs-week-30"
+        }
+      ]
+    },
+    {
+      "week": 31,
+      "hotspots": [
+        {
+          "area": "hands",
+          "text": "Your baby is busy sucking fingers and turning the odd somersault.",
+          "source": "nhs-week-31"
+        },
+        {
+          "area": "ears",
+          "text": "Your baby is starting to recognize voices, so everyone can talk to the bump.",
+          "source": "nhs-week-31"
+        }
+      ]
+    },
+    {
+      "week": 32,
+      "hotspots": [
+        {
+          "area": "body",
+          "text": "Your baby is fully formed, and the coming weeks are all about putting on weight.",
+          "source": "nhs-week-32"
+        }
+      ]
+    },
+    {
+      "week": 33,
+      "hotspots": [
+        {
+          "area": "brain",
+          "text": "The brain and nervous system are now fully developed.",
+          "source": "nhs-week-33"
+        },
+        {
+          "area": "bones",
+          "text": "The bones are hardening, except the skull, which stays soft so birth is a little easier.",
+          "source": "nhs-week-33"
+        }
+      ]
+    },
+    {
+      "week": 34,
+      "hotspots": [
+        {
+          "area": "legs",
+          "text": "Your baby is curled up with legs bent toward the chest.",
+          "source": "nhs-week-34"
+        },
+        {
+          "area": "movement",
+          "text": "Space is tight, but you can still see your bump change shape as your baby shifts.",
+          "source": "nhs-week-34"
+        }
+      ]
+    },
+    {
+      "week": 35,
+      "hotspots": [
+        {
+          "area": "body",
+          "text": "Your baby is getting chubbier, which will help them stay warm after birth.",
+          "source": "nhs-week-35"
+        }
+      ]
+    },
+    {
+      "week": 36,
+      "hotspots": [
+        {
+          "area": "lungs",
+          "text": "The lungs are probably mature enough to breathe without help.",
+          "source": "nhs-week-36"
+        },
+        {
+          "area": "mouth",
+          "text": "Your baby can now suck and digest milk.",
+          "source": "nhs-week-36"
+        }
+      ]
+    },
+    {
+      "week": 37,
+      "hotspots": [
+        {
+          "area": "face",
+          "text": "Your baby tries out expressions like frowning and smiling, at random for now.",
+          "source": "nhs-week-37"
+        },
+        {
+          "area": "movement",
+          "text": "By now you probably know when your baby is active and when they are calm.",
+          "source": "nhs-week-37"
+        }
+      ]
+    },
+    {
+      "week": 38,
+      "hotspots": [
+        {
+          "area": "skin",
+          "text": "Most of the soft lanugo hair is gone, though some babies keep a few patches.",
+          "source": "nhs-week-38"
+        }
+      ]
+    },
+    {
+      "week": 39,
+      "hotspots": [
+        {
+          "area": "skin",
+          "text": "The skin is growing a tougher outer layer that protects the organs and helps keep warm.",
+          "source": "nhs-week-39"
+        }
+      ]
+    },
+    {
+      "week": 40,
+      "hotspots": [
+        {
+          "area": "body",
+          "text": "This is your due date week. Your baby is snug and keeps moving in their usual pattern.",
+          "source": "nhs-week-40"
+        }
+      ]
+    }
+  ]
+}
