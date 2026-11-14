@@ -71,6 +71,9 @@ export type Child = S["Child"];
 export type Today = S["Today"];
 export type PregnancyWeek = S["PregnancyWeek"];
 export type StageNow = S["StageNow"];
+export type PregnancyGrowth = S["PregnancyGrowth"];
+export type PregnancyGrowthWeek = S["PregnancyGrowthWeek"];
+export type GrowthHotspot = S["GrowthHotspot"];
 export type PregnancyWeekSummary = S["PregnancyWeekSummary"];
 export type Guide = S["Guide"];
 export type GuideAction = S["GuideAction"];
@@ -162,6 +165,9 @@ export type NameDeck = S["NameDeck"];
 export type NameVerdict = S["NameVerdict"];
 export type NameSex = S["NameSex"];
 export type NameSwipeResult = S["NameSwipeResult"];
+
+export type Postcard = S["Postcard"];
+export type PostcardLove = S["PostcardLove"];
 export type Journey = S["Journey"];
 export type JourneyStage = S["JourneyStage"];
 

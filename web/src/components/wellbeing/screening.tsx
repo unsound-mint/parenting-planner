@@ -13,6 +13,7 @@ import { helpHref } from "@/components/shell/urgent-help-link";
 import { Button } from "@/components/ui/button";
 import { bandWords } from "./screening-bands";
 import { PrintLink, ShareControl, VisitQuestion } from "./screening-actions";
+import { SourceLink } from "@/components/joy/source-line";
 
 const bandStyle: Record<ScreeningBand, { icon: LucideIcon; tone: string; soft: string }> = {
   green: { icon: CircleCheck, tone: "text-status-ok", soft: "bg-status-ok-soft" },
@@ -300,8 +301,8 @@ function Ask({ memberId, q, draft, onSaved, onExit, onDone }: { memberId: string
           </Button>
         )}
       </div>
-      <p className="mt-4 border-t border-border pt-3 font-mono text-caption text-muted-foreground">
-        Source: {q.source.title}, checked {q.source.checkedAt}
+      <p className="mt-4 border-t border-border pt-3 text-caption">
+        <SourceLink source={q.source}>About this questionnaire</SourceLink>
       </p>
     </section>
   );
@@ -359,12 +360,8 @@ function Result({ memberId, q, r, partner, onChange, onAgain }: { memberId: stri
       <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
         A screening is not a diagnosis. If you ever feel unsafe, <a href={helpHref(memberId)} className="underline underline-offset-2">get urgent help now</a>.
       </p>
-      <p className="mt-2 font-mono text-caption text-muted-foreground">
-        Source:{" "}
-        <a href={r.source.url} target="_blank" rel="noreferrer" className="underline underline-offset-2">
-          {r.source.title}
-        </a>
-        , checked {r.source.checkedAt}
+      <p className="mt-2 text-caption">
+        <SourceLink source={r.source}>About this questionnaire</SourceLink>
       </p>
     </section>
   );

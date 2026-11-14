@@ -50,8 +50,8 @@ const tetanusBoosterYears = 10
 var planningRules = []Rule{
 	{
 		ID:       "folic-acid",
-		Title:    "Start folic acid before trying",
-		Detail:   "Take 400 micrograms of folic acid every day, starting at least one month before you try to get pregnant and continuing through pregnancy.",
+		Title:    "Talk to your doctor about folic acid",
+		Detail:   "Guidelines suggest talking to your doctor about folic acid before you start trying and through early pregnancy. Ask your doctor what fits you.",
 		Category: Learning,
 		Audience: ForMother,
 		Source:   srcCDCFolicAcid,
@@ -59,13 +59,13 @@ var planningRules = []Rule{
 			if !tryingForABaby(f) {
 				return Result{}, false
 			}
-			return Result{Status: Due, Reason: "Your family is planning a pregnancy, and folic acid works best when it is started at least a month before conception."}, true
+			return Result{Status: Due, Reason: "Because guidelines say folic acid matters most when it is started before conception, and your family is planning a pregnancy. Your doctor can tell you what fits you."}, true
 		},
 	},
 	{
 		ID:       "mmr-before-pregnancy",
 		Title:    "MMR vaccine before you get pregnant",
-		Detail:   "The MMR vaccine cannot be given during pregnancy, so get it now. Wait one month after the shot, and until a blood test confirms you are immune, before trying to get pregnant.",
+		Detail:   "Guidelines say the MMR vaccine is not given during pregnancy, so it is planned ahead, with a wait before trying. Ask your doctor about your immunity and the timing.",
 		Category: Vaccine,
 		Audience: ForMother,
 		Source:   srcCDCVaccinesBeforePregnancy,
@@ -73,13 +73,13 @@ var planningRules = []Rule{
 			if !tryingForABaby(f) || f.MotherRubella != "not immune" || f.everVaccinated(Mother, "mmr") {
 				return Result{}, false
 			}
-			return Result{Status: Due, Reason: "Your preconception blood test shows you are not immune to rubella, and no MMR vaccine is on record."}, true
+			return Result{Status: Due, Reason: "Because guidelines say MMR is not given during pregnancy, and your blood test shows no immunity to rubella with no MMR on record. Your doctor can go over the timing with you."}, true
 		},
 	},
 	{
 		ID:       "tetanus-booster",
 		Title:    "Tetanus booster (Td or Tdap)",
-		Detail:   "Adults need a Td or Tdap booster every 10 years. Your primary care doctor or a pharmacy can give it.",
+		Detail:   "Guidelines suggest a Td or Tdap booster about every 10 years. Ask your doctor or pharmacist whether you are due.",
 		Category: Vaccine,
 		Audience: ForBoth,
 		Source:   srcCDCAdultNotes,
@@ -92,7 +92,7 @@ var planningRules = []Rule{
 			if !ok || last.After(f.Today.AddDate(-tetanusBoosterYears, 0, 0)) {
 				return Result{}, false
 			}
-			return Result{Status: Due, Reason: fmt.Sprintf("Your last tetanus booster on record was on %s, more than %d years ago.", last.Format("Jan 2, 2006"), tetanusBoosterYears)}, true
+			return Result{Status: Due, Reason: fmt.Sprintf("Because guidelines suggest a booster about every %[2]d years, and your last one on record was on %[1]s. Your doctor can confirm whether you are due.", last.Format("Jan 2, 2006"), tetanusBoosterYears)}, true
 		},
 	},
 }
