@@ -68,7 +68,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <div className="flex items-center justify-between gap-3 md:block">
           <p className="px-2 text-[15px] font-semibold tracking-tight">{PRODUCT_NAME}</p>
           <div className="md:hidden">
-            <UrgentHelpLink />
+            <UrgentHelpLink memberId={memberId} />
           </div>
         </div>
         <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} hidden={hidden} />
@@ -108,7 +108,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             </div>
           )}
           <div className="order-5 hidden md:block">
-            <UrgentHelpLink />
+            <UrgentHelpLink memberId={memberId} />
           </div>
         </header>
         <LiveUpdates memberId={memberId} />

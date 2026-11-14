@@ -1703,6 +1703,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/children/{childId}/milestones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The child's developmental milestone checklist for their age
+         * @description Mother or partner only; a grandparent or nanny gets 404, like the
+         *     health passport. Returns the CDC "Learn the Signs. Act Early."
+         *     checklist for the child's age (the latest of the 2, 3, 4 and 5 year
+         *     checklists the child has reached). `observed` is what a parent
+         *     ticked. A milestone that is not ticked is a prompt to watch for it
+         *     and mention it at the next visit; the API and the UI never call it a
+         *     delay or a diagnosis. 404 for a child not in the family.
+         */
+        get: operations["listChildMilestones"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/children/{childId}/milestones/{milestoneId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * A parent ticks or unticks a milestone
+         * @description Mother or partner only (404 for a caregiver). Idempotent: setting
+         *     the value it already has returns the milestone unchanged.
+         *     `observedOn` is today in the family's clock when ticking. 404 for an
+         *     unknown milestone id or a child not in the family.
+         */
+        put: operations["setChildMilestone"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/checkout-sessions": {
         parameters: {
             query?: never;
@@ -4070,6 +4119,31 @@ export interface components {
             /** @example Newborn hearing screen passed */
             title: string;
             detail?: string;
+        };
+        /** @enum {string} */
+        MilestoneDomain: "social_emotional" | "language_communication" | "cognitive" | "movement_physical";
+        Milestone: {
+            /** @description Stable key, for example 4y-language-sentences. */
+            id: string;
+            domain: components["schemas"]["MilestoneDomain"];
+            text: string;
+            observed: boolean;
+            /**
+             * Format: date
+             * @description Set when observed.
+             */
+            observedOn?: string;
+        };
+        MilestoneInput: {
+            observed: boolean;
+        };
+        MilestoneChecklist: {
+            /** Format: uuid */
+            childId: string;
+            /** @description Which CDC checklist this is (24, 36, 48 or 60). */
+            checklistAgeMonths: number;
+            items: components["schemas"]["Milestone"][];
+            source: components["schemas"]["Source"];
         };
         ChildPassport: {
             child: components["schemas"]["Child"];
@@ -8830,6 +8904,138 @@ export interface operations {
             };
             /** @description Error */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listChildMilestones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                childId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MilestoneChecklist"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    setChildMilestone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                childId: string;
+                milestoneId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MilestoneInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Milestone"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
