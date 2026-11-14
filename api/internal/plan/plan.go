@@ -222,5 +222,14 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 			f.NextSessionBooked = true
 		}
 	}
+
+	// The childcare tracker is family-wide: both parents see every option.
+	options, err := q.ListChildcareOptions(ctx, familyID)
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, o := range options {
+		f.ChildcareOptions = append(f.ChildcareOptions, rules.ChildcareOptionFacts{Name: o.Name, Status: o.Status, DecideBy: o.DecideBy})
+	}
 	return f, nil
 }
