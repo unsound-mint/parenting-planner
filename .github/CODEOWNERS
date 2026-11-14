@@ -1,6 +1,6 @@
 # Changes here get an automatic review request.
-/api/openapi.yaml                  @unsound-mint
-/api/internal/store/migrations/    @unsound-mint
+/api/openapi.yaml                  @unsound-mint @soph-ie8
+/api/internal/store/migrations/    @unsound-mint @soph-ie8
 /api/internal/access/              @unsound-mint
 /api/AGENTS.md                     @unsound-mint
 **/conventions_test.go             @unsound-mint

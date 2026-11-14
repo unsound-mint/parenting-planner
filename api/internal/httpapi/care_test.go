@@ -17,10 +17,8 @@ func TestCareEndpointsAreStubs(t *testing.T) {
 	base := "/api/members/" + mom.Id.String()
 	id := "00000000-0000-0000-0000-000000000001"
 
-	c.Get(base+"/diary-entries", http.StatusNotImplemented, nil)
 	c.Get(base+"/psychologist-agenda", http.StatusNotImplemented, nil)
 	c.Get(base+"/psychologist-slots", http.StatusNotImplemented, nil)
-	c.Post(base+"/diary-entries", map[string]any{"body": "x", "visibility": "private"}, http.StatusNotImplemented, nil)
 	c.Post(base+"/psychologist-bookings", map[string]any{"slotId": id}, http.StatusNotImplemented, nil)
 	c.Post(base+"/session-notes", map[string]any{"bookingId": id, "text": "x"}, http.StatusNotImplemented, nil)
 }

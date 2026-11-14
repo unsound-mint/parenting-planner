@@ -9,14 +9,6 @@ import "context"
 
 var errNotBuilt = Error{Code: "not_implemented", Message: "this part is not available yet"}
 
-func (s *Server) CreateDiaryEntry(context.Context, CreateDiaryEntryRequestObject) (CreateDiaryEntryResponseObject, error) {
-	return CreateDiaryEntry501JSONResponse(errNotBuilt), nil
-}
-
-func (s *Server) ListDiaryEntries(context.Context, ListDiaryEntriesRequestObject) (ListDiaryEntriesResponseObject, error) {
-	return ListDiaryEntries501JSONResponse(errNotBuilt), nil
-}
-
 func (s *Server) GetPsychologistAgenda(context.Context, GetPsychologistAgendaRequestObject) (GetPsychologistAgendaResponseObject, error) {
 	return GetPsychologistAgenda501JSONResponse(errNotBuilt), nil
 }
