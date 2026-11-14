@@ -93,7 +93,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <div className="mt-3 empty:hidden">
           <StageSlot guides={guides} memberId={memberId} family={family} />
         </div>
-        <PlanWithNote items={plan.items} memberId={memberId} tier={family.tier} talkHref={talkHref} />
+        <PlanWithNote items={plan.items} memberId={memberId} tier={family.tier} talkHref={talkHref} quietWhenEmpty={family.pregnancyLoss != null} />
       </section>
 
       {/* At the widest: two columns. The questions card is placed first in the right one and spans
