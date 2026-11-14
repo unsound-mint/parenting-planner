@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Stage } from "@/lib/api/types";
 import { Face } from "./face";
 
 /* Stage mascots on the same 300x260 canvas, flat shapes, shared Face. */
@@ -156,3 +157,16 @@ export const MASCOT_SHAPES = {
 } satisfies Record<string, () => ReactNode>;
 
 export type MascotShape = keyof typeof MASCOT_SHAPES;
+
+/** The mascot that stands for each family stage; shared with the share card image. */
+export const STAGE_SHAPE: Record<Stage, MascotShape> = {
+  planning: "hearts",
+  trying: "seedling",
+  pregnancy: "hearts",
+  postpartum: "newborn",
+  infant: "sitting",
+  toddler: "toddler",
+  preschool: "ball",
+  school_age: "backpack",
+};
+
