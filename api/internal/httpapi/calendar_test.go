@@ -34,21 +34,6 @@ func calTitles(l httpapi.CalendarEventList) []string {
 	return out
 }
 
-// The stubs for appointment questions are still 501 until #253.
-func TestAppointmentQuestionsAreNotImplementedYet(t *testing.T) {
-	c := testutil.New(t)
-	fam := c.StartDemo("pregnancy")
-	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
-	for _, call := range []stubCall{
-		{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}},
-		{"POST", m + "/appointment-questions", map[string]any{"text": "Is my iron level fine?", "visibility": "private"}},
-		{"GET", m + "/appointment-questions", nil},
-		{"PATCH", m + "/appointment-questions/00000000-0000-4000-8000-000000000001", map[string]any{"answered": true}},
-	} {
-		call.expectNotImplemented(t, c)
-	}
-}
-
 func TestCalendarValidation(t *testing.T) {
 	c := testutil.New(t)
 	fam := c.StartDemo("pregnancy")
@@ -239,4 +224,12 @@ func TestTaskDeadlinesAppearInTheCalendarAndToday(t *testing.T) {
 			t.Errorf("Mom's Today must hold only her own tasks: %+v", tk)
 		}
 	}
+}
+
+// Replace with the reference tests when UpdateCalendarEvent lands.
+func TestUpdateCalendarEventIsNotImplementedYet(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
+	stubCall{"PATCH", m + "/calendar-events/00000000-0000-4000-8000-000000000001", map[string]any{"title": "OB visit", "neutralTitle": true}}.expectNotImplemented(t, c)
 }
