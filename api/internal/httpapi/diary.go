@@ -15,7 +15,7 @@ var errNoDiaryEntry = Error{Code: "not_found", Message: "no such diary entry"}
 // diaryEntryOut shows the agenda topic only on the viewer's own entries: the
 // agenda belongs to its author.
 func diaryEntryOut(e diary.Entry, viewer uuid.UUID) DiaryEntry {
-	out := DiaryEntry{Id: e.ID, AuthorId: e.OwnerMemberID, WrittenAt: e.WrittenAt, Body: e.Body, Visibility: Visibility(e.Visibility)}
+	out := DiaryEntry{Id: e.ID, AuthorId: e.OwnerMemberID, WrittenAt: e.WrittenAt, Body: e.Body, Visibility: Visibility(e.Visibility), First: e.IsFirst}
 	if e.OwnerMemberID == viewer && e.AgendaTopic != nil {
 		out.AgendaTopic = e.AgendaTopic
 	}
@@ -39,7 +39,7 @@ func (s *Server) CreateDiaryEntry(ctx context.Context, req CreateDiaryEntryReque
 	}
 	b := req.Body
 	e, err := diary.Create(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, diary.New{
-		Body: b.Body, Visibility: access.Visibility(b.Visibility), AgendaTopic: b.AgendaTopic, Mood: b.Mood, WrittenAt: s.now(ctx),
+		Body: b.Body, Visibility: access.Visibility(b.Visibility), AgendaTopic: b.AgendaTopic, Mood: b.Mood, First: b.First != nil && *b.First, WrittenAt: s.now(ctx),
 	})
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (s *Server) UpdateDiaryEntry(ctx context.Context, req UpdateDiaryEntryReque
 		return UpdateDiaryEntry404JSONResponse(errNoMember), nil
 	}
 	b := req.Body
-	e, err := diary.Update(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, req.EntryId, access.Visibility(b.Visibility), b.AgendaTopic)
+	e, err := diary.Update(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, req.EntryId, access.Visibility(b.Visibility), b.AgendaTopic, b.First)
 	if errors.Is(err, diary.ErrNoEntry) {
 		return UpdateDiaryEntry404JSONResponse(errNoDiaryEntry), nil
 	}

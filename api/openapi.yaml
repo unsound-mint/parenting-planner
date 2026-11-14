@@ -9174,6 +9174,13 @@ components:
           description: A short topic for the author's next psychologist session, never the entry text.
         mood:
           $ref: "#/components/schemas/DiaryMood"
+        first:
+          type: boolean
+          description: |
+            The author marks the entry as one of the baby's or the family's
+            firsts (first kick, first smile). A label on the entry with the
+            entry's visibility; a shared first is what a family story can show.
+            Default false.
 
     DiaryMood:
       type: integer
@@ -9196,10 +9203,13 @@ components:
           type: string
           maxLength: 120
           description: Set or change the agenda topic; an empty string removes it. Leave out to keep it.
+        first:
+          type: boolean
+          description: Mark or unmark the entry as a first. Leave out to keep it.
 
     DiaryEntry:
       type: object
-      required: [id, authorId, writtenAt, body, visibility]
+      required: [id, authorId, writtenAt, body, visibility, first]
       properties:
         id:
           type: string
@@ -9219,6 +9229,9 @@ components:
           description: Only on the author's own entries.
         mood:
           $ref: "#/components/schemas/DiaryMood"
+        first:
+          type: boolean
+          description: True when the author marked the entry as a first.
 
     DiaryEntryList:
       type: object

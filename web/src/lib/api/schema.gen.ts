@@ -5050,6 +5050,13 @@ export interface components {
             /** @description A short topic for the author's next psychologist session, never the entry text. */
             agendaTopic?: string;
             mood?: components["schemas"]["DiaryMood"];
+            /**
+             * @description The author marks the entry as one of the baby's or the family's
+             *     firsts (first kick, first smile). A label on the entry with the
+             *     entry's visibility; a shared first is what a family story can show.
+             *     Default false.
+             */
+            first?: boolean;
         };
         /**
          * @description How the author felt when writing, on the MoodCheckin.mood scale (1 =
@@ -5063,6 +5070,8 @@ export interface components {
             visibility: components["schemas"]["Visibility"];
             /** @description Set or change the agenda topic; an empty string removes it. Leave out to keep it. */
             agendaTopic?: string;
+            /** @description Mark or unmark the entry as a first. Leave out to keep it. */
+            first?: boolean;
         };
         DiaryEntry: {
             /** Format: uuid */
@@ -5076,6 +5085,8 @@ export interface components {
             /** @description Only on the author's own entries. */
             agendaTopic?: string;
             mood?: components["schemas"]["DiaryMood"];
+            /** @description True when the author marked the entry as a first. */
+            first: boolean;
         };
         DiaryEntryList: {
             /** @description Newest first. */

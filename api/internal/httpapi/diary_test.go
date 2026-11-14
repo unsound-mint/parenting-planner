@@ -331,3 +331,34 @@ func TestAgendaLinksTopicsToTheirEntryAndSuggestsFromOwnEntriesOnly(t *testing.T
 		t.Error("agenda reads of the diary are audited")
 	}
 }
+
+func TestDiaryFirstsAreMarkedByTheAuthorAndFollowTheEntry(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	kick := entry("First kick Jake could feel.", "partner")
+	kick["first"] = true
+	var e httpapi.DiaryEntry
+	c.Post(diaryPath(mom), kick, http.StatusCreated, &e)
+	if !e.First {
+		t.Error("created as a first")
+	}
+	var plain httpapi.DiaryEntry
+	c.Post(diaryPath(mom), entry("Ordinary day.", "private"), http.StatusCreated, &plain)
+	if plain.First {
+		t.Error("not a first unless marked")
+	}
+	if !diaryBodies(c, jake)["First kick Jake could feel."].First {
+		t.Error("the partner sees the mark on a shared entry")
+	}
+	// A visibility change keeps the mark; sending first changes it; only the author can.
+	c.Patch(diaryPath(mom)+"/"+e.Id.String(), map[string]any{"visibility": "private"}, http.StatusOK, &e)
+	if !e.First {
+		t.Error("leaving first out keeps it")
+	}
+	c.Patch(diaryPath(mom)+"/"+e.Id.String(), map[string]any{"visibility": "private", "first": false}, http.StatusOK, &e)
+	if e.First {
+		t.Error("first: false unmarks it")
+	}
+	c.Patch(diaryPath(jake)+"/"+e.Id.String(), map[string]any{"visibility": "partner", "first": true}, http.StatusNotFound, nil)
+}
