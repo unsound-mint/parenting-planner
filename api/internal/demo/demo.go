@@ -167,6 +167,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedPsychologist(ctx, q, fam.ID, mom.ID, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedBirthPlan(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedPregnancyPassport(ctx, q, fam.ID, mom.ID, partner.ID, today, week); err != nil {
 		return uuid.Nil, err
 	}
@@ -294,4 +297,20 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 		}
 	}
 	return nil
+}
+
+// seedBirthPlan gives the pregnant family a birth hospital, a desk phone, a note of preferences
+// and the parents' phones. All invented.
+func seedBirthPlan(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID) error {
+	if _, err := q.UpsertBirthPlan(ctx, store.UpsertBirthPlanParams{
+		FamilyID: familyID, HospitalName: "Riverbend Women's Hospital", HospitalAddress: "1200 Riverbend Dr, Austin, TX 78701",
+		HospitalPhone: ptr("(512) 555-0100"), DeskPhone: ptr("(512) 555-0111"), TravelMinutes: pgtype.Int4{Int32: 18, Valid: true},
+		PreferencesNote: ptr("Ask about skin-to-skin right after birth and who may cut the cord."),
+	}); err != nil {
+		return err
+	}
+	if err := q.SetMemberPhone(ctx, store.SetMemberPhoneParams{ID: mom, Phone: ptr("(512) 555-0142"), FamilyID: familyID}); err != nil {
+		return err
+	}
+	return q.SetMemberPhone(ctx, store.SetMemberPhoneParams{ID: partner, Phone: ptr("(512) 555-0143"), FamilyID: familyID})
 }

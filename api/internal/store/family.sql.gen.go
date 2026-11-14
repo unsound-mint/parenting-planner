@@ -139,7 +139,7 @@ func (q *Queries) CreateFamily(ctx context.Context, arg CreateFamilyParams) (Fam
 }
 
 const createMember = `-- name: CreateMember :one
-INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date
+INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, phone
 `
 
 type CreateMemberParams struct {
@@ -163,6 +163,7 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 		&i.Role,
 		&i.DisplayName,
 		&i.BirthDate,
+		&i.Phone,
 	)
 	return i, err
 }
@@ -221,7 +222,7 @@ func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family,
 }
 
 const getMember = `-- name: GetMember :one
-SELECT id, family_id, role, display_name, birth_date FROM members WHERE id = $1 AND family_id = $2
+SELECT id, family_id, role, display_name, birth_date, phone FROM members WHERE id = $1 AND family_id = $2
 `
 
 type GetMemberParams struct {
@@ -238,6 +239,7 @@ func (q *Queries) GetMember(ctx context.Context, arg GetMemberParams) (Member, e
 		&i.Role,
 		&i.DisplayName,
 		&i.BirthDate,
+		&i.Phone,
 	)
 	return i, err
 }
@@ -306,7 +308,7 @@ func (q *Queries) ListChildren(ctx context.Context, familyID uuid.UUID) ([]Child
 }
 
 const listMembers = `-- name: ListMembers :many
-SELECT id, family_id, role, display_name, birth_date FROM members WHERE family_id = $1 ORDER BY role
+SELECT id, family_id, role, display_name, birth_date, phone FROM members WHERE family_id = $1 ORDER BY role
 `
 
 func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member, error) {
@@ -324,6 +326,7 @@ func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member
 			&i.Role,
 			&i.DisplayName,
 			&i.BirthDate,
+			&i.Phone,
 		); err != nil {
 			return nil, err
 		}

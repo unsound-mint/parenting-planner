@@ -35,6 +35,16 @@ type AuditLog struct {
 	At            time.Time
 }
 
+type BirthPlan struct {
+	FamilyID        uuid.UUID
+	HospitalName    string
+	HospitalAddress string
+	HospitalPhone   *string
+	DeskPhone       *string
+	TravelMinutes   pgtype.Int4
+	PreferencesNote *string
+}
+
 type CareTeam struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -120,6 +130,7 @@ type Member struct {
 	Role        string
 	DisplayName string
 	BirthDate   *time.Time
+	Phone       *string
 }
 
 type MoodCheckin struct {
