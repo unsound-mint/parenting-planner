@@ -11,12 +11,13 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 // One deliberate step: flipping the switch asks for the baby's name and birth
 // date, and nothing changes until the parent confirms. It cannot be undone.
 export function BabyHomeSwitch({ memberId, agreedShifts }: { memberId: string; agreedShifts: Shift[] }) {
   const router = useRouter();
-  const today = todayKey();
+  const today = todayKey(useFamilyNow());
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
   const [name, setName] = useState("");

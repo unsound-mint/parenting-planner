@@ -7,14 +7,15 @@ import { formatLongDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // Stage guides for this person, already filtered by the API (listGuides). Each
-// opens in place with its steps and source.
-export function GuideList({ guides }: { guides: Guide[] }) {
+// opens in place with its steps and source. A footer (the loss support actions)
+// keeps the card even when there are no guides.
+export function GuideList({ guides, title = "Worth a few minutes", footer }: { guides: Guide[]; title?: string; footer?: React.ReactNode }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  if (guides.length === 0) return null;
+  if (guides.length === 0 && !footer) return null;
   return (
     <section aria-labelledby="guides-title" className="rounded-2xl border border-border bg-card p-5">
       <h2 id="guides-title" className="text-title">
-        Worth a few minutes
+        {title}
       </h2>
       <ul className="mt-2 flex flex-col gap-1">
         {guides.map((g) => {
@@ -45,7 +46,11 @@ export function GuideList({ guides }: { guides: Guide[] }) {
                     ))}
                   </ol>
                   <p className="pb-2 pl-12 font-mono text-caption text-muted-foreground">
-                    Demo content, not medical advice. {g.source.title}, checked {formatLongDate(g.source.checkedAt)}
+                    Demo content, not medical advice.{" "}
+                    <a href={g.source.url} target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-foreground">
+                      {g.source.title}
+                    </a>
+                    , checked {formatLongDate(g.source.checkedAt)}
                   </p>
                 </div>
               </div>
@@ -53,6 +58,7 @@ export function GuideList({ guides }: { guides: Guide[] }) {
           );
         })}
       </ul>
+      {footer && <div className="mt-3 border-t border-border pt-3">{footer}</div>}
     </section>
   );
 }

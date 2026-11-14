@@ -11,7 +11,7 @@ import (
 
 var (
 	errNoCareLogAccess   = Error{Code: "forbidden", Message: "you do not have access to the care log"}
-	errNoChild           = Error{Code: "no_child", Message: "the baby is not home yet"}
+	errBabyNotHome       = Error{Code: "no_child", Message: "the baby is not home yet"}
 	errBadChild          = Error{Code: "bad_child", Message: "no such child in this family"}
 	errCareLogDetail     = Error{Code: "missing_detail", Message: "a feed needs feedMethod and a diaper needs diaper"}
 	errCareLogTimes      = Error{Code: "bad_times", Message: "endedAt must not be before startedAt"}
@@ -61,7 +61,7 @@ func careSummaryOut(s carelog.Summary) CareSummary {
 	return out
 }
 
-func handoffOut(h store.Handoff, sum carelog.Summary) Handoff {
+func handoffOut(h carelog.Handoff, sum carelog.Summary) Handoff {
 	out := Handoff{
 		Id: h.ID, FromMemberId: h.FromMemberID, ToMemberId: h.ToMemberID, Note: h.Note, Status: HandoffStatus(h.Status),
 		CreatedAt: h.CreatedAt, CareSummary: careSummaryOut(sum),
@@ -72,6 +72,14 @@ func handoffOut(h store.Handoff, sum carelog.Summary) Handoff {
 	}
 	if h.AcceptedAt.Valid {
 		out.AcceptedAt = &h.AcceptedAt.Time
+	}
+	if n := h.VoiceNote; n != nil {
+		v := VoiceNote{Id: n.ID, ContentType: n.ContentType, SizeBytes: int(n.SizeBytes), CreatedAt: n.CreatedAt.UTC()}
+		if n.DurationSeconds.Valid {
+			d := int(n.DurationSeconds.Int32)
+			v.DurationSeconds = &d
+		}
+		out.VoiceNote = &v
 	}
 	return out
 }
@@ -105,7 +113,7 @@ func (s *Server) CreateCareLogEntry(ctx context.Context, req CreateCareLogEntryR
 	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in, s.now(ctx))
 	switch {
 	case errors.Is(err, carelog.ErrNoChild):
-		return CreateCareLogEntry409JSONResponse(errNoChild), nil
+		return CreateCareLogEntry409JSONResponse(errBabyNotHome), nil
 	case errors.Is(err, carelog.ErrBadChild):
 		return CreateCareLogEntry400JSONResponse(errBadChild), nil
 	case errors.Is(err, carelog.ErrMissingDetail):
@@ -159,7 +167,7 @@ func (s *Server) CreateHandoff(ctx context.Context, req CreateHandoffRequestObje
 		return CreateHandoff403JSONResponse(errNoCareLogAccess), nil
 	}
 	b := req.Body
-	h, err := carelog.CreateHandoff(ctx, s.pool, familyID, carePerson(m), b.ToMemberId, b.Note, b.ShiftId, s.now(ctx))
+	h, err := carelog.CreateHandoff(ctx, s.pool, familyID, carePerson(m), b.ToMemberId, b.Note, b.ShiftId, b.VoiceNoteId, s.now(ctx))
 	switch {
 	case errors.Is(err, carelog.ErrHandoffInvalid):
 		return CreateHandoff409JSONResponse(errHandoffInvalid), nil

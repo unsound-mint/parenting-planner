@@ -32,6 +32,13 @@ tags:
   - name: carelog
   - name: live
   - name: billing
+  - name: notifications
+  - name: leave
+  - name: insurance
+  - name: screening
+  - name: offers
+  - name: admin
+  - name: account
 paths:
   /healthz:
     get:
@@ -151,6 +158,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+    delete:
+      operationId: deleteFamily
+      tags: [account]
+      summary: Delete the session's family and everything stored for it
+      description: |
+        Account deletion for the demo, where the account is the family behind
+        the session cookie. Deletes the family and every row that belongs to
+        it (parents, children, caregivers, health records, check-ins, notes,
+        bookings, sessions and the audit log) and clears the pp_session
+        cookie. Other families are untouched. The old cookie gets 401
+        afterwards. Nothing is soft-deleted. Backups: see "Deletion and
+        backups" in docs/data-model.md.
+        Only a parent's session may do this; a caregiver's session gets 403.
+      responses:
+        "204":
+          description: Deleted; the session cookie is cleared.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /family/demo-time-skips:
     post:
       operationId: createDemoTimeSkip
@@ -162,7 +202,7 @@ paths:
         timeline) uses the shifted day, from the same stored data. Only this
         family moves; other demo families keep the real date. Starting a new
         demo creates a new family at real time, which is the reset. The UI
-        must label the shifted date as demo time.
+        must label the shifted date as demo time. A caregiver's session gets 403.
       responses:
         "200":
           description: The family as of its new demo date.
@@ -171,6 +211,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Family"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -192,6 +238,7 @@ paths:
         There are no payments. This stores which tier the family asked for and
         when; it shows as "upgrade requested" on the family. Either parent of the
         session's family may send it. A second request replaces the first.
+        A caregiver's session gets 403.
       requestBody:
         required: true
         content:
@@ -212,6 +259,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Error
           content:
             application/json:
@@ -380,6 +433,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/export:
+    get:
+      operationId: getMemberExport
+      tags: [account]
+      summary: Download everything the acting parent may see, as one JSON file
+      description: |
+        Data export for one parent. Contains the family, the passport, mood
+        check-ins, psychologist bookings, session notes and plan progress,
+        read with the same access rules as the screens: all of the acting
+        parent's own records, records the other parent shared with them, and
+        nothing the other parent kept private. The read is audited. The
+        response is sent as a file download (Content-Disposition attachment).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberExport"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/plan/{ruleId}/status:
     put:
       operationId: setPlanItemProgress
@@ -542,12 +633,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
   /members/{memberId}/screenings:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -588,12 +673,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
           description: Error
           content:
             application/json:
@@ -640,12 +719,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
           description: Error
           content:
             application/json:
@@ -857,6 +930,64 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updatePsychologistAgenda
+      tags: [care]
+      summary: The acting parent reorders or removes topics for their next session
+      description: |
+        Mother and partner, for their own agenda only; a grandparent or
+        nanny gets 404, like every read of the agenda. Same privacy as
+        session notes: the agenda is private to its author, so the other
+        parent can neither change nor see it, and nothing here is shared
+        with anyone but the parent's psychologist at the session.
+
+        topicIds is the whole agenda in the order the parent wants it. A
+        topic on the current agenda that is left out is removed, and stays
+        removed: topics are derived from the parent's own data with stable
+        ids, so the server stores the removal rather than deleting data. An
+        empty list clears the agenda. An id that is not on the acting
+        parent's current agenda is 400 unknown_topic (this also covers the
+        other parent's topic ids, so the answer reveals nothing). Returns
+        the agenda as getPsychologistAgenda would after the change. Audited.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PsychologistAgendaUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistAgenda"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -1491,6 +1622,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/now:
+    get:
+      operationId: getStageNow
+      tags: [content]
+      summary: The stage hero line, a sourced "what is happening now" for planning, newborn, baby, toddler, preschool and school age
+      description: |
+        The hero line for every stage except pregnancy (pregnancy has the
+        baby size in getPregnancyWeek). Computed from the family's stored
+        stage and, after birth, the youngest child's birth date and the demo
+        clock: weeks of life 1 to 12, then each month to 11 months, each
+        month from 12 to 24, then half-years to 5 years and years to 9
+        (a child older than 9 keeps the last entry). Planning and trying
+        families get a "preparing together" line.
+
+        Milestones are written as what most children do by an age, never as
+        a standard, and `note` always says children vary and sends worries to
+        the pediatrician (planning: to the doctor). `sources` are the pages
+        the text paraphrases, each with the date it was checked; the first
+        is the page to link.
+
+        Any member of the family may read it: it is general reference
+        content and carries no health record. 409 `pregnant` when the stage
+        is pregnancy, 409 `no_child` after birth with no child on record.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StageNow"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/pregnancy-weeks/{week}:
     get:
       operationId: getPregnancyWeek
@@ -2065,6 +2247,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/calendar-events/{eventId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/EventId"
+    patch:
+      operationId: updateCalendarEvent
+      tags: [calendar]
+      summary: The owner edits an appointment, class or reminder
+      description: |
+        Only the acting parent who owns a stored event (kind appointment,
+        class, reminder or other); the partner gets 404 for it, a grandparent
+        or nanny gets 403. Shifts, task due dates and psychologist sessions
+        are not edited here (404). Every field is optional; only the fields
+        sent change. Moving an event to private removes attendees from it.
+        Sends a live update of kind calendar_event.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarEventUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarEvent"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/appointment-questions:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -2189,6 +2430,198 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/birth-plan:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getBirthPlan
+      tags: [calendar]
+      summary: Where to go and what to bring when labour starts
+      description: |
+        The family's birth hospital with its address, phone, route link and
+        usual drive time, the people to call and the documents to bring.
+        Documents come from the paperwork tasks, so a document is ready when
+        its task is done. The bag status is not repeated here: read the
+        hospital_bag tasks (listTasks). Mother and partner only; a
+        grandparent or nanny gets 404. Hidden while pregnancyLoss is set (404).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BirthPlan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/labour-alerts:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createLabourAlert
+      tags: [calendar]
+      summary: Tell the other parent that labour has started
+      description: |
+        Mother or partner. Sends the other parent a labour_started
+        notification (title: "Emily says labour has started") and a live
+        update, once per ten minutes per family; a second tap inside that
+        window is accepted and sends nothing. Carries no health text. A
+        grandparent or nanny gets 404.
+      responses:
+        "204":
+          description: Sent, or already sent a moment ago.
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/appointments/{appointmentId}/prep:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: appointmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getAppointmentPrep
+      tags: [calendar]
+      summary: What to bring, when to leave and what to ask for one appointment
+      description: |
+        The prep view of an appointment the acting parent can see
+        (CalendarEvent of kind appointment), also after the visit has
+        started (the web then shows the after-visit view). Questions are the
+        ones listAppointmentQuestions would return for it, with the same
+        visibility rules. After the start they are the ones that were under
+        this appointment when it started, answered or not: unanswered ones
+        have moved on to the next visit by then and still show here, so the
+        parent can answer them after the visit. Documents and the travel estimate are computed
+        from the appointment's kind and location. Mother and partner only;
+        a grandparent or nanny, and any appointment that is not visible to
+        the acting parent, get 404. note is the acting parent's own private
+        note for this appointment, absent until saved.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentPrep"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/appointments/{appointmentId}/note:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: appointmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: saveAppointmentNote
+      tags: [calendar]
+      summary: The acting parent saves their private note after a visit
+      description: |
+        One note per parent per appointment; saving again replaces it, and
+        an empty text deletes it. The note is health data and always private
+        to its author: it has no visibility field, the partner never reads
+        it, and getAppointmentPrep returns only the acting parent's own.
+        Allowed from the appointment's start time on (the family clock,
+        s.now(ctx)); earlier gets 409 visit_not_started. Mother and partner
+        only; a grandparent or nanny, and any appointment that is not
+        visible to the acting parent, get 404. Writes are audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentNoteInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentNote"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/appointment-questions/{questionId}:
     patch:
       operationId: updateAppointmentQuestion
@@ -2914,6 +3347,114 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/children/{childId}/milestones:
+    get:
+      operationId: listChildMilestones
+      tags: [passport]
+      summary: The child's developmental milestone checklist for their age
+      description: |
+        Mother or partner only; a grandparent or nanny gets 404, like the
+        health passport. Returns the CDC "Learn the Signs. Act Early."
+        checklist for the child's age (the latest of the 2, 3, 4 and 5 year
+        checklists the child has reached). `observed` is what a parent
+        ticked. A milestone that is not ticked is a prompt to watch for it
+        and mention it at the next visit; the API and the UI never call it a
+        delay or a diagnosis. 404 for a child not in the family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MilestoneChecklist"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/children/{childId}/milestones/{milestoneId}:
+    put:
+      operationId: setChildMilestone
+      tags: [passport]
+      summary: A parent ticks or unticks a milestone
+      description: |
+        Mother or partner only (404 for a caregiver). Idempotent: setting
+        the value it already has returns the milestone unchanged.
+        `observedOn` is today in the family's clock when ticking. 404 for an
+        unknown milestone id or a child not in the family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: milestoneId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MilestoneInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/checkout-sessions:
     post:
       operationId: createCheckoutSession
@@ -3098,6 +3639,1594 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/notifications:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: The acting person's notifications for the bell
+      description: |
+        Any family member: mother, partner, grandparent or nanny. Each person
+        sees only notifications addressed to them, never anyone else's. The
+        last 30 days, newest first, at most 50, with the unread count for the
+        badge.
+
+        A notification is written for the person who may read the record it
+        points to, at the moment the event happens (see NotificationKind for
+        who gets which kind). Its title is a fixed template and never carries a
+        health value, diary text, mood, screening answers or a session note:
+        "A lab result is outside the usual range", not the value. Parents get
+        no pregnancy or baby notifications while the family is in pregnancy
+        loss support (Family.pregnancyLoss).
+
+        Each new notification also sends a live update of kind notification
+        to its recipient only, so the bell and an optional browser
+        notification appear without a reload.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/notifications/read:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: markNotificationsRead
+      tags: [notifications]
+      summary: Mark the acting person's notifications as read
+      description: |
+        Any family member, for their own notifications only. With ids, marks
+        those (ids that are not the acting person's are ignored, never 404, so
+        the call reveals nothing). Without ids, marks every unread one. Returns
+        the list as listNotifications would.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationReadInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/calendar-feed:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getCalendarFeed
+      tags: [calendar]
+      summary: Whether the acting person has a calendar subscription link
+      description: |
+        Mother and partner; a grandparent or nanny with schedule (403 without
+        it). Never returns the link itself, only whether one is active, its
+        scope and when a calendar app last fetched it. The link is shown once,
+        by createCalendarFeed.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarFeed"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createCalendarFeed
+      tags: [calendar]
+      summary: Create or replace the acting person's calendar subscription link
+      description: |
+        Mother and partner; a grandparent or nanny with schedule, and scope
+        mine only (403 otherwise). Returns a secret https URL that Google
+        Calendar, Apple Calendar or Outlook can subscribe to. The URL is
+        returned once; only a hash of its token is stored. Creating a new link
+        revokes the old one.
+
+        The feed holds what listCalendarEvents would return to this person for
+        the same scope, evaluated each time it is fetched, so a revoked
+        caregiver or an unshared event drops out on the next sync. It never
+        contains psychologist sessions, appointment questions or notes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalendarFeedInput"
+      responses:
+        "201":
+          description: Created; url is set only in this response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalendarFeed"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteCalendarFeed
+      tags: [calendar]
+      summary: Revoke the acting person's calendar subscription link
+      description: |
+        Mother and partner; a grandparent or nanny with schedule (403 without
+        it). Calendar apps get 404 on their next sync. 204 also when there was
+        no link.
+      responses:
+        "204":
+          description: No content
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /calendar-feeds/{token}:
+    get:
+      operationId: getCalendarFeedFile
+      tags: [calendar]
+      security: []
+      summary: The iCalendar file a calendar app subscribes to
+      description: |
+        No session: calendar apps fetch it on their own schedule. The token in
+        the path is the secret from createCalendarFeed; 404 for an unknown or
+        revoked token. Events from 30 days ago to 180 days ahead as
+        text/calendar (RFC 5545), one VEVENT per CalendarEvent with its id as
+        UID, so updates replace rather than duplicate. Dates use the same clock
+        as every other date in the family, demo time included.
+
+        "Add to Google Calendar" for one event and a single-event .ics download
+        are built in the browser from the CalendarEvent fields and need no
+        endpoint.
+      parameters:
+        - $ref: "#/components/parameters/FeedToken"
+      responses:
+        "200":
+          description: An iCalendar (RFC 5545) document.
+          content:
+            text/calendar:
+              schema:
+                type: string
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/leave-plan:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getLeavePlan
+      tags: [leave]
+      summary: "The family's parental leave plan: eligibility and a timeline for both parents"
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. Both parents see
+        both plans: they plan leave together, and the inputs are about work,
+        not health. A parent who has not filled in the wizard comes back with
+        no input and empty programs, segments and deadlines.
+
+        Programs are computed on read from a rules catalog (federal FMLA plus
+        CA, NY and WA programs), each with a Source and checked date. The
+        timeline starts from the parent's startsOn, or from the due date (birth
+        date after "Baby is home") when startsOn is not set.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeavePlan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updateLeavePlan
+      tags: [leave]
+      summary: The acting parent saves their leave wizard answers
+      description: |
+        Mother and partner, for their own answers only (the body never names
+        another person). Replaces the previous answers and returns the whole
+        family plan, as getLeavePlan. Sends a live update of kind leave_plan so
+        the other parent's timeline refreshes. States outside CA, NY and WA get
+        the federal check only, and the program list says so.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeavePlanInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeavePlan"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/insurance-calls:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createInsuranceCall
+      tags: [insurance]
+      summary: The acting parent logs a call with their health insurer
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. A sensitive record
+        (it can describe care and claims): the author sets visibility, the UI
+        defaults it to private and the server never widens it. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsuranceCallInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceCall"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listInsuranceCalls
+      tags: [insurance]
+      summary: Insurance calls from the last 365 days the acting parent may see
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. Their own calls
+        plus the other parent's calls shared with them (partner or family
+        visibility), newest first. Audited. The print view is this list with
+        print CSS; there is no PDF endpoint.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceCallList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/diary-entries:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createDiaryEntry
+      tags: [wellbeing]
+      summary: The acting parent writes a diary entry
+      description: |
+        Visibility is required: the author decides who may read the entry.
+        The UI defaults it to private; the server never widens it.
+
+        Mother and partner; a grandparent or nanny gets 404 and never sees any
+        entry. The body is encrypted at rest. agendaTopic, when set, puts that
+        short topic (never the entry text) on the author's next psychologist
+        agenda (getPsychologistAgenda); it is independent of visibility, so an
+        entry can stay private while its topic goes to the psychologist.
+        Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiaryEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listDiaryEntries
+      tags: [wellbeing]
+      summary: Diary entries from the last 30 days that the acting parent may see
+      description: |
+        Their own entries plus the other parent's entries shared with them.
+        Newest first. The other parent's agendaTopic is never returned: the
+        agenda belongs to its author. Caregivers get 404. Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntryList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/diary-entries/{entryId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: entryId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateDiaryEntry
+      tags: [wellbeing]
+      summary: The author changes who may read one of their entries
+      description: |
+        Only the author can share or unshare an entry. Any other entry id,
+        including the other parent's entry, is 404.
+
+        visibility is always sent (the UI sends the current value when only
+        the topic changes). agendaTopic adds or changes the topic on the
+        author's psychologist agenda; an empty string removes it. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiaryEntryUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/screening-questionnaires:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listScreeningQuestionnaires
+      tags: [screening]
+      summary: The mood questionnaires a parent can take, with their questions
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. Question and
+        answer wording comes from a catalog in code, copied from the
+        instrument's published source (Source on each questionnaire), never
+        generated. suggested marks the one the plan currently asks this parent
+        to take.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreeningQuestionnaireList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-screenings:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createMoodScreening
+      tags: [screening]
+      summary: The acting parent submits a completed questionnaire
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. answers must have
+        exactly one value per question of the instrument, in order (400
+        otherwise). The server scores it and returns a band (green, amber,
+        red) with fixed wording. It never diagnoses: the result says whether to
+        talk to a doctor, not what the parent has.
+
+        urgent is true when the self-harm question is answered with anything
+        but its lowest value, whatever the total. The UI then opens the fixed
+        crisis screen (hotlines, no generated text) before showing anything
+        else.
+
+        A sensitive record: visibility is required, the UI defaults it to
+        private and the server never widens it. Nobody else is notified, and a
+        result feeds only its author's plan. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodScreeningInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listMoodScreenings
+      tags: [screening]
+      summary: Questionnaire results from the last 365 days the acting parent may see
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. Their own results
+        plus the other parent's results shared with them, newest first. For a
+        result that is not their own, urgent is always false and message is
+        left out: the self-harm answer is only ever shown to its author.
+        Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-screenings/{screeningId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: screeningId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateMoodScreening
+      tags: [screening]
+      summary: The author changes who may read one of their results
+      description: |
+        Only the author can share or unshare a result; any other id, including
+        the other parent's result, is 404. visibility must be private or
+        partner: a result is never visible to the care team or the family
+        group, so those two values are 400. Sharing with the partner shows
+        them the band and score only, never the answers and never the
+        self-harm flag (see listMoodScreenings). Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodScreeningUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-screening-drafts:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listMoodScreeningDrafts
+      tags: [screening]
+      summary: The questionnaires the acting parent started and has not finished
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. At most one draft
+        per instrument, only the acting parent's own. A draft is never shared
+        with anyone, whatever the visibility chosen later for the result, and
+        it never scores or feeds the plan. Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningDraftList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-screening-drafts/{instrument}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: instrument
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/ScreeningInstrument"
+    put:
+      operationId: saveMoodScreeningDraft
+      tags: [screening]
+      summary: The acting parent saves how far they got
+      description: |
+        Replaces the draft for this instrument. answers are the scores given
+        so far, in question order, so the next question is answers.length + 1.
+        No more answers than the questionnaire has questions (400); the
+        values are checked against the instrument's printed scores. A draft
+        older than 14 days is dropped. Parents only, audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodScreeningDraftInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningDraft"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteMoodScreeningDraft
+      tags: [screening]
+      summary: The acting parent starts over or discards a draft
+      description: |
+        204 even when there is no draft. createMoodScreening deletes the draft
+        of its instrument itself, so the UI only calls this for "start over".
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/pregnancy-loss:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createPregnancyLoss
+      tags: [family]
+      summary: A parent turns on pregnancy loss support for the family
+      description: |
+        Mother or partner; a grandparent or nanny gets 404. 409 not_pregnant
+        when the family's stage is not pregnancy. In one transaction the
+        server:
+
+        - stores the loss (Family.pregnancyLoss) with the stage and due date it
+          replaces, so it can be undone;
+        - sets the stage to planning and clears the due date, so the weekly
+          card, pregnancy rules, birth prep and gestationalWeek stop on their
+          own;
+        - hides baby and pregnancy items: hospital bag and birth paperwork
+          tasks, agreed shifts, partner offers, simulator prompts, and
+          planning's "trying for a baby" nudges (kept in the database, not
+          deleted);
+        - deletes unread pregnancy and baby notifications and creates none
+          about the loss.
+
+        Plans show gentle support items (postpartum check, mood, support
+        guides) instead. Sends a live update of kind family only; caregivers
+        are not told why their pregnancy updates stop.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PregnancyLossInput"
+      responses:
+        "201":
+          description: Created; the family as it is now.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deletePregnancyLoss
+      tags: [family]
+      summary: Turn pregnancy loss support off and restore the family as it was
+      description: |
+        Mother or partner; a grandparent or nanny gets 404. For a mistaken tap:
+        restores the stage and due date stored by createPregnancyLoss and shows
+        pregnancy items again. 409 no_pregnancy_loss when support is not on. A
+        family that is ready to try again uses updateFamily with stage planning
+        or trying instead, which ends support mode without restoring anything.
+        Sends a live update of kind family.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/partner-offers:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listPartnerOffers
+      tags: [offers]
+      summary: Up to three partner offers for this parent's stage
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. Active offers from
+        the admin panel that match the family's stage and the parent's role,
+        at most 3. The web labels every card "Partner offer" and shows offers
+        only in their own block, never inside guides, lessons or plan items.
+        Empty while the family is in pregnancy loss support. Offers never use
+        health data for targeting: stage and role only.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerOfferList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/partner-offers/{offerId}/clicks:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/OfferId"
+    post:
+      operationId: createPartnerOfferClick
+      tags: [offers]
+      summary: Count a click on a partner offer before the web opens its link
+      description: |
+        Mother and partner; a grandparent or nanny gets 404, and an offer that
+        is not in the family gets 404. Stores only the offer, the family and
+        the time, for the analytics dashboard. The web opens the offer's url
+        itself.
+      responses:
+        "204":
+          description: No content
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/content-items:
+    get:
+      operationId: listContentItems
+      tags: [admin]
+      summary: "Editable content: weekly cards, guides, practice questions, checklist items"
+      description: |
+        Content admin for this demo copy. There is no admin login: every
+        visitor operates their own sandbox, so changes apply only to the
+        session's family (stored as overrides with family_id over the catalog
+        in code) and never to other visitors. A real product would put this
+        behind staff sign-in; that is out of scope for the demo. 401 without a
+        session, 403 for a caregiver's session.
+
+        Every catalog item of the kind, with this family's edits applied and
+        edited set on the ones changed here. Ordered as the catalog is (week
+        number, guide order, scenario then question, checklist order).
+      parameters:
+        - name: kind
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ContentKind"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentItemList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/content-items/{kind}/{itemId}:
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/ContentKind"
+      - name: itemId
+        in: path
+        required: true
+        description: The catalog slug, for example week-25 or first-night-home-q2.
+        schema:
+          type: string
+          pattern: "^[a-z0-9-]{1,80}$"
+    patch:
+      operationId: updateContentItem
+      tags: [admin]
+      summary: Edit the title or text of one content item in this demo copy
+      description: |
+        Content admin for this demo copy. There is no admin login: every
+        visitor operates their own sandbox, so changes apply only to the
+        session's family (stored as overrides with family_id over the catalog
+        in code) and never to other visitors. A real product would put this
+        behind staff sign-in; that is out of scope for the demo. 401 without a
+        session, 403 for a caregiver's session.
+
+        Only title and body change; the Source and checked date stay the
+        catalog's, so health content keeps its citation. Every screen that
+        shows the item (Today, the weekly card, guides, the simulator, the plan
+        tab) shows the edited text for this family from the next read. 404 for
+        an unknown slug. Sends a live update of kind family.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentItemUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/content-items/{kind}/{itemId}/reset:
+    parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/ContentKind"
+      - name: itemId
+        in: path
+        required: true
+        description: The catalog slug, for example week-25 or first-night-home-q2.
+        schema:
+          type: string
+          pattern: "^[a-z0-9-]{1,80}$"
+    post:
+      operationId: resetContentItem
+      tags: [admin]
+      summary: Undo this demo copy's edits to one content item
+      description: |
+        Content admin for this demo copy. There is no admin login: every
+        visitor operates their own sandbox, so changes apply only to the
+        session's family (stored as overrides with family_id over the catalog
+        in code) and never to other visitors. A real product would put this
+        behind staff sign-in; that is out of scope for the demo. 401 without a
+        session, 403 for a caregiver's session.
+
+        Returns the catalog version. 404 for an unknown slug.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentItem"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/partner-offers:
+    get:
+      operationId: listAllPartnerOffers
+      tags: [admin]
+      summary: Every partner offer in this demo copy, active or not
+      description: |
+        Content admin for this demo copy. There is no admin login: every
+        visitor operates their own sandbox, so changes apply only to the
+        session's family (stored as overrides with family_id over the catalog
+        in code) and never to other visitors. A real product would put this
+        behind staff sign-in; that is out of scope for the demo. 401 without a
+        session, 403 for a caregiver's session.
+
+        Newest first, with click counts.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerOfferList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createPartnerOffer
+      tags: [admin]
+      summary: Add a partner offer
+      description: |
+        Content admin for this demo copy. There is no admin login: every
+        visitor operates their own sandbox, so changes apply only to the
+        session's family (stored as overrides with family_id over the catalog
+        in code) and never to other visitors. A real product would put this
+        behind staff sign-in; that is out of scope for the demo. 401 without a
+        session, 403 for a caregiver's session.
+
+        Shows up in listPartnerOffers for matching stages and roles when active.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerOfferInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerOffer"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/partner-offers/{offerId}:
+    parameters:
+      - $ref: "#/components/parameters/OfferId"
+    patch:
+      operationId: updatePartnerOffer
+      tags: [admin]
+      summary: Change or switch off a partner offer
+      description: |
+        Content admin for this demo copy. There is no admin login: every
+        visitor operates their own sandbox, so changes apply only to the
+        session's family (stored as overrides with family_id over the catalog
+        in code) and never to other visitors. A real product would put this
+        behind staff sign-in; that is out of scope for the demo. 401 without a
+        session, 403 for a caregiver's session.
+
+        404 for an offer not in this family.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerOfferUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerOffer"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/analytics:
+    get:
+      operationId: getAnalytics
+      tags: [admin]
+      summary: Aggregate usage counts across all demo families
+      description: |
+        Operator dashboard. The one read across families in the API, allowed
+        because it returns counts only: no ids, names, dates of birth or
+        free text, and nothing from health tables (mood check-ins, diary,
+        labs, vaccines, screenings, session notes, insurance calls, care log
+        contents). Every family is synthetic demo data. Not linked from the
+        family screens; any parent's session can open it. 401 without a
+        session, 403 for a caregiver's session.
+
+        Counts per day for the last `days` days (UTC), from audit_log and row
+        counts of non-health tables.
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 30
+            default: 7
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/voice-notes:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createVoiceNote
+      tags: [carelog]
+      summary: Upload a short voice note to attach to a handoff
+      description: |
+        Anyone with care_log (parents always; 403 for a caregiver without it).
+        The body is the raw recording from the browser's MediaRecorder:
+        audio/webm (Chrome, Firefox) or audio/mp4 (Safari); any other type is
+        400. At most 1 MB (about a minute of speech): 413 too_large above
+        that, checked while reading so a big upload is cut off early. Stored
+        in the database with the family; a note not attached to a handoff
+        within 24 hours is deleted. Attach it with HandoffInput.voiceNoteId.
+      parameters:
+        - name: durationSeconds
+          in: query
+          required: false
+          description: Length of the recording as the browser measured it, for the player.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 120
+      requestBody:
+        required: true
+        content:
+          audio/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoiceNote"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/voice-notes/{voiceNoteId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: voiceNoteId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: getVoiceNote
+      tags: [carelog]
+      summary: Play a voice note
+      description: |
+        Whoever may see the handoff it is attached to (listHandoffs: parents
+        every handoff, a caregiver with care_log only handoffs to or from
+        them), plus its uploader before it is attached. Anyone else gets 404.
+        Returns the audio with the Content-Type it was uploaded with.
+      responses:
+        "200":
+          description: The recording.
+          content:
+            audio/*:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MemberId:
@@ -3112,6 +5241,14 @@ components:
         operations written for parents return 404 for a caregiver id, and
         operations open to caregivers return 403 forbidden when their role
         or permissions do not allow the action.
+      schema:
+        type: string
+        format: uuid
+
+    EventId:
+      name: eventId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -3144,6 +5281,24 @@ components:
 
     RoundId:
       name: roundId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    FeedToken:
+      name: token
+      in: path
+      required: true
+      description: The secret from a calendar subscription link.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+
+    OfferId:
+      name: offerId
       in: path
       required: true
       schema:
@@ -3261,6 +5416,15 @@ components:
             Days this family's demo clock has been skipped ahead of the real
             date (createDemoTimeSkip). Absent or 0 means real time; anything else must be
             shown as demo time.
+        sessionMemberId:
+          type: string
+          format: uuid
+          description: |
+            Set when the session belongs to one person: a caregiver who accepted
+            an invitation. That session acts only as this member (other ids are
+            404) and cannot manage the family (skip demo time, upgrade, delete,
+            demo admin: 403). Absent for a demo session, which acts as either
+            parent.
         stage:
           $ref: "#/components/schemas/Stage"
         dueDate:
@@ -3276,6 +5440,8 @@ components:
           $ref: "#/components/schemas/Subscription"
         upgradeRequest:
           $ref: "#/components/schemas/UpgradeIntent"
+        pregnancyLoss:
+          $ref: "#/components/schemas/PregnancyLoss"
         parents:
           type: array
           items:
@@ -3534,6 +5700,35 @@ components:
         source:
           $ref: "#/components/schemas/Source"
 
+    StageNow:
+      type: object
+      required: [stage, period, headline, detail, playIdea, note, sources]
+      properties:
+        stage:
+          $ref: "#/components/schemas/JourneyStage"
+        period:
+          type: string
+          description: The age or phase this line covers, for a label ("Week 8 of life", "18 months", "Planning").
+          example: Week 8 of life
+        headline:
+          type: string
+          description: One warm sentence about what is happening now.
+        detail:
+          type: string
+          description: What most children do by this age, or what to prepare. Never a diagnosis.
+        playIdea:
+          type: string
+          description: One simple play or bonding idea for this period.
+        note:
+          type: string
+          description: Children vary; talk to the pediatrician (or doctor) about worries. Show it with the milestone.
+        sources:
+          type: array
+          description: Pages the text paraphrases, each opened on its checked date. The first is the page to link.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Source"
+
     Source:
       type: object
       required: [title, url, checkedAt]
@@ -3769,6 +5964,56 @@ components:
           description: The acting parent first, then the other parent, then the child.
           items:
             $ref: "#/components/schemas/PassportPerson"
+
+    MemberExport:
+      type: object
+      description: |
+        One parent's data export. Lists are complete (no time window), newest
+        first. Modules added later add their own optional field here.
+      required: [memberId, exportedAt, family, passport, moodCheckins, psychologistBookings, sessionNotes, planProgress]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+          description: The parent who exported.
+        exportedAt:
+          type: string
+          format: date-time
+        family:
+          $ref: "#/components/schemas/Family"
+        passport:
+          $ref: "#/components/schemas/Passport"
+        moodCheckins:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoodCheckin"
+        psychologistBookings:
+          type: array
+          description: The acting parent's own bookings.
+          items:
+            $ref: "#/components/schemas/PsychologistBooking"
+        sessionNotes:
+          type: array
+          description: The acting parent's own notes after sessions.
+          items:
+            $ref: "#/components/schemas/SessionNote"
+        planProgress:
+          type: array
+          description: What the acting parent recorded on their plan items.
+          items:
+            $ref: "#/components/schemas/ExportedPlanProgress"
+
+    ExportedPlanProgress:
+      type: object
+      required: [ruleId, status, updatedAt]
+      properties:
+        ruleId:
+          type: string
+        status:
+          $ref: "#/components/schemas/PlanItemProgress"
+        updatedAt:
+          type: string
+          format: date-time
 
     PassportPerson:
       type: object
@@ -4072,6 +6317,10 @@ components:
         addedAt:
           type: string
           format: date-time
+        diaryEntryId:
+          type: string
+          format: uuid
+          description: Set when the topic came from one of the parent's diary entries (DiaryEntry.agendaTopic).
 
     Psychologist:
       type: object
@@ -4113,7 +6362,11 @@ components:
       properties:
         topics:
           type: array
-          description: Oldest first, so the longest-waiting topic is on top.
+          description: |
+            In the order the parent saved with updatePsychologistAgenda.
+            Topics that appeared since then follow, oldest first; with no
+            saved order the whole list is oldest first, so the
+            longest-waiting topic is on top. Removed topics are left out.
           items:
             $ref: "#/components/schemas/AgendaTopic"
         nextSession:
@@ -4122,6 +6375,19 @@ components:
           allOf:
             - $ref: "#/components/schemas/PsychologistBooking"
           description: The latest session that has started and has no note yet.
+
+    PsychologistAgendaUpdate:
+      type: object
+      required: [topicIds]
+      properties:
+        topicIds:
+          type: array
+          description: Every topic to keep, in order. Leave a topic out to remove it.
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
 
     Slot:
       type: object
@@ -4407,8 +6673,8 @@ components:
 
     GuideKind:
       type: string
-      description: article = stage content; birth_prep = a birth preparation module.
-      enum: [article, birth_prep]
+      description: article = stage content; birth_prep = a birth preparation module; loss_support = support after a pregnancy loss, returned only while Family.pregnancyLoss is set.
+      enum: [article, birth_prep, loss_support]
 
     GuideAudience:
       type: string
@@ -4462,6 +6728,36 @@ components:
           example: 32
         source:
           $ref: "#/components/schemas/Source"
+        ruleId:
+          type: string
+          description: The plan rule this guide explains, same format as PlanItem.ruleId. Absent when no rule covers it. A guide whose rule is already a plan item is not shown again as a lesson.
+          example: tdap-pregnancy
+        action:
+          $ref: "#/components/schemas/GuideAction"
+
+    GuideAction:
+      type: object
+      required: [kind]
+      description: The one thing a lesson ends in. Absent means the default, ask_at_visit with a question about the guide title.
+      properties:
+        kind:
+          type: string
+          description: add_task = put title on the plan (POST tasks); ask_at_visit = add question to the visit list; commit_shift = take the shift; practice = open the simulator.
+          enum: [add_task, ask_at_visit, commit_shift, practice]
+        label:
+          type: string
+          description: Button text, when the default for the kind does not fit.
+          example: Take 22:00 to 02:00
+        title:
+          type: string
+          description: The task title. Required for add_task.
+          example: Get the Tdap vaccine
+        question:
+          type: string
+          description: The question text. Required for ask_at_visit.
+          example: Is the RSV vaccine right for me this season?
+        shift:
+          $ref: "#/components/schemas/ShiftSuggestion"
 
     GuideList:
       type: object
@@ -4475,15 +6771,41 @@ components:
 
     BabySize:
       type: object
-      required: [comparison, lengthCm, weightG]
+      description: |
+        Baby size for one week, with the sources for the length, the weight and
+        the week's `development` text. Not a diagnosis; babies vary.
+      required: [comparison, lengthCm, lengthMeasure, sources]
       properties:
         comparison:
           type: string
+          description: A friendly size picture, not a measurement.
           example: a pineapple
         lengthCm:
           type: number
+        lengthMeasure:
+          type: string
+          description: |
+            How lengthCm is measured. It changes at week 20, so do not chart the jump as growth.
+            embryo = length of the embryo (weeks 4 to 6, the source does not say how),
+            crown-rump = head to bottom, crown-heel = head to heel.
+          enum: [embryo, crown-rump, crown-heel]
         weightG:
           type: number
+          description: Median estimated fetal weight. Absent before week 14, where no source gives one.
+        weightRangeG:
+          type: array
+          description: 10th and 90th percentile of the weight, in grams. Present with weightG.
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+        sources:
+          type: array
+          description: |
+            Sources for the size and for the week's `development` text:
+            the NHS week page, plus the WHO fetal growth charts when weightG is present.
+          items:
+            $ref: "#/components/schemas/Source"
 
     PregnancyWeek:
       type: object
@@ -4498,7 +6820,7 @@ components:
           $ref: "#/components/schemas/BabySize"
         development:
           type: string
-          description: What is developing this week, in plain words. Present only when sourced.
+          description: What is developing this week, in plain words. Cited by the sources in size.sources.
         whyItMatters:
           type: string
           description: Why this week matters for the parents, never a diagnosis.
@@ -4745,6 +7067,48 @@ components:
             format: uuid
         visibility:
           $ref: "#/components/schemas/CalendarVisibility"
+        neutralTitle:
+          type: boolean
+          description: |
+            When true, calendar subscription links and exported .ics files show
+            only the kind ("Appointment") with no location, never the title.
+            Default false for class, reminder and other; the UI defaults it to
+            true for appointments. In the app the owner still sees the title.
+
+    CalendarEventUpdate:
+      type: object
+      description: Same fields as CalendarEventInput, all optional. kind cannot change.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        allDay:
+          type: boolean
+        location:
+          type: string
+          maxLength: 200
+        attendeeIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        visibility:
+          $ref: "#/components/schemas/CalendarVisibility"
+        neutralTitle:
+          type: boolean
+          description: |
+            When true, calendar subscription links and exported .ics files show
+            only the kind ("Appointment") with no location, never the title.
+            Default false for class, reminder and other; the UI defaults it to
+            true for appointments. In the app the owner still sees the title.
 
     CalendarEvent:
       type: object
@@ -4780,6 +7144,13 @@ components:
             format: uuid
         visibility:
           $ref: "#/components/schemas/CalendarVisibility"
+        neutralTitle:
+          type: boolean
+          description: |
+            When true, calendar subscription links and exported .ics files show
+            only the kind ("Appointment") with no location, never the title.
+            Default false for class, reminder and other; the UI defaults it to
+            true for appointments. In the app the owner still sees the title.
         shiftId:
           type: string
           format: uuid
@@ -4879,6 +7250,133 @@ components:
           items:
             $ref: "#/components/schemas/AppointmentQuestion"
 
+
+    Place:
+      type: object
+      required: [name, address]
+      properties:
+        name:
+          type: string
+          example: St. Anne's Birth Center
+        address:
+          type: string
+        phone:
+          type: string
+        mapsUrl:
+          type: string
+          format: uri
+          description: Opens the route in the maps app.
+        travelMinutes:
+          type: integer
+          minimum: 0
+          description: Usual drive time from the family's home, without traffic. The UI shows it as an estimate.
+
+    BringItem:
+      type: object
+      required: [title, ready]
+      properties:
+        title:
+          type: string
+          example: Insurance card and photo ID
+        detail:
+          type: string
+        ready:
+          type: boolean
+          description: True when the paperwork task behind it is done. Items with no task are false until the visit.
+        taskId:
+          type: string
+          format: uuid
+          description: The paperwork or plan task this item comes from.
+
+    BirthContact:
+      type: object
+      required: [label, name, phone]
+      properties:
+        label:
+          type: string
+          description: Why to call, such as "Labour and delivery desk" or "Your OB".
+        name:
+          type: string
+        phone:
+          type: string
+        memberId:
+          type: string
+          format: uuid
+          description: Set when the contact is a family member (the partner, a grandparent).
+
+    BirthPlan:
+      type: object
+      required: [hospital, contacts, documents]
+      properties:
+        hospital:
+          $ref: "#/components/schemas/Place"
+        contacts:
+          type: array
+          description: In the order to call them.
+          items:
+            $ref: "#/components/schemas/BirthContact"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BringItem"
+        preferencesNote:
+          type: string
+          description: The family's birth preferences to talk through with the care team. A note, not a plan the AI writes.
+
+    AppointmentTravel:
+      type: object
+      required: [minutes, leaveBy]
+      properties:
+        minutes:
+          type: integer
+          minimum: 0
+          description: Drive time plus a fixed ten minute buffer.
+        leaveBy:
+          type: string
+          format: date-time
+        mapsUrl:
+          type: string
+          format: uri
+
+    AppointmentPrep:
+      type: object
+      required: [appointment, documents, questions]
+      properties:
+        appointment:
+          $ref: "#/components/schemas/CalendarEvent"
+        travel:
+          $ref: "#/components/schemas/AppointmentTravel"
+        documents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BringItem"
+        questions:
+          type: array
+          description: Unanswered first, then oldest first.
+          items:
+            $ref: "#/components/schemas/AppointmentQuestion"
+        note:
+          $ref: "#/components/schemas/AppointmentNote"
+
+    AppointmentNoteInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          maxLength: 2000
+          description: Empty deletes the note.
+
+    AppointmentNote:
+      type: object
+      required: [text, updatedAt]
+      description: A parent's private note after one visit. Never shared.
+      properties:
+        text:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
 
     SimulatorSkill:
       type: string
@@ -5302,6 +7800,10 @@ components:
           type: string
           format: uuid
           description: The receiver's shift this handoff starts, when there is one.
+        voiceNoteId:
+          type: string
+          format: uuid
+          description: A voice note the acting person uploaded with createVoiceNote and has not attached yet.
 
     Handoff:
       type: object
@@ -5331,6 +7833,8 @@ components:
           format: date-time
         careSummary:
           $ref: "#/components/schemas/CareSummary"
+        voiceNote:
+          $ref: "#/components/schemas/VoiceNote"
 
     HandoffList:
       type: object
@@ -5345,7 +7849,7 @@ components:
     LiveUpdateKind:
       type: string
       description: Which screens should refetch.
-      enum: [family, task, shift, calendar_event, care_log, handoff, appointment_question, invitation]
+      enum: [family, task, shift, calendar_event, care_log, handoff, appointment_question, invitation, notification, leave_plan, diary_entry, insurance_call]
 
     LiveUpdate:
       type: object
@@ -5389,6 +7893,52 @@ components:
           example: Newborn hearing screen passed
         detail:
           type: string
+
+    MilestoneDomain:
+      type: string
+      enum: [social_emotional, language_communication, cognitive, movement_physical]
+
+    Milestone:
+      type: object
+      required: [id, domain, text, observed]
+      properties:
+        id:
+          type: string
+          description: Stable key, for example 4y-language-sentences.
+        domain:
+          $ref: "#/components/schemas/MilestoneDomain"
+        text:
+          type: string
+        observed:
+          type: boolean
+        observedOn:
+          type: string
+          format: date
+          description: Set when observed.
+
+    MilestoneInput:
+      type: object
+      required: [observed]
+      properties:
+        observed:
+          type: boolean
+
+    MilestoneChecklist:
+      type: object
+      required: [childId, checklistAgeMonths, items, source]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        checklistAgeMonths:
+          type: integer
+          description: Which CDC checklist this is (24, 36, 48 or 60).
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Milestone"
+        source:
+          $ref: "#/components/schemas/Source"
 
     ChildPassport:
       type: object
@@ -5472,3 +8022,818 @@ components:
       properties:
         received:
           type: boolean
+
+    NotificationKind:
+      type: string
+      description: |
+        What happened, and who receives it. The web maps a kind and
+        entityId to a screen.
+        task_offered = a task was offered to the recipient (entityId: task);
+        task_offer_answered = the other person accepted or declined the
+        recipient's offer (task); handoff_received = a handoff to the
+        recipient is waiting (handoff); handoff_accepted = the recipient's
+        handoff was taken (handoff); plan_item_due = one of the recipient's
+        own plan items became due or overdue (entityId: ruleId);
+        value_flagged = one of the recipient's own lab results (or their
+        child's, for both parents) got a LabFlag (lab result id; never sent
+        to caregivers or the other parent for a parent's own record); appointment_reminder = the recipient's
+        appointment is tomorrow (calendar event); invitation_accepted = a
+        caregiver the recipient invited joined (invitation);
+        subscription_started = the family's paid plan started (both
+        parents); labour_started = the other parent tapped "Going to the
+        hospital" (entityId: the sender, createLabourAlert).
+      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started, labour_started]
+
+    Notification:
+      type: object
+      required: [id, kind, title, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/NotificationKind"
+        title:
+          type: string
+          description: A fixed template filled with names and dates only, never health values or private text.
+          example: Jake offered you "Install the car seat"
+        entityId:
+          type: string
+          description: The record to open (a uuid, or a ruleId for plan_item_due).
+        actorId:
+          type: string
+          format: uuid
+          description: Who caused it, when a person did.
+        createdAt:
+          type: string
+          format: date-time
+        readAt:
+          type: string
+          format: date-time
+
+    NotificationList:
+      type: object
+      required: [items, unreadCount]
+      properties:
+        items:
+          type: array
+          description: Newest first, last 30 days, at most 50.
+          items:
+            $ref: "#/components/schemas/Notification"
+        unreadCount:
+          type: integer
+
+    NotificationReadInput:
+      type: object
+      properties:
+        ids:
+          type: array
+          description: Leave out to mark all as read.
+          maxItems: 100
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+
+    CalendarFeedScope:
+      type: string
+      description: mine = the person's own events and shifts; family = what scope family shows them (parents only).
+      enum: [mine, family]
+
+    CalendarFeedInput:
+      type: object
+      required: [scope]
+      properties:
+        scope:
+          $ref: "#/components/schemas/CalendarFeedScope"
+
+    CalendarFeed:
+      type: object
+      required: [active]
+      properties:
+        active:
+          type: boolean
+        scope:
+          $ref: "#/components/schemas/CalendarFeedScope"
+        url:
+          type: string
+          description: The secret subscription URL (https://.../api/calendar-feeds/<token>). Only in the createCalendarFeed response.
+        createdAt:
+          type: string
+          format: date-time
+        lastFetchedAt:
+          type: string
+          format: date-time
+
+    LeavePlanInput:
+      type: object
+      required: [state, employerEmployees, monthsEmployed, hoursLast12Months]
+      description: The wizard's answers for one parent. Nothing about health.
+      properties:
+        state:
+          $ref: "#/components/schemas/UsState"
+        employerEmployees:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+          description: People the employer has at or near the parent's worksite; 0 for self-employed.
+        monthsEmployed:
+          type: integer
+          minimum: 0
+          maximum: 600
+          description: Months with the current employer.
+        hoursLast12Months:
+          type: integer
+          minimum: 0
+          maximum: 8784
+        startsOn:
+          type: string
+          format: date
+          description: First day of leave. Leave out to start on the due date or birth date.
+        weeksWanted:
+          type: integer
+          minimum: 1
+          maximum: 52
+
+    LeaveEligibility:
+      type: string
+      description: unknown = the answers are not enough to tell; the reason says what to ask HR.
+      enum: [eligible, not_eligible, unknown]
+
+    LeaveProgramKind:
+      type: string
+      description: job_protection = your job is held but unpaid; paid_leave = wage replacement; both = the program does both.
+      enum: [job_protection, paid_leave, both]
+
+    LeaveProgram:
+      type: object
+      required: [id, name, kind, eligibility, reason, source]
+      properties:
+        id:
+          type: string
+          description: Catalog slug, for example fmla or ca_pfl.
+        name:
+          type: string
+        kind:
+          $ref: "#/components/schemas/LeaveProgramKind"
+        eligibility:
+          $ref: "#/components/schemas/LeaveEligibility"
+        weeks:
+          type: integer
+          description: Weeks this parent can take under the program, when eligible.
+        pay:
+          type: string
+          description: What it pays, in plain words, for paid programs.
+        reason:
+          type: string
+          description: Which answers decided the eligibility.
+        source:
+          $ref: "#/components/schemas/Source"
+
+    LeaveSegment:
+      type: object
+      required: [startsOn, endsOn, programIds, paid, jobProtected]
+      description: One stretch of the timeline where the same programs apply.
+      properties:
+        startsOn:
+          type: string
+          format: date
+        endsOn:
+          type: string
+          format: date
+        programIds:
+          type: array
+          items:
+            type: string
+        paid:
+          type: boolean
+        jobProtected:
+          type: boolean
+
+    LeaveDeadline:
+      type: object
+      required: [title, dueOn, source]
+      properties:
+        title:
+          type: string
+          example: Give your employer written notice
+        dueOn:
+          type: string
+          format: date
+        programId:
+          type: string
+        taskId:
+          type: string
+          format: uuid
+          description: The paperwork task for the same step, when the checklist has one.
+        source:
+          $ref: "#/components/schemas/Source"
+
+    ParentLeave:
+      type: object
+      required: [memberId, role, programs, segments, deadlines]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/ParentRole"
+        input:
+          $ref: "#/components/schemas/LeavePlanInput"
+        programs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaveProgram"
+        segments:
+          type: array
+          description: Oldest first; together they make the parent's lane on the timeline.
+          items:
+            $ref: "#/components/schemas/LeaveSegment"
+        deadlines:
+          type: array
+          description: Soonest first.
+          items:
+            $ref: "#/components/schemas/LeaveDeadline"
+
+    LeavePlan:
+      type: object
+      required: [parents]
+      properties:
+        parents:
+          type: array
+          description: The acting parent first, then the other parent.
+          items:
+            $ref: "#/components/schemas/ParentLeave"
+
+    InsuranceCallTopic:
+      type: string
+      enum: [coverage, claim, prior_authorization, add_baby, billing, other]
+
+    InsuranceCallInput:
+      type: object
+      required: [calledAt, insurer, topic, summary, visibility]
+      properties:
+        calledAt:
+          type: string
+          format: date-time
+        insurer:
+          type: string
+          minLength: 1
+          maxLength: 80
+        representative:
+          type: string
+          maxLength: 80
+        referenceNumber:
+          type: string
+          maxLength: 40
+          description: The call or claim reference the insurer gave.
+        topic:
+          $ref: "#/components/schemas/InsuranceCallTopic"
+        summary:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: What was said and promised.
+        followUpOn:
+          type: string
+          format: date
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    InsuranceCall:
+      type: object
+      required: [id, authorId, calledAt, insurer, topic, summary, visibility, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        calledAt:
+          type: string
+          format: date-time
+        insurer:
+          type: string
+        representative:
+          type: string
+        referenceNumber:
+          type: string
+        topic:
+          $ref: "#/components/schemas/InsuranceCallTopic"
+        summary:
+          type: string
+        followUpOn:
+          type: string
+          format: date
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        createdAt:
+          type: string
+          format: date-time
+
+    InsuranceCallList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/InsuranceCall"
+
+    DiaryEntryInput:
+      type: object
+      required: [body, visibility]
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 5000
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        agendaTopic:
+          type: string
+          maxLength: 120
+          description: A short topic for the author's next psychologist session, never the entry text.
+
+    DiaryEntryUpdate:
+      type: object
+      required: [visibility]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        agendaTopic:
+          type: string
+          maxLength: 120
+          description: Set or change the agenda topic; an empty string removes it. Leave out to keep it.
+
+    DiaryEntry:
+      type: object
+      required: [id, authorId, writtenAt, body, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        writtenAt:
+          type: string
+          format: date-time
+        body:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        agendaTopic:
+          type: string
+          description: Only on the author's own entries.
+
+    DiaryEntryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/DiaryEntry"
+
+    ScreeningInstrument:
+      type: string
+      description: epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
+      enum: [epds, phq9]
+
+    ScreeningChoice:
+      type: object
+      required: [value, label]
+      properties:
+        value:
+          type: integer
+          minimum: 0
+          maximum: 3
+        label:
+          type: string
+
+    ScreeningQuestion:
+      type: object
+      required: [number, text, choices]
+      properties:
+        number:
+          type: integer
+          minimum: 1
+        text:
+          type: string
+        choices:
+          type: array
+          description: In the order the instrument prints them; values are the instrument's scores.
+          items:
+            $ref: "#/components/schemas/ScreeningChoice"
+
+    ScreeningQuestionnaire:
+      type: object
+      required: [instrument, title, intro, questions, suggested, source]
+      properties:
+        instrument:
+          $ref: "#/components/schemas/ScreeningInstrument"
+        title:
+          type: string
+        intro:
+          type: string
+          description: The instrument's own instruction, including the period it asks about.
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreeningQuestion"
+        suggested:
+          type: boolean
+          description: True when this parent's plan asks for this questionnaire now.
+        source:
+          $ref: "#/components/schemas/Source"
+
+    ScreeningQuestionnaireList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreeningQuestionnaire"
+
+    MoodScreeningInput:
+      type: object
+      required: [instrument, answers, visibility]
+      properties:
+        instrument:
+          $ref: "#/components/schemas/ScreeningInstrument"
+        answers:
+          type: array
+          description: One score per question, in order.
+          minItems: 1
+          maxItems: 10
+          items:
+            type: integer
+            minimum: 0
+            maximum: 3
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    ScreeningBand:
+      type: string
+      description: |
+        green = below the instrument's cutoff; amber = near it, repeat in
+        two weeks and mention it at the next visit; red = at or above it,
+        talk to a doctor or midwife soon. Cutoffs come from the
+        instrument's source and are never a diagnosis.
+      enum: [green, amber, red]
+
+    MoodScreeningResult:
+      type: object
+      required: [id, authorId, instrument, takenAt, score, maxScore, band, urgent, source, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        instrument:
+          $ref: "#/components/schemas/ScreeningInstrument"
+        takenAt:
+          type: string
+          format: date-time
+        score:
+          type: integer
+        maxScore:
+          type: integer
+        band:
+          $ref: "#/components/schemas/ScreeningBand"
+        urgent:
+          type: boolean
+          description: The self-harm question was answered above its lowest value. Open the fixed crisis screen. Always false for someone else's result.
+        message:
+          type: string
+          description: Fixed wording for the band, never generated. Only on the author's own results.
+        source:
+          $ref: "#/components/schemas/Source"
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    MoodScreeningList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/MoodScreeningResult"
+
+    MoodScreeningUpdate:
+      type: object
+      required: [visibility]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    MoodScreeningDraftInput:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          description: Scores given so far, in question order. May be empty.
+          maxItems: 10
+          items:
+            type: integer
+            minimum: 0
+            maximum: 3
+
+    MoodScreeningDraft:
+      type: object
+      required: [instrument, answers, updatedAt]
+      properties:
+        instrument:
+          $ref: "#/components/schemas/ScreeningInstrument"
+        answers:
+          type: array
+          description: Scores given so far, in question order; the next question is answers.length + 1.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 3
+        updatedAt:
+          type: string
+          format: date-time
+
+    MoodScreeningDraftList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoodScreeningDraft"
+
+    PregnancyLossInput:
+      type: object
+      description: Everything is optional so the flow can ask as little as possible.
+      properties:
+        occurredOn:
+          type: string
+          format: date
+          description: Today or earlier; a future date is 400.
+
+    PregnancyLoss:
+      type: object
+      required: [recordedAt]
+      description: Set while the family is in pregnancy loss support.
+      properties:
+        recordedAt:
+          type: string
+          format: date-time
+        occurredOn:
+          type: string
+          format: date
+
+    PartnerOfferInput:
+      type: object
+      required: [partnerName, title, detail, url, stages, audience, active]
+      properties:
+        partnerName:
+          type: string
+          minLength: 1
+          maxLength: 60
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+        detail:
+          type: string
+          minLength: 1
+          maxLength: 300
+        url:
+          type: string
+          pattern: "^https://"
+          maxLength: 500
+        stages:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/Stage"
+        audience:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/ParentRole"
+        active:
+          type: boolean
+
+    PartnerOfferUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        partnerName:
+          type: string
+          minLength: 1
+          maxLength: 60
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+        detail:
+          type: string
+          minLength: 1
+          maxLength: 300
+        url:
+          type: string
+          pattern: "^https://"
+          maxLength: 500
+        stages:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/Stage"
+        audience:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/ParentRole"
+        active:
+          type: boolean
+
+    PartnerOffer:
+      type: object
+      required: [id, partnerName, title, detail, url, stages, audience, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        partnerName:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        url:
+          type: string
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Stage"
+        audience:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParentRole"
+        active:
+          type: boolean
+        clicks:
+          type: integer
+          description: Only in listAllPartnerOffers.
+
+    PartnerOfferList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartnerOffer"
+
+    ContentKind:
+      type: string
+      description: |
+        pregnancy_week = a weekly pregnancy card (body: development);
+        guide = a guide or birth prep module (body: summary);
+        simulator_question = a practice question (body: the prompt);
+        checklist_item = a paperwork or hospital bag catalog item (body:
+        detail). Health content keeps its catalog Source.
+      enum: [pregnancy_week, guide, simulator_question, checklist_item]
+
+    ContentItem:
+      type: object
+      required: [kind, id, title, body, edited]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ContentKind"
+        id:
+          type: string
+          description: The catalog slug.
+        title:
+          type: string
+        body:
+          type: string
+        edited:
+          type: boolean
+          description: True when this demo copy changed it.
+        updatedAt:
+          type: string
+          format: date-time
+        source:
+          $ref: "#/components/schemas/Source"
+
+    ContentItemList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentItem"
+
+    ContentItemUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        body:
+          type: string
+          minLength: 1
+          maxLength: 4000
+
+    AnalyticsMetric:
+      type: string
+      description: Each is a count of events, never of health records.
+      enum: [demo_started, custom_family_started, task_created, task_done, handoff_created, care_log_entry_created, simulator_round_played, booking_requested, invitation_accepted, checkout_started, checkout_paid, partner_offer_clicked]
+
+    AnalyticsDay:
+      type: object
+      required: [date, count]
+      properties:
+        date:
+          type: string
+          format: date
+        count:
+          type: integer
+
+    AnalyticsSeries:
+      type: object
+      required: [metric, total, days]
+      properties:
+        metric:
+          $ref: "#/components/schemas/AnalyticsMetric"
+        total:
+          type: integer
+        days:
+          type: array
+          description: Oldest first, one per day in the window, zeros included.
+          items:
+            $ref: "#/components/schemas/AnalyticsDay"
+
+    TemplateCount:
+      type: object
+      required: [template, families]
+      properties:
+        template:
+          $ref: "#/components/schemas/DemoTemplate"
+        families:
+          type: integer
+
+    Analytics:
+      type: object
+      required: [from, to, generatedAt, templates, series]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        generatedAt:
+          type: string
+          format: date-time
+        templates:
+          type: array
+          description: Demo families started in the window, per template.
+          items:
+            $ref: "#/components/schemas/TemplateCount"
+        series:
+          type: array
+          description: One per AnalyticsMetric, in enum order.
+          items:
+            $ref: "#/components/schemas/AnalyticsSeries"
+
+    VoiceNote:
+      type: object
+      required: [id, contentType, sizeBytes, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        contentType:
+          type: string
+          example: audio/webm
+        sizeBytes:
+          type: integer
+        durationSeconds:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time

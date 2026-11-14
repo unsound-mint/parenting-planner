@@ -122,6 +122,14 @@ func TestPregnancyWeekCard(t *testing.T) {
 	if mw.Tasks[0] == pw.Tasks[0] {
 		t.Errorf("mother and partner share the task %q", mw.Tasks[0])
 	}
+	if mw.Size == nil || mw.Size.WeightG == nil || mw.Size.WeightRangeG == nil || len(mw.Size.Sources) < 2 || mw.Development == nil || *mw.Development == "" {
+		t.Errorf("week 25 size: %+v", mw.Size)
+	}
+	var early httpapi.PregnancyWeek
+	c.Get("/api/members/"+mom.Id.String()+"/pregnancy-weeks/8", http.StatusOK, &early)
+	if early.Size == nil || early.Size.WeightG != nil || early.Size.WeightRangeG != nil || len(early.Size.Sources) == 0 {
+		t.Errorf("week 8 size: %+v", early.Size)
+	}
 	for _, wk := range []string{"4", "40"} {
 		c.Get("/api/members/"+mom.Id.String()+"/pregnancy-weeks/"+wk, http.StatusOK, nil)
 	}
@@ -146,4 +154,85 @@ func TestContentRejectsOtherFamiliesAndNoSession(t *testing.T) {
 	c2.StartDemo("pregnancy")
 	c2.Get("/api/members/"+other.Id.String()+"/guides", http.StatusNotFound, nil)
 	c2.Get("/api/members/"+other.Id.String()+"/pregnancy-weeks/20", http.StatusNotFound, nil)
+}
+
+func TestGuidesCarryTheirRuleAndTheirAction(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	var l httpapi.GuideList
+	c.Get("/api/members/"+mom.Id.String()+"/guides", http.StatusOK, &l)
+	guides := guideIDs(l)
+
+	tdap := guides["preg-tdap"]
+	if tdap.RuleId == nil || *tdap.RuleId != "tdap-pregnancy" {
+		t.Errorf("preg-tdap explains the Tdap rule: %+v", tdap.RuleId)
+	}
+	if a := tdap.Action; a == nil || a.Kind != httpapi.GuideActionKindAddTask || a.Title == nil || *a.Title != "Get the Tdap vaccine" {
+		t.Errorf("preg-tdap action = %+v", tdap.Action)
+	}
+	if g := guides["preg-warning-signs"]; g.RuleId != nil || g.Action == nil || g.Action.Kind != httpapi.GuideActionKindPractice {
+		t.Errorf("a guide with no rule has no ruleId, and a practice action: %+v", g)
+	}
+	// Every article in this family's list has one action with its payload; birth prep has none.
+	for _, g := range l.Items {
+		if g.Kind == httpapi.BirthPrep {
+			if g.Action != nil {
+				t.Errorf("%s: birth prep has no action", g.Id)
+			}
+			continue
+		}
+		if g.Action == nil {
+			t.Errorf("%s has no action", g.Id)
+		}
+	}
+	// The night shift guide suggests a real shift.
+	nf := testutil.New(t)
+	newborn := testutil.Parent(t, nf.StartDemo("newborn"), httpapi.ParentRoleMother)
+	var nl httpapi.GuideList
+	nf.Get("/api/members/"+newborn.Id.String()+"/guides", http.StatusOK, &nl)
+	if a := guideIDs(nl)["postpartum-newborn-visit"].Action; a == nil || a.Kind != httpapi.GuideActionKindAskAtVisit || a.Question == nil {
+		t.Errorf("the newborn visit guide asks at the visit: %+v", a)
+	}
+	shift := guideIDs(nl)["postpartum-night-shifts"].Action
+	if shift == nil || shift.Kind != httpapi.GuideActionKindCommitShift || shift.Shift == nil || len(shift.Shift.Days) != 7 || shift.Shift.StartTime != "22:00" || shift.Shift.EndTime != "02:00" || shift.Label == nil {
+		t.Errorf("night shift action = %+v", shift)
+	}
+}
+
+func TestStageNowForEveryDemoStage(t *testing.T) {
+	cases := []struct {
+		template, stage, period, sourceHost string
+	}{
+		{"newborn", "newborn", "Week 8 of life", "https://www.cdc.gov/act-early/milestones/2-months.html"},
+		{"preschool", "preschool", "4 years", "https://www.cdc.gov/act-early/milestones/4-years.html"},
+		{"planning", "planning", "Planning", "https://www.cdc.gov/pregnancy/about/index.html"},
+	}
+	for _, tc := range cases {
+		c := testutil.New(t)
+		fam := c.StartDemo(tc.template)
+		// Both parents and the caregivers read the same reference line.
+		mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+		var got httpapi.StageNow
+		c.Get("/api/members/"+mom.Id.String()+"/now", http.StatusOK, &got)
+		if string(got.Stage) != tc.stage || got.Period != tc.period {
+			t.Errorf("%s: stage %s period %q", tc.template, got.Stage, got.Period)
+		}
+		if got.Headline == "" || got.Detail == "" || got.PlayIdea == "" || got.Note == "" {
+			t.Errorf("%s: incomplete %+v", tc.template, got)
+		}
+		if len(got.Sources) == 0 || got.Sources[0].Url != tc.sourceHost || got.Sources[0].CheckedAt.String() != "2026-11-14" {
+			t.Errorf("%s: sources %+v", tc.template, got.Sources)
+		}
+	}
+}
+
+func TestStageNowIsNotServedInPregnancy(t *testing.T) {
+	c := testutil.New(t)
+	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
+	var e httpapi.Error
+	c.Get("/api/members/"+mom.Id.String()+"/now", http.StatusConflict, &e)
+	if e.Code != "pregnant" {
+		t.Errorf("code = %q", e.Code)
+	}
 }

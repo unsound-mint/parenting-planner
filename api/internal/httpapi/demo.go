@@ -35,11 +35,14 @@ func (s *Server) sessionCookieHeader(token string) string {
 // CreateDemoTimeSkip moves the session family's demo clock a week ahead.
 // Every later request reads the new offset in the session middleware.
 func (s *Server) CreateDemoTimeSkip(ctx context.Context, _ CreateDemoTimeSkipRequestObject) (CreateDemoTimeSkipResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return CreateDemoTimeSkip401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return CreateDemoTimeSkip403JSONResponse(errForbidden), nil
 	}
-	if err := demo.SkipWeek(ctx, s.pool, familyID); err != nil {
+	if err := demo.SkipWeek(ctx, s.pool, familyID, s.now(ctx)); err != nil {
 		return nil, err
 	}
 	fam, err := s.loadFamily(ctx, familyID)
