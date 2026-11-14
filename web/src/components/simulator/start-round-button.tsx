@@ -42,7 +42,7 @@ export function StartRoundButton({ memberId, mode, scenarioId, label, variant = 
       variant={variant}
       onClick={start}
       disabled={pending}
-      className="h-11 gap-2 px-4 text-label md:h-10"
+      className="press h-11 gap-2 rounded-full px-4.5 text-label"
     >
       <Icon className="size-4" aria-hidden />
       {pending ? "Starting..." : label}
