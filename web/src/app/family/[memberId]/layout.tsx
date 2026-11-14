@@ -6,6 +6,7 @@ import { familyContext } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
+import { ResetDemo } from "@/components/shell/reset-demo";
 import { DemoClock } from "@/components/shell/demo-clock";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
@@ -54,6 +55,8 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     calendar: calendar.response.status,
     // Newborn practice is baby prep: none of it while the family is in pregnancy loss support.
     simulator: inLossSupport(family) ? 404 : simulator.response.status,
+    // Stage lessons give way to the support card in loss support (the page does the same).
+    ...(inLossSupport(family) ? { learn: 404 } : {}),
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
     ...(invitations ? { people: invitations.response.status } : {}),
   });
@@ -77,13 +80,16 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* One width cap for the header and the page, so their edges line up, and the container
+          that PageGrid's columns query (docs/design.md, Layout). */}
+      <div className="@container flex w-full min-w-0 max-w-page flex-1 flex-col">
         <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
           <RoleSwitch people={people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
           <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
             Demo data
           </span>
+          <ResetDemo />
           <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} />
           <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
             {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}

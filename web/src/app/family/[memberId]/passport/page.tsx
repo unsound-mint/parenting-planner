@@ -4,6 +4,7 @@ import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { PassportBody } from "@/components/passport/passport-body";
 import { passportIcon } from "@/lib/visuals";
+import { PageFrame } from "@/components/shell/page";
 
 // Health passport: labs, vaccines, allergies, growth and care team for each
 // person. The API decides what the acting parent may see; this page draws it.
@@ -40,7 +41,7 @@ async function Passport({
 function PassportEmpty() {
   const sections = [passportIcon.labs, passportIcon.vaccines, passportIcon.allergies, passportIcon.growth, passportIcon.careTeam];
   return (
-    <main className="flex-1 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame className="block">
       <h1 className="max-w-2xl text-headline text-balance">Your family&apos;s health passport is empty for now.</h1>
       <div className="mt-8 flex max-w-2xl flex-col items-center gap-5 rounded-2xl border border-dashed border-border px-6 py-12 text-center">
         <div className="flex gap-3" aria-hidden>
@@ -52,7 +53,7 @@ function PassportEmpty() {
         </div>
         <p className="max-w-sm text-body text-muted-foreground">Labs, vaccines, allergies, growth and your care team appear here once they are recorded. Check back soon.</p>
       </div>
-    </main>
+    </PageFrame>
   );
 }
 

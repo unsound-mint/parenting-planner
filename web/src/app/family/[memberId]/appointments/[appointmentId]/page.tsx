@@ -6,6 +6,7 @@ import { serverApi } from "@/lib/api/server";
 import { daysUntilInstant, formatClock, formatLongDate, whenWords, dayKey } from "@/lib/format";
 import { familyPeople, isCaregiver } from "@/lib/roles";
 import { familyNow } from "@/lib/clock";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { VisitQuestions } from "@/components/week/visit-prep";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,7 @@ async function Appointment({ params }: { params: Promise<{ memberId: string; app
   const open = questions.filter((q) => !q.answered).length;
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame>
       <header>
         <Link href={`/family/${memberId}`} className="inline-flex min-h-11 items-center gap-1.5 text-label text-muted-foreground hover:text-foreground md:min-h-0">
           <ArrowLeft className="size-4" aria-hidden />
@@ -56,7 +57,7 @@ async function Appointment({ params }: { params: Promise<{ memberId: string; app
         </p>
       </header>
 
-      <div className="grid items-start gap-6 lg:grid-cols-2 2xl:grid-cols-3">
+      <PageGrid cols={3}>
         {travel && (
           <section aria-labelledby="leave-title" className="rounded-2xl border border-border bg-card p-5">
             <h2 id="leave-title" className="text-label font-medium text-muted-foreground">
@@ -95,7 +96,7 @@ async function Appointment({ params }: { params: Promise<{ memberId: string; app
           </ul>
         </section>
 
-        <section aria-labelledby="ask-title" className="rounded-2xl border border-border bg-card p-5 lg:col-span-2 2xl:col-span-1">
+        <section aria-labelledby="ask-title" className="rounded-2xl border border-border bg-card p-5 @4xl:col-span-2 @7xl:col-span-1">
           <div className="mb-2 flex items-center justify-between gap-3">
             <h2 id="ask-title" className="flex items-center gap-2 text-title">
               <MessageCircleQuestion className="size-4.5 text-muted-foreground" aria-hidden />
@@ -105,8 +106,8 @@ async function Appointment({ params }: { params: Promise<{ memberId: string; app
           </div>
           <VisitQuestions memberId={memberId} appointmentId={appointmentId} partnerName={partner?.displayName} questions={questions} />
         </section>
-      </div>
-    </main>
+      </PageGrid>
+    </PageFrame>
   );
 }
 

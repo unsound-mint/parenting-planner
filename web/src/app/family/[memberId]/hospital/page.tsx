@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
+import { PageFrame } from "@/components/shell/page";
 import { HospitalMode } from "@/components/hospital/hospital-mode";
 
 // "Going to the hospital": the screen for the moment labour starts. Parents only.
@@ -29,10 +30,10 @@ async function Hospital({ params }: { params: Promise<{ memberId: string }> }) {
   const other = family.parents.find((p) => p.id !== memberId);
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    <PageFrame>
       <h1 className="text-headline text-balance">Going to the hospital</h1>
       <HospitalMode plan={plan} bags={tasks?.items} memberId={memberId} partner={other && { id: other.id, name: other.displayName }} />
-    </main>
+    </PageFrame>
   );
 }
 

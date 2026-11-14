@@ -8,6 +8,7 @@ export type Caregiver = S["Caregiver"];
 export type Plan = S["Plan"];
 export type PlanItem = S["PlanItem"];
 export type DemoTemplate = S["DemoTemplate"];
+export type CustomFamilyInput = S["CustomFamilyInput"];
 export type Stage = S["Stage"];
 export type PlanItemStatus = S["PlanItemStatus"];
 export type PlanItemProgress = S["PlanItemProgress"];

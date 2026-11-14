@@ -5,6 +5,7 @@ import { HOSPITAL_BAGS, bagProgress } from "@/lib/hospital";
 import { bagIcon, bagLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { ProgressRing } from "@/components/plan/hospital-bags";
+import { PageGrid, Stack } from "@/components/shell/page";
 import { TellPartner } from "./tell-partner";
 
 // "Going to the hospital": one screen for the moment labour starts. Big targets,
@@ -28,8 +29,8 @@ export function HospitalMode({
   const missing = bags?.filter((t) => !t.done) ?? [];
   const progress = bags ? bagProgress(bags) : undefined;
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-      <div className="flex min-w-0 flex-col gap-3">
+    <PageGrid cols={3}>
+      <Stack className="gap-3">
         {partner && <TellPartner memberId={memberId} name={partner.name} />}
         {contacts.map((c) => (
           <a
@@ -47,9 +48,9 @@ export function HospitalMode({
             <span className="font-mono text-label">{c.phone}</span>
           </a>
         ))}
-      </div>
+      </Stack>
 
-      <div className="flex min-w-0 flex-col gap-6">
+      <Stack>
         <section aria-labelledby="route-title" className="rounded-2xl border border-border bg-card p-5">
           <h2 id="route-title" className="sr-only">
             Route
@@ -88,9 +89,9 @@ export function HospitalMode({
             {plan.preferencesNote}
           </p>
         )}
-      </div>
+      </Stack>
 
-      <div className="flex min-w-0 flex-col gap-6 lg:col-span-2 2xl:col-span-1">
+      <Stack className="@4xl:col-span-2 @7xl:col-span-1">
         {bags && progress && (
           <section aria-labelledby="bags-title" className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center gap-4">
@@ -153,7 +154,7 @@ export function HospitalMode({
             ))}
           </ul>
         </section>
-      </div>
-    </div>
+      </Stack>
+    </PageGrid>
   );
 }
