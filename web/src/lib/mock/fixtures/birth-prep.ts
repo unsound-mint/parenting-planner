@@ -1,4 +1,4 @@
-import type { BirthPlan, BringItem } from "@/lib/api/types";
+import type { AppointmentNote, BirthPlan, BringItem } from "@/lib/api/types";
 import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { birthHospital, calendarEvent, careTeam, couple, events, taskId } from "../timeline";
@@ -16,6 +16,10 @@ const mapsUrl = (address: string) => MAPS + encodeURIComponent(address);
 const BUFFER_MINUTES = 10;
 const CLINIC_DRIVE_MINUTES = 18;
 const CLINIC_ADDRESS = "310 Lakeside Drive, Oakland, CA 94612";
+
+// The after-visit note, kept per parent and visit. Private to its author: the key
+// includes the acting member, like the real table's (author, appointment) key.
+const notes = new Map<string, AppointmentNote>();
 
 export const birthPlanMocks = {
   ...mock("/members/{memberId}/birth-plan", "get", async (ctx): Promise<BirthPlan> => {
@@ -40,6 +44,13 @@ export const birthPlanMocks = {
     };
   }),
   ...mock("/members/{memberId}/labour-alerts", "post", () => undefined as never, 204),
+  ...mock("/members/{memberId}/appointments/{appointmentId}/note", "put", (ctx): AppointmentNote => {
+    const note = { text: ctx.body.text.trim(), updatedAt: new Date().toISOString() };
+    const key = `${ctx.path.memberId}:${ctx.path.appointmentId}`;
+    if (note.text) notes.set(key, note);
+    else notes.delete(key);
+    return note;
+  }),
   ...mock("/members/{memberId}/appointments/{appointmentId}/prep", "get", async (ctx) => {
     const family = await ctx.family();
     const c = couple(family);
@@ -60,6 +71,7 @@ export const birthPlanMocks = {
       questions: demoQuestions(ctx.path.memberId)
         .filter((q) => q.appointmentId === spec.id)
         .sort((a, b) => Number(a.answered) - Number(b.answered) || a.createdAt.localeCompare(b.createdAt)),
+      note: notes.get(`${ctx.path.memberId}:${ctx.path.appointmentId}`),
     };
   }),
 };

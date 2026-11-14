@@ -78,6 +78,7 @@ export type BirthPlan = S["BirthPlan"];
 export type BirthContact = S["BirthContact"];
 export type BringItem = S["BringItem"];
 export type AppointmentPrep = S["AppointmentPrep"];
+export type AppointmentNote = S["AppointmentNote"];
 export type Place = S["Place"];
 export type AppointmentQuestionList = S["AppointmentQuestionList"];
 export type CalendarEvent = S["CalendarEvent"];
