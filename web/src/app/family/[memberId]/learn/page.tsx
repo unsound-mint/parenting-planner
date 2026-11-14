@@ -15,6 +15,8 @@ import { LessonCard } from "@/components/learn/lesson-card";
 import { LearnBoard } from "@/components/learn/learn-board";
 import type { Talked } from "@/components/learn/lesson-list";
 import { JourneyStrip } from "@/components/journey/journey-strip";
+import { LabLink } from "@/components/lab/lab-link";
+import { CapsuleLink } from "@/components/capsule/capsule-link";
 import { PracticeSection } from "@/components/simulator/practice-section";
 
 // Learn: the one place to learn and prepare together. Learning paths with both
@@ -93,6 +95,20 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
         </div>
         {journey && <JourneyStrip journey={journey} memberId={memberId} className="@7xl:max-w-[50rem] @7xl:flex-nowrap" />}
       </Rise>
+
+      {them && (
+        <Rise i={1} className="grid gap-4 @3xl:grid-cols-2">
+          <Suspense fallback={null}>
+            <LabLink memberId={memberId} partnerName={them.displayName} />
+          </Suspense>
+          {/* With a child, the time capsule is linked from Baby. */}
+          {family.data.children.length === 0 && (
+            <Suspense fallback={null}>
+              <CapsuleLink memberId={memberId} />
+            </Suspense>
+          )}
+        </Rise>
+      )}
 
       {items.length > 0 && (
         <LearnBoard
