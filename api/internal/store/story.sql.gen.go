@@ -106,7 +106,7 @@ func (q *Queries) ListStoryChildVaccineDays(ctx context.Context, arg ListStoryCh
 }
 
 const listStoryDiaryEntriesVisibleToParent = `-- name: ListStoryDiaryEntriesVisibleToParent :many
-SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at FROM diary_entries
+SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries
 WHERE family_id = $1 AND visibility IN ('partner', 'family') AND written_at <= $2
 ORDER BY written_at, id
 LIMIT 60
@@ -138,6 +138,8 @@ func (q *Queries) ListStoryDiaryEntriesVisibleToParent(ctx context.Context, arg 
 			&i.BodySealed,
 			&i.AgendaTopic,
 			&i.CreatedAt,
+			&i.Mood,
+			&i.IsFirst,
 		); err != nil {
 			return nil, err
 		}

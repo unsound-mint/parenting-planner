@@ -115,7 +115,7 @@ func TestDemoFamilyPlansFollowTheirData(t *testing.T) {
 		mother, partner []string
 	}{
 		{"planning", []string{"folic-acid", "mmr-before-pregnancy"}, []string{"tetanus-booster"}},
-		{"newborn", []string{"postpartum-visit", "infant-2-month-vaccines"}, []string{"low-mood-partner", "mood-screen-partner", "infant-2-month-vaccines"}},
+		{"newborn", []string{"postpartum-visit", "childcare-decision", "infant-2-month-vaccines"}, []string{"low-mood-partner", "mood-screen-partner", "childcare-decision", "infant-2-month-vaccines"}},
 		{"preschool", []string{"vision-screen", "preschool-boosters"}, []string{"vision-screen", "preschool-boosters"}},
 	}
 	for _, tc := range cases {

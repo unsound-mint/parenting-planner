@@ -18,6 +18,8 @@ type Item = {
   short?: string;
   /** Shown only when this screen is not in the nav: the screen that normally links to it is missing. */
   fallbackFor?: string;
+  /** Other routes that live inside this screen and keep it highlighted. */
+  includes?: string[];
 };
 
 // Three daily screens, then the records. Plan, Journey, Practice, Find help and
@@ -29,7 +31,7 @@ const items: Item[] = [
   { href: "", screen: "", label: "This week", icon: Sprout, group: "main" },
   { href: "/learn", screen: "learn", label: "Learn", icon: BookOpen, group: "main" },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "main", fallbackFor: "learn" },
-  { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main" },
+  { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main", includes: ["/directory"] },
   { href: "/story", screen: "story", label: "Our story", short: "Story", icon: BookHeart, group: "main" },
   { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "more" },
   { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "more" },
@@ -50,7 +52,8 @@ function useNav({ memberId, role, hidden = [], childName }: NavProps) {
   const base = `/family/${memberId}`;
   const allowed = (item: Item) => canOpen(role, item.screen) && !hidden.includes(item.screen);
   const visible = items.filter((item) => allowed(item) && (!item.fallbackFor || !items.some((i) => i.screen === item.fallbackFor && allowed(i))));
-  const isActive = (item: Item) => (item.href === "" ? pathname === base : pathname.startsWith(base + item.href));
+  const isActive = (item: Item) =>
+    item.href === "" ? pathname === base : [item.href, ...(item.includes ?? [])].some((h) => pathname.startsWith(base + h));
   // Past toddler age the Baby screen is the child's own: it carries their name.
   const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.screen === "baby" && childName ? childName : item.label);
   return { pathname, base, visible, isActive, label };

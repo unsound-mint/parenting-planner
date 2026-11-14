@@ -1,0 +1,85 @@
+/* This week's own motion. Global and prefixed (pp-wk-): CSS modules do not work
+   with this repo's turbopack css rule. Only transform and opacity move, and
+   everything stops under prefers-reduced-motion (docs/design.md, "Motion"). */
+
+/* Growth arc: the walked part draws in once, left to right, by scaling a clip
+   rect (a transform) instead of animating the stroke. The "you are here" dot
+   lands as the line reaches it. */
+.pp-wk-arc-clip {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+  animation: pp-wk-draw 900ms var(--ease-out) 260ms both;
+}
+
+.pp-wk-arc-now {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pp-wk-land 420ms var(--ease-out) 980ms both;
+}
+
+.pp-wk-arc-label {
+  animation: pp-wk-fade 400ms var(--ease-out) 1100ms both;
+}
+
+@keyframes pp-wk-draw {
+  from {
+    transform: scaleX(0.02);
+  }
+}
+
+@keyframes pp-wk-land {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes pp-wk-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Read cards: the cover's corner curls like a page about to turn. The fold is
+   a fixed triangle that scales out from the corner, so only transform moves. */
+.pp-wk-curl {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 34px;
+  height: 34px;
+  border-top-left-radius: 6px;
+  background: linear-gradient(135deg, rgb(43 38 32 / 0.08) 0 50%, var(--card) 50%);
+  box-shadow: -2px -2px 4px rgb(43 38 32 / 0.05);
+  transform: scale(0.15);
+  transform-origin: 100% 100%;
+  opacity: 0;
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pp-wk-read:hover .pp-wk-curl {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.pp-wk-read:focus-visible .pp-wk-curl {
+  transform: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-wk-arc-clip,
+  .pp-wk-arc-now,
+  .pp-wk-arc-label {
+    animation: none;
+  }
+  .pp-wk-curl {
+    transition: opacity var(--duration-fast) linear;
+    transform: none;
+  }
+}
