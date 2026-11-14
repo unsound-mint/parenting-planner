@@ -8,6 +8,18 @@ WHERE family_id = @family_id AND started_at >= @since
   AND (sqlc.narg(kind)::text IS NULL OR kind = sqlc.narg(kind)::text)
 ORDER BY started_at DESC, created_at DESC;
 
+-- Replaces what was logged; the kind and the child stay.
+-- name: UpdateCareLogEntry :one
+UPDATE care_log_entries
+SET started_at = @started_at, ended_at = @ended_at, feed_method = @feed_method, amount_ml = @amount_ml, diaper = @diaper, note = @note
+WHERE id = @id AND family_id = @family_id RETURNING *;
+
+-- name: GetCareLogEntry :one
+SELECT * FROM care_log_entries WHERE id = @id AND family_id = @family_id;
+
+-- name: DeleteCareLogEntry :execrows
+DELETE FROM care_log_entries WHERE id = @id AND family_id = @family_id;
+
 -- name: LatestCareLogEntry :one
 SELECT * FROM care_log_entries WHERE family_id = $1 AND kind = $2 ORDER BY started_at DESC, created_at DESC LIMIT 1;
 
