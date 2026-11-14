@@ -154,6 +154,22 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ChildcareOption struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	Name             string
+	Kind             string
+	Contact          *string
+	MonthlyCost      pgtype.Int4
+	Status           string
+	WaitlistPosition pgtype.Int4
+	AppliedOn        *time.Time
+	DecideBy         *time.Time
+	Notes            *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
 type ContentOverride struct {
 	FamilyID  uuid.UUID
 	Kind      string
@@ -179,6 +195,8 @@ type DiaryEntry struct {
 	BodySealed    []byte
 	AgendaTopic   *string
 	CreatedAt     time.Time
+	Mood          pgtype.Int2
+	IsFirst       bool
 }
 
 type Family struct {
@@ -393,18 +411,22 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
-type Portrait struct {
-	ID               uuid.UUID
-	FamilyID         uuid.UUID
-	ChildID          uuid.NullUUID
-	Month            pgtype.Int2
-	Week             pgtype.Int2
-	Kind             string
-	UploaderMemberID uuid.NullUUID
-	Width            pgtype.Int4
-	Height           pgtype.Int4
-	Image            []byte
-	CreatedAt        time.Time
+type PostcardLine struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	PeriodKey      string
+	AuthorMemberID uuid.NullUUID
+	AuthorName     string
+	Body           string
+	UpdatedAt      time.Time
+}
+
+type PostcardLofe struct {
+	ID           uuid.UUID
+	FamilyID     uuid.UUID
+	FromMemberID uuid.UUID
+	Message      *string
+	CreatedAt    time.Time
 }
 
 type Provider struct {
@@ -522,6 +544,16 @@ type Task struct {
 	SourceCheckedOn         *time.Time
 	CreatedByMemberID       uuid.UUID
 	CreatedAt               time.Time
+}
+
+type Thank struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	FromMemberID  uuid.UUID
+	ToMemberID    uuid.UUID
+	Body          string
+	SuggestionKey *string
+	CreatedAt     time.Time
 }
 
 type UpgradeIntent struct {

@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useId } from "react";
 import { Face } from "./face";
 
 /* Flat shapes on a 300x260 canvas, palette from the journey comp. Each
@@ -287,7 +286,8 @@ const CUC = {
 /** The comp's zucchini; the cucumber reuses it with its own colours. */
 function Zucchini({ v = "zucchini" }: Variant<keyof typeof CUC>) {
   const c = CUC[v];
-  const id = `zc-${useId().replace(/:/g, "")}`;
+  // Same variant, same geometry, so a shared id is harmless; keeping hooks out lets the share card image render the shape without React.
+  const id = `zc-${v}`;
   const y0 = 162 - c.h / 2;
   return (
     <g transform="rotate(-12 150 162)">
@@ -385,7 +385,7 @@ function Coconut() {
 }
 
 function Pineapple() {
-  const id = `pa-${useId().replace(/:/g, "")}`;
+  const id = "pa-clip";
   return (
     <g>
       <path d="M150 104c-16-30-30-48-22-66 12 8 20 28 22 66zM150 104c0-34 4-54 14-66 12 14 10 36-14 66zM150 104c14-22 34-34 56-34-8 18-28 30-56 34zM150 104c-14-22-34-34-56-34 8 18 28 30 56 34z" fill="#4F7F45" />
