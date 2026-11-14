@@ -22,6 +22,15 @@ const (
 	Handoff             = "handoff"
 	AppointmentQuestion = "appointment_question"
 	Invitation          = "invitation"
+	// Not published yet. Each is sent by the module's own PR or follow-up, in the
+	// transaction that makes the change: leave_plan by updateLeavePlan (#410),
+	// insurance_call by createInsuranceCall (#413), notification by notify.Send
+	// and diary_entry by the diary writes (both on main, still to wire; a diary
+	// event goes only to the author and, for a shared entry, the partner).
+	Notification  = "notification"
+	LeavePlan     = "leave_plan"
+	DiaryEntry    = "diary_entry"
+	InsuranceCall = "insurance_call"
 )
 
 // Retention is how long events are kept; a client that was offline longer refetches everything anyway.

@@ -8,6 +8,8 @@ import { formatShortDate } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/product";
 import { cn } from "@/lib/utils";
 import { permissionIcon, permissionLabel, roleAccent, roleIcon, roleLabel } from "@/lib/visuals";
+import { PREVIEW_INVITE_TOKEN, previewInvitation } from "@/lib/mock/fixtures/people";
+import { previewMocksEnabled } from "@/lib/mock/registry";
 import { AcceptInvitation } from "@/components/people/accept-invitation";
 
 // Where an invitation link lands. No session is needed: the person is usually in
@@ -29,7 +31,10 @@ const closed: Record<Exclude<InvitationStatus, "pending">, { icon: LucideIcon; t
 async function Invite({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const api = await serverApi();
-  const { data: invite } = await api.GET("/invitations/{token}", { params: { path: { token } } });
+  let { data: invite } = await api.GET("/invitations/{token}", { params: { path: { token } } });
+  // The token the People mock hands out is not stored anywhere, so a live API answers 404 for it.
+  // Preview it from the same fixture; production never takes this branch.
+  if (!invite && previewMocksEnabled && token === PREVIEW_INVITE_TOKEN) invite = previewInvitation();
   // Unknown token, or the endpoint is not live yet (501): there is no page.
   if (!invite) notFound();
   const Role = roleIcon[invite.role];

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { inLossSupport } from "@/lib/loss";
 import { Baby } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { SimulatorScenario } from "@/lib/api/types";
@@ -7,6 +8,7 @@ import { shiftTimes } from "@/lib/schedule";
 import { skillIcon, skillLabel } from "@/lib/visuals";
 import { SkillBars } from "@/components/simulator/skill-bars";
 import { StartRoundButton } from "@/components/simulator/start-round-button";
+import { PageFrame } from "@/components/shell/page";
 
 // Practice: short scenarios that train one skill each. Scores are the
 // person's own; the round ends with a shift they can commit to.
@@ -21,8 +23,13 @@ export default function SimulatorPage({ params }: PageProps<"/family/[memberId]/
 async function Simulator({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
-  const { data: progress, response } = await api.GET("/members/{memberId}/simulator", { params: { path: { memberId } } });
+  const [{ data: progress, response }, { data: family }] = await Promise.all([
+    api.GET("/members/{memberId}/simulator", { params: { path: { memberId } } }),
+    api.GET("/family"),
+  ]);
   if (!progress || response.status === 501 || response.status === 404) notFound();
+  // The nav hides it in pregnancy loss support (layout.tsx); a direct visit gets the same.
+  if (family && inLossSupport(family)) notFound();
 
   const weak = progress.weakSpots;
   const headline =
@@ -33,7 +40,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
         : "No weak spots. Keep it fresh with a practice round.";
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <section aria-labelledby="sim-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="sim-headline" className="max-w-2xl text-headline text-balance">
@@ -58,7 +65,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
           <h2 id="scenarios-title" className="text-title">
             Scenarios
           </h2>
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-3 sm:grid-cols-2 @7xl:grid-cols-3">
             {progress.scenarios.map((s) => (
               <li key={s.id}>
                 <ScenarioCard scenario={s} memberId={memberId} />
@@ -68,7 +75,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
         </section>
       </section>
 
-      <aside className="xl:pt-1">
+      <aside className="min-w-0 @5xl:pt-1">
         <section aria-labelledby="skills-title" className="rounded-2xl border border-border bg-card p-5">
           <h2 id="skills-title" className="text-title">
             Your skills
@@ -78,7 +85,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
           </div>
         </section>
       </aside>
-    </main>
+    </PageFrame>
   );
 }
 
