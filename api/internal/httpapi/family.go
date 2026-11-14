@@ -25,6 +25,11 @@ func (s *Server) GetFamily(ctx context.Context, _ GetFamilyRequestObject) (GetFa
 	if bound, _ := ctx.Value(sessionMemberKey{}).(uuid.NullUUID); bound.Valid {
 		fam.SessionMemberId = &bound.UUID
 	}
+	// A grandparent or nanny must not learn why pregnancy updates stopped. A demo
+	// session has no role and is a parent's view.
+	if role, _ := ctx.Value(sessionRoleKey{}).(string); role != "" && !isParentRole(role) {
+		fam.PregnancyLoss = nil
+	}
 	return GetFamily200JSONResponse(fam), nil
 }
 
@@ -59,6 +64,13 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		if w, ok := f.GestationalWeek(); ok {
 			out.GestationalWeek = &w
 		}
+	}
+	if fam.PregnancyLossRecordedAt.Valid {
+		loss := PregnancyLoss{RecordedAt: fam.PregnancyLossRecordedAt.Time}
+		if fam.PregnancyLossOccurredOn != nil {
+			loss.OccurredOn = &openapi_types.Date{Time: *fam.PregnancyLossOccurredOn}
+		}
+		out.PregnancyLoss = &loss
 	}
 
 	// One subscription covers the family, so both parents get its tier.
