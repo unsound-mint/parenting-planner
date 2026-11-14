@@ -52,7 +52,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           <Link href="/pricing" className="text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
             Plans
           </Link>
-          <span className="hidden text-[13px] text-muted-foreground sm:inline">{familyContext(family)}</span>
+          <span className="hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
           <div className="hidden md:block">
             <UrgentHelpLink />
           </div>

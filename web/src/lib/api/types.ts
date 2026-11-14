@@ -9,6 +9,7 @@ export type PlanItem = S["PlanItem"];
 export type DemoTemplate = S["DemoTemplate"];
 export type Stage = S["Stage"];
 export type PlanItemStatus = S["PlanItemStatus"];
+export type PlanItemProgress = S["PlanItemProgress"];
 export type Visibility = S["Visibility"];
 export type MoodCheckin = S["MoodCheckin"];
 export type MoodCheckinInput = S["MoodCheckinInput"];
