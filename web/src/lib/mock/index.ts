@@ -10,6 +10,7 @@ import { demoMocks } from "./fixtures/demo";
 import { directoryMocks } from "./fixtures/directory";
 import { insuranceMocks } from "./fixtures/insurance";
 import { leaveMocks } from "./fixtures/leave";
+import { learnMocks } from "./fixtures/learn";
 import { milestoneMocks } from "./fixtures/milestones";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { notificationMocks } from "./fixtures/notifications";
@@ -39,6 +40,7 @@ const tables: MockTable[] = [
   directoryMocks,
   insuranceMocks,
   leaveMocks,
+  learnMocks,
   milestoneMocks,
   moodPatternMocks,
   notificationMocks,
