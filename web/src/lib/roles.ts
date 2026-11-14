@@ -10,11 +10,11 @@ export type Role = Parent["role"] | Caregiver["role"];
 export type Person = { id: string; role: Role; displayName: string };
 
 /** First path segment under /family/<id>: "" is the home screen. */
-export type Screen = "" | "journey";
+export type Screen = "" | "journey" | "care" | "passport" | "directory";
 
 const screens: Record<Role, readonly Screen[]> = {
-  mother: ["", "journey"],
-  partner: ["", "journey"],
+  mother: ["", "journey", "care", "passport", "directory"],
+  partner: ["", "journey", "care", "passport", "directory"],
   grandparent: [""],
   nanny: [""],
 };
