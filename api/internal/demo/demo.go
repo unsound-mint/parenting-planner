@@ -158,6 +158,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedPsychologist(ctx, q, fam.ID, mom.ID, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := SeedPartnerOffers(ctx, q, fam.ID); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedPregnancyPassport(ctx, q, fam.ID, mom.ID, partner.ID, today, week); err != nil {
 		return uuid.Nil, err
 	}
@@ -261,6 +264,24 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 	} {
 		a.FamilyID = familyID
 		if _, err := q.CreateAllergy(ctx, a); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SeedPartnerOffers gives a family its copy of the partner offers. The partners are invented.
+func SeedPartnerOffers(ctx context.Context, q *store.Queries, familyID uuid.UUID) error {
+	both, mother := []string{"mother", "partner"}, []string{"mother"}
+	for _, o := range []store.CreatePartnerOfferParams{
+		{PartnerName: "Cradle & Co", Title: "Childbirth class, first session free", Detail: "A four-week childbirth class with a certified instructor, online or in person.", Url: "https://example.com/offers/childbirth-class", Stages: []string{"pregnancy"}, Audience: both},
+		{PartnerName: "Nightingale Doulas", Title: "Postpartum doula, 10% off the first week", Detail: "Overnight and daytime support for the first weeks at home.", Url: "https://example.com/offers/postpartum-doula", Stages: []string{"pregnancy", "postpartum"}, Audience: mother},
+		{PartnerName: "Little Sprout Meals", Title: "Easy dinners for the first month", Detail: "Freezer-friendly meals delivered before the due date.", Url: "https://example.com/offers/meals", Stages: []string{"pregnancy", "postpartum", "infant"}, Audience: both},
+		{PartnerName: "Brightside Sleep", Title: "Gentle sleep consultation for babies from 4 months", Detail: "One call with a sleep consultant and a written plan.", Url: "https://example.com/offers/sleep", Stages: []string{"infant", "toddler"}, Audience: both},
+		{PartnerName: "Seedling Preschool Finder", Title: "Tour preschools near you", Detail: "Compare programs and book tours in one place.", Url: "https://example.com/offers/preschool", Stages: []string{"toddler", "preschool"}, Audience: both},
+	} {
+		o.FamilyID, o.Active = familyID, true
+		if _, err := q.CreatePartnerOffer(ctx, o); err != nil {
 			return err
 		}
 	}

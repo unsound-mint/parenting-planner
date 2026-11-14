@@ -108,6 +108,9 @@ func (s *seeder) mood(owner uuid.UUID, visibility string, daysAgo, mood, energy 
 }
 
 func (s *seeder) done() (uuid.UUID, error) {
+	if s.err == nil {
+		s.err = SeedPartnerOffers(s.ctx, s.q, s.fam)
+	}
 	if s.err != nil {
 		return uuid.Nil, s.err
 	}
