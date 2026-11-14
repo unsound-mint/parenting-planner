@@ -66,7 +66,7 @@ func (s *Server) SetPlanItemProgress(ctx context.Context, req SetPlanItemProgres
 	case kind == errNotFound:
 		return SetPlanItemProgress404JSONResponse(errNoMember), nil
 	}
-	it, err := plan.SetProgress(ctx, s.pool, familyID, req.MemberId, req.RuleId, string(req.Body.Status), s.today(), s.cfg.Now())
+	it, err := plan.SetProgress(ctx, s.pool, familyID, req.MemberId, req.RuleId, string(req.Body.Status), s.today(ctx), s.now(ctx))
 	switch {
 	case errors.Is(err, plan.ErrNotOnPlan):
 		return SetPlanItemProgress404JSONResponse(errNoPlanItem), nil
