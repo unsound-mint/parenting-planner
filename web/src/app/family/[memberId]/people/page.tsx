@@ -50,8 +50,8 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
       </header>
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
-      <PageGrid cols={3} className="@3xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
-        <div className="min-w-0 @3xl:row-span-2 @7xl:row-span-1">
+      <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
+        <div className="min-w-0 @4xl:row-span-2 @7xl:row-span-1">
           <InviteForm memberId={memberId} />
         </div>
         {shown.length > 0 && (

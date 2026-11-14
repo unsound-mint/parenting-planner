@@ -88,7 +88,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
               : undefined
           }
         />
-        <div className="min-w-0 @3xl:col-span-2 @7xl:col-span-1">
+        <div className="min-w-0 @4xl:col-span-2 @7xl:col-span-1">
           <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
         </div>
       </PageGrid>

@@ -61,7 +61,7 @@ function Pick({ questionnaires, history, onStart }: { questionnaires: ScreeningQ
         </h1>
         <p className="mt-2 text-label font-normal text-muted-foreground">A short questionnaire. It points out when to talk to someone. It is not a diagnosis.</p>
       </div>
-      <ul className="grid gap-3 @3xl:grid-cols-2">
+      <ul className="grid gap-3 @4xl:grid-cols-2">
         {sorted.map((q) => {
           const last = history.find((h) => h.instrument === q.instrument);
           const view = last && bandView[last.band];

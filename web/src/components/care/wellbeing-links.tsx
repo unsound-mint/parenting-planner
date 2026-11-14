@@ -10,7 +10,7 @@ export function WellbeingLinks({ memberId, entries, questionnaires }: { memberId
   if (!entries && !questionnaires) return null;
   const suggested = questionnaires?.some((q) => q.suggested);
   return (
-    <section aria-label="Your wellbeing" className="grid gap-3 sm:grid-cols-2 @3xl:grid-cols-1 @5xl:grid-cols-2 @7xl:grid-cols-1">
+    <section aria-label="Your wellbeing" className="grid gap-3 sm:grid-cols-2 @4xl:grid-cols-1 @6xl:grid-cols-2 @7xl:grid-cols-1">
       {entries && (
         <Door
           href={`/family/${memberId}/care/journal`}

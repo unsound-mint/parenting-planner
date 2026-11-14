@@ -83,7 +83,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const late = family.stage === "pregnancy" && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && shifts;
 
   return (
-    <PageFrame className="grid content-start gap-8 @4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
       <section aria-labelledby="week-headline" className="min-w-0">
         <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
@@ -98,7 +98,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
 
       {/* At the widest: two columns. The questions card is placed first in the right one and spans
           into the last, flexible row, so its height never opens gaps between the cards on the left. */}
-      <aside aria-label="You and your visits" className="grid min-w-0 content-start items-start gap-6 @4xl:pt-1 @7xl:grid-cols-2 @7xl:grid-rows-[repeat(4,auto)_1fr]">
+      <aside aria-label="You and your visits" className="grid min-w-0 content-start items-start gap-6 @5xl:pt-1 @7xl:grid-cols-2 @7xl:grid-rows-[repeat(4,auto)_1fr]">
         <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} now={familyNow(family)} />
         <div className="min-w-0 empty:hidden @7xl:col-start-2 @7xl:row-span-5 @7xl:row-start-1">
           <Suspense fallback={null}>

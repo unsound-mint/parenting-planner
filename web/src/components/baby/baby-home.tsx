@@ -92,7 +92,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
       : `${child.name}'s day starts here. Log the first feed.`;
 
   return (
-    <PageFrame className="grid content-start gap-8 @4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       {/* At the widest the logging side splits in two: log now on the left, today's timeline on the right. */}
       <div className="flex min-w-0 flex-col gap-6 @7xl:grid @7xl:grid-cols-2 @7xl:items-start">
         <header className="flex flex-col gap-3 @7xl:col-span-2">
@@ -156,7 +156,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         )}
       </div>
 
-      <aside className="flex min-w-0 flex-col gap-6 @4xl:pt-1">
+      <aside className="flex min-w-0 flex-col gap-6 @5xl:pt-1">
         {outgoing ? (
           <section aria-labelledby="handoff-title" className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card p-4">
             <div className="flex items-center gap-3">
