@@ -158,3 +158,10 @@ export type Journey = S["Journey"];
 export type JourneyStage = S["JourneyStage"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+
+// US family paperwork hub.
+export type FamilyPaperwork = S["FamilyPaperwork"];
+export type PaperworkItem = S["PaperworkItem"];
+export type RightsCard = S["RightsCard"];
+export type BenefitsFinder = S["BenefitsFinder"];
+export type BenefitHighlights = S["BenefitHighlights"];

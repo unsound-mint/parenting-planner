@@ -70,6 +70,9 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 		if err := offers.Seed(ctx, q, id, today); err != nil {
 			return err
 		}
+		if err := seedPaperwork(ctx, q, id, today); err != nil {
+			return err
+		}
 		return q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: id, ExpiresAt: time.Now().Add(SessionTTL)})
 	})
 	return familyID, token, err
@@ -203,9 +206,6 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
-		return uuid.Nil, err
-	}
-	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {

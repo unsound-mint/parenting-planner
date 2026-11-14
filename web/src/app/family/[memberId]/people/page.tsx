@@ -52,6 +52,9 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         <Link href={`/family/${memberId}/settings`} className="mt-2 inline-block text-label text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
           Privacy and your data
         </Link>
+        <Link href={`/family/${memberId}/paperwork`} className="mt-2 ml-4 inline-block text-label text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
+          Family paperwork
+        </Link>
       </header>
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}

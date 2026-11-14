@@ -1,0 +1,163 @@
+{
+  "checkedAt": "2026-11-14",
+  "sources": {
+    "cfr-825-302": {"title": "29 CFR 825.302: Employee notice requirements for foreseeable FMLA leave", "url": "https://www.law.cornell.edu/cfr/text/29/825.302"},
+    "cfr-2590": {"title": "29 CFR 2590.701-6: Special enrollment periods (group health plans)", "url": "https://www.law.cornell.edu/cfr/text/29/2590.701-6"},
+    "dol-fmla": {"title": "U.S. Department of Labor: Family and Medical Leave Act", "url": "https://www.dol.gov/agencies/whd/fmla"},
+    "dol-pump": {"title": "U.S. Department of Labor: PUMP Act, breaks and a place to pump at work", "url": "https://www.dol.gov/agencies/whd/pump-at-work"},
+    "dol-state": {"title": "U.S. Department of Labor: State family and medical leave laws", "url": "https://www.dol.gov/agencies/whd/state/fmla"},
+    "eeoc-pwfa": {"title": "EEOC: What you should know about the Pregnant Workers Fairness Act", "url": "https://www.eeoc.gov/wysk/what-you-should-know-about-pregnant-workers-fairness-act"},
+    "hc-sep": {"title": "HealthCare.gov: Special Enrollment Period", "url": "https://www.healthcare.gov/coverage-outside-open-enrollment/special-enrollment-period/"},
+    "hc-pregnant": {"title": "HealthCare.gov: Coverage options when pregnant, and for your newborn", "url": "https://www.healthcare.gov/what-if-im-pregnant-or-plan-to-get-pregnant/"},
+    "hc-medicaid": {"title": "HealthCare.gov: Getting Medicaid and CHIP coverage", "url": "https://www.healthcare.gov/medicaid-chip/getting-medicaid-chip/"},
+    "hc-chip": {"title": "HealthCare.gov: Children's Health Insurance Program (CHIP)", "url": "https://www.healthcare.gov/medicaid-chip/childrens-health-insurance-program/"},
+    "ikn": {"title": "InsureKidsNow.gov: Medicaid and CHIP for kids and teens", "url": "https://www.insurekidsnow.gov/"},
+    "usa-ssn": {"title": "USAGov: How to get, replace, or correct a Social Security card", "url": "https://www.usa.gov/social-security-card"},
+    "usa-birth": {"title": "USAGov: Get a copy of a birth certificate", "url": "https://www.usa.gov/birth-certificate"},
+    "cdc-w2w": {"title": "CDC: Where to Write for Vital Records", "url": "https://www.cdc.gov/nchs/w2w/index.htm"},
+    "usa-passport": {"title": "USAGov: Passports for children under 16", "url": "https://www.usa.gov/child-passport"},
+    "usa-wic": {"title": "USAGov: Get food assistance with the WIC program", "url": "https://www.usa.gov/food-assistance"},
+    "usa-snap": {"title": "USAGov: Food stamps (SNAP benefits)", "url": "https://www.usa.gov/food-stamps"},
+    "usa-finder": {"title": "USAGov: Benefit finder (formerly benefits.gov)", "url": "https://www.usa.gov/benefit-finder"}
+  },
+  "paperwork": [
+    {
+      "key": "leave-notice", "phases": ["before"], "anchor": "due_date", "offset": -30, "basis": "official",
+      "title": "Tell your employer you will take leave",
+      "short": "For a birth you can see coming, the employee must give at least 30 days' notice before leave begins; if that is not practicable, as soon as practicable. The date here assumes leave starts at the due date.",
+      "why": "Job-protected FMLA leave starts with telling your employer. Late notice can mean explaining why you could not give 30 days.",
+      "how": ["Check you are likely eligible: 12 months with the employer, 1,250 hours in the last 12 months, and a site with 50 or more employees within 75 miles.", "Tell your employer in writing when you expect leave to start. Use the request note below.", "If the baby comes early, give notice as soon as you can, the same or the next business day."],
+      "source": "cfr-825-302", "more": ["dol-fmla"]
+    },
+    {
+      "key": "birth-certificate", "phases": ["before", "newborn"], "anchor": "birth_date", "offset": 14, "basis": "suggested",
+      "title": "Complete the birth certificate details and order copies",
+      "short": "The hospital collects the birth certificate details; copies come from the vital records office of the state or territory where the baby was born.",
+      "why": "A certified copy proves who the baby is and who the parents are. Later steps, such as a passport, ask for it.",
+      "how": ["At the hospital, give the birth certificate details when the staff ask. Spell the baby's name as you want it on the record.", "Order certified copies from the vital records office of the state or territory where the baby was born. New York City has its own office. Have the city and county of birth ready.", "Keep one copy at home and one in the hospital paperwork folder. The federal government does not issue birth certificates."],
+      "source": "usa-birth", "more": ["cdc-w2w"]
+    },
+    {
+      "key": "ssn", "phases": ["before", "newborn"], "anchor": "birth_date", "offset": 14, "basis": "suggested",
+      "title": "Get the baby's Social Security number",
+      "short": "The easiest time to ask is at the hospital with the birth certificate details. If you skipped it, you can begin an application online.",
+      "why": "Your child needs their own number to be claimed as a dependent on your tax return, to open a bank account, to get medical coverage and to apply for government services.",
+      "how": ["Say yes to the Social Security number question when the hospital asks for the birth certificate details.", "If you skipped it, begin the application for your child's number online from the USAGov page.", "Keep the card somewhere safe and do not carry it."],
+      "source": "usa-ssn", "more": []
+    },
+    {
+      "key": "insurance-employer", "phases": ["before", "newborn"], "anchor": "birth_date", "offset": 30, "basis": "official",
+      "title": "Add the baby to your employer health plan",
+      "short": "A group health plan must give at least 30 days after the birth to ask for enrollment. Coverage must begin on the date of birth. Your plan may allow longer: ask HR.",
+      "why": "Asking in time means the baby is covered from the day they were born, including the first checkups.",
+      "how": ["Ask HR how to add a newborn and what proof they need. Many plans want it in writing.", "Ask the date your plan's window closes. Federal rules set at least 30 days, and your plan documents may say more.", "If you are on a Marketplace plan instead, use the next step."],
+      "source": "cfr-2590", "more": []
+    },
+    {
+      "key": "insurance-marketplace", "phases": ["before", "newborn"], "anchor": "birth_date", "offset": 60, "basis": "official",
+      "title": "Add the baby to a Marketplace plan",
+      "short": "Having a baby opens a Special Enrollment Period: you can enroll up to 60 days after the birth, and coverage can start on the day of the birth.",
+      "why": "Pregnancy alone does not open this window, the birth does. Missing it can leave the baby uncovered until Open Enrollment.",
+      "how": ["If you already have a Marketplace plan, report the birth and add the baby to your plan or create a separate enrollment group for the baby.", "If you have no Marketplace plan, apply on HealthCare.gov and choose the birth as your qualifying event.", "Questions: the Marketplace Call Center is 1-800-318-2596."],
+      "source": "hc-sep", "more": ["hc-pregnant"]
+    },
+    {
+      "key": "medicaid-chip", "phases": ["before", "newborn", "later"], "anchor": "", "offset": 0, "basis": "anytime",
+      "title": "Check Medicaid or CHIP for the baby",
+      "short": "You can apply for Medicaid and CHIP at any time of year. Rules and income limits differ by state.",
+      "why": "If you have Medicaid or CHIP when you give birth, the newborn is automatically enrolled in Medicaid and stays eligible for at least a year. Applying is worthwhile even if you do not expect to qualify.",
+      "how": ["Apply through HealthCare.gov or directly with your state Medicaid agency.", "Call 1-877-KIDS-NOW (1-877-543-7669) to find your state's program.", "Eligibility depends on household size, income and immigration status in your state. The state decides, not this app."],
+      "source": "hc-medicaid", "more": ["hc-pregnant", "ikn"]
+    },
+    {
+      "key": "bonding-leave", "phases": ["before", "newborn"], "anchor": "birth_date", "offset": 365, "basis": "official",
+      "title": "Use your bonding leave within the first year",
+      "short": "FMLA leave to care for a newborn must be taken within one year of the birth, up to 12 workweeks in a 12-month period for eligible employees.",
+      "why": "The job protection ends one year after the birth, so plan the weeks you want before then. Leave to bond with a newborn in separate pieces needs your employer's agreement.",
+      "how": ["Decide with your partner who is home when and write the dates down.", "Ask HR to confirm your eligibility and how your employer counts the 12 weeks.", "Check your state for paid leave, which the DOL points to state pages for."],
+      "source": "dol-fmla", "more": ["dol-state"]
+    },
+    {
+      "key": "passport", "phases": ["before", "newborn", "later"], "anchor": "", "offset": 0, "basis": "anytime",
+      "title": "Passport, when you plan to travel abroad",
+      "short": "A child under 16 applies in person with a parent, preferably both, and proof of citizenship and of the parent relationship.",
+      "why": "You do not need it yet. Knowing the rules saves a rush later: a child's passport is valid for 5 years and cannot be renewed, so each one is a new in-person application.",
+      "how": ["Keep a certified birth certificate copy for the application.", "Both parents should come in person if they can. The State Department guide explains what to do if one cannot.", "Start well before the trip."],
+      "source": "usa-passport", "more": []
+    }
+  ],
+  "rights": [
+    {
+      "id": "pwfa", "title": "Pregnancy accommodations", "law": "Pregnant Workers Fairness Act",
+      "covers": "Employers with 15 or more employees must make reasonable accommodations for a known limitation from pregnancy, childbirth or a related condition, unless it causes undue hardship. The law took effect on June 27, 2023.",
+      "ask": ["More or flexible breaks for water, food, rest or the restroom", "A stool or a way to work while standing, or other equipment changes", "A shorter day or a later start", "Telework, light duty or temporary reassignment", "Time off for appointments or to recover from childbirth"],
+      "howToAsk": "You do not need special words. Tell your employer about the limitation and the change you need, and they should talk with you about it.",
+      "note": {
+        "subject": "Request for a pregnancy accommodation",
+        "body": "Dear [Manager's name],\n\nI am pregnant and have a limitation related to my pregnancy: [describe, for example: nausea in the mornings, difficulty standing for long periods].\n\nI am asking for this change at work: [for example: a later start time, a stool at my workstation, extra breaks to rest and drink water]. I would like it to start on [date] and last [until further notice or a date].\n\nPlease let me know when we can talk about this and what you need from me.\n\nThank you,\n[Your name]\n[Date]"
+      },
+      "source": "eeoc-pwfa"
+    },
+    {
+      "id": "pump", "title": "Pumping at work", "law": "PUMP for Nursing Mothers Act",
+      "covers": "Employers must give reasonable break time to express breast milk each time you need to, and a place other than a bathroom that is shielded from view and free from intrusion by coworkers and the public. This applies for one year after the child's birth, and covers more workers than before, including nurses, teachers, agricultural and home care workers.",
+      "ask": ["Break time at the times you need to pump", "A private room that is not a bathroom, with a door that locks if you can ask for it", "A place to sit, a table and a plug", "A spot to store milk, if you need one"],
+      "howToAsk": "Tell your manager or HR before you return from leave so the space is ready on your first day.",
+      "note": {
+        "subject": "Break time and a space to pump at work",
+        "body": "Dear [Manager's name],\n\nI will return from leave on [date] and I am expressing breast milk for my child. I am asking for reasonable break time when I need to pump and a place that is not a bathroom, shielded from view and free from intrusion.\n\nI expect to need about [number] breaks of about [minutes] minutes. Could we agree on a room and a schedule before [date]?\n\nThank you,\n[Your name]\n[Date]"
+      },
+      "source": "dol-pump"
+    },
+    {
+      "id": "fmla", "title": "Job-protected leave", "law": "Family and Medical Leave Act",
+      "covers": "Eligible employees can take up to 12 workweeks of unpaid, job-protected leave in a 12-month period for the birth of a child and to bond with the newborn within the first year. Your group health benefits continue during leave. You qualify after 12 months with the employer and 1,250 hours in the last 12 months, at a site with 50 or more employees within 75 miles.",
+      "ask": ["Written confirmation that you are eligible", "The dates your leave starts and ends, and how the 12 weeks are counted", "Whether your employer pays anything during leave or lets you use paid time off", "Who keeps your health insurance going and how you pay your share"],
+      "howToAsk": "Give notice at least 30 days before leave begins when the birth is foreseeable. Your state may offer more, so also look at the state pointer below.",
+      "note": {
+        "subject": "Notice of family and medical leave for the birth of my child",
+        "body": "Dear [Manager's name or HR],\n\nMy baby is due on [due date]. I plan to take leave under the Family and Medical Leave Act starting about [start date] and returning about [return date].\n\nPlease confirm whether I am eligible, how my 12 weeks are counted, and how my health insurance continues during leave. Please send any forms you need.\n\nThank you,\n[Your name]\n[Date]"
+      },
+      "source": "dol-fmla"
+    }
+  ],
+  "statePointer": {
+    "title": "Paid leave depends on your state",
+    "text": "Some states run their own paid family leave or family and medical leave programs. The Department of Labor lists the state labor department pages for the states that have similar laws. Ask HR and check your state's page.",
+    "source": "dol-state"
+  },
+  "benefits": {
+    "questions": [
+      {"id": "income_low", "text": "Is money tight, or did household income drop recently?"},
+      {"id": "uninsured", "text": "Is anyone in the household without health insurance?"},
+      {"id": "food_tight", "text": "Is it hard to cover groceries some months?"}
+    ],
+    "programs": [
+      {
+        "id": "medicaid-chip", "name": "Medicaid and CHIP",
+        "what": "Free or low-cost health coverage for children and, in some states, pregnant women. You can apply any time of year.",
+        "triggers": ["income_low", "uninsured"],
+        "reasons": {"income_low": "You said money is tight. Medicaid and CHIP income limits are set by your state.", "uninsured": "You said someone has no health insurance."},
+        "where": "Your state Medicaid agency, or HealthCare.gov. Call 1-877-KIDS-NOW for kids.",
+        "source": "hc-medicaid", "more": ["hc-chip", "ikn"]
+      },
+      {
+        "id": "wic", "name": "WIC",
+        "what": "Food, nutrition counseling and referrals for pregnant women, women who are breastfeeding or recently gave birth, and children under 5. Income, health and where you live also count.",
+        "triggers": ["income_low", "food_tight"], "needsHousehold": true,
+        "reasons": {"income_low": "Your household has a pregnancy, a new baby or a child under 5, and you said money is tight.", "food_tight": "Your household has a pregnancy, a new baby or a child under 5, and you said groceries are hard to cover."},
+        "where": "Your state or local WIC agency.",
+        "source": "usa-wic", "more": []
+      },
+      {
+        "id": "snap", "name": "SNAP",
+        "what": "Monthly benefits on an EBT card to buy food. Your state sets the rules, including income limits and savings.",
+        "triggers": ["income_low", "food_tight"],
+        "reasons": {"income_low": "You said money is tight. SNAP is meant for households with low income.", "food_tight": "You said groceries are hard to cover."},
+        "where": "Your state or local SNAP office. Many states let you apply online.",
+        "source": "usa-snap", "more": []
+      }
+    ],
+    "finder": {"text": "Not sure? The government's benefit finder lets you pick categories such as food and health and see what exists.", "source": "usa-finder"}
+  }
+}

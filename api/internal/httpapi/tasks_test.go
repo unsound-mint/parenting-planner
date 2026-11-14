@@ -34,17 +34,17 @@ func TestTasksListIsOneModelWithKindsAndOrder(t *testing.T) {
 	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
 
 	all := taskList(c, mom.Id, "")
-	if len(all) != 14 { // 3 paperwork, 8 bag, 3 plan tasks
-		t.Fatalf("want 14 items, got %d", len(all))
+	if len(all) != 19 { // 8 paperwork, 8 bag, 3 plan tasks
+		t.Fatalf("want 19 items, got %d", len(all))
 	}
-	if got := taskList(c, jake.Id, ""); len(got) != 14 {
+	if got := taskList(c, jake.Id, ""); len(got) != 19 {
 		t.Errorf("both parents see the same list, partner got %d", len(got))
 	}
 	counts := map[httpapi.TaskKind]int{}
 	for _, it := range all {
 		counts[it.Kind]++
 	}
-	if counts[httpapi.TaskKindPaperwork] != 3 || counts[httpapi.TaskKindHospitalBag] != 8 || counts[httpapi.TaskKindTask] != 3 {
+	if counts[httpapi.TaskKindPaperwork] != 8 || counts[httpapi.TaskKindHospitalBag] != 8 || counts[httpapi.TaskKindTask] != 3 {
 		t.Errorf("kinds = %v", counts)
 	}
 	if n := len(taskList(c, mom.Id, "?kind=hospital_bag")); n != 8 {
@@ -94,7 +94,7 @@ func TestMovingTheDueDateMovesPaperworkDeadlines(t *testing.T) {
 	if want := fam.DueDate.Time.AddDate(0, 0, -30); !notice.DueOn.Time.Equal(want) {
 		t.Errorf("leave notice due %v, want %v", notice.DueOn.Time, want)
 	}
-	insurance := byTitle(before, "Add the baby to your health insurance")
+	insurance := byTitle(before, "Add the baby to a Marketplace plan")
 	if insurance.DueOffsetDays != nil || insurance.DueOn == nil {
 		t.Errorf("before the birth a birth-date deadline is an estimate from the due date, without an offset: %+v", insurance)
 	}
@@ -117,7 +117,7 @@ func TestBabyIsHomeHidesTheBagAndAnchorsOnTheBirth(t *testing.T) {
 	if n := len(taskList(c, mom.Id, "?kind=hospital_bag")); n != 0 {
 		t.Errorf("hospital bag items must not be returned after Baby is home, got %d", n)
 	}
-	insurance := byTitle(taskList(c, mom.Id, "?kind=paperwork"), "Add the baby to your health insurance")
+	insurance := byTitle(taskList(c, mom.Id, "?kind=paperwork"), "Add the baby to a Marketplace plan")
 	if insurance.DueOffsetDays == nil || *insurance.DueOffsetDays != 60 || !insurance.DueOn.Time.Equal(born.Truncate(24*time.Hour).AddDate(0, 0, 60)) {
 		t.Errorf("after the birth the deadline counts from the birth date: %+v", insurance)
 	}
@@ -157,7 +157,7 @@ func TestCreateTask(t *testing.T) {
 	}
 	var theirs httpapi.Task
 	c.Post(tasksPath(nanny.Id), map[string]any{"title": "Restock diapers"}, http.StatusCreated, &theirs)
-	if theirs.AssigneeId != nanny.Id || len(taskList(c, nanny.Id, "")) < 15 {
+	if theirs.AssigneeId != nanny.Id || len(taskList(c, nanny.Id, "")) < 12 {
 		t.Errorf("a caregiver with family_plan owns what they add and sees the list: %+v", theirs)
 	}
 }

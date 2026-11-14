@@ -458,6 +458,7 @@ type Task struct {
 	SourceCheckedOn         *time.Time
 	CreatedByMemberID       uuid.UUID
 	CreatedAt               time.Time
+	CatalogKey              *string
 }
 
 type UpgradeIntent struct {
