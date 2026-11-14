@@ -84,7 +84,7 @@ async function Supplies({ params }: { params: Promise<{ memberId: string }> }) {
                   Clothes <span className="font-semibold">{sizes.clothing}</span>, diapers <span className="font-semibold">{sizes.diaper}</span>
                 </p>
                 <p className="font-mono text-caption text-muted-foreground">
-                  Approximate · based on {sizes.basis === "weight" && sizes.weightLb ? `${sizes.weightLb.toFixed(1)} lb` : `${sizes.ageMonths} months old`}
+                  Approximate · based on {sizes.basis === "weight" && sizes.weightLb ? `${sizes.weightLb.toFixed(1)} lb` : `${sizes.ageMonths} ${sizes.ageMonths === 1 ? "month" : "months"} old`}
                 </p>
                 <p className="text-caption text-muted-foreground">{sizes.note}</p>
               </SoftCard>
