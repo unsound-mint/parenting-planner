@@ -2452,6 +2452,81 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/library-topics:
+    get:
+      operationId: listLibraryTopics
+      tags: [content]
+      summary: The Questions library, the family's current age first
+      description: |
+        Every topic of the library (the research atlas: what parents wonder
+        about from planning to age 9), placed against the family's position:
+        the gestational week, the youngest child's age, or "getting ready"
+        for planning and trying. Topics whose age span covers now come first
+        (now true, the narrowest span on top), then topics starting within
+        three months (soon true), then the rest in age order. The list
+        carries no body text; getLibraryTopic has it. Every topic has an
+        evidence label so a theory or a folk belief never reads as medical
+        advice. No answer is generated: the text is our plain writing from
+        the cited pages. Mother and partner; a grandparent or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryTopicList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/library-topics/{topicId}:
+    get:
+      operationId: getLibraryTopic
+      tags: [content]
+      summary: One library topic with what to know, what to do and its sources
+      description: |
+        The full topic. urgent topics are shown next to the fixed Urgent help
+        screen. Mother and partner; a grandparent or nanny gets 404, and so
+        does an unknown topic id.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryTopic"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/now:
     get:
       operationId: getStageNow
@@ -10080,6 +10155,95 @@ components:
           example: Is the RSV vaccine right for me this season?
         shift:
           $ref: "#/components/schemas/ShiftSuggestion"
+
+    LibraryEvidence:
+      type: string
+      description: |
+        How strong the evidence is. guideline = an official body recommends
+        it; research = studies, no formal guideline; contested = experts
+        disagree; theory = a historical framework (Freud, Vygotsky, Piaget),
+        not medical advice; folk = a popular belief, with what evidence shows.
+      enum: [guideline, research, contested, theory, folk]
+
+    LibraryTopicSummary:
+      type: object
+      required: [id, title, questions, category, evidence, ages, now, soon, urgent]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        questions:
+          type: array
+          description: How parents ask it, the most common first. Search matches these.
+          items:
+            type: string
+        category:
+          type: string
+          description: health, safety, decisions, development, learning, feeding, emotions, behavior, family, sleep, admin, teeth, parent-wellbeing or social.
+        evidence:
+          $ref: "#/components/schemas/LibraryEvidence"
+        ages:
+          type: string
+          description: The age span as a parent reads it, for example "Weeks 24 to 28" or "1 to 3 years".
+          example: 1 to 3 years
+        now:
+          type: boolean
+          description: The span covers the family's position.
+        soon:
+          type: boolean
+          description: The span starts within the next three months.
+        urgent:
+          type: boolean
+          description: The topic has urgent signs; the UI links the fixed Urgent help screen.
+
+    LibraryTopicList:
+      type: object
+      required: [position, items]
+      properties:
+        position:
+          type: string
+          description: Where the family is, for example "Week 25 of pregnancy" or "4 years old".
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryTopicSummary"
+
+    LibraryStep:
+      type: object
+      required: [when, action]
+      properties:
+        when:
+          type: string
+        action:
+          type: string
+
+    LibraryTopic:
+      allOf:
+        - $ref: "#/components/schemas/LibraryTopicSummary"
+        - type: object
+          required: [whatToKnow, whatToDo, evidenceNote, sources, related]
+          properties:
+            whatToKnow:
+              type: string
+            whatToDo:
+              type: array
+              items:
+                $ref: "#/components/schemas/LibraryStep"
+            askClinicianIf:
+              type: string
+              description: When to ask the family's own clinician. Never a diagnosis.
+            evidenceNote:
+              type: string
+            sources:
+              type: array
+              minItems: 1
+              items:
+                $ref: "#/components/schemas/Source"
+            related:
+              type: array
+              items:
+                $ref: "#/components/schemas/LibraryTopicSummary"
 
     GuideList:
       type: object
