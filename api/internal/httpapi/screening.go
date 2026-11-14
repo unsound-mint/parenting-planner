@@ -8,16 +8,9 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/screening"
-	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
 var errScreeningAnswers = Error{Code: "invalid_request", Message: "answer every question of the questionnaire once, in order, with one of its printed scores"}
-
-// isParent: questionnaires are for the mother and the partner. Members are
-// parents only today; a grandparent or nanny id gets 404 once they exist.
-func isParent(m store.Member) bool {
-	return m.Role == string(ParentRoleMother) || m.Role == string(ParentRolePartner)
-}
 
 func (s *Server) ListScreeningQuestionnaires(ctx context.Context, req ListScreeningQuestionnairesRequestObject) (ListScreeningQuestionnairesResponseObject, error) {
 	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
