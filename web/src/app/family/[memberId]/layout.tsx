@@ -48,7 +48,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           <span className="inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
             Demo data
           </span>
-          <span className="hidden text-[13px] text-muted-foreground sm:inline">{familyContext(family)}</span>
+          <span className="hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
           <div className="hidden md:block">
             <UrgentHelpLink />
           </div>

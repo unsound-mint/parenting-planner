@@ -68,3 +68,10 @@ export const statusTint: Record<PlanItemStatus, string> = {
   due: "bg-status-due-soft text-status-due",
   upcoming: "bg-status-up-soft text-status-up",
 };
+
+/** Solid bar colour by plan status: Journey lanes and the focus card's countdown. */
+export const statusBar: Record<PlanItemStatus, string> = {
+  overdue: "bg-status-late",
+  due: "bg-status-due",
+  upcoming: "bg-status-up",
+};

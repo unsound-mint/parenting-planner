@@ -9,6 +9,7 @@ import {
   BatteryFull,
   BatteryLow,
   BatteryMedium,
+  CheckCircle2,
   Frown,
   Laugh,
   Meh,
@@ -22,6 +23,7 @@ import {
 import { api } from "@/lib/api/client";
 import type { Visibility } from "@/lib/api/types";
 import { visibilityIcon } from "@/lib/visuals";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,7 +48,7 @@ const energies: Level[] = [
 ];
 
 const itemClass =
-  "h-11 flex-1 text-muted-foreground data-[pressed]:border-primary data-[pressed]:bg-secondary data-[pressed]:text-secondary-foreground";
+  "h-12 flex-1 text-muted-foreground data-[pressed]:border-primary data-[pressed]:bg-secondary data-[pressed]:text-secondary-foreground";
 
 const DEFAULT_SLEEP = 7;
 
@@ -71,6 +73,7 @@ export function MoodCheckinCard({ memberId, partnerName }: { memberId: string; p
   ];
 
   const ready = mood.length === 1 && energy.length === 1;
+  const started = mood.length === 1;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -106,60 +109,83 @@ export function MoodCheckinCard({ memberId, partnerName }: { memberId: string; p
       <h2 id="checkin-title" className="text-title">
         How are you today?
       </h2>
-      <form onSubmit={submit} className="mt-4 flex flex-col gap-5">
+      <form onSubmit={submit} className="mt-4">
         <Scale label="Mood" levels={moods} value={mood} onChange={setMood} />
-        <Scale label="Energy" levels={energies} value={energy} onChange={setEnergy} />
 
-        <div className="flex items-center gap-3">
-          <Moon className="size-4.5 text-muted-foreground" aria-hidden />
-          <span id="sleep-label" className="flex-1 text-label">
-            Sleep last night
-          </span>
-          <div role="group" aria-labelledby="sleep-label" className="flex items-center gap-1">
-            <Button type="button" variant="outline" size="icon" aria-label="Less sleep" onClick={() => setSleep((h) => Math.max(0, h - 0.5))}>
-              <Minus />
-            </Button>
-            <output aria-live="polite" className="w-14 text-center font-mono text-title tabular-nums">
-              {sleep} h
-            </output>
-            <Button type="button" variant="outline" size="icon" aria-label="More sleep" onClick={() => setSleep((h) => Math.min(24, h + 0.5))}>
-              <Plus />
-            </Button>
+        {/* Faces first; the rest opens once one is picked. Closed content is inert. */}
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out)",
+            started ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+          inert={!started}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="flex flex-col gap-5 pt-5">
+              <Scale label="Energy" levels={energies} value={energy} onChange={setEnergy} />
+
+              <div className="flex items-center gap-3">
+                <Moon className="size-4.5 text-muted-foreground" aria-hidden />
+                <span id="sleep-label" className="flex-1 text-label">
+                  Sleep last night
+                </span>
+                <div role="group" aria-labelledby="sleep-label" className="flex items-center gap-1">
+                  <Button type="button" variant="outline" size="icon" aria-label="Less sleep" className="size-11 md:size-8" onClick={() => setSleep((h) => Math.max(0, h - 0.5))}>
+                    <Minus />
+                  </Button>
+                  <output aria-live="polite" className="w-14 text-center font-mono text-title tabular-nums">
+                    {sleep} h
+                  </output>
+                  <Button type="button" variant="outline" size="icon" aria-label="More sleep" className="size-11 md:size-8" onClick={() => setSleep((h) => Math.min(24, h + 0.5))}>
+                    <Plus />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="note" className="text-label">
+                  Note <span className="font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <Textarea id="note" maxLength={500} rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="text-label">Who can see this</span>
+                <ToggleGroup
+                  aria-label="Who can see this"
+                  variant="outline"
+                  spacing={1}
+                  value={[visibility]}
+                  onValueChange={(v: string[]) => v[0] && setVisibility(v[0] as Visibility)}
+                  className="w-full"
+                >
+                  {audiences.map((a) => {
+                    const Icon = visibilityIcon[a.value];
+                    return (
+                      <ToggleGroupItem key={a.value} value={a.value} className={`${itemClass} h-auto min-h-12 flex-col gap-1 py-2 text-caption`}>
+                        <Icon className="size-4" aria-hidden />
+                        {a.label}
+                      </ToggleGroupItem>
+                    );
+                  })}
+                </ToggleGroup>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Button type="submit" size="lg" disabled={!ready || pending} className="h-11 w-full text-label">
+                  {pending ? "Saving..." : "Save check-in"}
+                </Button>
+                {!ready && <p className="text-center text-caption text-muted-foreground">Pick an energy level to save.</p>}
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="note" className="text-label">
-            Note <span className="font-normal text-muted-foreground">(optional)</span>
-          </Label>
-          <Textarea id="note" maxLength={500} rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <span className="text-label">Who can see this</span>
-          <ToggleGroup
-            aria-label="Who can see this"
-            variant="outline"
-            spacing={1}
-            value={[visibility]}
-            onValueChange={(v: string[]) => v[0] && setVisibility(v[0] as Visibility)}
-            className="w-full"
-          >
-            {audiences.map((a) => {
-              const Icon = visibilityIcon[a.value];
-              return (
-                <ToggleGroupItem key={a.value} value={a.value} className={`${itemClass} h-auto flex-col gap-1 py-2 text-caption`}>
-                  <Icon className="size-4" aria-hidden />
-                  {a.label}
-                </ToggleGroupItem>
-              );
-            })}
-          </ToggleGroup>
-        </div>
-
-        <Button type="submit" size="lg" disabled={!ready || pending} className="w-full">
-          {pending ? "Saving..." : saved ? "Saved" : "Save check-in"}
-        </Button>
+        {saved && (
+          <p role="status" className="mt-3 flex items-center gap-1.5 text-label text-status-ok">
+            <CheckCircle2 className="size-4" aria-hidden />
+            Saved
+          </p>
+        )}
       </form>
     </section>
   );
