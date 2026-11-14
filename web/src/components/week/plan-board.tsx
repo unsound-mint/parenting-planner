@@ -42,22 +42,41 @@ export function PlanBoard({
   const [openId, setOpenId] = useState<string | null>(null);
   const toggle = (id: string) => setOpenId((o) => (o === id ? null : id));
 
+  const loose = note?.loose ?? [];
+  // Note rows about nothing on the plan, and the Plus offer, show even when the plan is empty.
+  const extras = (
+    <>
+      {loose.map((point, i) => (
+        <li key={`note-${i}`}>
+          <NoteRow point={point} open={openId === `note-${i}`} onToggle={() => toggle(`note-${i}`)} id={`note-${i}`} />
+        </li>
+      ))}
+      {noteLocked && (
+        <li>
+          <LockedNoteRow />
+        </li>
+      )}
+    </>
+  );
+
   if (!focus) {
     return (
-      <div className="mt-8 flex max-w-2xl items-center gap-4 rounded-2xl border border-border bg-card p-6">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-ok-soft text-status-ok">
-          <CheckCircle2 className="size-6" aria-hidden />
-        </span>
-        <div>
-          <p className="text-title">Nothing from the guidelines needs you right now</p>
-          <p className="text-label text-muted-foreground">We check again when your family&apos;s data or the week changes.</p>
+      <div className="mt-8 flex min-w-0 flex-col gap-2">
+        <div className="mb-4 flex max-w-2xl items-center gap-4 rounded-2xl border border-border bg-card p-6">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-ok-soft text-status-ok">
+            <CheckCircle2 className="size-6" aria-hidden />
+          </span>
+          <div>
+            <p className="text-title">Nothing from the guidelines needs you right now</p>
+            <p className="text-label text-muted-foreground">We check again when your family&apos;s data or the week changes.</p>
+          </div>
         </div>
+        {(loose.length > 0 || noteLocked) && <ul className="flex flex-col gap-2">{extras}</ul>}
       </div>
     );
   }
 
   const rest = items.filter((i) => i.ruleId !== focus.ruleId);
-  const loose = note?.loose ?? [];
   const talk = (item: PlanItem) => (item.category === "mental_health" ? talkHref : undefined);
 
   return (
@@ -70,7 +89,7 @@ export function PlanBoard({
         whyOpen={openId === focus.ruleId}
         onToggleWhy={() => toggle(focus.ruleId)}
       />
-      {(rest.length > 0 || loose.length > 0 || noteLocked) && (
+      {(rest.length > 0 || loose.length > 0) && (
         <section aria-labelledby="also-title" className="mt-2">
           <h2 id="also-title" className="text-title">
             Also on your plan
@@ -86,18 +105,17 @@ export function PlanBoard({
                 <ItemRow item={item} line={note?.byRule[item.ruleId]} talkHref={talk(item)} open={openId === item.ruleId} onToggle={() => toggle(item.ruleId)} />
               </motion.li>
             ))}
-            {loose.map((point, i) => (
-              <li key={`note-${i}`}>
-                <NoteRow point={point} open={openId === `note-${i}`} onToggle={() => toggle(`note-${i}`)} id={`note-${i}`} />
-              </li>
-            ))}
-            {noteLocked && (
-              <li>
-                <LockedNoteRow />
-              </li>
-            )}
+            {extras}
           </ul>
         </section>
+      )}
+      {/* Only the Plus offer: no heading over an upsell. */}
+      {rest.length === 0 && loose.length === 0 && noteLocked && (
+        <ul className="-mt-2">
+          <li>
+            <LockedNoteRow />
+          </li>
+        </ul>
       )}
     </div>
   );
@@ -216,7 +234,7 @@ function FocusCard({
           )}
         </div>
       </div>
-      <Why id={`why-${item.ruleId}`} item={item} open={whyOpen} skipFirstSentence />
+      <Why id={`why-${item.ruleId}`} item={item} line={line} open={whyOpen} skipFirstSentence />
     </motion.article>
   );
 }
@@ -290,7 +308,7 @@ function ItemRow({ item, line, talkHref, open, onToggle }: { item: PlanItem; lin
         </div>
       )}
       <div className="px-4">
-        <Why id={`why-${item.ruleId}`} item={item} open={open} className="pb-4" />
+        <Why id={`why-${item.ruleId}`} item={item} line={line} open={open} className="pb-4" />
       </div>
     </div>
   );
@@ -390,7 +408,23 @@ function LockedNoteRow() {
 // the content below slides instead of jumping. Closed content is inert.
 // skipFirstSentence: the focus card already shows the guideline's first
 // sentence as its action, so the guideline step only adds what follows it.
-function Why({ id, item, open, skipFirstSentence, className }: { id: string; item: PlanItem; open: boolean; skipFirstSentence?: boolean; className?: string }) {
+function Why({
+  id,
+  item,
+  line,
+  open,
+  skipFirstSentence,
+  className,
+}: {
+  id: string;
+  item: PlanItem;
+  /** The note's line on this item: its source is listed too when it cites a different guideline. */
+  line?: WeeklyPlanPoint;
+  open: boolean;
+  skipFirstSentence?: boolean;
+  className?: string;
+}) {
+  const sources = [item.source, ...(line?.source && line.source.url !== item.source.url ? [line.source] : [])];
   const guideline = skipFirstSentence ? item.detail.slice(firstSentence(item.detail).length).trim() : item.detail;
   return (
     <section
@@ -412,11 +446,15 @@ function Why({ id, item, open, skipFirstSentence, className }: { id: string; ite
               <p className="text-body">{guideline}</p>
             </Step>
           )}
-          <Step icon={ExternalLink} label="Source" last>
-            <a href={item.source.url} target="_blank" rel="noreferrer" className="block font-mono text-caption underline-offset-2 hover:underline">
-              {item.source.title}
-            </a>
-            <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(item.source.checkedAt)}</p>
+          <Step icon={ExternalLink} label={sources.length > 1 ? "Sources" : "Source"} last>
+            {sources.map((source, i) => (
+              <div key={source.url} className={cn(i > 0 && "mt-3")}>
+                <a href={source.url} target="_blank" rel="noreferrer" className="block font-mono text-caption underline-offset-2 hover:underline">
+                  {source.title}
+                </a>
+                <p className="mt-1 font-mono text-caption text-muted-foreground">checked {formatLongDate(source.checkedAt)}</p>
+              </div>
+            ))}
           </Step>
         </ol>
         <p className={cn("mt-4 text-caption text-muted-foreground", className)}>Guidance to discuss with your doctor, not a diagnosis.</p>
