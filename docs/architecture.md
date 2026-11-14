@@ -60,4 +60,4 @@ Go tools (oapi-codegen, sqlc) are pinned in `api/go.mod` and run with `go tool`;
 
 ## Production
 
-Server `musicroombot`, Docker Compose (`deploy/compose.yml`): Postgres, the API on `127.0.0.1:8792`, Next.js on `127.0.0.1:8790`. Caddy on the host serves `parenting.unsoundmint.com` (`deploy/Caddyfile.snippet`). `deploy/.env` on the server holds `POSTGRES_PASSWORD`. Pushes to `main` run `.github/workflows/deploy.yml`, which calls `deploy/deploy.sh` on the server once the repo variable `DEPLOY_ENABLED` is `true`.
+Server `musicroombot`, Docker Compose (`deploy/compose.yml`): Postgres, the API on `127.0.0.1:8792`, Next.js on `127.0.0.1:8790`. Caddy on the host serves `parenting.unsoundmint.com` (`deploy/Caddyfile.snippet`). `deploy/.env` on the server holds `POSTGRES_PASSWORD` and the optional `ANTHROPIC_API_KEY` (see the header of `deploy/compose.yml`); the key exists only there and in the API's environment. Pushes to `main` run `.github/workflows/deploy.yml`, which calls `deploy/deploy.sh` on the server once the repo variable `DEPLOY_ENABLED` is `true`.

@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/unsound-mint/parenting-planner/api/internal/ai"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -27,6 +28,9 @@ type Config struct {
 	SecureCookies bool
 	// Now is the clock; tests override it.
 	Now func() time.Time
+	// AI is the optional Claude API setup. Without a key the AI plan is off
+	// and the rule plan is shown. Never put any of it in a response or a log.
+	AI ai.Config
 }
 
 type Server struct {

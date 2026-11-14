@@ -1,6 +1,15 @@
 # Production on musicroombot. Caddy on the host terminates TLS and routes
 # /api/* to the Go API (127.0.0.1:8792) and everything else to Next (127.0.0.1:8790).
-# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD.
+# Secrets live in deploy/.env on the server (git-ignored, chmod 600, survives
+# deploy.sh's git reset because it is untracked). Compose reads it automatically.
+#   POSTGRES_PASSWORD=...   required
+#   ANTHROPIC_API_KEY=...   optional; without it the AI plan is off and the
+#                           rule plan shows on its own
+#   ANTHROPIC_MODEL=...     optional model id override for the AI plan
+# Check the key is set without printing it (never run `docker compose config`
+# on the server, it prints every value):
+#   grep -c '^ANTHROPIC_API_KEY=.' deploy/.env                  # 1 = set
+#   docker compose -f deploy/compose.yml logs api | grep ai_plan  # ai_plan=true
 name: parenting
 services:
   postgres:
@@ -23,6 +32,8 @@ services:
       postgres: { condition: service_healthy }
     environment:
       DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:
