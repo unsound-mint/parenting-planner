@@ -4567,6 +4567,11 @@ export interface components {
             extraSources: components["schemas"]["Source"][];
             /** @description A question for the couple to talk about after reading. */
             talkPrompt?: string;
+            /**
+             * Format: date-time
+             * @description When either parent marked this lesson's talk prompt (prompt id `lesson:<lessonId>`) as talked about. Absent until then.
+             */
+            talkedAt?: string;
             /** @description True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there. */
             urgentHelpLink: boolean;
             /** @description Reading state of each parent who opened it, acting parent first. */
