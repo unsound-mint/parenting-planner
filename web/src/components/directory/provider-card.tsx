@@ -1,18 +1,11 @@
-import { Activity, CalendarClock, DollarSign, Languages, MapPin } from "lucide-react";
-import type { Provider } from "@/lib/api/types";
-import { daysUntil, formatShortDate } from "@/lib/format";
-import { providerTypeIcon, providerTypeLabel } from "@/lib/visuals";
+import Link from "next/link";
+import { ArrowRight, CalendarClock, DollarSign, Languages, Sparkles } from "lucide-react";
+import type { Provider, ProviderSlot } from "@/lib/api/types";
+import { providerTypeIcon, providerTypeLabel, visitModeIcon, visitModeLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
-import { BookButton } from "./book-button";
+import { openingLabel } from "./openings";
 
-export function whenLabel(isoDate: string, now: Date): string {
-  const d = daysUntil(isoDate, now);
-  if (d <= 0) return "today";
-  if (d === 1) return "tomorrow";
-  return `in ${d} days`;
-}
-
-function initials(name: string): string {
+export function initials(name: string): string {
   return name
     .replace(/^(Dr|Mr|Ms|Mrs)\.?\s+/i, "")
     .split(/\s+/)
@@ -22,7 +15,7 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function Chip({ icon: Icon, children, label, strong }: { icon: React.ElementType; children: React.ReactNode; label: string; strong?: boolean }) {
+export function Chip({ icon: Icon, children, label, strong }: { icon: React.ElementType; children: React.ReactNode; label: string; strong?: boolean }) {
   return (
     <li
       className={cn(
@@ -37,103 +30,98 @@ function Chip({ icon: Icon, children, label, strong }: { icon: React.ElementType
   );
 }
 
-// Price, soonest slot and languages as chips: the three things a parent
-// compares first. The request state lives on the card, not in a second list.
+/** "Next opening Tue 10:00 AM", from the soonest stored open time. */
+export function NextOpening({ first, now }: { first?: ProviderSlot; now: Date }) {
+  return (
+    <Chip icon={CalendarClock} label="Next opening" strong={!!first}>
+      {first ? (
+        <>
+          <span className="font-normal opacity-80">Next</span>
+          <span className="font-mono">{openingLabel(first.startsAt, now)}</span>
+        </>
+      ) : (
+        <span className="font-normal">No open times in the next two weeks</span>
+      )}
+    </Chip>
+  );
+}
+
+// The opening, price, how they see you and languages as chips: the things a
+// parent compares first. The whole card opens the profile with its times.
 export function ProviderCard({
   provider,
-  memberId,
-  requested,
-  featured,
+  href,
+  first,
   reason,
+  featured,
   now,
 }: {
   provider: Provider;
-  memberId: string;
-  requested: boolean;
-  /** Large card for a recommendation; the compact row otherwise. */
-  featured?: boolean;
-  /** Set only when a check-in pattern is the reason. */
+  /** The profile route with its open times. */
+  href: string;
+  first?: ProviderSlot;
+  /** Why it is suggested ("Because ..."), on a recommendation. */
   reason?: string;
+  featured?: boolean;
   /** The family's "now" (lib/clock.ts). */
   now: Date;
 }) {
   const TypeIcon = providerTypeIcon[provider.type];
-  const feature = !!featured;
-  const slot = (
-    <>
-      <span className="font-mono">{formatShortDate(provider.nextAvailable)}</span>
-      <span className="font-normal opacity-80">{whenLabel(provider.nextAvailable, now)}</span>
-    </>
-  );
-  const chips = (
-    <ul className="flex flex-wrap gap-2">
-      <Chip icon={CalendarClock} label="Soonest" strong>
-        {slot}
-      </Chip>
-      <Chip icon={DollarSign} label="Price per session">
-        <span className="font-mono">{provider.priceUsd}</span>
-        <span className="text-muted-foreground">a session</span>
-      </Chip>
-      <Chip icon={Languages} label="Languages">
-        {provider.languages.join(", ")}
-      </Chip>
-      {feature && (
-        <Chip icon={MapPin} label="Location">
-          {provider.city}, <span className="font-mono">{provider.state}</span>
-        </Chip>
-      )}
-    </ul>
-  );
-
-  const head = (
-    <div className="flex items-center gap-3">
-      <span aria-hidden className={cn("flex shrink-0 items-center justify-center rounded-full bg-secondary font-semibold text-secondary-foreground", feature ? "size-12 text-title" : "size-10 text-label")}>
-        {initials(provider.name)}
-      </span>
-      <div className="min-w-0 flex-1">
-        <h3 className="text-title">{provider.name}</h3>
-        <p className="mt-0.5 flex items-center gap-1.5 text-label text-muted-foreground">
-          <TypeIcon className="size-4 shrink-0" aria-hidden />
-          {providerTypeLabel[provider.type].one}
-          {!feature && (
-            <span>
-              · {provider.city}, <span className="font-mono">{provider.state}</span>
-            </span>
-          )}
-        </p>
-      </div>
-    </div>
-  );
-
-  if (!feature) {
-    return (
-      // Sized by the card, not the screen: the list sits in two or three columns, where a row does not fit.
-      <li className="@container rounded-2xl border border-border bg-card p-4">
-        <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-center @2xl:gap-4">
-          <div className="min-w-0 @2xl:w-72 @2xl:shrink-0">{head}</div>
-          <div className="@2xl:flex-1">{chips}</div>
-          <div className="@2xl:shrink-0">
-            <BookButton memberId={memberId} providerId={provider.id} providerName={provider.name} requested={requested} compact />
-          </div>
-        </div>
-      </li>
-    );
-  }
-
   return (
-    <li className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
-      {reason && (
-        <p className="flex items-center gap-1.5 text-label font-semibold text-primary">
-          <Activity className="size-4" aria-hidden />
-          {reason}
-        </p>
-      )}
-      {head}
-      <p className="text-body">{provider.summary}</p>
-      {chips}
-      <div className="mt-auto pt-1">
-        <BookButton memberId={memberId} providerId={provider.id} providerName={provider.name} requested={requested} />
-      </div>
+    <li className="min-w-0">
+      <Link
+        href={href}
+        className={cn(
+          "press lift group flex h-full flex-col gap-4 rounded-3xl border border-line bg-card outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          featured ? "p-5.5 md:p-6" : "p-4.5",
+        )}
+      >
+        {reason && (
+          <p className="flex items-start gap-1.5 text-label text-me">
+            <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden />
+            {reason}
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          <span aria-hidden className={cn("flex shrink-0 items-center justify-center rounded-full bg-them-soft font-semibold text-them", featured ? "size-12 text-title" : "size-11 text-label")}>
+            {initials(provider.name)}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-title">{provider.name}</h3>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-label font-normal text-muted-foreground">
+              <TypeIcon className="size-4 shrink-0" aria-hidden />
+              {providerTypeLabel[provider.type].one}
+              <span aria-hidden>·</span>
+              <span>
+                {provider.city}, <span className="font-mono">{provider.state}</span>
+              </span>
+            </p>
+          </div>
+          <ArrowRight className="size-5 shrink-0 text-muted-foreground transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden />
+        </div>
+        {featured && <p className="text-body text-ink-2">{provider.summary}</p>}
+        <ul className="mt-auto flex flex-wrap gap-2">
+          <NextOpening first={first} now={now} />
+          <Chip icon={DollarSign} label="Price per visit">
+            <span className="font-mono">{provider.priceUsd}</span>
+            <span className="text-muted-foreground">a visit</span>
+          </Chip>
+          {provider.visitModes.map((m) => {
+            const Icon = visitModeIcon[m];
+            return (
+              <Chip key={m} icon={Icon} label="Visits">
+                {visitModeLabel[m]}
+              </Chip>
+            );
+          })}
+          {featured && (
+            <Chip icon={Languages} label="Languages">
+              {provider.languages.join(", ")}
+            </Chip>
+          )}
+        </ul>
+      </Link>
     </li>
   );
 }
+
