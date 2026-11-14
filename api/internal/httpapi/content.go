@@ -287,3 +287,42 @@ func (s *Server) GetStageNow(ctx context.Context, req GetStageNowRequestObject) 
 	}
 	return GetStageNow200JSONResponse(out), nil
 }
+
+func adviceOut(a content.SafetyAdvice) SafetyAdvice {
+	return SafetyAdvice{Status: SafetyAdviceStatus(a.Status), Why: a.Why}
+}
+
+func (s *Server) ListSafetyReference(ctx context.Context, req ListSafetyReferenceRequestObject) (ListSafetyReferenceResponseObject, error) {
+	_, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return ListSafetyReference401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return ListSafetyReference404JSONResponse(errNoMember), nil
+	}
+	entries := content.SafetyReference()
+	out := SafetyReferenceList{Items: make([]SafetyEntry, 0, len(entries))}
+	for _, e := range entries {
+		item := SafetyEntry{
+			Id: e.ID, Category: SafetyEntryCategory(e.Category), Topic: e.Topic, Name: e.Name, Aliases: e.Aliases,
+			Pregnancy: adviceOut(e.Preg), Sources: make([]Source, 0, len(e.Sources)),
+		}
+		if e.Breast != nil {
+			b := adviceOut(*e.Breast)
+			item.Breastfeeding = &b
+		}
+		if e.Ask != "" {
+			item.Ask = &e.Ask
+		}
+		if e.Learn != nil {
+			item.Learn = &SafetyLearnLink{PathId: e.Learn.PathID, LessonId: e.Learn.LessonID}
+		}
+		for _, src := range e.Sources {
+			item.Sources = append(item.Sources, sourceOut(src))
+		}
+		out.Items = append(out.Items, item)
+	}
+	return ListSafetyReference200JSONResponse(out), nil
+}
