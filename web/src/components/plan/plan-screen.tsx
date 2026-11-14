@@ -101,20 +101,6 @@ export function PlanScreen({
   const plan = byKind(tasks, "task");
   const paperwork = byKind(tasks, "paperwork");
   const bags = byKind(tasks, "hospital_bag");
-  // Bag items have no deadline; the sentence counts plan and paperwork, soonest due first, undated last.
-  const mine = tasks
-    .filter((t) => t.assigneeId === selfId && !t.done && t.kind !== "hospital_bag")
-    .sort((x, y) => (x.dueOn ?? "9999").localeCompare(y.dueOn ?? "9999"));
-  const offersToMe = tasks.filter((t) => isOffered(t) && t.pendingAssigneeId === selfId);
-  const other = people.find((p) => p.id !== selfId && offersToMe.some((t) => t.assigneeId === p.id));
-
-  const headline =
-    offersToMe.length > 0
-      ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
-      : mine.length > 0
-        ? `${countThings(mine.length)} ${mine.length === 1 ? "is" : "are"} yours. Next: ${mine[0].title}.`
-        : "Nothing is waiting on you.";
-
   const tabs: { id: Tab; label: string; icon: typeof planIcon; open: number }[] = [
     { id: "task", label: "Shared plan", icon: planIcon, open: plan.filter((t) => !t.done).length },
     ...(paperwork.length ? [{ id: "paperwork" as const, label: "Paperwork", icon: paperworkIcon, open: paperwork.filter((t) => !t.done).length }] : []),
@@ -122,6 +108,23 @@ export function PlanScreen({
   ];
   const active = tabs.some((t) => t.id === tab) ? tab : "task";
 
+  // The headline belongs to the open tab: it only counts that tab's tasks, so it never
+  // talks about an offer or a deadline that is not on the screen. Soonest due first, undated last.
+  const inTab = tasks.filter((t) => t.kind === active);
+  const mine = inTab.filter((t) => t.assigneeId === selfId && !t.done).sort((x, y) => (x.dueOn ?? "9999").localeCompare(y.dueOn ?? "9999"));
+  const offersToMe = inTab.filter((t) => isOffered(t) && t.pendingAssigneeId === selfId);
+  const other = people.find((p) => p.id !== selfId && offersToMe.some((t) => t.assigneeId === p.id));
+
+  const headline =
+    offersToMe.length > 0
+      ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
+      : mine.length > 0
+        ? active === "hospital_bag"
+          ? `${countThings(mine.length)} still to pack for you. Next: ${mine[0].title}.`
+          : `${countThings(mine.length)} ${mine.length === 1 ? "is" : "are"} yours here. Next: ${mine[0].title}.`
+        : active === "hospital_bag"
+          ? "Your bags are packed."
+          : "Nothing is waiting on you here.";
   return (
     <main className="flex min-w-0 max-w-5xl flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
       <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
