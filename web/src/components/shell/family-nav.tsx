@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Route, type LucideIcon } from "lucide-react";
+import { CalendarCheck, CalendarDays, Route, Target, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -12,20 +12,23 @@ import { cn } from "@/lib/utils";
 const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
+  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target },
   // Enable when the API lands (#174; also import Brain from lucide-react). The route /family/[memberId]/care exists.
   // { href: "/care", label: "Care", icon: Brain },
   // Enable when the API lands (#172): { href: "/passport", label: "Passport", icon: IdCard },
   // enable when the API lands (#175): { href: "/directory", label: "Find help", icon: Users },
 ];
 
-export function FamilyNav({ memberId, role }: { memberId: string; role: Role }) {
+// hidden: screens whose endpoint answers 501 (not built yet) or refuses this person.
+export function FamilyNav({ memberId, role, hidden = [] }: { memberId: string; role: Role; hidden?: string[] }) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
   return (
     <nav aria-label="Family" className="flex gap-1 md:flex-col">
-      {items.filter((item) => canOpen(role, item.screen)).map((item) => {
+      {items.filter((item) => canOpen(role, item.screen) && !hidden.includes(item.screen)).map((item) => {
         const href = base + item.href;
-        const active = pathname === href;
+        const active = item.href === "" ? pathname === href : pathname.startsWith(href);
         return (
           <Link
             key={item.href}
