@@ -11,6 +11,14 @@ import {
   Brain,
   CalendarClock,
   CircleHelp,
+  CalendarRange,
+  FileCheck2,
+  Phone,
+  ReceiptText,
+  Baby as BabyCoverage,
+  Scale,
+  ShieldQuestion,
+  Wallet,
   ContactRound,
   HandHeart,
   ConciergeBell,
@@ -55,7 +63,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { AllergyCertainty, CalendarEventKind, CareLogKind, CaregiverPermission, CareRole, DiaperContent, FeedMethod, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility } from "@/lib/api/types";
+import type { InsuranceCallTopic, AllergyCertainty, CalendarEventKind, CareLogKind, CaregiverPermission, CareRole, DiaperContent, FeedMethod, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -219,7 +227,7 @@ export const providerTypeLabel: Record<ProviderType, { one: string; many: string
 
 export const providerTypes = Object.keys(providerTypeIcon) as ProviderType[];
 
-/** The written weekly note from the AI plan (components/week/ai-plan.tsx). */
+/** The written weekly note from the AI plan (components/week/plan-with-note.tsx). */
 export const weeklyNoteIcon: LucideIcon = PenLine;
 
 /** A detected pattern in the parent's own check-ins. */
@@ -343,3 +351,27 @@ export const bagLabel: Record<HospitalBag, string> = {
   partner: "Partner's bag",
   baby: "Baby's bag",
 };
+
+/** Plan screen tabs added by the leave planner and the insurance call log. */
+export const leaveIcon: LucideIcon = CalendarRange;
+export const insuranceIcon: LucideIcon = Phone;
+
+export const insuranceTopicIcon: Record<InsuranceCallTopic, LucideIcon> = {
+  coverage: ShieldCheck,
+  claim: ReceiptText,
+  prior_authorization: FileCheck2,
+  add_baby: BabyCoverage,
+  billing: Wallet,
+  other: ShieldQuestion,
+};
+
+export const insuranceTopicLabel: Record<InsuranceCallTopic, string> = {
+  coverage: "Coverage",
+  claim: "Claim",
+  prior_authorization: "Prior authorization",
+  add_baby: "Add the baby",
+  billing: "Billing",
+  other: "Other",
+};
+
+export const leaveEligibilityIcon = { eligible: ShieldCheck, not_eligible: Scale, unknown: ShieldQuestion } satisfies Record<string, LucideIcon>;

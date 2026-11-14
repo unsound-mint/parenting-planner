@@ -1,23 +1,28 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
-import { countThings, familyContext } from "@/lib/format";
-import { AppointmentQuestions } from "@/components/week/appointment-questions";
-import { AiPlan } from "@/components/week/ai-plan";
-import { PlanBoard } from "@/components/week/plan-board";
-import { MoodPatternCard } from "@/components/week/mood-pattern-card";
-import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
-import { BabyHome } from "@/components/baby/baby-home";
-import { SleepChart } from "@/components/week/sleep-chart";
-import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
+import { countWord, familyContext } from "@/lib/format";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
-import { ComingUpSlot, GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
-
-// Own check-ins needed before the sleep chart earns space in the right rail.
-const MIN_SLEEP_CHECKINS = 3;
+import { AppointmentQuestions } from "@/components/week/appointment-questions";
+import { PlanWithNote } from "@/components/week/plan-with-note";
+import { MoodSleepCard } from "@/components/week/mood-sleep-card";
+import { BabyHome } from "@/components/baby/baby-home";
+import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
+import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
 
 // "This week": the acting parent's plan from the rules engine, the reason and
 // source behind each item, and a quick mood check-in. All of it is live data.
+//
+// Each fact has one owner on this page, so nothing is printed twice:
+// - headline: the status (how many things need you), never an item's title;
+// - plan (focus card and rows): what to do, with the written note's line for
+//   each item folded in and the why opening in place;
+// - mood and sleep card: today's check-in, the last seven days and any pattern;
+// - questions card: the next visits and what to ask there;
+// - weekly card: the baby's week only (size, development, birth prep);
+// - guides: only reading the plan does not already cover;
+// - the top bar: the week of pregnancy and the due date.
+// The DOM order is the phone order; from xl the plan and the rest sit side by side.
 export default function WeekPage({ params }: PageProps<"/family/[memberId]">) {
   return (
     <Suspense fallback={<WeekFallback />}>
@@ -30,8 +35,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  // Newer endpoints start now and render in their own slots; None of them gates the page.
-  const today = optional(api.GET("/members/{memberId}/today", path));
+  // Newer endpoints start now and render in their own slots; none of them gates the page.
   const guides = optional(api.GET("/members/{memberId}/guides", { params: { path: { memberId }, query: { kind: "article" } } }));
   // Caregivers get the baby's care and never a parent's plan or check-ins, so
   // decide who is acting before asking for any of them.
@@ -44,11 +48,14 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     family && week != null && week >= 4 && week <= 40 && caregiver?.role !== "nanny"
       ? optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week } } }))
       : undefined;
-  if (family && caregiver) return <BabyHome memberId={memberId} family={family} slots={{ today, guides, card }} />;
+  if (family && caregiver) {
+    // Only the caregiver home uses Today; parents see their visits in the questions card and the calendar.
+    const today = optional(api.GET("/members/{memberId}/today", path));
+    return <BabyHome memberId={memberId} family={family} slots={{ today, guides, card }} />;
+  }
   const [{ data: plan }, { data: checkins }, { data: patterns }, { data: shifts }] = await Promise.all([
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
-    // No pattern means no card.
     api.GET("/members/{memberId}/mood-patterns", path),
     // Answers 501 until the API lands; then the "Baby is home" switch stays hidden.
     api.GET("/members/{memberId}/shifts", path),
@@ -57,22 +64,23 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
   const own = (checkins?.items ?? []).filter((c) => c.authorId === memberId);
-
   const pattern = patterns?.items[0];
+  // With a pattern, the plan's mental health step carries "Talk to someone".
+  const talkHref = pattern ? `/family/${memberId}/directory?type=${pattern.providerType}` : undefined;
+  const talkInPlan = !!pattern && plan.items.some((i) => i.category === "mental_health");
 
-  const attention = plan.items.filter((i) => i.status !== "upcoming");
-  const focus = attention[0];
-  // The headline names the one thing; PlanBoard picks the same focus item.
+  const needs = plan.items.filter((i) => i.status !== "upcoming").length;
+  // Status only: the focus card right below names the first thing.
   const headline = family.pregnancyLoss
     ? `We are so sorry, ${parent.displayName}. Take the time you need.`
-    : !focus
-      ? `You are on track, ${parent.displayName}. Nothing needs you this week.`
-      : attention.length === 1
-        ? `One thing this week: ${focus.title}.`
-        : `${countThings(attention.length)} this week. First: ${focus.title}.`;
+    : needs === 0
+      ? `Nothing needs you this week, ${parent.displayName}.`
+      : `${countWord(needs)} ${needs === 1 ? "thing needs" : "things need"} you this week, ${parent.displayName}.`;
+  // The switch is a one-time step near the birth: last on the page, under everything that needs doing now.
+  const late = family.stage === "pregnancy" && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && shifts;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
+    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
       <section aria-labelledby="week-headline" className="min-w-0">
         <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
@@ -82,26 +90,18 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <div className="mt-3 empty:hidden">
           <StageSlot guides={guides} memberId={memberId} family={family} />
         </div>
-        <PlanBoard items={plan.items} memberId={memberId} />
-        <div className="mt-8 empty:hidden">
-          <ComingUpSlot today={today} />
-        </div>
-        <AiPlan memberId={memberId} tier={family.tier} />
+        <PlanWithNote items={plan.items} memberId={memberId} tier={family.tier} talkHref={talkHref} />
       </section>
 
-      <aside className="flex flex-col gap-6 xl:pt-1">
-        {family.stage === "pregnancy" && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && shifts && (
-          <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />
-        )}
-        <WeekCardSlot card={card} />
-        {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
-        {!family.pregnancyLoss && <GuidesSlot guides={guides} />}
+      <aside aria-label="You and your visits" className="flex min-w-0 flex-col gap-6 xl:pt-1">
+        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} />
         <Suspense fallback={null}>
           <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
         </Suspense>
-        {pattern && <MoodPatternCard pattern={pattern} checkins={own} memberId={memberId} />}
-        {own.length >= MIN_SLEEP_CHECKINS && <SleepChart checkins={own} />}
-        <MoodCheckinCard memberId={memberId} partnerName={partner?.displayName} />
+        <WeekCardSlot card={card} babyOnly />
+        {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
+        {!family.pregnancyLoss && <GuidesSlot guides={guides} plan={plan.items} />}
+        {late && <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />}
       </aside>
     </main>
   );

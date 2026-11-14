@@ -19,6 +19,9 @@ const seeded = new Set<string>();
 // the family id (still a valid UUID, which the real API checks before it answers 501).
 const taskId = familyTaskId;
 
+/** Positions of paperwork tasks in the seed below that other fixtures link to (leave deadlines). */
+export const paperworkN = { leaveNotice: 8 };
+
 const day = 86_400_000;
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * day).toISOString().slice(0, 10);
 const today = () => new Date().toISOString().slice(0, 10);

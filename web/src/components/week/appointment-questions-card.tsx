@@ -43,7 +43,6 @@ export function QuestionsCard({
     items: questions.filter((q) => q.appointmentId === visit.id),
   }));
   const unplaced = questions.filter((q) => !q.appointmentId || !appointments.some((a) => a.id === q.appointmentId));
-  const open = questions.filter((q) => !q.answered).length;
 
   function add(e: React.FormEvent) {
     e.preventDefault();
@@ -69,11 +68,6 @@ export function QuestionsCard({
         <h2 id="questions-title" className="text-title">
           Ask at your visit
         </h2>
-        {open > 0 && (
-          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-status-due-soft px-2 font-mono text-caption font-medium text-status-due" aria-label={`${open} still to ask`}>
-            {open}
-          </span>
-        )}
       </div>
 
       <div className="mt-4 flex flex-col gap-5">
@@ -145,13 +139,14 @@ function Visit({ visit, items, memberId }: { visit: CalendarEvent; items: Appoin
   const waiting = items.filter((q) => !q.answered).length;
   return (
     <div>
-      <div className="flex items-center gap-3">
-        <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-secondary px-2.5 font-mono text-caption text-secondary-foreground">
+      {/* The visit itself shows only here on This week, so its title is never cut. */}
+      <div className="flex items-start gap-3">
+        <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2.5 font-mono text-caption text-secondary-foreground">
           <CalendarClock className="size-3.5" aria-hidden />
           <time dateTime={visit.startsAt}>{formatShortDate(visit.startsAt.slice(0, 10))}</time>
         </span>
-        <p className="min-w-0 flex-1 truncate text-label font-medium">{visit.title}</p>
-        <span className="font-mono text-caption text-muted-foreground">{waiting === 0 ? "all asked" : `${waiting} to ask`}</span>
+        <p className="min-w-0 flex-1 pt-1 text-label font-semibold text-balance">{visit.title}</p>
+        <span className="shrink-0 pt-1.5 font-mono text-caption text-muted-foreground">{waiting === 0 ? "all asked" : `${waiting} to ask`}</span>
       </div>
       {items.length > 0 && (
         <ul className="mt-2 flex flex-col">

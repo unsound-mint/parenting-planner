@@ -6,6 +6,8 @@ import { familyContext } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
+import { DemoClock } from "@/components/shell/demo-clock";
+import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
@@ -25,11 +27,12 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family, response }, calendar, simulator] = await Promise.all([
+  const [{ data: family, response }, calendar, simulator, notifications] = await Promise.all([
     api.GET("/family"),
     // Probes: a screen shows in the nav only once its endpoint works for this person.
     api.GET("/members/{memberId}/calendar-events", { params: { ...path.params, query: { scope: "mine" } } }),
     api.GET("/members/{memberId}/simulator", path),
+    api.GET("/members/{memberId}/notifications", path),
   ]);
   if (response.status === 401 || !family) redirect("/");
   const people = familyPeople(family);
@@ -56,7 +59,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
-      <aside className="flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
+      <aside className="print:hidden flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
         <div className="flex items-center justify-between gap-3 md:block">
           <p className="px-2 text-[15px] font-semibold tracking-tight">{PRODUCT_NAME}</p>
           <div className="md:hidden">
@@ -67,20 +70,29 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
+          <Link href="/admin" className="mt-1.5 inline-block underline underline-offset-2 hover:text-foreground">
+            Demo admin
+          </Link>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
+        <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
           <RoleSwitch people={people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
           <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
             Demo data
           </span>
+          <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} />
           <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
-            {family.tier === "free" ? "Plans" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+            {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           </Link>
           <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
+          {notifications.data && (
+            <div className="order-5">
+              <NotificationBell memberId={memberId} role={person.role} initial={notifications.data} />
+            </div>
+          )}
           <div className="order-5 hidden md:block">
             <UrgentHelpLink />
           </div>
@@ -95,7 +107,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
 function ShellFallback() {
   return (
     <div className="flex min-h-dvh flex-1">
-      <aside className="hidden w-56 border-r border-border bg-card md:block" />
+      <aside className="hidden print:hidden w-56 border-r border-border bg-card md:block" />
       <p className="p-10 text-muted-foreground">Opening your family...</p>
     </div>
   );
