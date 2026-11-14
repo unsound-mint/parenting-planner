@@ -1,9 +1,11 @@
 import { mockMiddleware, type MockTable } from "./registry";
 import { appointmentQuestionMocks } from "./fixtures/appointment-questions";
+import { babyMocks } from "./fixtures/baby";
 import { careMocks } from "./fixtures/care";
 import { directoryMocks } from "./fixtures/directory";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { passportMocks } from "./fixtures/passport";
+import { peopleMocks } from "./fixtures/people";
 import { pricingMocks } from "./fixtures/pricing";
 import { scheduleMocks } from "./fixtures/schedule";
 import { simulatorMocks } from "./fixtures/simulator";
@@ -16,10 +18,12 @@ import { todayMocks } from "./fixtures/today";
 // week 25, due 2027-02-27; partner Jake). See registry.ts for when it is used.
 const tables: MockTable[] = [
   appointmentQuestionMocks,
+  babyMocks,
   careMocks,
   directoryMocks,
   moodPatternMocks,
   passportMocks,
+  peopleMocks,
   pricingMocks,
   taskMocks,
   todayMocks,

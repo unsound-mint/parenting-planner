@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown, ListFilter, SearchX, WifiOff } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
+import { requireParent } from "@/lib/guard";
 import type { ProviderType } from "@/lib/api/types";
 import { countWord } from "@/lib/format";
 import { providerTypes } from "@/lib/visuals";
@@ -29,6 +30,7 @@ async function Directory({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const sp = await searchParams;
   const typeParam = typeof sp.type === "string" ? sp.type : undefined;
   const stateParam = typeof sp.state === "string" ? sp.state : undefined;
