@@ -9,10 +9,11 @@ import { familyPeople } from "@/lib/roles";
 import { AccessLog } from "@/components/people/access-log";
 import { InvitationList } from "@/components/people/invitation-list";
 import { InviteForm } from "@/components/people/invite-form";
+import { LoadMapEmpty } from "@/components/load-map/load-map-empty";
 import { LoadMapCard } from "@/components/load-map/load-map-card";
 import { ThanksSection } from "@/components/thanks/thanks-section";
 import { Rise } from "@/components/joy/rise";
-import { PageFrame, PageGrid } from "@/components/shell/page";
+import { PageFrame } from "@/components/shell/page";
 import { MissionsLink } from "@/components/missions/missions-link";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
@@ -45,15 +46,19 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
   if (!family || !invitations.data) notFound();
 
   const shown = invitations.data.items.filter((i) => i.status === "pending" || i.status === "accepted");
-  const active = shown.filter((i) => i.status === "accepted").length;
-  const waiting = shown.length - active;
-  const headline =
-    shown.length === 0
-      ? "Nobody else helps yet. Invite someone with a link."
-      : waiting === 0
-        ? `${countWord(active)} ${active === 1 ? "person helps" : "people help"} with ${family.children[0]?.name ?? "the baby"}.`
-        : `${countWord(waiting)} ${waiting === 1 ? "invitation is" : "invitations are"} waiting to be opened.`;
+  const waiting = shown.filter((i) => i.status === "pending").length;
+  // Who helps is who is in the family (seeded or joined by a link), not only who was invited.
+  const helpers = (family.caregivers ?? []).map((c) => c.displayName.trim()).filter(Boolean);
+  const helperCount = family.caregivers?.length ?? 0;
+  const child = family.children[0]?.name ?? "the baby";
+  const helping = helperCount > 0 ? `${helperCount <= 3 && helpers.length === helperCount ? joinNames(helpers) : `${countWord(helperCount)} people`} ${helperCount === 1 ? "helps" : "help"} with ${child}.` : undefined;
+  const waitingLine = waiting > 0 ? `${countWord(waiting)} ${waiting === 1 ? "invitation is" : "invitations are"} waiting to be opened.` : undefined;
+  const headline = [helping, waitingLine].filter(Boolean).join(" ") || "Nobody else helps yet. Invite someone with a link.";
 
+  const invitedIds = new Set(shown.map((i) => i.memberId).filter(Boolean));
+  const direct = (family.caregivers ?? []).filter((c) => !invitedIds.has(c.id));
+  const couple = loadMap.data;
+  const hasThanks = !!(thanks.data && suggestions.data);
   return (
     <PageFrame>
       <header>
@@ -72,41 +77,46 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
         </span>
       </Link>
-      {/* The couple's own section comes first: who carries what, and a way to say thanks.
-          Either part is left out when its endpoint is not available. */}
-      {(loadMap.data || (thanks.data && suggestions.data)) && (
-        <PageGrid className="@4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          {loadMap.data && (
-            <Rise i={1} className="min-w-0">
-              <LoadMapCard memberId={memberId} initial={loadMap.data} people={people} />
-            </Rise>
-          )}
-          {thanks.data && suggestions.data && (
-            <Rise i={2} className="min-w-0">
-              <ThanksSection memberId={memberId} people={people} suggestions={suggestions.data.items} thanks={thanks.data.items} now={new Date()} />
-            </Rise>
-          )}
-        </PageGrid>
+      {/* Who carries what is the couple's own section and takes the full width once it has data. */}
+      {couple && couple.areas.length > 0 && (
+        <Rise i={1} className="min-w-0">
+          <LoadMapCard memberId={memberId} initial={couple} people={people} />
+        </Rise>
       )}
       {missions.data && <MissionsLink memberId={memberId} missions={missions.data.items} />}
-      {/* Two columns: the form on the left, access and the log stacked on the right (the last row
-          is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
-      <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
-        <div className="min-w-0 @4xl:row-span-2 @7xl:row-span-1">
+      {/* The rest are independent cards. CSS columns fill the width without holes whatever is
+          present (no invitations yet, an empty log, no thanks endpoint); DOM order is the phone order. */}
+      <div className="min-w-0 gap-6 [&>*]:mb-6 [&>*]:break-inside-avoid @4xl:columns-2 @7xl:columns-3">
+        {couple && couple.areas.length === 0 && (
+          <Rise i={1} className="min-w-0">
+            <LoadMapEmpty memberId={memberId} />
+          </Rise>
+        )}
+        {hasThanks && (
+          <Rise i={2} className="min-w-0">
+            <ThanksSection memberId={memberId} people={people} suggestions={suggestions.data!.items} thanks={thanks.data!.items} now={new Date()} />
+          </Rise>
+        )}
+        <div className="min-w-0">
           <InviteForm memberId={memberId} family={family} />
         </div>
-        {shown.length > 0 && (
+        {(shown.length > 0 || direct.length > 0) && (
           <section aria-labelledby="people-title" className="min-w-0 rounded-2xl border border-border bg-card p-4 md:p-5">
             <h2 id="people-title" className="mb-3 text-title">
               Who has access
             </h2>
-            <InvitationList memberId={memberId} items={shown} />
+            <InvitationList memberId={memberId} items={shown} direct={direct} />
           </section>
         )}
         {log.data && <AccessLog items={log.data.items} now={new Date()} />}
-      </PageGrid>
+      </div>
     </PageFrame>
   );
+}
+
+function joinNames(names: string[]): string {
+  if (names.length < 2) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
 function PeopleFallback() {

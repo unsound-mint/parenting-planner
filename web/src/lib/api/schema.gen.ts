@@ -1153,6 +1153,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/caregivers/{caregiverId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                caregiverId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A parent removes a grandparent's or nanny's access directly
+         * @description For caregivers who are in the family without an invitation of their
+         *     own (the demo families). Same effect as revoking an accepted
+         *     invitation: they drop out of family.caregivers and their member id
+         *     gets 404 everywhere. Mother or partner only (403 otherwise); 404 when
+         *     the id is not an active caregiver of this family. Recorded in the
+         *     access log as a revoked invitation.
+         */
+        post: operations["revokeCaregiver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/caregivers/{caregiverId}": {
         parameters: {
             query?: never;
@@ -1901,6 +1938,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/tasks/{taskId}/reassignment/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The assignee takes back an offer nobody has answered yet
+         * @description Only the current assignee; 409 not_assignee for anyone else and
+         *     409 not_offered when the task has no open offer. The task never
+         *     moved, so it simply stops being offered. Sends a live update of kind task.
+         */
+        post: operations["withdrawTaskReassignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/load-map": {
         parameters: {
             query?: never;
@@ -1941,9 +2012,11 @@ export interface paths {
          *     third colour.
          *
          *     The area is handed over with the existing reassignment flow: the
-         *     screen offers each id in handoverTaskIds to the other parent with
+         *     screen offers each id in handoverTaskIds to anyone in takers with
          *     proposeTaskReassignment, and the task moves only when they accept.
-         *     offeredToMeTaskIds are offers waiting for the acting parent.
+         *     offeredToMeTaskIds are offers waiting for the acting parent;
+         *     withdrawTaskReassignment takes back an offer nobody answered.
+         *     items lists the tasks behind a task area, so the screen can open them.
          */
         get: operations["getLoadMap"];
         put?: never;
@@ -6527,7 +6600,33 @@ export interface components {
             /** @description Of count, how many fall in the last 7 days. Only on care log areas, so a screen can say who has picked up more this week. */
             recentCount?: number;
         };
+        LoadMapItem: {
+            /** Format: uuid */
+            taskId: string;
+            title: string;
+            kind: components["schemas"]["TaskKind"];
+            /** Format: date */
+            dueOn?: string;
+            done: boolean;
+            /**
+             * Format: uuid
+             * @description Who carries it now.
+             */
+            assigneeId: string;
+            /**
+             * Format: uuid
+             * @description Who first put it on the plan (noticed it).
+             */
+            createdById: string;
+            /**
+             * Format: uuid
+             * @description Who it is offered to, while nobody has answered.
+             */
+            pendingAssigneeId?: string;
+        };
         LoadMapArea: {
+            /** @description The tasks counted in this area, open ones first then soonest due. Empty for care areas. */
+            items: components["schemas"]["LoadMapItem"][];
             key: components["schemas"]["LoadMapAreaKey"];
             /** @example Appointments */
             label: string;
@@ -6544,6 +6643,8 @@ export interface components {
             offeredByMeTaskIds: string[];
         };
         LoadMap: {
+            /** @description Everyone but the acting parent who can take a task, meaning the other parent and any grandparent or nanny with family_plan. */
+            takers: string[];
             /** @example 14 */
             windowDays: number;
             areas: components["schemas"]["LoadMapArea"][];
@@ -11527,6 +11628,70 @@ export interface operations {
             };
         };
     };
+    revokeCaregiver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                caregiverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Access removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     updateCaregiverPermissions: {
         parameters: {
             query?: never;
@@ -13192,6 +13357,74 @@ export interface operations {
         };
     };
     declineTaskReassignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    withdrawTaskReassignment: {
         parameters: {
             query?: never;
             header?: never;
