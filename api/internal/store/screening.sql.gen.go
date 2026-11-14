@@ -117,7 +117,7 @@ func (q *Queries) GetOwnMoodScreeningVisibleToParent(ctx context.Context, arg Ge
 }
 
 const listMoodScreeningDraftsVisibleToParent = `-- name: ListMoodScreeningDraftsVisibleToParent :many
-SELECT family_id, owner_member_id, instrument, answers, updated_at FROM mood_screening_drafts
+SELECT family_id, owner_member_id, visibility, instrument, answers, updated_at FROM mood_screening_drafts
 WHERE family_id = $1 AND owner_member_id = $2 AND updated_at >= $3
 ORDER BY updated_at DESC
 `
@@ -142,6 +142,7 @@ func (q *Queries) ListMoodScreeningDraftsVisibleToParent(ctx context.Context, ar
 		if err := rows.Scan(
 			&i.FamilyID,
 			&i.OwnerMemberID,
+			&i.Visibility,
 			&i.Instrument,
 			&i.Answers,
 			&i.UpdatedAt,
@@ -235,7 +236,7 @@ const upsertMoodScreeningDraft = `-- name: UpsertMoodScreeningDraft :one
 INSERT INTO mood_screening_drafts (family_id, owner_member_id, instrument, answers, updated_at)
 VALUES ($1, $2, $3, $4, $5)
 ON CONFLICT (owner_member_id, instrument) DO UPDATE SET answers = EXCLUDED.answers, updated_at = EXCLUDED.updated_at
-RETURNING family_id, owner_member_id, instrument, answers, updated_at
+RETURNING family_id, owner_member_id, visibility, instrument, answers, updated_at
 `
 
 type UpsertMoodScreeningDraftParams struct {
@@ -258,6 +259,7 @@ func (q *Queries) UpsertMoodScreeningDraft(ctx context.Context, arg UpsertMoodSc
 	err := row.Scan(
 		&i.FamilyID,
 		&i.OwnerMemberID,
+		&i.Visibility,
 		&i.Instrument,
 		&i.Answers,
 		&i.UpdatedAt,

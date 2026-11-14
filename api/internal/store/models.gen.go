@@ -201,6 +201,7 @@ type MoodScreening struct {
 type MoodScreeningDraft struct {
 	FamilyID      uuid.UUID
 	OwnerMemberID uuid.UUID
+	Visibility    string
 	Instrument    string
 	Answers       []int16
 	UpdatedAt     time.Time
