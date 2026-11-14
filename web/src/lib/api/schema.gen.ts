@@ -54,6 +54,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/family/upgrade-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record that the family wants a paid plan
+         * @description There are no payments. This stores which tier the family asked for and
+         *     when; it shows as "upgrade requested" on the family. Either parent of the
+         *     session's family may send it. A second request replaces the first.
+         */
+        post: operations["createUpgradeIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/plan": {
         parameters: {
             query?: never;
@@ -69,6 +91,81 @@ export interface paths {
          */
         get: operations["getMemberPlan"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/weekly-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A short written plan for this parent's week
+         * @description A note written for the acting parent from the data they may see: their
+         *     due plan items, their own recent mood and sleep, diary topics the
+         *     partner shared with them, and the family's stage. The other parent
+         *     gets a different plan. Private records (diary, mood, labs, session
+         *     notes) that were not shared with this parent never feed it. The text
+         *     never diagnoses. Urgent symptoms and self-harm mentions are not
+         *     written here; they go to the fixed urgent-help screen. When the AI
+         *     call fails, fallback is true and the sections are built from the rule
+         *     plan.
+         */
+        get: operations["getMemberWeeklyPlan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/passport": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The health passport of the family as the acting parent may see it
+         * @description One entry per person: the acting parent, the other parent and the
+         *     child (when there is one). The acting parent sees all of their own
+         *     records and everything recorded for the child. For the other parent
+         *     only records shared with the acting parent come back (visibility
+         *     partner or family, the rule in access.CanParentRead); private and
+         *     care_team records are left out, and their count is not revealed.
+         *     Reading labs and allergies is audited like any sensitive read.
+         */
+        get: operations["getPassport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/plan/{ruleId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The acting parent marks a plan item as booked or done
+         * @description Records progress on one plan item for this parent. A booked or done item
+         *     stays on the plan, shown as settled, so nothing disappears unseen.
+         */
+        put: operations["setPlanItemProgress"];
         post?: never;
         delete?: never;
         options?: never;
@@ -103,6 +200,173 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Providers in the ecosystem directory, optionally filtered
+         * @description Every provider is synthetic demo data. The directory is the same for
+         *     every family and holds no personal records, so any parent in the session
+         *     may read it. Sorted by next available date, soonest first.
+         */
+        get: operations["listProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/booking-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The acting parent's own booking requests
+         * @description Only requests made by this parent, newest first. The partner's requests are never included.
+         */
+        get: operations["listBookingRequests"];
+        put?: never;
+        /**
+         * The acting parent asks a provider for an appointment
+         * @description Saves a request with status requested; nothing is sent to a real
+         *     provider. A request is sensitive: it can reveal that a parent is seeking
+         *     care, so only the parent who made it can see it, never the partner.
+         *     Asking the same provider twice returns 409.
+         */
+        post: operations["createBookingRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/mood-patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Patterns detected in the acting parent's own recent check-ins
+         * @description Detected from the acting parent's own check-ins of the last 7 days, for
+         *     example low mood on three days. Check-ins are private by default, so a
+         *     pattern is computed only from the acting parent's own entries and is
+         *     returned only to them. Nothing from the other parent's check-ins is
+         *     used, even when those were shared. Empty list when there is no pattern.
+         *     Wording is never diagnostic (docs/product.md, principle 3).
+         */
+        get: operations["listMoodPatterns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-agenda": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Topics for the acting parent's next psychologist session
+         * @description Topics only, as the parent chose them. Private text such as diary
+         *     entries is never part of the agenda. The agenda belongs to the acting parent: the other parent can neither read
+         *     it nor see that a session is booked.
+         */
+        get: operations["getPsychologistAgenda"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open session times with the demo psychologist, next 14 days
+         * @description Synthetic provider and slots; there is no real provider integration.
+         *     Slots already booked by the acting parent are left out. Booking
+         *     availability is not shared between parents.
+         */
+        get: operations["listPsychologistSlots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent books one open slot
+         * @description The booking is stored for the acting parent only and is private to them.
+         *     Returns 409 slot_taken if the slot is gone.
+         */
+        post: operations["createPsychologistBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/session-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent writes a short note after a session
+         * @description Always private to the author; there is no visibility field and the
+         *     server never widens it. The note feeds the author's next weekly plan.
+         *     The booking must belong to the acting parent and must have started.
+         */
+        post: operations["createSessionNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -127,6 +391,21 @@ export interface components {
         Stage: "planning" | "trying" | "pregnancy" | "postpartum" | "infant" | "toddler" | "preschool" | "school_age";
         /** @enum {string} */
         ParentRole: "mother" | "partner";
+        /**
+         * @description The plan the family is on. Demo families start on free; there is no billing.
+         * @enum {string}
+         */
+        Tier: "free" | "plus" | "concierge";
+        /** @enum {string} */
+        PaidTier: "plus" | "concierge";
+        UpgradeIntentInput: {
+            tier: components["schemas"]["PaidTier"];
+        };
+        UpgradeIntent: {
+            tier: components["schemas"]["PaidTier"];
+            /** Format: date-time */
+            requestedAt: string;
+        };
         Family: {
             /** Format: uuid */
             id: string;
@@ -139,6 +418,8 @@ export interface components {
             dueDate?: string;
             /** @description Completed weeks of pregnancy today, derived from dueDate. */
             gestationalWeek?: number;
+            tier?: components["schemas"]["Tier"];
+            upgradeRequest?: components["schemas"]["UpgradeIntent"];
             parents: components["schemas"]["Parent"][];
             /**
              * @description Other people who help with the child and can be opened as their own
@@ -205,6 +486,40 @@ export interface components {
             /** @description Why this applies to this parent now, based on their data. */
             reason: string;
             source: components["schemas"]["Source"];
+            progress?: components["schemas"]["PlanItemProgress"];
+        };
+        /**
+         * @description What the parent has done about an item. Absent until they record something.
+         * @enum {string}
+         */
+        PlanItemProgress: "booked" | "done";
+        PlanItemProgressInput: {
+            status: components["schemas"]["PlanItemProgress"];
+        };
+        WeeklyPlan: {
+            /** Format: uuid */
+            memberId: string;
+            /** Format: date-time */
+            generatedAt: string;
+            /** @description True when the rule-based plan was used because the AI call failed. */
+            fallback: boolean;
+            /** @description One or two warm sentences that open the note. */
+            intro: string;
+            sections: components["schemas"]["WeeklyPlanSection"][];
+        };
+        WeeklyPlanSection: {
+            /** @example For you */
+            title: string;
+            points: components["schemas"]["WeeklyPlanPoint"][];
+        };
+        WeeklyPlanPoint: {
+            /** @description What to do, in one or two plain sentences. Never a diagnosis. Any medical point must carry a source. */
+            text: string;
+            /** @description The data behind the point, for example "You slept 5.5 hours on average this week." */
+            reason: string;
+            /** @description The rule plan item this point comes from, when it has one. */
+            ruleId?: string;
+            source?: components["schemas"]["Source"];
         };
         Source: {
             title: string;
@@ -247,6 +562,263 @@ export interface components {
         MoodCheckinList: {
             /** @description Newest first. */
             items: components["schemas"]["MoodCheckin"][];
+        };
+        /**
+         * @description low_mood = mood at or below 2 on several days; low_mood_and_sleep = the
+         *     same days also had under 6 hours of sleep.
+         * @enum {string}
+         */
+        MoodPatternKind: "low_mood" | "low_mood_and_sleep";
+        MoodPattern: {
+            kind: components["schemas"]["MoodPatternKind"];
+            /**
+             * Format: date
+             * @description Date of the first check-in in the pattern.
+             */
+            startedOn: string;
+            /** @description Number of check-in days in the pattern. */
+            days: number;
+            /** @description The acting parent's check-ins that make up the pattern, oldest first. */
+            checkinIds: string[];
+            /** @description Plain, kind and non-diagnostic. Describes what the check-ins show and suggests talking to someone. */
+            message: string;
+            providerType: components["schemas"]["ProviderType"];
+            source: components["schemas"]["Source"];
+        };
+        MoodPatternList: {
+            items: components["schemas"]["MoodPattern"][];
+        };
+        /**
+         * @description What kind of care the provider offers.
+         * @enum {string}
+         */
+        ProviderType: "perinatal_therapist" | "psychologist" | "doula" | "lactation_consultant" | "sleep_consultant" | "child_therapist" | "tutor";
+        /**
+         * @description Two-letter US state code.
+         * @example CA
+         */
+        UsState: string;
+        Provider: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ProviderType"];
+            city: string;
+            state: components["schemas"]["UsState"];
+            /**
+             * @example [
+             *       "English",
+             *       "Spanish"
+             *     ]
+             */
+            languages: string[];
+            /** Format: date */
+            nextAvailable: string;
+            /** @description Price of one session in US dollars. */
+            priceUsd: number;
+            /** @description One plain sentence on what this provider helps with. */
+            summary: string;
+        };
+        ProviderList: {
+            items: components["schemas"]["Provider"][];
+        };
+        BookingRequestInput: {
+            /** Format: uuid */
+            providerId: string;
+            /** @description Optional message for the provider. */
+            note?: string;
+        };
+        /**
+         * @description Only requested exists for now; the demo never confirms a booking.
+         * @enum {string}
+         */
+        BookingRequestStatus: "requested";
+        BookingRequest: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The parent who made the request.
+             */
+            memberId: string;
+            /** Format: uuid */
+            providerId: string;
+            status: components["schemas"]["BookingRequestStatus"];
+            note?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        BookingRequestList: {
+            /** @description Newest first. */
+            items: components["schemas"]["BookingRequest"][];
+        };
+        Passport: {
+            /**
+             * Format: uuid
+             * @description The acting parent.
+             */
+            memberId: string;
+            /** @description The acting parent first, then the other parent, then the child. */
+            people: components["schemas"]["PassportPerson"][];
+        };
+        PassportPerson: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "parent" | "child";
+            name: string;
+            role?: components["schemas"]["ParentRole"];
+            /** @description Set for the child. */
+            ageMonths?: number;
+            isActingParent: boolean;
+            /** @description Newest first. */
+            labs: components["schemas"]["LabResult"][];
+            /** @description Ordered by date, given or due. */
+            vaccines: components["schemas"]["VaccineDose"][];
+            allergies: components["schemas"]["Allergy"][];
+            /** @description Child only, oldest first. Empty for parents. */
+            growth: components["schemas"]["GrowthPoint"][];
+            careTeam: components["schemas"]["CareTeamMember"][];
+        };
+        LabResult: {
+            /** Format: uuid */
+            id: string;
+            /** @example Ferritin */
+            name: string;
+            value: number;
+            /** @example ng/mL */
+            unit: string;
+            /** @description Lower end of the reference range, when the lab gives one. */
+            refLow?: number;
+            /** @description Upper end of the reference range, when the lab gives one. */
+            refHigh?: number;
+            /** Format: date */
+            takenOn: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        /** @enum {string} */
+        VaccineStatus: "done" | "overdue" | "due" | "upcoming";
+        VaccineDose: {
+            /** Format: uuid */
+            id: string;
+            /** @example DTaP */
+            name: string;
+            /** @example Dose 2 of 5 */
+            dose: string;
+            status: components["schemas"]["VaccineStatus"];
+            /**
+             * Format: date
+             * @description Set when status is done.
+             */
+            givenOn?: string;
+            /**
+             * Format: date
+             * @description Set when status is not done.
+             */
+            dueOn?: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        /**
+         * @description confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
+         * @enum {string}
+         */
+        AllergyCertainty: "suspected" | "confirmed";
+        Allergy: {
+            /** Format: uuid */
+            id: string;
+            /** @example Peanut */
+            substance: string;
+            certainty: components["schemas"]["AllergyCertainty"];
+            /** @example Hives within minutes */
+            reaction?: string;
+            /** Format: date */
+            notedOn?: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        GrowthPoint: {
+            /** Format: date */
+            measuredOn: string;
+            ageMonths: number;
+            weightKg: number;
+            heightCm: number;
+            /** @description Against the WHO or CDC chart for the child's age and sex, computed by the server. */
+            weightPercentile?: number;
+            heightPercentile?: number;
+        };
+        /** @enum {string} */
+        CareRole: "obstetrician" | "pediatrician" | "primary_care" | "psychologist" | "lactation_consultant" | "midwife" | "dentist";
+        CareTeamMember: {
+            /** Format: uuid */
+            id: string;
+            /** @example Dr. Maya Reyes */
+            name: string;
+            role: components["schemas"]["CareRole"];
+            clinic: string;
+            phone?: string;
+        };
+        AgendaTopic: {
+            /** Format: uuid */
+            id: string;
+            /** @description The topic the parent chose, never the entry text. */
+            text: string;
+            /** Format: date-time */
+            addedAt: string;
+        };
+        Psychologist: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @example PhD, licensed clinical psychologist */
+            credentials: string;
+            /** @example Perinatal and postpartum mental health */
+            focus: string;
+        };
+        PsychologistBooking: {
+            /** Format: uuid */
+            id: string;
+            provider: components["schemas"]["Psychologist"];
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+            /** @description True once the parent has written a session note for this booking. */
+            noteWritten: boolean;
+        };
+        PsychologistAgenda: {
+            /** @description Oldest first, so the longest-waiting topic is on top. */
+            topics: components["schemas"]["AgendaTopic"][];
+            nextSession?: components["schemas"]["PsychologistBooking"];
+            /** @description The latest session that has started and has no note yet. */
+            noteDue?: components["schemas"]["PsychologistBooking"];
+        };
+        Slot: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+        };
+        PsychologistSlots: {
+            provider: components["schemas"]["Psychologist"];
+            /** @description Earliest first. */
+            items: components["schemas"]["Slot"][];
+        };
+        PsychologistBookingInput: {
+            /** Format: uuid */
+            slotId: string;
+        };
+        SessionNoteInput: {
+            /** Format: uuid */
+            bookingId: string;
+            text: string;
+        };
+        SessionNote: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: date-time */
+            writtenAt: string;
+            text: string;
         };
     };
     responses: never;
@@ -349,6 +921,57 @@ export interface operations {
             };
         };
     };
+    createUpgradeIntent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpgradeIntentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpgradeIntent"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     getMemberPlan: {
         parameters: {
             query?: never;
@@ -384,6 +1007,180 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getMemberWeeklyPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyPlan"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPassport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Passport"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    setPlanItemProgress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                /** @example glucose-screen */
+                ruleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanItemProgressInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -485,6 +1282,486 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listProviders: {
+        parameters: {
+            query?: {
+                /** @description Only providers of this type. */
+                type?: components["schemas"]["ProviderType"];
+                /** @description Only providers licensed in this US state (two-letter code). */
+                state?: components["schemas"]["UsState"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderList"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listBookingRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRequestList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createBookingRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRequest"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listMoodPatterns: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodPatternList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPsychologistAgenda: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistAgenda"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listPsychologistSlots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistSlots"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createPsychologistBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PsychologistBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistBooking"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createSessionNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionNoteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionNote"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };

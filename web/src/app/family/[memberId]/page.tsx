@@ -2,10 +2,15 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
+import { AiPlan } from "@/components/week/ai-plan";
 import { PlanBoard } from "@/components/week/plan-board";
+import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { SleepChart } from "@/components/week/sleep-chart";
+
+// Own check-ins needed before the sleep chart earns space in the right rail.
+const MIN_SLEEP_CHECKINS = 3;
 
 // "This week": the acting parent's plan from the rules engine, the reason and
 // source behind each item, and a quick mood check-in. All of it is live data.
@@ -21,10 +26,12 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: plan }, { data: checkins }] = await Promise.all([
+  const [{ data: family }, { data: plan }, { data: checkins }, { data: patterns }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
+    // Answers 501 until the API lands; no data means no card.
+    api.GET("/members/{memberId}/mood-patterns", path),
   ]);
   // Grandparents and nannies get the baby's care, not a parent's plan (lib/roles.ts).
   const caregiver = family?.caregivers?.find((c) => c.id === memberId);
@@ -34,30 +41,32 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const partner = family.parents.find((p) => p.id !== memberId);
   const own = (checkins?.items ?? []).filter((c) => c.authorId === memberId);
 
-  const overdue = plan.items.filter((i) => i.status === "overdue").length;
-  const attention = overdue + plan.items.filter((i) => i.status === "due").length;
-  const needs = `${countThings(attention)} ${attention === 1 ? "needs" : "need"} you this week`;
-  const headline =
-    attention === 0
-      ? `You are on track, ${parent.displayName}. Nothing needs you this week.`
-      : overdue === 0
-        ? `You are on track, ${parent.displayName}. ${needs}.`
-        : `${needs}, ${parent.displayName}.`;
+  const pattern = patterns?.items[0];
+
+  const attention = plan.items.filter((i) => i.status !== "upcoming");
+  const focus = attention[0];
+  // The headline names the one thing; PlanBoard picks the same focus item.
+  const headline = !focus
+    ? `You are on track, ${parent.displayName}. Nothing needs you this week.`
+    : attention.length === 1
+      ? `One thing this week: ${focus.title}.`
+      : `${countThings(attention.length)} this week. First: ${focus.title}.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
       <section aria-labelledby="week-headline" className="min-w-0">
         <h1 id="week-headline" className="max-w-2xl text-headline text-balance">
           {headline}
         </h1>
-        <p className="mt-2 text-label font-normal text-muted-foreground">
-          {familyContext(family)} · built from your family&apos;s data and current guidelines
-        </p>
-        <PlanBoard items={plan.items} />
+        {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
+        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <PlanBoard items={plan.items} memberId={memberId} />
+        <AiPlan memberId={memberId} />
       </section>
 
-      <aside className="flex flex-col gap-6 lg:pt-1">
-        <SleepChart checkins={own} />
+      <aside className="flex flex-col gap-6 xl:pt-1">
+        {pattern && <MoodPatternCard pattern={pattern} checkins={own} memberId={memberId} />}
+        {own.length >= MIN_SLEEP_CHECKINS && <SleepChart checkins={own} />}
         <MoodCheckinCard memberId={memberId} partnerName={partner?.displayName} />
       </aside>
     </main>
