@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Brain, CalendarCheck, CalendarDays, IdCard, Route, Target, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck, CalendarDays, HeartHandshake, IdCard, Route, Search, Target, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -13,9 +13,9 @@ import { cn } from "@/lib/utils";
 const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck },
   { href: "/plan", screen: "plan", label: "Plan", icon: planIcon },
-  { href: "/care", screen: "care", label: "Care", icon: Brain },
+  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake },
   { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
-  { href: "/directory", screen: "directory", label: "Find help", icon: Users },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Search },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
   { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target },
