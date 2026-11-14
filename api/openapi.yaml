@@ -5153,6 +5153,280 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/names-quest:
+    get:
+      operationId: getNamesQuest
+      tags: [together]
+      summary: The couple's baby names quest
+      description: |
+        Both parents only; a grandparent or nanny gets 404. Open before a birth (planning, trying, pregnancy) and not
+        in pregnancy loss support; otherwise 409 quest_closed. The lists the couple picked, each parent's progress,
+        the matches (names both parents love), names one loves and the other might, and the final round. A parent's
+        answer on a name is shown to the other only after they have answered it too.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamesQuest"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/names-quest/lists:
+    put:
+      operationId: setNameLists
+      tags: [together]
+      summary: Pick the heritage and culture lists the deck is built from
+      description: Shared by the couple; either parent can change it. 400 unknown_list for an id not in the catalog.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NameListsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamesQuest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/names-quest/deck:
+    get:
+      operationId: getNameDeck
+      tags: [together]
+      summary: The next cards for the acting parent to swipe
+      description: |
+        Names from the picked lists, plus names the other parent added by hand, that the acting parent has not
+        answered. Never says how the other parent answered. Names the other parent already answered come first so
+        matches can happen. At most 40 cards.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: sex
+          in: query
+          required: false
+          description: Only names mostly given to girls or to boys; gender-neutral names are always included.
+          schema:
+            $ref: "#/components/schemas/NameSex"
+        - name: minBabies
+          in: query
+          required: false
+          description: Rare vs popular, lower end. US babies given the name in the latest SSA year.
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxBabies
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameDeck"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/names-quest/swipes:
+    post:
+      operationId: swipeName
+      tags: [together]
+      summary: The acting parent answers a name (love, maybe, not for us)
+      description: |
+        Replaces the parent's earlier answer on the name. When both parents love it, the name joins the shared list
+        (GET baby-names) liked by both: a match. The response carries the other parent's answer only when they
+        have answered it.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NameSwipeInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NameSwipeResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/names-quest/swipes/{name}:
+    delete:
+      operationId: undoNameSwipe
+      tags: [together]
+      summary: Take back the acting parent's answer on a name (undo)
+      description: Idempotent. A match that loses its love leaves the shared list's both-like state.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 40
+      responses:
+        "204":
+          description: Undone
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/names-quest/duels:
+    post:
+      operationId: judgeNameDuel
+      tags: [together]
+      summary: The acting parent picks one of two finalists in the final round
+      description: |
+        Both names must be finalists (matches). 404 when a name is not. The final round opens at five matches;
+        409 final_locked before that.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NameDuelInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NamesQuest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/baby-names/{nameId}/like:
     put:
       operationId: likeBabyName
@@ -5187,7 +5461,7 @@ paths:
       tags: [together]
       summary: The acting parent takes back their like
       description: |
-        Both parents only; a grandparent or nanny gets 404. Idempotent. A name nobody likes stays on the list until
+        Both parents only; a grandparent or nanny gets 404. Idempotent. Also takes back a "love" from the names quest. A name nobody likes stays on the list until
         it is liked again; it sorts last.
       parameters:
         - $ref: "#/components/parameters/MemberId"
@@ -13769,6 +14043,243 @@ components:
         talkedAt:
           type: string
           format: date-time
+
+    NameSex:
+      type: string
+      description: girl or boy when most US babies with the name were one sex; neutral when at least a quarter were the other.
+      enum: [girl, boy, neutral]
+
+    NameVerdict:
+      type: string
+      enum: [love, maybe, "no"]
+
+    NamePopularity:
+      type: object
+      description: US Social Security Administration counts. A name missing from a year had fewer than 5 babies.
+      required: [babies, trend]
+      properties:
+        rank:
+          type: integer
+          description: Rank among names of the card's sex in the latest year (the better one for a neutral name).
+        babies:
+          type: integer
+          description: US babies given the name in the latest year, both sexes.
+        trend:
+          type: array
+          description: Babies given the name in each of NamesQuest.trendYears.
+          items:
+            type: integer
+
+    NameCard:
+      type: object
+      required: [name, lists]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The name's id on the shared list, once it is there (matches and hand-added names).
+        name:
+          type: string
+          example: Aoife
+        sex:
+          $ref: "#/components/schemas/NameSex"
+        lists:
+          type: array
+          description: Catalog lists the name is on; empty for a name added by hand that is not in the catalog.
+          items:
+            type: string
+          example: [irish]
+        origin:
+          type: string
+          description: Paraphrased from the cited entry; empty when no source gives one.
+          example: Irish
+        meaning:
+          type: string
+          example: radiance, beauty
+        sourceUrl:
+          type: string
+        popularity:
+          $ref: "#/components/schemas/NamePopularity"
+        addedBy:
+          type: string
+          format: uuid
+          description: Set for a name a parent added by hand.
+
+    NameDeck:
+      type: object
+      required: [items, remaining]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NameCard"
+        remaining:
+          type: integer
+          description: Cards left for this parent in the picked lists and filters, including these.
+
+    NameListOption:
+      type: object
+      required: [id, title, size]
+      properties:
+        id:
+          type: string
+          example: irish
+        title:
+          type: string
+          example: Irish
+        size:
+          type: integer
+
+    NameListsInput:
+      type: object
+      required: [lists]
+      properties:
+        lists:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: string
+            maxLength: 20
+
+    NameQuestProgress:
+      type: object
+      required: [memberId, swiped, judged]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        swiped:
+          type: integer
+        judged:
+          type: integer
+          description: Final-round pairs this parent has picked from.
+
+    NameQuestStage:
+      type: object
+      required: [id, done]
+      properties:
+        id:
+          type: string
+          enum: [lists, swipe, matches, final]
+        done:
+          type: boolean
+
+    NameVerdicts:
+      type: object
+      required: [card, mine, theirs]
+      properties:
+        card:
+          $ref: "#/components/schemas/NameCard"
+        mine:
+          $ref: "#/components/schemas/NameVerdict"
+        theirs:
+          $ref: "#/components/schemas/NameVerdict"
+
+    NamesQuest:
+      type: object
+      required: [lists, chosen, year, trendYears, sources, swipeGoal, matchGoal, progress, stages, matches, talkAbout, pairCount, nextPair, top]
+      properties:
+        lists:
+          type: array
+          items:
+            $ref: "#/components/schemas/NameListOption"
+        chosen:
+          type: array
+          items:
+            type: string
+        year:
+          type: integer
+          description: The latest SSA year in the catalog.
+          example: 2025
+        trendYears:
+          type: array
+          items:
+            type: integer
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+        swipeGoal:
+          type: integer
+          example: 30
+        matchGoal:
+          type: integer
+          example: 5
+        progress:
+          type: array
+          description: Both parents, the acting parent first.
+          items:
+            $ref: "#/components/schemas/NameQuestProgress"
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/NameQuestStage"
+        matches:
+          type: array
+          description: Names both parents love, newest first. The shortlist.
+          items:
+            $ref: "#/components/schemas/NameCard"
+        talkAbout:
+          type: array
+          description: Names both answered where one said love and the other maybe.
+          items:
+            $ref: "#/components/schemas/NameVerdicts"
+        pairCount:
+          type: integer
+          description: Final-round pairs each parent picks from; 0 until the final round opens.
+        nextPair:
+          type: array
+          description: The acting parent's next final-round pair, or empty.
+          items:
+            $ref: "#/components/schemas/NameCard"
+        top:
+          type: array
+          description: Up to three finalists by both parents' picks, best first. Empty until a pair is picked.
+          items:
+            $ref: "#/components/schemas/NameCard"
+        finishedAt:
+          type: string
+          format: date-time
+          description: When both parents finished the final round.
+
+    NameSwipeInput:
+      type: object
+      required: [name, verdict]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        verdict:
+          $ref: "#/components/schemas/NameVerdict"
+
+    NameSwipeResult:
+      type: object
+      required: [name, verdict, match]
+      properties:
+        name:
+          type: string
+        verdict:
+          $ref: "#/components/schemas/NameVerdict"
+        theirs:
+          $ref: "#/components/schemas/NameVerdict"
+        match:
+          type: boolean
+          description: True when both parents love the name.
+        card:
+          $ref: "#/components/schemas/NameCard"
+
+    NameDuelInput:
+      type: object
+      required: [winnerId, loserId]
+      properties:
+        winnerId:
+          type: string
+          format: uuid
+        loserId:
+          type: string
+          format: uuid
 
     BabyNameInput:
       type: object

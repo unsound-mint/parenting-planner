@@ -73,11 +73,28 @@ type BabyName struct {
 	CreatedAt time.Time
 }
 
+type BabyNameDuel struct {
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	LowID    uuid.UUID
+	HighID   uuid.UUID
+	WinnerID uuid.UUID
+	JudgedAt time.Time
+}
+
 type BabyNameLike struct {
 	NameID    uuid.UUID
 	FamilyID  uuid.UUID
 	MemberID  uuid.UUID
 	CreatedAt time.Time
+}
+
+type BabyNameSwipe struct {
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	Name     string
+	Verdict  string
+	SwipedAt time.Time
 }
 
 type BirthCostPlan struct {
@@ -464,6 +481,13 @@ type MoodScreeningDraft struct {
 	Instrument    string
 	Answers       []int16
 	UpdatedAt     time.Time
+}
+
+type NamesQuest struct {
+	FamilyID  uuid.UUID
+	Lists     []string
+	UpdatedBy uuid.UUID
+	UpdatedAt time.Time
 }
 
 type Notification struct {
