@@ -157,6 +157,10 @@ func (s *Server) contentState(ctx context.Context, familyID uuid.UUID) (content.
 	if n := len(kids); n > 0 {
 		// ListChildren is oldest first; the youngest decides the content.
 		st.HasChild, st.AgeMonths = true, monthsBetween(kids[n-1].BirthDate, today)
+		// The stored stage is set once (at sign-up or "Baby is home") and does
+		// not move as the child grows, so after a birth the age decides: a
+		// child who turned one on the demo clock gets toddler content.
+		st.Stage = content.StageAfterBirth(fam.Stage, st.AgeMonths)
 	}
 	return st, true, nil
 }

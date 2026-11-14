@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import type { Family } from "@/lib/api/types";
+import type { Stage } from "@/lib/api/types";
 import { serverApi } from "@/lib/api/server";
 import { optional } from "@/components/today/slots";
 import { requireParent } from "@/lib/guard";
@@ -8,6 +8,7 @@ import { countWord } from "@/lib/format";
 import { lessonAction, lessonsFor } from "@/lib/learn";
 import { inLossSupport } from "@/lib/loss";
 import { hasOlderChild, isPlanning } from "@/lib/stage";
+import { WeeklyReadCard } from "@/components/learn/weekly-read";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame } from "@/components/shell/page";
 import { helpHref } from "@/components/shell/urgent-help-link";
@@ -30,14 +31,19 @@ export default function LearnPage({ params, searchParams }: PageProps<"/family/[
   );
 }
 
-const forWhen = (family: Family) =>
-  family.stage === "pregnancy"
-    ? "the months before you meet"
-    : family.stage === "postpartum" || family.stage === "infant"
-      ? "the first year"
-      : isPlanning(family)
-        ? "getting ready"
-        : "this age";
+// Follows the content stage the API filtered the paths by (the child's age
+// after a birth), not the stage stored at sign-up: a baby who turned one on the
+// demo clock is in the toddler years, not "the first year".
+const forWhen: Record<Stage, string> = {
+  planning: "getting ready",
+  trying: "getting ready",
+  pregnancy: "the months before you meet",
+  postpartum: "the first weeks at home",
+  infant: "the first year",
+  toddler: "the toddler years",
+  preschool: "the preschool years",
+  school_age: "the school years",
+};
 
 async function Learn({ params, searchParams }: { params: Promise<{ memberId: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const { memberId } = await params;
@@ -45,7 +51,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, paths, together, journey, simulator, guides, plan, tasks, questions] = await Promise.all([
+  const [family, paths, together, journey, simulator, guides, plan, tasks, questions, weekly] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/learning-paths", path),
     optional(api.GET("/members/{memberId}/together", path)),
@@ -55,6 +61,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
     api.GET("/members/{memberId}/plan", path),
     optional(api.GET("/members/{memberId}/tasks", path)),
     optional(api.GET("/members/{memberId}/appointment-questions", path)),
+    optional(api.GET("/members/{memberId}/weekly-reads", path)),
   ]);
   if (family.response.status === 401) redirect("/");
   if (!family.data) notFound();
@@ -72,7 +79,8 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
 
   // The same gate as the nav (layout.tsx): newborn practice is baby prep, so
   // none in loss support (handled above), while planning, or past toddler age.
-  const practice = simulator.data && !isPlanning(family.data) && !hasOlderChild(family.data) ? simulator.data : undefined;
+  const stage = { stage: paths.data?.stage ?? family.data.stage };
+  const practice = simulator.data && !isPlanning(stage) && !hasOlderChild(stage) ? simulator.data : undefined;
 
   // A guide whose step is "practice this" points at the Practice section above it, so it is left out when that section shows.
   const steps = (guides.data ? lessonsFor(guides.data.items, plan.data?.items ?? []) : []).filter((g) => !(practice && lessonAction(g).kind === "practice"));
@@ -87,12 +95,18 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
         <div className="min-w-0">
           <h1 className="text-headline">Learn together</h1>
           <p className="mt-1.5 max-w-prose text-body text-ink-2">
-            {items.length > 0 ? `${countWord(items.length)} ${items.length === 1 ? "path" : "paths"} for ${forWhen(family.data)}. ` : ""}
+            {items.length > 0 ? `${countWord(items.length)} ${items.length === 1 ? "path" : "paths"} for ${forWhen[stage.stage]}. ` : ""}
             {them ? "A few unhurried minutes a week, side by side." : "A few unhurried minutes a week."}
           </p>
         </div>
         {journey && <JourneyStrip journey={journey} memberId={memberId} className="@7xl:max-w-[50rem] @7xl:flex-nowrap" />}
       </Rise>
+
+      {weekly && weekly.items.length > 0 && (
+        <Rise i={1}>
+          <WeeklyReadCard key={memberId} items={weekly.items} current={weekly.current} />
+        </Rise>
+      )}
 
       {items.length > 0 && (
         <LearnBoard

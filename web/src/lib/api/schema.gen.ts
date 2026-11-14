@@ -1829,6 +1829,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/weekly-reads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * This week's read and the ones before and after it
+         * @description Both parents only; a grandparent or nanny gets 404. One short read
+         *     for every pregnancy week (1 to 40), every week of the first year
+         *     (weeks 0 to 52 of life), every month from 12 to 35 months and every
+         *     year from 3 to 8 (8 also serves older children), from the embedded
+         *     content (api/internal/content/learn_weeks_*.json). A pregnant family
+         *     gets the pregnancy weeks, a family after a birth gets the youngest
+         *     child's track, and a family getting ready gets one read. `current`
+         *     is the index of today's read on the family's demo clock, so "Skip a
+         *     week" moves it. Reads are informational and link the public pages
+         *     they paraphrase; none is medical advice.
+         */
+        get: operations["listWeeklyReads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/lesson-reads/{lessonId}": {
         parameters: {
             query?: never;
@@ -2201,8 +2230,10 @@ export interface paths {
          * The child's developmental milestone checklist for their age
          * @description Mother or partner only; a grandparent or nanny gets 404, like the
          *     health passport. Returns the CDC "Learn the Signs. Act Early."
-         *     checklist for the child's age (the latest of the 2, 3, 4 and 5 year
-         *     checklists the child has reached). `observed` is what a parent
+         *     checklist for the child's age on the family's demo clock: the one
+         *     the child is heading to or has just reached (2, 4, 6, 9, 12, 15, 18,
+         *     24, 30, 36, 48 or 60 months; a child of 23 months gets 24, of 25
+         *     months 30; past 60 months it stays 60). `observed` is what a parent
          *     ticked. A milestone that is not ticked is a prompt to watch for it
          *     and mention it at the next visit; the API and the UI never call it a
          *     delay or a diagnosis. 404 for a child not in the family.
@@ -5019,6 +5050,39 @@ export interface components {
          * @enum {string}
          */
         LessonTiming: "upcoming" | "now" | "past";
+        /** @enum {string} */
+        WeeklyReadKind: "planning" | "pregnancy_week" | "baby_week" | "month" | "year";
+        WeeklyRead: {
+            /**
+             * @description Stable key, the kind and its number, for example pregnancy_week-12.
+             * @example baby_week-4
+             */
+            id: string;
+            kind: components["schemas"]["WeeklyReadKind"];
+            /** @description Pregnancy week, week of life (0 is the first 7 days), completed months or completed years. */
+            n: number;
+            /** @example Week 5 */
+            label: string;
+            title: string;
+            body: string;
+            /**
+             * Format: date
+             * @description First day of the week, month or year on the family's calendar. Absent for the planning read.
+             */
+            startsOn?: string;
+            /**
+             * Format: date
+             * @description Last day. Absent for the planning read, pregnancy week 40 (it lasts until the birth) and the last year, which stays open.
+             */
+            endsOn?: string;
+            sources: components["schemas"]["Source"][];
+        };
+        WeeklyReadList: {
+            /** @description The family's whole track in order (oldest first, unlike other lists, so it can be browsed week by week). */
+            items: components["schemas"]["WeeklyRead"][];
+            /** @description Index of today's read in items. */
+            current: number;
+        };
         LearningPathList: {
             stage: components["schemas"]["Stage"];
             /**
@@ -5437,7 +5501,7 @@ export interface components {
         MilestoneChecklist: {
             /** Format: uuid */
             childId: string;
-            /** @description Which CDC checklist this is (24, 36, 48 or 60). */
+            /** @description Which CDC checklist this is, in months (2, 4, 6, 9, 12, 15, 18, 24, 30, 36, 48 or 60). */
             checklistAgeMonths: number;
             items: components["schemas"]["Milestone"][];
             source: components["schemas"]["Source"];
@@ -10515,6 +10579,55 @@ export interface operations {
             };
         };
     };
+    listWeeklyReads: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyReadList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     updateLessonRead: {
         parameters: {
             query?: never;
@@ -11713,15 +11826,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     setChildMilestone: {
@@ -11779,15 +11883,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

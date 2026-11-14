@@ -1,4 +1,4 @@
-import type { Family, PlanItemStatus, Stage } from "@/lib/api/types";
+import type { Child, Family, PlanItemStatus, Stage } from "@/lib/api/types";
 
 // Dates from the API are plain ISO dates (YYYY-MM-DD). Format them in UTC so a
 // date never shifts by a day in the visitor's time zone.
@@ -36,6 +36,29 @@ export const stageLabel: Record<Stage, string> = {
   school_age: "School age",
 };
 
+// A family made from the landing page's own details stores "Baby" when no child
+// name was typed (api/internal/demo/custom.go), so that name means "not named".
+const UNNAMED_CHILD = "Baby";
+
+/** The child's name, or undefined when none was given (or it is not a name, like "-"). */
+export function givenName(child: Pick<Child, "name">): string | undefined {
+  const name = child.name.trim();
+  return name && name !== UNNAMED_CHILD && /\p{L}/u.test(name) ? name : undefined;
+}
+
+/** The child in prose: their name, else "your baby" (under a year) or "your child". */
+export function childCalled(child: Pick<Child, "name" | "ageMonths">, { capital = false } = {}): string {
+  const name = givenName(child);
+  if (name) return name;
+  const word = child.ageMonths < 12 ? "your baby" : "your child";
+  return capital ? word[0].toUpperCase() + word.slice(1) : word;
+}
+
+/** A person's display name, or the fallback when it holds no letters (a "-" typed on the landing page). */
+export function personName(name: string | undefined, fallback: string): string {
+  return name && /\p{L}/u.test(name) ? name.trim() : fallback;
+}
+
 /** One line under the greeting: where the family is right now. */
 // Empty in pregnancy loss support: no week, no due date, and not "Planning" either.
 export function familyContext(family: Family): string {
@@ -49,10 +72,10 @@ export function familyContext(family: Family): string {
     const m = child.ageMonths;
     // Under 3 months parents count in weeks, like the plan item ("7 weeks old") does.
     const days = Math.floor((Date.now() + (family.demoDaysAhead ?? 0) * 86_400_000 - Date.parse(`${child.birthDate}T00:00:00Z`)) / 86_400_000);
-    if (child.birthDate && days >= 7 && days < 84) return `${child.name}, ${Math.floor(days / 7)} weeks`;
     // From 24 months it is always 2 or more years, so only months need the singular.
-    const age = m < 24 ? `${m} ${m === 1 ? "month" : "months"}` : `${Math.floor(m / 12)} years`;
-    return `${child.name}, ${age}`;
+    const age = child.birthDate && days >= 7 && days < 84 ? `${Math.floor(days / 7)} weeks` : m < 24 ? `${m} ${m === 1 ? "month" : "months"}` : `${Math.floor(m / 12)} years`;
+    const name = givenName(child);
+    return name ? `${name}, ${age}` : `${age} old`;
   }
   return stageLabel[family.stage];
 }

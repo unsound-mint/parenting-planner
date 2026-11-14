@@ -8,6 +8,7 @@ import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
 import { careLogIcon, careLogLabel, careLogTint, diaperLabel, feedMethodLabel, roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { AllergyChips, AllergyLabel, BabyCard } from "@/components/baby/baby-card";
+import { MilestoneCard } from "@/components/child/milestone-card";
 import { QuickAdd, WhenPicker, WhenProvider, type QuickAction } from "@/components/baby/care-logger";
 import { DayTimeline } from "@/components/baby/day-timeline";
 import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
@@ -60,13 +61,16 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [log, handoffs, passport, voiceProbe] = await Promise.all([
+  const parent = !isCaregiver(me.role);
+  const [log, handoffs, passport, voiceProbe, milestones] = await Promise.all([
     canLog ? api.GET("/members/{memberId}/care-log", path) : undefined,
     canLog ? api.GET("/members/{memberId}/handoffs", path) : undefined,
     canCard ? api.GET("/members/{memberId}/children/{childId}/passport", { params: { path: { memberId, childId: child.id } } }) : undefined,
     // Probe: a read of a note that cannot exist is 404 once voice notes work and 501 before.
     // Preview mocks cover the upload but not audio, so in preview the recorder stays on.
     canLog ? api.GET("/members/{memberId}/voice-notes/{voiceNoteId}", { params: { path: { memberId, voiceNoteId: NO_NOTE } }, parseAs: "stream" }) : undefined,
+    // The CDC checklist the baby is heading to (2, 4, 6, 9 or 12 months); parents only, like the API.
+    parent ? api.GET("/members/{memberId}/children/{childId}/milestones", { params: { path: { memberId, childId: child.id } } }) : undefined,
   ]);
   const voice = previewMocksEnabled || (voiceProbe !== undefined && voiceProbe.response.status !== 501);
   if (log?.response.status === 401) redirect("/");
@@ -183,6 +187,12 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         )}
         {passport?.data && <BabyCard passport={passport.data} />}
       </aside>
+
+      {milestones?.data && (
+        <div className="min-w-0 @5xl:col-span-2">
+          <MilestoneCard memberId={memberId} childId={child.id} checklist={milestones.data} />
+        </div>
+      )}
     </PageFrame>
   );
 }

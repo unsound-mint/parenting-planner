@@ -1,5 +1,6 @@
 import { Phone, ShieldCheck, ShieldAlert, Stethoscope, Syringe } from "lucide-react";
 import type { ChildPassport } from "@/lib/api/types";
+import { personName } from "@/lib/format";
 import { allergyIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 
@@ -64,7 +65,7 @@ export function BabyCard({ passport }: { passport: ChildPassport }) {
           <Contact icon={<Stethoscope aria-hidden className="size-4" />} name={pediatrician.name} sub={pediatrician.clinic} phone={pediatrician.phone} />
         )}
         {emergencyContacts.map((c) => (
-          <Contact key={c.phone} icon={<Phone aria-hidden className="size-4" />} name={c.name} sub={c.relation} phone={c.phone} />
+          <Contact key={c.phone} icon={<Phone aria-hidden className="size-4" />} name={personName(c.name, c.relation)} sub={c.relation} phone={c.phone} />
         ))}
       </ul>
       {vaccines && (

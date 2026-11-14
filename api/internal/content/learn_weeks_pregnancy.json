@@ -1,0 +1,599 @@
+{
+  "about": "Planning plus pregnancy weeks 1 to 40: each body is our own plain-language paraphrase of the linked NHS, CDC, NICHD and womenshealth.gov pages, with weeks 1 to 3 counted from the last period.",
+  "sources": {
+    "cdc-planning": {
+      "title": "CDC: Planning for pregnancy",
+      "url": "https://www.cdc.gov/pregnancy/about/index.html",
+      "checkedAt": "2026-11-15"
+    },
+    "whg-preconception": {
+      "title": "womenshealth.gov: Preconception health",
+      "url": "https://womenshealth.gov/pregnancy/you-get-pregnant/preconception-health",
+      "checkedAt": "2026-11-15"
+    },
+    "nichd-preconception": {
+      "title": "NICHD: Pre-pregnancy care and prenatal care",
+      "url": "https://www.nichd.nih.gov/health/topics/factsheets/preconceptioncare",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-trying": {
+      "title": "NHS: Trying to get pregnant",
+      "url": "https://www.nhs.uk/pregnancy/trying-for-a-baby/trying-to-get-pregnant/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-4": {
+      "title": "NHS: 4 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-4/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-5": {
+      "title": "NHS: 5 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-5/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-6": {
+      "title": "NHS: 6 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-6/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-7": {
+      "title": "NHS: 7 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-7/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-8": {
+      "title": "NHS: 8 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-8/",
+      "checkedAt": "2026-11-15"
+    },
+    "nichd-prenatal": {
+      "title": "NICHD: What happens during prenatal visits",
+      "url": "https://www.nichd.nih.gov/health/topics/preconceptioncare/conditioninfo/prenatal-visits",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-9": {
+      "title": "NHS: 9 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-9/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-10": {
+      "title": "NHS: 10 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-10/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-11": {
+      "title": "NHS: 11 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-11/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-12": {
+      "title": "NHS: 12 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/1st-trimester/week-12/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-13": {
+      "title": "NHS: 13 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-13/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-14": {
+      "title": "NHS: 14 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-14/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-15": {
+      "title": "NHS: 15 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-15/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-16": {
+      "title": "NHS: 16 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-16/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-17": {
+      "title": "NHS: 17 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-17/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-18": {
+      "title": "NHS: 18 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-18/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-19": {
+      "title": "NHS: 19 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-19/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-20": {
+      "title": "NHS: 20 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-20/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-21": {
+      "title": "NHS: 21 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-21/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-22": {
+      "title": "NHS: 22 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-22/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-23": {
+      "title": "NHS: 23 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-23/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-24": {
+      "title": "NHS: 24 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-24/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-25": {
+      "title": "NHS: 25 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-25/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-26": {
+      "title": "NHS: 26 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-26/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-27": {
+      "title": "NHS: 27 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/2nd-trimester/week-27/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-28": {
+      "title": "NHS: 28 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-28/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-29": {
+      "title": "NHS: 29 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-29/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-30": {
+      "title": "NHS: 30 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-30/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-31": {
+      "title": "NHS: 31 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-31/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-32": {
+      "title": "NHS: 32 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-32/",
+      "checkedAt": "2026-11-15"
+    },
+    "cdc-warning-signs": {
+      "title": "CDC: Urgent maternal warning signs",
+      "url": "https://www.cdc.gov/hearher/maternal-warning-signs/index.html",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-33": {
+      "title": "NHS: 33 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-33/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-34": {
+      "title": "NHS: 34 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-34/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-35": {
+      "title": "NHS: 35 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-35/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-36": {
+      "title": "NHS: 36 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-36/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-37": {
+      "title": "NHS: 37 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-37/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-38": {
+      "title": "NHS: 38 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-38/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-39": {
+      "title": "NHS: 39 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-39/",
+      "checkedAt": "2026-11-15"
+    },
+    "nhs-week-40": {
+      "title": "NHS: 40 weeks pregnant guide",
+      "url": "https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/3rd-trimester/week-40/",
+      "checkedAt": "2026-11-15"
+    }
+  },
+  "entries": [
+    {
+      "kind": "planning",
+      "n": 0,
+      "title": "Getting ready before you try",
+      "body": "CDC, womenshealth.gov and NICHD all describe planning as something that starts before pregnancy, ideally a few months ahead. They mention a visit with a doctor to go over health history, medicines, vaccines, folic acid and habits like smoking or alcohol. Partners have a part too, for example sharing family health history. Pick an evening to talk about timing, work, money and what each of you wants to ask the doctor.",
+      "sources": [
+        "cdc-planning",
+        "whg-preconception",
+        "nichd-preconception"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 1,
+      "title": "Counting starts with your period",
+      "body": "Pregnancy weeks are counted from the first day of the last period, so in week 1 you are not pregnant yet. The NHS says the chance of conceiving is highest around ovulation, which comes roughly two weeks before the next period, and that cycle length shifts the timing. CDC suggests talking with a doctor before pregnancy about health, medicines and vaccines. Share with each other how you feel about waiting and hoping.",
+      "sources": [
+        "nhs-trying",
+        "cdc-planning"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 2,
+      "title": "Ovulation and the waiting game",
+      "body": "The NHS explains that an egg is released at ovulation and that this is when pregnancy is most likely. Cycles differ, so the timing differs too. It also says how long conceiving takes varies with age, general health and how often you have sex, and that questions are worth bringing to a doctor. A shared calendar can help, but a kind check-in about pressure and expectations may help you both more.",
+      "sources": [
+        "nhs-trying"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 3,
+      "title": "Before a test can tell you anything",
+      "body": "Most people feel nothing special in week 3. The NHS guide for the week after describes an embryo about the size of a poppy seed and notes that many people have no symptoms yet. The NHS page on trying for a baby also mentions smoking, alcohol and prescribed medicines: ask a doctor before stopping any medicine. Agree together how you will handle the day you decide to take a test.",
+      "sources": [
+        "nhs-trying",
+        "nhs-week-4"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 4,
+      "title": "A poppy seed in a protective sac",
+      "body": "The embryo is about 2 mm long, close to a poppy seed, and rests in a fluid-filled sac with a small yolk sac feeding it. Most people look the same as always, though a missed period, sore breasts or tiredness can appear. The NHS suggests booking with a midwife or doctor and says any bleeding should be checked. Decide today who will make that call.",
+      "sources": [
+        "nhs-week-4"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 5,
+      "title": "Heart and brain take shape",
+      "body": "The embryo is about the size of a sesame seed this week. The NHS describes the brain and spinal cord forming, the heart starting to beat around now, and the placenta beginning to grow. You may notice tiredness, tender breasts or a metallic taste. If worry or stress builds up, tell your midwife or doctor. A good question for the other parent to ask: what would help most this week?",
+      "sources": [
+        "nhs-week-5"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 6,
+      "title": "Pea-sized, with tiny limb buds",
+      "body": "Your baby is about the size of a pea. Small limb buds are forming, dents mark where the ears will be, and the liver, brain and skeleton are starting to develop. The NHS says nausea is often worst after waking and mentions small frequent meals and rest as things that help. Bring anything that worries you to your midwife or doctor. Partners can take over chores that smells or tiredness make hard.",
+      "sources": [
+        "nhs-week-6"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 7,
+      "title": "Grape-sized and growing fast",
+      "body": "At about 10 mm, roughly a grape, the baby has a big head, dimples where the nose and ears will form, and eyelids beginning to grow. The brain and spinal cord are developing quickly. The NHS links rising blood volume to thirst, headaches, tiredness and mood changes. Mention unusual symptoms or bleeding to your doctor or midwife. Ask each other how the mood swings feel from the inside and what kind of support is welcome.",
+      "sources": [
+        "nhs-week-7"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 8,
+      "title": "A raspberry and a first appointment",
+      "body": "Your baby is about 16 mm long, the size of a raspberry, and is now called a fetus. The head is straightening and the arms are longer than the legs. The NHS says the booking appointment usually falls between weeks 8 and 12, with a dating scan offered between 8 and 14 weeks. NICHD describes the first prenatal visit as a long one. Write your questions down together before you go.",
+      "sources": [
+        "nhs-week-8",
+        "nichd-prenatal"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 9,
+      "title": "A face starts to appear",
+      "body": "At about 22 mm, strawberry-sized, your baby has eyelids, a small mouth and a tongue. Hands and feet are forming, though fingers and toes are not separate yet, and major organs and bones are developing. You may notice fuller breasts, a thicker waist or nausea. The NHS stresses rest and support from the people around you. If you feel low or anxious, your midwife or doctor can help. Offer to cook or shop so rest actually happens.",
+      "sources": [
+        "nhs-week-9"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 10,
+      "title": "Baby teeth are already forming",
+      "body": "At about 30 mm, apricot-sized, the face looks more in proportion, the eyes respond to light and teeth are forming under the gums. Small jerky movements can show on a scan. The NHS ties bloating, burping and heartburn to hormones relaxing the digestive muscles, and mentions smaller meals and short walks. Ask your midwife about anything that worries you. A slow walk together after dinner fits the bill.",
+      "sources": [
+        "nhs-week-10"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 11,
+      "title": "Fingers and toes separate",
+      "body": "Your baby is about 41 mm long, fig-sized. Fingers and toes are separating, and fingernails and ears are forming. The placenta is about to take over feeding from the yolk sac. A bigger blood volume can leave you feeling hot or dizzy, on top of tiredness and emotional swings. The NHS mentions gentle walking for tiredness and a dating scan between weeks 8 and 14. Check together that your appointments are booked.",
+      "sources": [
+        "nhs-week-11"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 12,
+      "title": "Plum-sized, with working organs",
+      "body": "Your baby is about 5.4 cm long, plum-sized. Internal organs and muscles have formed, bones are starting to harden, and a heartbeat can be seen on an early scan. As sickness eases, appetite may come back and your waist may thicken. The NHS says you do not need to eat for two and that weight gain mostly comes later. Raise questions with your midwife or doctor. Talk about when and how you want to share the news.",
+      "sources": [
+        "nhs-week-12"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 13,
+      "title": "Thumb-sucking practice",
+      "body": "About 7.4 cm and peach-sized, your baby makes jerky movements that slowly become smoother, and some babies suck their thumbs, which builds the reflex needed for feeding. A small bump may show, and constant bathroom trips often ease. The NHS suggests starting gentle daily activity such as a short walk. Many parents do not feel movement until around week 17. Take a first bump photo together.",
+      "sources": [
+        "nhs-week-13"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 14,
+      "title": "A rounder head and a heartbeat",
+      "body": "Your baby is about 8.5 cm, kiwi-sized, with a rounder head. They are moving, though you probably cannot feel it, and have started passing urine into the amniotic fluid. A midwife may hear the heartbeat with a handheld monitor. Energy and appetite may return, and the NHS says the baby needs no extra calories. Ask your midwife what the next visit covers, and plan for both of you to attend if you can.",
+      "sources": [
+        "nhs-week-14"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 15,
+      "title": "Your voice may carry through",
+      "body": "At roughly 10 cm, apple-sized, your baby is covered in fine hair called lanugo, with eyebrows and eyelashes forming. The eyes respond to light and hearing is developing, so your voice and heartbeat may come through. Twinges at the sides of the bump are common as the womb stretches. The NHS says to tell your doctor or midwife if discharge changes color or smell, or brings pain or itching. Read a page aloud together this evening.",
+      "sources": [
+        "nhs-week-15"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 16,
+      "title": "Avocado-sized, making fists",
+      "body": "About 11.6 cm and avocado-sized, your baby can move arms and legs and make fists, though facial expressions are not under control yet. At a midwife visit your weight, blood pressure and urine may be checked, and you might hear the heartbeat for the first time. Constipation, bloating and round ligament pain are common, and the NHS mentions fiber, water and activity. Ask what upcoming visits cover, and let your partner take notes.",
+      "sources": [
+        "nhs-week-16"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 17,
+      "title": "Eyes move behind closed lids",
+      "body": "At 12 cm, pomegranate-sized, your baby moves their eyes under closed lids, reacts to loud noises and opens and closes their mouth. Fingernails are forming and fingerprints are unique. Flutters or rolling movements often begin between weeks 18 and 24. The NHS suggests thinking about where you would like to give birth. Look into the options together, and ask your midwife what is available near you.",
+      "sources": [
+        "nhs-week-17"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 18,
+      "title": "First flutters, maybe",
+      "body": "About 14.2 cm, bell pepper-sized, your baby wriggles while hearing, touch, swallowing and sucking develop. You may feel fluttering or bubbling that is easy to mistake for wind. Lower blood pressure can make you dizzy if you stand up fast. The NHS says a mid-pregnancy scan, which it calls the anomaly scan, is usually offered around weeks 18 to 20; ask your midwife to explain it. Talk beforehand about what you hope to see.",
+      "sources": [
+        "nhs-week-18"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 19,
+      "title": "Adult teeth are forming too",
+      "body": "Your baby is about 15.3 cm, beef tomato-sized. Adult teeth are forming behind the baby teeth, and weight is going up steadily. Bubbling feelings could be your baby moving. Leg cramps and round ligament pain are common. The NHS suggests lying on your side with pillows for better sleep and mentions antenatal classes, including online ones. Look at classes together and pick one.",
+      "sources": [
+        "nhs-week-19"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 20,
+      "title": "Halfway there",
+      "body": "You have reached the halfway mark. Your baby is about 25.6 cm from head to heel, banana-length, with a waxy coat on the skin, and sucks a thumb to practise feeding. Gentle bubbling or fluttering may be felt. The NHS mentions the anomaly scan and the whooping cough vaccine as things to discuss with your midwife. Mark the halfway point with a dinner, a walk or a letter to the baby.",
+      "sources": [
+        "nhs-week-20"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 21,
+      "title": "Heavier than the placenta",
+      "body": "Your baby is about 26.7 cm, carrot-sized, and now weighs more than the placenta. Lanugo is forming, and hair and eyebrows are developing. Sounds from outside the womb can be heard, and your baby practises sucking and breathing. You may feel less steady as the bump grows, with backache or heartburn. The NHS suggests asking about the whooping cough vaccine. Pick a favorite song to share with the bump.",
+      "sources": [
+        "nhs-week-21"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 22,
+      "title": "Lungs and taste buds",
+      "body": "At about 27.8 cm, sweet potato-sized, your baby practises breathing and swallows small amounts of amniotic fluid, and taste buds are forming. Stretch marks, piles, round ligament pain and darker skin patches can appear. The NHS says to contact a midwife or doctor for severe pain or any bleeding, and suggests talking or singing to the bump. Choose a lullaby you might both use, and ask your midwife about vaccines offered in pregnancy.",
+      "sources": [
+        "nhs-week-22"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 23,
+      "title": "Sleep and wake patterns begin",
+      "body": "About 28.9 cm and mango-sized, your baby has limbs in proportion, practises breathing and is starting to settle into sleep and wake patterns. You may feel more kicks and see the bump move, with rib pain, breathlessness or early milk leaking. The NHS says to speak to your midwife if movements slow down. Rest when you can, and let your partner rest a hand on the bump and ask how the day felt.",
+      "sources": [
+        "nhs-week-23"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 24,
+      "title": "Viable with specialist care",
+      "body": "Your baby is about 30 cm long, sweetcorn-length. The NHS calls this the point where a baby might survive outside the womb with specialist neonatal care, though still much smaller than at full term. You may feel hungrier; the NHS says extra calories are not needed until the third trimester. Back, rib and belly aches are common. Start a shared note for birth preferences and write down what matters to each of you.",
+      "sources": [
+        "nhs-week-24"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 25,
+      "title": "Hiccups and jolts",
+      "body": "About 34.6 cm and zucchini-sized, your baby is very active, may jolt at loud sounds, and you may feel hiccups. Most of the fluid around them is now urine, which cushions and warms. Puffiness in the face, hands or feet can appear; the NHS says to mention swelling to your midwife, who will check your blood pressure. The NHS also suggests planning contraception for after the birth. Talk it over together, with no rush to decide.",
+      "sources": [
+        "nhs-week-25"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 26,
+      "title": "Eyes open for the first time",
+      "body": "About 35.6 cm and cucumber-sized, your baby's eyes are opening and blinking is being learned. Eye color depends on genes and can keep changing, usually settling around age three. You may feel more tired, clumsy or forgetful, with leg cramps at night. The NHS says to contact your midwife straight away if movements slow or stop. Guess your baby's eye color together, and ask your midwife about foot exercises for cramps.",
+      "sources": [
+        "nhs-week-26"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 27,
+      "title": "Lungs can breathe now",
+      "body": "About 36.6 cm and cauliflower-sized, your baby has lungs that can breathe and fat filling out the skin. Tiredness, snoring, heartburn, constipation and swollen hands or feet are common. The NHS recommends sleeping on your side with a pillow under the bump, since back sleeping is linked to higher stillbirth risk after week 28. It also says this may be the last week to fly without a fitness-to-fly note, so check airline rules and ask your midwife.",
+      "sources": [
+        "nhs-week-27"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 28,
+      "title": "Third trimester begins",
+      "body": "Your baby is about 37.6 cm, eggplant-sized, with a heart rate around 140 beats a minute, still faster than yours. Heartburn, backache, looser joints, nosebleeds and poor sleep are common. The NHS says swelling of ankles, feet or face is often water retention but should be checked. It mentions the RSV and whooping cough vaccines and choosing a safe cot. Ask your midwife which vaccines fit you, and look at sleep spaces together.",
+      "sources": [
+        "nhs-week-28"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 29,
+      "title": "Fully formed, still maturing",
+      "body": "Your baby is about 38.6 cm, butternut squash-sized. The body is fully formed, and over the next weeks organs mature and fat builds up. The white coating on the skin starts to fade. You may feel breathless, get leg cramps or wake to use the bathroom. The NHS says to tell your midwife or hospital if movement patterns change. Rest on your side with pillows, and talk about how work and home tasks will shift.",
+      "sources": [
+        "nhs-week-29"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 30,
+      "title": "Eyes can focus",
+      "body": "About 40 cm and cabbage-sized, your baby can now focus their eyes, and vision keeps developing after birth. Stairs may leave you breathless as the baby presses on your lungs, and vivid dreams are common. The NHS suggests getting the whooping cough vaccine before week 33 and asking your midwife or doctor about the RSV vaccine. Swap dreams over breakfast, and jot down questions for your next appointment.",
+      "sources": [
+        "nhs-week-30"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 31,
+      "title": "Recognising voices",
+      "body": "About 41 cm and coconut-sized, your baby is very active, sucking fingers and sometimes somersaulting. They can start to recognise voices from outside the womb, so talking to the bump may help you bond. You may feel practice contractions, backache and leg cramps. The NHS says to contact your midwife or doctor if contractions become painful or regular. It also suggests planning how to feed your baby and preparing a safe sleep space.",
+      "sources": [
+        "nhs-week-31"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 32,
+      "title": "Head down, for most babies",
+      "body": "About 42 cm, roughly a bunch of celery, your baby is building fat to stay warm after birth. Most babies are head down by now, and there is time to turn if not. The NHS says movements should continue at a similar rate, and to contact your midwife or hospital at once if they change. CDC lists urgent warning signs worth knowing. Walk through your plan for getting to the hospital together.",
+      "sources": [
+        "nhs-week-32",
+        "cdc-warning-signs"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 33,
+      "title": "Pack the hospital bag",
+      "body": "About 43.7 cm and pineapple-sized, your baby has a fully developed brain and nervous system, and most bones are hardening. The skull stays soft and separated so the head can pass more easily through the birth canal. You may notice pelvic pressure, practice tightenings and heartburn. The NHS suggests packing your hospital bag and planning how you will get home with a car seat. Pack the bag together and try a practice drive.",
+      "sources": [
+        "nhs-week-33"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 34,
+      "title": "Curled up and settling lower",
+      "body": "About 45 cm and cantaloupe-sized, your baby is tightly curled with legs drawn toward the chest. As they settle lower you may breathe more easily and have less heartburn, but make more bathroom trips and find walking harder. The NHS suggests sleeping on your side and asking your midwife about antenatal classes and newborn screening. Ask what screening involves, and bring your partner along.",
+      "sources": [
+        "nhs-week-34"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 35,
+      "title": "Strong, regular movements",
+      "body": "About 46 cm and honeydew-sized, your baby is gaining fat to stay warm after birth. The womb is crowded, but movements should still feel strong and regular, and the NHS says to contact your midwife or doctor if they change or stop. You may notice Braxton Hicks tightening, rib discomfort or early breast leakage. Save your care team's numbers in both phones, and decide who calls whom.",
+      "sources": [
+        "nhs-week-35"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 36,
+      "title": "Lungs ready, labor not yet",
+      "body": "About 47 cm and romaine lettuce-length, your baby has lungs likely mature enough to breathe unaided and can suck and digest milk. They may have moved head down into the pelvis, though labor could still be weeks away. Leaking urine when you laugh and painless practice contractions are common. The NHS says to keep your antenatal appointments. If you feel low or anxious, tell your midwife or doctor. Sort out who covers pets or other children.",
+      "sources": [
+        "nhs-week-36"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 37,
+      "title": "Full term",
+      "body": "The NHS calls 37 weeks full term, so your baby is likely developed enough to manage outside the womb, though labor could be weeks away. At about 48.6 cm, leek-length, they may practise facial expressions. The bump may drop, discharge may increase and nesting energy may arrive. The NHS suggests asking your midwife about group B strep, learning labor signs and watching for postnatal depression. Talk about how you will support each other in the first weeks.",
+      "sources": [
+        "nhs-week-37"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 38,
+      "title": "Nearly there",
+      "body": "Your baby is about 50 cm, a stick of rhubarb in length. Most fine downy hair has gone, and a dark sticky substance called meconium has built up, usually passed as the first poo after birth. You may notice Braxton Hicks, backache, swollen hands or mood changes. The NHS says to seek advice promptly for any bleeding. Read CDC's urgent warning signs together so you both know when to call your care team.",
+      "sources": [
+        "nhs-week-38",
+        "cdc-warning-signs"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 39,
+      "title": "Signs that labor may start",
+      "body": "About 50.7 cm and small watermelon-sized, your baby has tougher skin with a waxy coat called vernix. You may notice more discharge, a mucus show, back pain, pelvic pressure and nesting urges. The NHS says to phone your midwife or hospital if contractions last about a minute and come every five minutes, or if your waters break, and to get help quickly for bleeding or reduced movement. Keep the numbers and bag by the door.",
+      "sources": [
+        "nhs-week-39"
+      ]
+    },
+    {
+      "kind": "pregnancy_week",
+      "n": 40,
+      "title": "Due week",
+      "body": "About 51 cm and pumpkin-sized, your baby has little room to move, but their usual pattern should continue. The NHS says a noticeable drop in movement needs prompt contact with your midwife or maternity unit, which takes calls day and night. Tightenings, lower backache and pelvic pressure may signal labor is near. Call once contractions are regular, or if your waters break. Rest together and agree who makes the call.",
+      "sources": [
+        "nhs-week-40",
+        "cdc-warning-signs"
+      ]
+    }
+  ]
+}
