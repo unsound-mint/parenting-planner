@@ -10,6 +10,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -87,7 +88,7 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 			writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
 		},
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-			slog.Error("handler failed", "method", r.Method, "path", r.URL.Path, "err", err)
+			slog.Error("handler failed", "method", r.Method, "path", loggedPath(r.URL.Path), "err", err)
 			monitor.Report(r, err)
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
@@ -97,7 +98,7 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 	// note and portrait uploads, validate, then resolve the session.
 	return securityHeaders(recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, capPortraitBody, s.verifyStripeSignature, s.limitNewSessions, capBody},
+		Middlewares: []MiddlewareFunc{s.session, calendarFeedOrigin, validate, capVoiceNoteBody, capPortraitBody, s.verifyStripeSignature, s.limitNewSessions, capBody},
 	}))), nil
 }
 
@@ -113,7 +114,7 @@ func recoverPanics(next http.Handler) http.Handler {
 			if rec == http.ErrAbortHandler {
 				panic(rec)
 			}
-			slog.Error("handler panicked", "method", r.Method, "path", r.URL.Path, "panic", rec)
+			slog.Error("handler panicked", "method", r.Method, "path", loggedPath(r.URL.Path), "panic", rec)
 			monitor.ReportPanic(r, rec)
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		}()
@@ -297,4 +298,11 @@ func (s *Server) Healthz(ctx context.Context, _ HealthzRequestObject) (HealthzRe
 		return nil, err
 	}
 	return Healthz200JSONResponse{Status: "ok"}, nil
+}
+
+func loggedPath(path string) string {
+	if strings.HasPrefix(path, calendarFeedPath) {
+		return calendarFeedPath + "{token}"
+	}
+	return path
 }

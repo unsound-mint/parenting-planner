@@ -1583,6 +1583,70 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/caregivers/{caregiverId}:
+    patch:
+      operationId: updateCaregiverPermissions
+      tags: [invitations]
+      summary: A parent changes what a grandparent or nanny may see
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Replaces the
+        caregiver's permissions at once: the next request they make is checked
+        against the new list, and the same list shows on their invitation. A
+        removed caregiver, or an id that is not a caregiver of this family, is
+        404. Recorded in the access log as a change to the invitation.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: caregiverId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [permissions]
+              properties:
+                permissions:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    $ref: "#/components/schemas/CaregiverPermission"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/invitations/{invitationId}/revoke:
     post:
       operationId: revokeInvitation
@@ -2753,8 +2817,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
+    delete:
+      operationId: deleteCalendarEvent
+      tags: [calendar]
+      summary: The owner deletes an appointment, class or reminder
+      description: |
+        Same access as updateCalendarEvent: only the acting parent who owns a
+        stored event; the partner gets 404, a grandparent or nanny 403. Notes
+        and questions attached to the event are deleted with it. Sends a live
+        update of kind calendar_event to everyone who could see the event.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
