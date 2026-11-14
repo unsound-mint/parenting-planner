@@ -3,8 +3,8 @@ import type { AgendaTopic } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { careIcon } from "@/lib/visuals";
 
-// Topics for the next session, built from diary entries the parent chose to
-// add. Topics only: the entry text never reaches the agenda.
+// Topics for the next session, as the parent chose them. Topics only: private
+// text never reaches the agenda.
 export function AgendaCard({ topics }: { topics: AgendaTopic[] }) {
   const Agenda = careIcon.agenda;
   return (
@@ -23,7 +23,7 @@ export function AgendaCard({ topics }: { topics: AgendaTopic[] }) {
 
       {topics.length === 0 ? (
         <p className="mt-4 text-label text-muted-foreground">
-          Nothing yet. When a diary entry is on your mind, add its topic to the agenda and it shows up here.
+          Nothing yet. Topics you add for your psychologist show up here.
         </p>
       ) : (
         <ul className="mt-4 flex flex-col gap-1">
