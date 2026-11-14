@@ -1082,6 +1082,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/caregivers/{caregiverId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * A parent changes what a grandparent or nanny may see
+         * @description Mother or partner only; a grandparent or nanny gets 403. Replaces the
+         *     caregiver's permissions at once: the next request they make is checked
+         *     against the new list, and the same list shows on their invitation. A
+         *     removed caregiver, or an id that is not a caregiver of this family, is
+         *     404. Recorded in the access log as a change to the invitation.
+         */
+        patch: operations["updateCaregiverPermissions"];
+        trace?: never;
+    };
     "/members/{memberId}/invitations/{invitationId}/revoke": {
         parameters: {
             query?: never;
@@ -1273,6 +1297,37 @@ export interface paths {
          *     when the family's stage is not pregnancy.
          */
         get: operations["getPregnancyWeek"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/pregnancy-growth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every pregnancy week at once, for the 3D baby view
+         * @description Weeks 4 to 40 in order, each with the baby's size and what develops
+         *     that week as hotspots on a body area, so the 3D view can scrub
+         *     through the weeks without a request per week. Each hotspot
+         *     paraphrases the NHS page of its own week and carries that source and
+         *     the date it was checked. Each fact appears in one week only.
+         *
+         *     currentWeek is the family's gestational week today (demo clock), so
+         *     the view can open on it. The same gate as getPregnancyWeek: the
+         *     mother and partner read it; a caregiver id gets 404, because the
+         *     member must be a parent. 409 not_pregnant when the stage is not
+         *     pregnancy, which includes pregnancy loss support (it moves the
+         *     family to planning).
+         */
+        get: operations["getPregnancyGrowth"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1711,7 +1766,14 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * The owner deletes an appointment, class or reminder
+         * @description Same access as updateCalendarEvent: only the acting parent who owns a
+         *     stored event; the partner gets 404, a grandparent or nanny 403. Notes
+         *     and questions attached to the event are deleted with it. Sends a live
+         *     update of kind calendar_event to everyone who could see the event.
+         */
+        delete: operations["deleteCalendarEvent"];
         options?: never;
         head?: never;
         /**
@@ -4840,6 +4902,30 @@ export interface components {
             /** @description Birth prep modules for this week (from week 28), locked until the family reaches week 32. */
             birthPrep: components["schemas"]["Guide"][];
             source: components["schemas"]["Source"];
+        };
+        PregnancyGrowth: {
+            /** @description The family's week today, clamped to 4 to 40. */
+            currentWeek: number;
+            /** @description Weeks 4 to 40 in order. */
+            weeks: components["schemas"]["PregnancyGrowthWeek"][];
+        };
+        PregnancyGrowthWeek: {
+            week: number;
+            size: components["schemas"]["BabySize"];
+            /** @description What develops this week, at least one. */
+            hotspots: components["schemas"]["GrowthHotspot"][];
+        };
+        GrowthHotspot: {
+            /**
+             * @description Where the hotspot sits on the baby. body is the whole baby (growth,
+             *     proportions), cord is the umbilical cord and placenta, movement is
+             *     kicks and wriggles.
+             * @enum {string}
+             */
+            area: "brain" | "face" | "eyes" | "ears" | "mouth" | "heart" | "lungs" | "tummy" | "kidneys" | "hands" | "legs" | "skin" | "bones" | "movement" | "body" | "cord";
+            /** @description One short sentence in plain words, never a diagnosis. */
+            text: string;
+            sources: components["schemas"]["Source"][];
         };
         PregnancyWeekSummary: {
             week: number;
@@ -9154,6 +9240,80 @@ export interface operations {
             };
         };
     };
+    updateCaregiverPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                caregiverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    permissions: components["schemas"]["CaregiverPermission"][];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Caregiver"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     revokeInvitation: {
         parameters: {
             query?: never;
@@ -9596,6 +9756,64 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPregnancyGrowth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PregnancyGrowth"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10563,6 +10781,63 @@ export interface operations {
             };
         };
     };
+    deleteCalendarEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                eventId: components["parameters"]["EventId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     updateCalendarEvent: {
         parameters: {
             query?: never;
@@ -10626,15 +10901,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

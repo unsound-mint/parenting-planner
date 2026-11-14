@@ -638,6 +638,34 @@ func (q *Queries) UpdateCareTeamMember(ctx context.Context, arg UpdateCareTeamMe
 	return i, err
 }
 
+const updateCaregiverPermissions = `-- name: UpdateCaregiverPermissions :one
+UPDATE members SET permissions = $3
+WHERE id = $2 AND family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL
+RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, phone
+`
+
+type UpdateCaregiverPermissionsParams struct {
+	FamilyID    uuid.UUID
+	ID          uuid.UUID
+	Permissions []string
+}
+
+func (q *Queries) UpdateCaregiverPermissions(ctx context.Context, arg UpdateCaregiverPermissionsParams) (Member, error) {
+	row := q.db.QueryRow(ctx, updateCaregiverPermissions, arg.FamilyID, arg.ID, arg.Permissions)
+	var i Member
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Role,
+		&i.DisplayName,
+		&i.BirthDate,
+		&i.Permissions,
+		&i.RevokedAt,
+		&i.Phone,
+	)
+	return i, err
+}
+
 const updateFamilyStage = `-- name: UpdateFamilyStage :one
 UPDATE families SET stage = $2, due_date = $3,
     pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,

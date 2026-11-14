@@ -101,3 +101,8 @@ DELETE FROM care_team
 WHERE id = @id AND family_id = @family_id
   AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL
        OR (subject_member_id IS NULL AND subject_child_id IS NULL AND role <> 'psychologist'));
+
+-- name: UpdateCaregiverPermissions :one
+UPDATE members SET permissions = $3
+WHERE id = $2 AND family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL
+RETURNING *;

@@ -1,0 +1,56 @@
+/* The week scrubber: a native range input, restyled. Global and prefixed,
+   because CSS modules do not work with this repo's turbopack css rule. */
+.pp-week-range {
+  appearance: none;
+  height: 44px;
+  margin: -14px 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.pp-week-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--me-mid) 0 var(--pct), var(--line) var(--pct) 100%);
+}
+.pp-week-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--me-mid) 0 var(--pct), var(--line) var(--pct) 100%);
+}
+.pp-week-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -8px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 3px solid var(--me);
+  box-shadow: 0 2px 6px color-mix(in oklab, var(--me) 25%, transparent);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.pp-week-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 3px solid var(--me);
+  box-shadow: 0 2px 6px color-mix(in oklab, var(--me) 25%, transparent);
+}
+.pp-week-range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.pp-week-range:focus-visible {
+  outline: none;
+}
+.pp-week-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--me-mid) 50%, transparent);
+}
+.pp-week-range:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--me-mid) 50%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-week-range::-webkit-slider-thumb {
+    transition: none;
+  }
+}

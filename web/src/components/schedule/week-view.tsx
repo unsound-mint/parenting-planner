@@ -23,7 +23,7 @@ export function WeekView({
   events: CalendarEvent[];
   owners: Record<string, Owner>;
   /** Parents only: the owner can open their own stored events to change them. */
-  edit?: { memberId: string; guests: Guest[] };
+  edit?: { memberId: string; guests: Guest[]; feedActive: boolean };
 }) {
   const byDay = new Map<string, CalendarEvent[]>();
   for (const e of events) {
@@ -71,7 +71,7 @@ export function WeekView({
   );
 }
 
-function EventCard({ event, owner, edit }: { event: CalendarEvent; owner?: Owner; edit?: { memberId: string; guests: Guest[]; today: string } }) {
+function EventCard({ event, owner, edit }: { event: CalendarEvent; owner?: Owner; edit?: { memberId: string; guests: Guest[]; feedActive: boolean; today: string } }) {
   const Icon = calendarKindIcon[event.kind] ?? CalendarCheck;
   const time = event.allDay
     ? "All day"
@@ -112,6 +112,7 @@ function EventCard({ event, owner, edit }: { event: CalendarEvent; owner?: Owner
         <EventDialog
           memberId={edit.memberId}
           guests={edit.guests}
+          feedActive={edit.feedActive}
           event={event}
           today={edit.today}
           triggerClassName="block min-h-11 w-full cursor-pointer rounded-lg px-2.5 py-2 text-left outline-none transition-colors duration-150 hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
