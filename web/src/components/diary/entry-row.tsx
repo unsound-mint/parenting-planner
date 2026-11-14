@@ -25,7 +25,7 @@ export function entryDay(iso: string): string {
  *
  * Own entries: the privacy chip opens the audience switch in place (it morphs,
  * it does not open a panel), and "Bring to <psychologist>" turns into a short
- * title field. Only that title goes to the agenda, never the entry; the field
+ * title field. Only that title goes to the agenda (the brief), never the text unless the parent switches it on in the brief; the field
  * starts empty on purpose so no private words travel by accident.
  * The partner's shared entries carry their chip and nothing to change.
  * Only the newest entry not yet on the agenda shows "Bring to" outright; on
@@ -205,7 +205,7 @@ export function EntryRow({
               className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-muted px-4 py-2.5"
             >
               <p className="mr-auto text-label text-ink-2">
-                Delete this entry?{entry.agendaTopic ? ` Its topic leaves ${psychologist}'s agenda too.` : ""}
+                Delete this entry?{entry.agendaTopic ? ` Its topic leaves your brief too.` : ""}
               </p>
               <button
                 type="button"
@@ -292,7 +292,7 @@ export function EntryRow({
                   className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-leaf-soft px-3 text-label text-leaf"
                 >
                   <ListPlus className="size-3.5" aria-hidden />
-                  On {psychologist}&apos;s agenda
+                  In your brief
                 </motion.span>
               ) : editing === "bring" ? (
                 <motion.form
@@ -328,7 +328,7 @@ export function EntryRow({
                     </button>
                     <CloseButton label="Cancel" onClick={() => setEditing("none")} />
                   </div>
-                  <p className="px-2 text-caption text-muted-foreground">{psychologist} sees only this title.</p>
+                  <p className="px-2 text-caption text-muted-foreground">Only the title goes in your brief for {psychologist}.</p>
                 </motion.form>
               ) : (
                 <motion.button

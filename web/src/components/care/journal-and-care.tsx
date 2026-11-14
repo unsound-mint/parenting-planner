@@ -161,7 +161,7 @@ export function JournalAndCare({
     const agendaEl = document.getElementById("agenda-title");
     const r = agendaEl?.getBoundingClientRect();
     if (r && (r.top > window.innerHeight || r.bottom < 0)) {
-      toast.success(`On ${short}'s agenda`, { action: { label: "See it", onClick: () => agendaEl?.scrollIntoView({ behavior: "smooth", block: "center" }) } });
+      toast.success(`In your brief for ${short}`, { action: { label: "See it", onClick: () => agendaEl?.scrollIntoView({ behavior: "smooth", block: "center" }) } });
     }
     router.refresh();
     return true;
