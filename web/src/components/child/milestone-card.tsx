@@ -7,6 +7,7 @@ import { api } from "@/lib/api/client";
 import type { Milestone, MilestoneChecklist, MilestoneDomain } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SourceLink, shortSource } from "@/components/joy/source-line";
 
 const domains: { id: MilestoneDomain; label: string; icon: LucideIcon }[] = [
   { id: "social_emotional", label: "Social and emotional", icon: Smile },
@@ -99,9 +100,7 @@ export function MilestoneCard({ memberId, childId, childName, checklist }: { mem
 
       <p className="mt-5 border-t border-border pt-4 text-label text-muted-foreground">
         Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis.{" "}
-        <a href={checklist.source.url} target="_blank" rel="noreferrer" className="font-mono text-caption underline underline-offset-2 hover:text-foreground">
-          {checklist.source.title}, checked {formatShortDate(checklist.source.checkedAt)}
-        </a>
+        <SourceLink source={checklist.source}>{shortSource(checklist.source.title)}</SourceLink>
       </p>
     </section>
   );

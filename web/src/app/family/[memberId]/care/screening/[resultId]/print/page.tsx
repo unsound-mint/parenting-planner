@@ -86,8 +86,8 @@ async function Page({ params }: { params: Promise<{ memberId: string; resultId: 
         <p className="mt-6 border-t border-border pt-3 text-caption text-muted-foreground">
           A screening questionnaire points out when to talk to someone. It is not a diagnosis, and only a clinician can make one.
         </p>
-        <p className="mt-2 font-mono text-caption text-muted-foreground">
-          Source: {r.source.title}, {r.source.url}, checked {r.source.checkedAt}
+        <p className="mt-2 text-caption text-muted-foreground">
+          Source: {r.source.title}, {r.source.url}
         </p>
       </article>
     </PageFrame>

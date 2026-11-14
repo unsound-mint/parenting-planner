@@ -29,7 +29,7 @@ export function TellPartner({ memberId, name }: { memberId: string; name: string
       onClick={send}
       disabled={state === "sending"}
       className={cn(
-        "flex min-h-20 w-full items-center gap-4 rounded-2xl px-5 py-4 text-left transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        "press flex min-h-20 w-full items-center gap-4 rounded-2xl px-5 py-4 text-left transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         sent ? "bg-status-ok-soft text-status-ok" : "bg-primary text-primary-foreground hover:bg-primary/90",
       )}
     >
