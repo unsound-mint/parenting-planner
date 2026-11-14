@@ -7987,7 +7987,7 @@ export interface components {
         StoryUpdate: {
             visibility: components["schemas"]["Visibility"];
         };
-        Story: {
+        StorybookStory: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -8011,7 +8011,7 @@ export interface components {
         };
         StoryList: {
             /** @description Newest first, at most 50. */
-            items: components["schemas"]["Story"][];
+            items: components["schemas"]["StorybookStory"][];
             /** @description True when new stories are written by the Claude API, false when by the template. */
             aiEnabled: boolean;
         };
@@ -18250,7 +18250,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Story"];
+                    "application/json": components["schemas"]["StorybookStory"];
                 };
             };
             /** @description Error */
@@ -18309,7 +18309,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Story"];
+                    "application/json": components["schemas"]["StorybookStory"];
                 };
             };
             /** @description Error */
@@ -18411,7 +18411,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Story"];
+                    "application/json": components["schemas"]["StorybookStory"];
                 };
             };
             /** @description Error */

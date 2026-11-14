@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Lock, Users } from "lucide-react";
-import type { Story } from "@/lib/api/types";
+import type { StorybookStory as Story } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { StoryArt } from "./story-art";
 

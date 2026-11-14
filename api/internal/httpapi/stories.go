@@ -25,8 +25,8 @@ func signedAsFor(role string) string {
 	return "Daddy"
 }
 
-func storyOut(s storybook.Story) Story {
-	out := Story{
+func storyOut(s storybook.Story) StorybookStory {
+	out := StorybookStory{
 		Id: s.ID, AuthorId: s.OwnerMemberID, Title: s.Title, Theme: StoryTheme(s.Theme), ChildName: s.ChildName,
 		SignedAs: s.SignedAs, Memories: s.MemoryLines, Pages: make([]StoryPage, 0, len(s.PageList)),
 		Visibility: Visibility(s.Visibility), GeneratedBy: StoryGeneratedBy(s.GeneratedBy), CreatedAt: s.CreatedAt.UTC(),
@@ -124,7 +124,7 @@ func (s *Server) ListStories(ctx context.Context, req ListStoriesRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	out := StoryList{Items: make([]Story, 0, len(rows)), AiEnabled: s.cfg.AI.Enabled()}
+	out := StoryList{Items: make([]StorybookStory, 0, len(rows)), AiEnabled: s.cfg.AI.Enabled()}
 	for _, r := range rows {
 		out.Items = append(out.Items, storyOut(r))
 	}

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Lock, Printer, Trash2, Users } from "lucide-react";
 import { api } from "@/lib/api/client";
-import type { Story, StoryArt as Art } from "@/lib/api/types";
+import type { StorybookStory as Story, StoryArt as Art } from "@/lib/api/types";
 import { ease } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
 import { StoryArt } from "./story-art";

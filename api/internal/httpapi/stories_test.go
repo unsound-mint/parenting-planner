@@ -30,10 +30,10 @@ func storyInput(childID *uuid.UUID, theme, vis string, memories ...string) map[s
 	return in
 }
 
-func storyTitles(c *testutil.Client, m uuid.UUID) map[string]httpapi.Story {
+func storyTitles(c *testutil.Client, m uuid.UUID) map[string]httpapi.StorybookStory {
 	var l httpapi.StoryList
 	c.Get(storiesPath(m), http.StatusOK, &l)
-	out := map[string]httpapi.Story{}
+	out := map[string]httpapi.StorybookStory{}
 	for _, s := range l.Items {
 		out[s.Title] = s
 	}
@@ -73,7 +73,7 @@ func TestStoriesUseTheTemplateWithoutAKeyAndArePrivateUntilShared(t *testing.T) 
 		t.Fatalf("seeded shelf = %+v", l)
 	}
 
-	var made httpapi.Story
+	var made httpapi.StorybookStory
 	c.Post(storiesPath(dad.Id), storyInput(&leo, "adventure", "private",
 		"You kicked your legs at the ceiling fan like it was a parade", "We walked to the pond and you slept the whole way"), http.StatusCreated, &made)
 	if made.GeneratedBy != httpapi.Template || made.SignedAs != "Daddy" || made.ChildName != "Leo" || made.AgeMonths == nil || *made.AgeMonths != 1 {
@@ -102,7 +102,7 @@ func TestStoriesUseTheTemplateWithoutAKeyAndArePrivateUntilShared(t *testing.T) 
 	// Shared per story.
 	c.Patch(storyPath(dad.Id, made.Id), map[string]string{"visibility": "family"}, http.StatusBadRequest, nil)
 	c.Patch(storyPath(dad.Id, made.Id), map[string]string{"visibility": "partner"}, http.StatusOK, nil)
-	var got httpapi.Story
+	var got httpapi.StorybookStory
 	c.Get(storyPath(mom.Id, made.Id), http.StatusOK, &got)
 	if got.Title != made.Title || len(got.Pages) != len(made.Pages) {
 		t.Errorf("Mom reads the shared story: %+v", got)
@@ -137,7 +137,7 @@ func TestEachParentSeesTheirOwnSeededShelf(t *testing.T) {
 		t.Errorf("Rachel sees both, Tom only his own: %d %d", len(moms), len(dads))
 	}
 	// Without childId a name or nickname works (before birth) and the story has no age.
-	var made httpapi.Story
+	var made httpapi.StorybookStory
 	in := storyInput(nil, "sibling", "private", "You hugged the bump and said hello, little bean")
 	in["childName"] = "Ava Grace"
 	in["signedAs"] = "Mama"
@@ -167,7 +167,7 @@ func TestStoryIsWrittenByClaudeFromOnlyTheChosenFacts(t *testing.T) {
 	if !l.AiEnabled {
 		t.Error("aiEnabled should be true with a key")
 	}
-	var made httpapi.Story
+	var made httpapi.StorybookStory
 	c.Post(storiesPath(mom.Id), storyInput(&leo, "bedtime", "private",
 		"You held my finger all night, see https://example.com or call 617-555-0133"), http.StatusCreated, &made)
 	if made.GeneratedBy != httpapi.Ai || made.Title != "Leo and the Quiet Night" || len(made.Pages) != 6 {
@@ -228,7 +228,7 @@ func TestStoryFallsBackToTheTemplateOnABadAnswer(t *testing.T) {
 			fam := c.StartDemo("newborn")
 			mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 			leo := fam.Children[0].Id
-			var made httpapi.Story
+			var made httpapi.StorybookStory
 			c.Post(storiesPath(mom.Id), storyInput(&leo, "bedtime", "private", "a walk in the sun"), http.StatusCreated, &made)
 			if made.GeneratedBy != httpapi.Template || made.Title != "Leo and the Sleepy Moon" {
 				t.Errorf("want the template story, got %+v", made)
@@ -247,7 +247,7 @@ func TestStoryIgnoresAnUnfinishedAnswer(t *testing.T) {
 		fam := c.StartDemo("newborn")
 		mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 		leo := fam.Children[0].Id
-		var made httpapi.Story
+		var made httpapi.StorybookStory
 		c.Post(storiesPath(mom.Id), storyInput(&leo, "bedtime", "private", "a walk in the sun"), http.StatusCreated, &made)
 		if made.GeneratedBy != httpapi.Template {
 			t.Errorf("%s: want the template, got %s", stop, made.GeneratedBy)

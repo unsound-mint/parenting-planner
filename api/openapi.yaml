@@ -6868,7 +6868,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Story"
+                $ref: "#/components/schemas/StorybookStory"
         "400":
           description: Error
           content:
@@ -6938,7 +6938,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Story"
+                $ref: "#/components/schemas/StorybookStory"
         "401":
           description: Error
           content:
@@ -6970,7 +6970,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Story"
+                $ref: "#/components/schemas/StorybookStory"
         "400":
           description: Error
           content:
@@ -14276,7 +14276,7 @@ components:
         visibility:
           $ref: "#/components/schemas/Visibility"
 
-    Story:
+    StorybookStory:
       type: object
       required: [id, authorId, title, theme, childName, signedAs, memories, pages, visibility, generatedBy, createdAt]
       properties:
@@ -14326,7 +14326,7 @@ components:
           type: array
           description: Newest first, at most 50.
           items:
-            $ref: "#/components/schemas/Story"
+            $ref: "#/components/schemas/StorybookStory"
         aiEnabled:
           type: boolean
           description: True when new stories are written by the Claude API, false when by the template.
