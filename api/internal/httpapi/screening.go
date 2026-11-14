@@ -11,10 +11,10 @@ func (s *Server) ListScreeningQuestionnaires(_ context.Context, _ ListScreeningQ
 	return ListScreeningQuestionnaires501JSONResponse(Error{Code: "not_implemented", Message: "mood questionnaires are not available yet"}), nil
 }
 
-func (s *Server) CreateScreening(_ context.Context, _ CreateScreeningRequestObject) (CreateScreeningResponseObject, error) {
-	return CreateScreening501JSONResponse(Error{Code: "not_implemented", Message: "mood questionnaires are not available yet"}), nil
+func (s *Server) CreateMoodScreening(_ context.Context, _ CreateMoodScreeningRequestObject) (CreateMoodScreeningResponseObject, error) {
+	return CreateMoodScreening501JSONResponse(Error{Code: "not_implemented", Message: "mood questionnaires are not available yet"}), nil
 }
 
-func (s *Server) ListScreenings(_ context.Context, _ ListScreeningsRequestObject) (ListScreeningsResponseObject, error) {
-	return ListScreenings501JSONResponse(Error{Code: "not_implemented", Message: "mood questionnaires are not available yet"}), nil
+func (s *Server) ListMoodScreenings(_ context.Context, _ ListMoodScreeningsRequestObject) (ListMoodScreeningsResponseObject, error) {
+	return ListMoodScreenings501JSONResponse(Error{Code: "not_implemented", Message: "mood questionnaires are not available yet"}), nil
 }

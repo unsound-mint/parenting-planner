@@ -9,12 +9,14 @@ import (
 
 // Replace each case with the reference tests (see wellbeing_test.go) when
 // its handler lands.
-func TestVaccineDosesIsNotImplementedYet(t *testing.T) {
+func TestHealthLoggingIsNotImplementedYet(t *testing.T) {
 	c := testutil.New(t)
 	fam := c.StartDemo("pregnancy")
 	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
 	for _, call := range []stubCall{
-		{"PATCH", m + "/vaccine-doses/00000000-0000-4000-8000-000000000001", map[string]any{"givenOn": "2026-11-10"}},
+		{"POST", m + "/immunizations", map[string]any{"vaccine": "tdap", "givenOn": "2026-11-10"}},
+		{"POST", m + "/screenings", map[string]any{"kind": "glucose_screen", "takenOn": "2026-11-10", "visibility": "partner"}},
+		{"POST", m + "/lab-results", map[string]any{"name": "Ferritin", "value": 12, "unit": "ng/mL", "refLow": 15, "refHigh": 150, "takenOn": "2026-11-10", "visibility": "private"}},
 	} {
 		call.expectNotImplemented(t, c)
 	}
