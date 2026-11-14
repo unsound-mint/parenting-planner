@@ -4856,6 +4856,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/weekly-reads:
+    get:
+      operationId: listWeeklyReads
+      tags: [learn]
+      summary: This week's read and the ones before and after it
+      description: |
+        Both parents only; a grandparent or nanny gets 404. One short read
+        for every pregnancy week (1 to 40), every week of the first year
+        (weeks 0 to 52 of life), every month from 12 to 35 months and every
+        year from 3 to 8 (8 also serves older children), from the embedded
+        content (api/internal/content/learn_weeks_*.json). A pregnant family
+        gets the pregnancy weeks, a family after a birth gets the youngest
+        child's track, and a family getting ready gets one read. `current`
+        is the index of today's read on the family's demo clock, so "Skip a
+        week" moves it. Reads are informational and link the public pages
+        they paraphrase; none is medical advice.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyReadList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/lesson-reads/{lessonId}:
     put:
       operationId: updateLessonRead
@@ -6247,8 +6285,10 @@ paths:
       description: |
         Mother or partner only; a grandparent or nanny gets 404, like the
         health passport. Returns the CDC "Learn the Signs. Act Early."
-        checklist for the child's age (the latest of the 2, 3, 4 and 5 year
-        checklists the child has reached). `observed` is what a parent
+        checklist for the child's age on the family's demo clock: the one
+        the child is heading to or has just reached (2, 4, 6, 9, 12, 15, 18,
+        24, 30, 36, 48 or 60 months; a child of 23 months gets 24, of 25
+        months 30; past 60 months it stays 60). `observed` is what a parent
         ticked. A milestone that is not ticked is a prompt to watch for it
         and mention it at the next visit; the API and the UI never call it a
         delay or a diagnosis. 404 for a child not in the family.
@@ -6275,12 +6315,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -6336,12 +6370,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -13374,6 +13402,58 @@ components:
         unlocksAtWeek, open after); past = the window is behind you.
       enum: [upcoming, now, past]
 
+    WeeklyReadKind:
+      type: string
+      enum: [planning, pregnancy_week, baby_week, month, year]
+
+    WeeklyRead:
+      type: object
+      required: [id, kind, n, label, title, body, sources]
+      properties:
+        id:
+          type: string
+          description: Stable key, the kind and its number, for example pregnancy_week-12.
+          example: baby_week-4
+        kind:
+          $ref: "#/components/schemas/WeeklyReadKind"
+        n:
+          type: integer
+          description: Pregnancy week, week of life (0 is the first 7 days), completed months or completed years.
+        label:
+          type: string
+          example: Week 5
+        title:
+          type: string
+        body:
+          type: string
+        startsOn:
+          type: string
+          format: date
+          description: First day of the week, month or year on the family's calendar. Absent for the planning read.
+        endsOn:
+          type: string
+          format: date
+          description: Last day. Absent for the planning read, pregnancy week 40 (it lasts until the birth) and the last year, which stays open.
+        sources:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Source"
+
+    WeeklyReadList:
+      type: object
+      required: [items, current]
+      properties:
+        items:
+          type: array
+          description: The family's whole track in order (oldest first, unlike other lists, so it can be browsed week by week).
+          items:
+            $ref: "#/components/schemas/WeeklyRead"
+        current:
+          type: integer
+          minimum: 0
+          description: Index of today's read in items.
+
     LearningPathList:
       type: object
       required: [stage, items]
@@ -14595,7 +14675,7 @@ components:
           format: uuid
         checklistAgeMonths:
           type: integer
-          description: Which CDC checklist this is (24, 36, 48 or 60).
+          description: Which CDC checklist this is, in months (2, 4, 6, 9, 12, 15, 18, 24, 30, 36, 48 or 60).
         items:
           type: array
           items:
