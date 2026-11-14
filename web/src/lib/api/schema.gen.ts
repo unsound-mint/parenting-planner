@@ -1730,6 +1730,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/names-quest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The couple's baby names quest
+         * @description Both parents only; a grandparent or nanny gets 404. Open before a birth (planning, trying, pregnancy) and not
+         *     in pregnancy loss support; otherwise 409 quest_closed. The lists the couple picked, each parent's progress,
+         *     the matches (names both parents love), names one loves and the other might, and the final round. A parent's
+         *     answer on a name is shown to the other only after they have answered it too.
+         */
+        get: operations["getNamesQuest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/names-quest/lists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Pick the heritage and culture lists the deck is built from
+         * @description Shared by the couple; either parent can change it. 400 unknown_list for an id not in the catalog.
+         */
+        put: operations["setNameLists"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/names-quest/deck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The next cards for the acting parent to swipe
+         * @description Names from the picked lists, plus names the other parent added by hand, that the acting parent has not
+         *     answered. Never says how the other parent answered. Names the other parent already answered come first so
+         *     matches can happen. At most 40 cards.
+         */
+        get: operations["getNameDeck"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/names-quest/swipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent answers a name (love, maybe, not for us)
+         * @description Replaces the parent's earlier answer on the name. When both parents love it, the name joins the shared list
+         *     (GET baby-names) liked by both: a match. The response carries the other parent's answer only when they
+         *     have answered it.
+         */
+        post: operations["swipeName"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/names-quest/swipes/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Take back the acting parent's answer on a name (undo)
+         * @description Idempotent. A match that loses its love leaves the shared list's both-like state.
+         */
+        delete: operations["undoNameSwipe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/names-quest/duels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent picks one of two finalists in the final round
+         * @description Both names must be finalists (matches). 404 when a name is not. The final round opens at five matches;
+         *     409 final_locked before that.
+         */
+        post: operations["judgeNameDuel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/baby-names/{nameId}/like": {
         parameters: {
             query?: never;
@@ -1746,7 +1874,7 @@ export interface paths {
         post?: never;
         /**
          * The acting parent takes back their like
-         * @description Both parents only; a grandparent or nanny gets 404. Idempotent. A name nobody likes stays on the list until
+         * @description Both parents only; a grandparent or nanny gets 404. Idempotent. Also takes back a "love" from the names quest. A name nobody likes stays on the list until
          *     it is liked again; it sorts last.
          */
         delete: operations["unlikeBabyName"];
@@ -4683,6 +4811,136 @@ export interface components {
             talkedBy: string;
             /** Format: date-time */
             talkedAt: string;
+        };
+        /**
+         * @description girl or boy when most US babies with the name were one sex; neutral when at least a quarter were the other.
+         * @enum {string}
+         */
+        NameSex: "girl" | "boy" | "neutral";
+        /** @enum {string} */
+        NameVerdict: "love" | "maybe" | "no";
+        /** @description US Social Security Administration counts. A name missing from a year had fewer than 5 babies. */
+        NamePopularity: {
+            /** @description Rank among names of the card's sex in the latest year (the better one for a neutral name). */
+            rank?: number;
+            /** @description US babies given the name in the latest year, both sexes. */
+            babies: number;
+            /** @description Babies given the name in each of NamesQuest.trendYears. */
+            trend: number[];
+        };
+        NameCard: {
+            /**
+             * Format: uuid
+             * @description The name's id on the shared list, once it is there (matches and hand-added names).
+             */
+            id?: string;
+            /** @example Aoife */
+            name: string;
+            sex?: components["schemas"]["NameSex"];
+            /**
+             * @description Catalog lists the name is on; empty for a name added by hand that is not in the catalog.
+             * @example [
+             *       "irish"
+             *     ]
+             */
+            lists: string[];
+            /**
+             * @description Paraphrased from the cited entry; empty when no source gives one.
+             * @example Irish
+             */
+            origin?: string;
+            /** @example radiance, beauty */
+            meaning?: string;
+            sourceUrl?: string;
+            popularity?: components["schemas"]["NamePopularity"];
+            /**
+             * Format: uuid
+             * @description Set for a name a parent added by hand.
+             */
+            addedBy?: string;
+        };
+        NameDeck: {
+            items: components["schemas"]["NameCard"][];
+            /** @description Cards left for this parent in the picked lists and filters, including these. */
+            remaining: number;
+        };
+        NameListOption: {
+            /** @example irish */
+            id: string;
+            /** @example Irish */
+            title: string;
+            size: number;
+        };
+        NameListsInput: {
+            lists: string[];
+        };
+        NameQuestProgress: {
+            /** Format: uuid */
+            memberId: string;
+            swiped: number;
+            /** @description Final-round pairs this parent has picked from. */
+            judged: number;
+        };
+        NameQuestStage: {
+            /** @enum {string} */
+            id: "lists" | "swipe" | "matches" | "final";
+            done: boolean;
+        };
+        NameVerdicts: {
+            card: components["schemas"]["NameCard"];
+            mine: components["schemas"]["NameVerdict"];
+            theirs: components["schemas"]["NameVerdict"];
+        };
+        NamesQuest: {
+            lists: components["schemas"]["NameListOption"][];
+            chosen: string[];
+            /**
+             * @description The latest SSA year in the catalog.
+             * @example 2025
+             */
+            year: number;
+            trendYears: number[];
+            sources: components["schemas"]["Source"][];
+            /** @example 30 */
+            swipeGoal: number;
+            /** @example 5 */
+            matchGoal: number;
+            /** @description Both parents, the acting parent first. */
+            progress: components["schemas"]["NameQuestProgress"][];
+            stages: components["schemas"]["NameQuestStage"][];
+            /** @description Names both parents love, newest first. The shortlist. */
+            matches: components["schemas"]["NameCard"][];
+            /** @description Names both answered where one said love and the other maybe. */
+            talkAbout: components["schemas"]["NameVerdicts"][];
+            /** @description Final-round pairs each parent picks from; 0 until the final round opens. */
+            pairCount: number;
+            /** @description The acting parent's next final-round pair, or empty. */
+            nextPair: components["schemas"]["NameCard"][];
+            /** @description Up to three finalists by both parents' picks, best first. Empty until a pair is picked. */
+            top: components["schemas"]["NameCard"][];
+            /**
+             * Format: date-time
+             * @description When both parents finished the final round.
+             */
+            finishedAt?: string;
+        };
+        NameSwipeInput: {
+            name: string;
+            verdict: components["schemas"]["NameVerdict"];
+        };
+        NameSwipeResult: {
+            name: string;
+            verdict: components["schemas"]["NameVerdict"];
+            theirs?: components["schemas"]["NameVerdict"];
+            /** @description True when both parents love the name. */
+            match: boolean;
+            card?: components["schemas"]["NameCard"];
+        };
+        NameDuelInput: {
+            /** Format: uuid */
+            winnerId: string;
+            /** Format: uuid */
+            loserId: string;
         };
         BabyNameInput: {
             name: string;
@@ -9604,6 +9862,398 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BabyName"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getNamesQuest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NamesQuest"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    setNameLists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameListsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NamesQuest"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getNameDeck: {
+        parameters: {
+            query?: {
+                /** @description Only names mostly given to girls or to boys; gender-neutral names are always included. */
+                sex?: components["schemas"]["NameSex"];
+                /** @description Rare vs popular, lower end. US babies given the name in the latest SSA year. */
+                minBabies?: number;
+                maxBabies?: number;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NameDeck"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    swipeName: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameSwipeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NameSwipeResult"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    undoNameSwipe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Undone */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    judgeNameDuel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameDuelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NamesQuest"];
                 };
             };
             /** @description Error */
