@@ -156,6 +156,21 @@ func (s *seeder) moodScreening(owner uuid.UUID, visibility, instrument string, d
 	})
 }
 
+// visit is a past appointment both parents went to, visible to the family,
+// so the calendar and Our story show it with both avatars.
+func (s *seeder) visit(owner, with uuid.UUID, title string, on time.Time) {
+	if s.err != nil {
+		return
+	}
+	e, err := s.q.CreateCalendarEvent(s.ctx, store.CreateCalendarEventParams{
+		FamilyID: s.fam, OwnerMemberID: owner, Visibility: "family", Kind: "appointment", Title: title,
+		StartsAt: on.Add(15 * time.Hour),
+	})
+	if s.err = err; err == nil {
+		s.err = s.q.AddCalendarEventAttendee(s.ctx, store.AddCalendarEventAttendeeParams{EventID: e.ID, MemberID: with})
+	}
+}
+
 func (s *seeder) learning(t Template, mom, dad uuid.UUID) {
 	if s.err == nil {
 		s.err = seedLearning(s.ctx, s.q, t, s.fam, mom, dad, s.today)
@@ -208,7 +223,11 @@ func seedPlanning(ctx context.Context, q *store.Queries, today time.Time) (uuid.
 // not taken one, so his plan asks for it.
 func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error) {
 	born := today.AddDate(0, 0, -49)
-	s := newSeeder(ctx, q, today, Newborn, "postpartum", nil)
+	// Leo came four days before his due date. Baby is home keeps the due
+	// date, so a family that lived through the pregnancy in the app looks
+	// the same, and Our story can open with the pregnancy weeks.
+	due := born.AddDate(0, 0, 4)
+	s := newSeeder(ctx, q, today, Newborn, "postpartum", &due)
 	aisha := s.member("mother", "Aisha", date(1997, 11, 5))
 	marcus := s.member("partner", "Marcus", date(1994, 3, 22))
 	s.paperwork = &struct{ mother, partner uuid.UUID }{aisha, marcus}
@@ -226,6 +245,7 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.vaccine(parent(aisha), "tdap", born.AddDate(0, 0, -70))
 	s.vaccine(parent(marcus), "tdap", born.AddDate(0, 0, -40))
 	s.vaccine(childOf(leo), "hepb", born)
+	s.visit(aisha, marcus, "Leo's first checkup with Dr. Ortiz", born.AddDate(0, 0, 5))
 	// The 2-month visit, so the passport lists the same doses the plan item
 	// "infant-2-month-vaccines" asks the parents to book.
 	for _, v := range []string{"dtap", "ipv", "hib", "pcv", "rotavirus"} {
@@ -471,6 +491,7 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		s.vaccine(childOf(ava), v.name, born.AddDate(0, v.months, 0))
 	}
 	s.vaccine(childOf(ava), "flu", today.AddDate(0, 0, -400))
+	s.visit(rachel, tom, "Ava's 4-year checkup with Dr. Rahman", born.AddDate(4, 0, 2))
 	s.vaccine(parent(rachel), "flu", today.AddDate(0, 0, -15))
 	s.vaccine(parent(tom), "tdap", today.AddDate(-5, 0, 0))
 	for _, m := range []struct{ daysAgo, mood int }{{1, 4}, {2, 3}, {4, 4}, {6, 3}} {

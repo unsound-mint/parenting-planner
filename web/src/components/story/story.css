@@ -1,0 +1,61 @@
+/* Our story: the scroll reveal. Global and prefixed (pp-story-), because CSS
+   modules do not work with this repo's turbopack css rule.
+
+   Moments start hidden only when scripts run, so the page without JS and the
+   printed book show everything. StoryReveal sets data-shown as each element
+   scrolls in and gives it --reveal-delay for the stagger. Transform and
+   opacity only; transitions (not keyframes), so nothing replays. */
+@media (scripting: enabled) {
+  .pp-story-reveal:not([data-shown]) {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  /* The chapter's baby arrives a little smaller and settles to its size. */
+  .pp-story-grow:not([data-shown]) {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  /* The thread down a chapter draws itself from the top. */
+  .pp-story-line:not([data-shown]) {
+    transform: scaleY(0);
+  }
+}
+
+.pp-story-reveal,
+.pp-story-grow {
+  transition-property: opacity, transform;
+  transition-duration: var(--duration-enter);
+  transition-timing-function: var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.pp-story-grow {
+  transform-origin: 50% 85%;
+  transition-duration: 520ms;
+}
+
+.pp-story-line {
+  transform-origin: top;
+  transition: transform 900ms var(--ease-out);
+}
+
+/* Reduced motion: no travel, a short fade. globals.css already cuts every
+   transition to almost nothing; this drops the movement explicitly too. */
+@media (prefers-reduced-motion: reduce) {
+  .pp-story-reveal:not([data-shown]),
+  .pp-story-grow:not([data-shown]) {
+    transform: none;
+  }
+  .pp-story-line:not([data-shown]) {
+    transform: none;
+  }
+}
+
+@media print {
+  .pp-story-reveal,
+  .pp-story-grow,
+  .pp-story-line {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
