@@ -31,8 +31,26 @@ SELECT * FROM families WHERE id = $1 FOR UPDATE;
 -- name: SkipFamilyDemoClock :one
 UPDATE families SET demo_offset_days = demo_offset_days + sqlc.arg(days)::int WHERE id = sqlc.arg(id) RETURNING *;
 
+-- A stage or due date change by the parents ends pregnancy loss support without restoring anything.
 -- name: UpdateFamilyStage :one
-UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING *;
+UPDATE families SET stage = $2, due_date = $3,
+    pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,
+    pregnancy_loss_prior_stage = NULL, pregnancy_loss_prior_due_date = NULL
+WHERE id = $1 RETURNING *;
+
+-- Turns support on: stage planning, no due date, the replaced values kept for an undo.
+-- name: RecordPregnancyLoss :one
+UPDATE families SET stage = 'planning', due_date = NULL,
+    pregnancy_loss_recorded_at = @recorded_at, pregnancy_loss_occurred_on = @occurred_on,
+    pregnancy_loss_prior_stage = stage, pregnancy_loss_prior_due_date = due_date
+WHERE id = @id AND stage = 'pregnancy' RETURNING *;
+
+-- Turns support off and restores what it replaced.
+-- name: RestorePregnancyLoss :one
+UPDATE families SET stage = pregnancy_loss_prior_stage, due_date = pregnancy_loss_prior_due_date,
+    pregnancy_loss_recorded_at = NULL, pregnancy_loss_occurred_on = NULL,
+    pregnancy_loss_prior_stage = NULL, pregnancy_loss_prior_due_date = NULL
+WHERE id = @id AND pregnancy_loss_recorded_at IS NOT NULL RETURNING *;
 
 -- name: CreateCareTeamMemberFor :one
 INSERT INTO care_team (family_id, role, name, clinic, phone, subject_member_id, subject_child_id)

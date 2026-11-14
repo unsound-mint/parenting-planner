@@ -50,6 +50,13 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 			out.GestationalWeek = &w
 		}
 	}
+	if fam.PregnancyLossRecordedAt.Valid {
+		loss := PregnancyLoss{RecordedAt: fam.PregnancyLossRecordedAt.Time}
+		if fam.PregnancyLossOccurredOn != nil {
+			loss.OccurredOn = &openapi_types.Date{Time: *fam.PregnancyLossOccurredOn}
+		}
+		out.PregnancyLoss = &loss
+	}
 	// Caregivers are not stored yet: the seed and a table come with the backend half of #1.
 
 	// There is no billing, so every family stays on free; an upgrade intent
