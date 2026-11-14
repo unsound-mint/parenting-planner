@@ -1,4 +1,6 @@
 import { Suspense } from "react";
+import Link from "next/link";
+import { UsersRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
@@ -12,6 +14,7 @@ import { LoadMapCard } from "@/components/load-map/load-map-card";
 import { ThanksSection } from "@/components/thanks/thanks-section";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame } from "@/components/shell/page";
+import { MissionsLink } from "@/components/missions/missions-link";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
 // revoke, and read what they did. Parents only; the API refuses caregivers too.
@@ -28,13 +31,14 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, invitations, log, loadMap, thanks, suggestions] = await Promise.all([
+  const [{ data: family }, invitations, log, loadMap, thanks, suggestions, missions] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/invitations", path),
     api.GET("/members/{memberId}/access-log", path),
     api.GET("/members/{memberId}/load-map", path),
     api.GET("/members/{memberId}/thanks", path),
     api.GET("/members/{memberId}/thanks/suggestions", path),
+    api.GET("/members/{memberId}/missions", path),
   ]);
   const people = familyPeople(family ?? { parents: [] });
   if (invitations.response.status === 401) redirect("/");
@@ -61,12 +65,25 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
       </header>
+      <Link
+        href={`/family/${memberId}/people/friends`}
+        className="press lift flex w-full max-w-2xl items-center gap-4 rounded-3xl bg-them-soft p-5 text-left"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-card text-them">
+          <UsersRound className="size-5" aria-hidden />
+        </span>
+        <span className="min-w-0">
+          <span className="block text-title">Friend families</span>
+          <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
+        </span>
+      </Link>
       {/* Who carries what is the couple's own section and takes the full width once it has data. */}
       {couple && couple.areas.length > 0 && (
         <Rise i={1} className="min-w-0">
           <LoadMapCard memberId={memberId} initial={couple} people={people} />
         </Rise>
       )}
+      {missions.data && <MissionsLink memberId={memberId} missions={missions.data.items} />}
       {/* The rest are independent cards. CSS columns fill the width without holes whatever is
           present (no invitations yet, an empty log, no thanks endpoint); DOM order is the phone order. */}
       <div className="min-w-0 gap-6 [&>*]:mb-6 [&>*]:break-inside-avoid @4xl:columns-2 @7xl:columns-3">

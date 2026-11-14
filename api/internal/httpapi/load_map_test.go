@@ -70,7 +70,7 @@ func TestLoadMapCountsTasksAndHandsOverOnlyOnAccept(t *testing.T) {
 
 	// Offering moves nothing. The car seat is already offered by Emily to Jake.
 	planning, _ := areaOf(m, httpapi.LoadMapAreaKeyPlanning)
-	if len(planning.OfferedByMeTaskIds) != 1 || countFor(planning.Owned, mom.Id) != 1 {
+	if len(planning.OfferedByMeTaskIds) != 1 || countFor(planning.Owned, mom.Id) != 3 {
 		t.Fatalf("planning = %+v", planning)
 	}
 	jp, _ := areaOf(jm, httpapi.LoadMapAreaKeyPlanning)
@@ -81,7 +81,7 @@ func TestLoadMapCountsTasksAndHandsOverOnlyOnAccept(t *testing.T) {
 	c.Post(tasksPath(jake.Id)+"/"+jp.OfferedToMeTaskIds[0].String()+"/reassignment/accept", nil, http.StatusOK, &task)
 	c.Get(loadMapPath(mom.Id), http.StatusOK, &m)
 	planning, _ = areaOf(m, httpapi.LoadMapAreaKeyPlanning)
-	if countFor(planning.Owned, jake.Id) != 1 || countFor(planning.Owned, mom.Id) != 0 || len(planning.OfferedByMeTaskIds) != 0 {
+	if countFor(planning.Owned, jake.Id) != 3 || countFor(planning.Owned, mom.Id) != 2 || len(planning.OfferedByMeTaskIds) != 0 {
 		t.Errorf("after accepting, planning = %+v", planning)
 	}
 }

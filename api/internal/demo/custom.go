@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -55,7 +56,7 @@ func StartCustom(ctx context.Context, pool *pgxpool.Pool, d Details, today time.
 	if err != nil {
 		return uuid.Nil, "", err
 	}
-	return start(ctx, pool, func(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error) {
+	return start(ctx, pool, crypt.Key{}, Custom, func(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error) {
 		s := newSeeder(ctx, q, today, Custom, d.Stage, due)
 		for _, m := range []store.CreateMemberParams{
 			{Role: "mother", DisplayName: d.MotherName},

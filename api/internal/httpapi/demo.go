@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Server) CreateDemoSession(ctx context.Context, req CreateDemoSessionRequestObject) (CreateDemoSessionResponseObject, error) {
-	familyID, token, err := demo.Start(ctx, s.pool, demo.Template(req.Body.Template), s.realToday())
+	familyID, token, err := demo.Start(ctx, s.pool, s.cfg.Diary, demo.Template(req.Body.Template), s.realToday())
 	if errors.Is(err, demo.ErrUnknownTemplate) {
 		return CreateDemoSession400JSONResponse{Code: "bad_template", Message: err.Error()}, nil
 	}

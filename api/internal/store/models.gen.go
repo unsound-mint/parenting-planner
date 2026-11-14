@@ -80,6 +80,16 @@ type BabyNameLike struct {
 	CreatedAt time.Time
 }
 
+type BirthCostPlan struct {
+	FamilyID            uuid.UUID
+	DeductibleCents     int64
+	OutOfPocketMaxCents int64
+	CoinsurancePercent  int16
+	AlreadyPaidCents    int64
+	UpdatedBy           uuid.NullUUID
+	UpdatedAt           time.Time
+}
+
 type BirthPlan struct {
 	FamilyID        uuid.UUID
 	HospitalName    string
@@ -99,6 +109,18 @@ type BookingRequest struct {
 	Status        string
 	Note          *string
 	CreatedAt     time.Time
+}
+
+type BudgetItem struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	Category    string
+	Name        string
+	AmountCents int64
+	Cadence     string
+	Payer       string
+	CreatedBy   uuid.NullUUID
+	CreatedAt   time.Time
 }
 
 type CalendarEvent struct {
@@ -164,6 +186,14 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ChildMilestone struct {
+	FamilyID      uuid.UUID
+	ChildID       uuid.UUID
+	MilestoneID   string
+	ObservedOn    time.Time
+	SetByMemberID uuid.NullUUID
+}
+
 type ChildcareOption struct {
 	ID               uuid.UUID
 	FamilyID         uuid.UUID
@@ -220,6 +250,42 @@ type Family struct {
 	PregnancyLossOccurredOn   *time.Time
 	PregnancyLossPriorStage   *string
 	PregnancyLossPriorDueDate *time.Time
+	FriendOf                  uuid.NullUUID
+}
+
+type FriendCode struct {
+	FamilyID  uuid.UUID
+	Code      string
+	CreatedBy uuid.UUID
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+type FriendConnection struct {
+	ID              uuid.UUID
+	RequesterFamily uuid.UUID
+	AddresseeFamily uuid.UUID
+	RequestedBy     uuid.NullUUID
+	CreatedAt       time.Time
+	AcceptedAt      pgtype.Timestamptz
+}
+
+type FriendReaction struct {
+	UpdateID  uuid.UUID
+	MemberID  uuid.UUID
+	FamilyID  uuid.UUID
+	Reaction  string
+	CreatedAt time.Time
+}
+
+type FriendUpdate struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	AuthorMemberID uuid.UUID
+	Kind           string
+	Headline       *string
+	Body           string
+	CreatedAt      time.Time
 }
 
 type GrowthMeasurement struct {
@@ -284,6 +350,15 @@ type Invitation struct {
 	RevokedAt   pgtype.Timestamptz
 }
 
+type LabAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	CardID     string
+	ChoiceID   string
+	OtherText  *string
+	AnsweredAt time.Time
+}
+
 type LabResult struct {
 	ID              uuid.UUID
 	FamilyID        uuid.UUID
@@ -344,6 +419,16 @@ type Member struct {
 	RevokedAt      pgtype.Timestamptz
 	Phone          *string
 	EssentialsOnly bool
+}
+
+type MissionPick struct {
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	MissionKey string
+	Status     string
+	TaskID     uuid.NullUUID
+	Note       *string
+	CreatedAt  time.Time
 }
 
 type MoodCheckin struct {
@@ -561,6 +646,37 @@ type ShoppingItem struct {
 	CreatedAt       time.Time
 }
 
+type SimulatorAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	RoundID    uuid.UUID
+	QuestionID string
+	ChoiceID   string
+	Skill      string
+	Correct    bool
+	AnsweredAt time.Time
+}
+
+type SimulatorRound struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	MemberID    uuid.UUID
+	Mode        string
+	ScenarioID  *string
+	QuestionIds []string
+	CreatedAt   time.Time
+	CompletedAt pgtype.Timestamptz
+}
+
+type Sticker struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	Key      string
+	EarnedAt time.Time
+	SeenAt   pgtype.Timestamptz
+}
+
 type StripeEvent struct {
 	ID         string
 	Type       string
@@ -624,6 +740,19 @@ type Thank struct {
 	Body          string
 	SuggestionKey *string
 	CreatedAt     time.Time
+}
+
+type TimeCapsuleLetter struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	ChildID       uuid.NullUUID
+	Visibility    string
+	Occasion      string
+	OpensOn       time.Time
+	BodySealed    []byte
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type UpgradeIntent struct {

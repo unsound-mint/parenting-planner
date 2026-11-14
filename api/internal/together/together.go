@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/content"
+	"github.com/unsound-mint/parenting-planner/api/internal/couplelab"
 	"github.com/unsound-mint/parenting-planner/api/internal/learn"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -94,7 +95,11 @@ func GetCard(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, me uui
 		}
 		card.Nudge = nudge(other, reads, answers, names, today, now)
 	}
-	card.Prompts = prompts(me, other.ID, st, reads, talks, now)
+	lab, err := couplelab.List(ctx, pool, familyID, me, other.ID)
+	if err != nil {
+		return Card{}, err
+	}
+	card.Prompts = prompts(me, other.ID, st, reads, talks, couplelab.TalkPrompts(lab), now)
 	return card, nil
 }
 
@@ -182,8 +187,9 @@ func relativeDay(t, today time.Time) string {
 // prompts orders the week's talk prompts: prompts of lessons either parent
 // finished in the last two weeks (latest first), then the pool for this week,
 // then prompts of lessons open now; prompts already talked about go last,
-// latest first. "Another question" in the UI is the next item.
-func prompts(me, other uuid.UUID, st content.State, reads []store.LessonRead, talks []store.CoupleTalk, now time.Time) []Prompt {
+// latest first. Lab cards whose answers differ come after the lessons' prompts
+// (a conversation the couple chose to open). "Another question" in the UI is the next item.
+func prompts(me, other uuid.UUID, st content.State, reads []store.LessonRead, talks []store.CoupleTalk, lab []couplelab.Card, now time.Time) []Prompt {
 	talked := map[string]store.CoupleTalk{}
 	for _, t := range talks {
 		talked[t.PromptID] = t
@@ -224,13 +230,26 @@ func prompts(me, other uuid.UUID, st content.State, reads []store.LessonRead, ta
 			}
 		}
 	}
+	// Cards of the Compatibility Lab where the two answers differ.
+	for _, c := range lab {
+		add(couplelab.PromptPrefix+c.ID, c.Prompt, "")
+	}
 	slices.SortStableFunc(done, func(a, b Prompt) int { return b.TalkedAt.Compare(*a.TalkedAt) })
 	return append(open, done...)
 }
 
 // Talk records that the couple talked about a prompt. The first record wins.
-func Talk(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, st content.State, promptID string, now time.Time) (store.CoupleTalk, error) {
-	if _, _, ok := content.TalkPromptText(st, promptID); !ok {
+func Talk(ctx context.Context, pool *pgxpool.Pool, familyID, actor, other uuid.UUID, st content.State, promptID string, now time.Time) (store.CoupleTalk, error) {
+	if id, ok := strings.CutPrefix(promptID, couplelab.PromptPrefix); ok {
+		// A lab prompt exists for this family only once both parents answered the card differently.
+		lab, err := couplelab.List(ctx, pool, familyID, actor, other)
+		if err != nil {
+			return store.CoupleTalk{}, err
+		}
+		if !slices.ContainsFunc(couplelab.TalkPrompts(lab), func(c couplelab.Card) bool { return c.ID == id }) {
+			return store.CoupleTalk{}, ErrUnknownPrompt
+		}
+	} else if _, _, ok := content.TalkPromptText(st, promptID); !ok {
 		return store.CoupleTalk{}, ErrUnknownPrompt
 	}
 	return store.New(pool).CreateCoupleTalk(ctx, store.CreateCoupleTalkParams{
