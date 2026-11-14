@@ -24,6 +24,7 @@ tags:
   - name: care
   - name: invitations
   - name: bag
+  - name: appointments
 paths:
   /healthz:
     get:
@@ -614,6 +615,143 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /family/appointments:
+    post:
+      operationId: createAppointment
+      tags: [appointments]
+      summary: Add an appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listAppointments
+      tags: [appointments]
+      summary: Appointments with their questions, next visit first
+      description: Unanswered questions from past appointments move to the next upcoming one (carriedOver).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/appointments/{appointmentId}/questions:
+    parameters:
+      - name: appointmentId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: createAppointmentQuestion
+      tags: [appointments]
+      summary: Add a question to an appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/questions/{questionId}:
+    parameters:
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateAppointmentQuestion
+      tags: [appointments]
+      summary: Mark a question answered or open again
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuestionUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Question"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /providers:
     get:
       operationId: listProviders
@@ -1103,6 +1241,75 @@ components:
         parent's health data (labs, mood check-ins, diary, session notes) and
         cannot create or change those records.
       enum: [grandparent, nanny]
+
+    Question:
+      type: object
+      required: [id, text, answered, carriedOver]
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        answered:
+          type: boolean
+        carriedOver:
+          type: boolean
+          description: Asked at an earlier visit, still unanswered.
+
+    QuestionInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    QuestionUpdate:
+      type: object
+      required: [answered]
+      properties:
+        answered:
+          type: boolean
+
+    AppointmentInput:
+      type: object
+      required: [withName, startsAt]
+      properties:
+        withName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        startsAt:
+          type: string
+          format: date-time
+
+    Appointment:
+      type: object
+      required: [id, withName, startsAt, questions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        withName:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Question"
+
+    AppointmentList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Appointment"
 
     BagList:
       type: string

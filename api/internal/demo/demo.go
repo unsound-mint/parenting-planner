@@ -154,6 +154,35 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 			return uuid.Nil, err
 		}
 	}
+	// One past visit with an unanswered question (it carries over) and the next visit.
+	past, err := q.CreateAppointment(ctx, store.CreateAppointmentParams{FamilyID: fam.ID, WithName: "Dr. Priya Shah", StartsAt: today.AddDate(0, 0, -14).Add(10 * time.Hour)})
+	if err != nil {
+		return uuid.Nil, err
+	}
+	next, err := q.CreateAppointment(ctx, store.CreateAppointmentParams{FamilyID: fam.ID, WithName: "Dr. Priya Shah", StartsAt: today.AddDate(0, 0, 9).Add(10 * time.Hour)})
+	if err != nil {
+		return uuid.Nil, err
+	}
+	for _, aq := range []struct {
+		appt     uuid.UUID
+		text     string
+		answered bool
+	}{
+		{past.ID, "Is the back pain normal at this stage?", false},
+		{past.ID, "When do we sign up for the birth class?", true},
+		{next.ID, "When should we schedule the glucose screening?", false},
+		{next.ID, "Which vaccines does my partner need before the birth?", false},
+	} {
+		created, err := q.CreateAppointmentQuestion(ctx, store.CreateAppointmentQuestionParams{FamilyID: fam.ID, AppointmentID: aq.appt, Body: aq.text})
+		if err != nil {
+			return uuid.Nil, err
+		}
+		if aq.answered {
+			if _, err := q.SetQuestionAnswered(ctx, store.SetQuestionAnsweredParams{ID: created.ID, FamilyID: fam.ID, Answered: true}); err != nil {
+				return uuid.Nil, err
+			}
+		}
+	}
 	for _, c := range []store.CreateCareTeamMemberParams{
 		{FamilyID: fam.ID, Role: "obgyn", Name: "Dr. Priya Shah", Phone: ptr("(512) 555-0142")},
 		{FamilyID: fam.ID, Role: "birth_clinic", Name: "Riverbend Women's Hospital", Address: ptr("Austin, TX")},

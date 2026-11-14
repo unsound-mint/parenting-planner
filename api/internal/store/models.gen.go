@@ -11,6 +11,22 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Appointment struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	WithName string
+	StartsAt time.Time
+}
+
+type AppointmentQuestion struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	AppointmentID uuid.UUID
+	Body          string
+	Answered      bool
+	CreatedAt     time.Time
+}
+
 type AuditLog struct {
 	ID            int64
 	FamilyID      uuid.UUID
