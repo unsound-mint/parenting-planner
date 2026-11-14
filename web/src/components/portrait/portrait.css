@@ -1,0 +1,60 @@
+/* Global, prefixed (CSS modules do not work with this repo's turbopack css rule).
+   The flipbook's page turn. Each page is stacked; data-state says where it is.
+   Only transform and opacity move, as transitions, so a drag that flips five
+   pages in a second retargets instead of restarting. */
+
+.pp-flip-page {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0% 50%;
+  backface-visibility: hidden;
+  transition:
+    transform 280ms var(--ease-out),
+    opacity 200ms var(--ease-out);
+}
+
+/* A turned page leaves to the left, hinged on its left edge like paper. */
+.pp-flip-page[data-state="past"] {
+  opacity: 0;
+  transform: perspective(1400px) rotateY(-28deg) translateX(-4%);
+}
+
+/* The next page waits just behind, a hair smaller, and settles in. */
+.pp-flip-page[data-state="future"] {
+  opacity: 0;
+  transform: translateX(3%) scale(0.97);
+}
+
+.pp-flip-page[data-state="current"] {
+  opacity: 1;
+  transform: none;
+  z-index: 1;
+}
+
+/* Reduced motion: no turning, a short crossfade only. Wins over the global
+   rule in globals.css that cuts every transition to nothing. */
+@media (prefers-reduced-motion: reduce) {
+  .pp-flip-page,
+  .pp-flip-page[data-state] {
+    transform: none !important;
+    transition: opacity 180ms linear !important;
+  }
+}
+
+/* A photo just added lands in its frame. */
+@keyframes pp-flip-land {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.pp-flip-land {
+  animation: pp-flip-land 320ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-flip-land {
+    animation: none;
+  }
+}

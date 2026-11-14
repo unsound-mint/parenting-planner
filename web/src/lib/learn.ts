@@ -30,7 +30,7 @@ const actions: Record<string, LessonAction> = {
   "preg-rsv": ask("Is the RSV vaccine right for me this season?"),
   "preg-gbs": ask("When is the group B strep swab, and what happens if it is positive?"),
   "preg-labor-signs": practice,
-  "postpartum-warning-signs": practice,
+  "postpartum-warning-signs": ask("Which signs in me or the baby mean we should call you the same day?"),
   "postpartum-baby-insurance": task("Enroll the baby in health insurance"),
   "postpartum-leave": task("Request parental leave"),
   "postpartum-night-shifts": {

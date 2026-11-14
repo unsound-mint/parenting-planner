@@ -43,6 +43,7 @@ tags:
   - name: offers
   - name: admin
   - name: account
+  - name: story
   - name: portraits
   - name: childcare
 paths:
@@ -853,6 +854,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /members/{memberId}/growth-measurements:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createGrowthMeasurement
+      tags: [health]
+      summary: The acting parent records a child's weight, length and head size
+      description: |
+        Parents only (404 for a caregiver id). childId must be a child of
+        the family (404 otherwise); measuredOn not after today (400). The
+        passport lists it on the next read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowthMeasurementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowthPoint"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/growth-measurements/{measurementId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/GrowthMeasurementId"
+    patch:
+      operationId: updateGrowthMeasurement
+      tags: [health]
+      summary: Correct a growth measurement
+      description: |
+        Parents only. Replaces the date and values with the body; the child
+        stays (childId in the body is ignored). 404 when the measurement is
+        not in the family.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrowthMeasurementInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrowthPoint"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteGrowthMeasurement
+      tags: [health]
+      summary: Remove a growth measurement
+      description: Parents only. 404 when the measurement is not in the family.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/screenings:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -932,6 +1038,460 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/immunizations/{immunizationId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: immunizationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateImmunization
+      tags: [health]
+      summary: The acting parent corrects one logged vaccine dose
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Only given doses (status done) have an immunization id; scheduled
+        doses are 404. 400 when givenOn is in the future.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImmunizationEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaccineDose"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteImmunization
+      tags: [health]
+      summary: The acting parent removes one logged vaccine dose
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        A scheduled dose with the same label comes back as due or upcoming.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/screenings/{screeningId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: screeningId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateScreening
+      tags: [health]
+      summary: The acting parent corrects one logged screening
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited. 400 for a kind outside the catalog, kind other without a
+        name, or takenOn in the future.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreeningEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Screening"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteScreening
+      tags: [health]
+      summary: The acting parent removes one logged screening
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited. The plan reads screenings on the next request, so a
+        removed screening can bring its plan item back.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/lab-results/{labId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: labId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateLabResult
+      tags: [health]
+      summary: The acting parent corrects one lab value
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Replaces the value, unit, date, reference range and visibility.
+        Audited. 400 when refLow is above refHigh or takenOn is in the future.
+        The flag is recomputed from the stored range.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LabResultEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LabResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteLabResult
+      tags: [health]
+      summary: The acting parent removes one lab value
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited. Screenings (records without a value) are 404 here.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/allergies:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createAllergy
+      tags: [health]
+      summary: The acting parent records an allergy for them or a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Sensitive: visibility is
+        required and the write is audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllergyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Allergy"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/allergies/{allergyId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: allergyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateAllergy
+      tags: [health]
+      summary: The acting parent corrects one allergy
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllergyEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Allergy"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteAllergy
+      tags: [health]
+      summary: The acting parent removes one allergy
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/care-team:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createCareTeamMember
+      tags: [health]
+      summary: The acting parent adds a doctor or clinician for them or a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Care team rows are
+        family data without a visibility; a psychologist is only ever listed
+        for the parent it belongs to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareTeamInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTeamMember"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/care-team/{careTeamId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: careTeamId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateCareTeamMember
+      tags: [health]
+      summary: The acting parent corrects one care team member
+      description: |
+        Allowed for rows about the acting parent or a child, and for rows
+        without a subject (shared by role, for example the family
+        pediatrician; a change shows for everyone the role covers). Another
+        parent's rows and any psychologist that is not the acting parent's
+        are 404.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareTeamEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTeamMember"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteCareTeamMember
+      tags: [health]
+      summary: The acting parent removes one care team member
+      description: |
+        Same rows as the update. Removing a row without a subject removes it
+        for everyone the role covers.
+      responses:
+        "204":
+          description: Deleted
         "401":
           description: Error
           content:
@@ -1578,6 +2138,70 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/caregivers/{caregiverId}:
+    patch:
+      operationId: updateCaregiverPermissions
+      tags: [invitations]
+      summary: A parent changes what a grandparent or nanny may see
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Replaces the
+        caregiver's permissions at once: the next request they make is checked
+        against the new list, and the same list shows on their invitation. A
+        removed caregiver, or an id that is not a caregiver of this family, is
+        404. Recorded in the access log as a change to the invitation.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: caregiverId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [permissions]
+              properties:
+                permissions:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    $ref: "#/components/schemas/CaregiverPermission"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -2753,8 +3377,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
+    delete:
+      operationId: deleteCalendarEvent
+      tags: [calendar]
+      summary: The owner deletes an appointment, class or reminder
+      description: |
+        Same access as updateCalendarEvent: only the acting parent who owns a
+        stored event; the partner gets 404, a grandparent or nanny 403. Notes
+        and questions attached to the event are deleted with it. Sends a live
+        update of kind calendar_event to everyone who could see the event.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -3898,13 +4546,22 @@ paths:
         Mother and partner; a grandparent or nanny with care_log (403
         without it). Newest first. latest holds the last feed, sleep and
         diaper even when older than 48 hours, and who is on duty now.
-        Empty before "Baby is home".
+        Empty before "Baby is home". days widens the window to that many
+        days back (the week view of the Baby screen); default 2.
       parameters:
         - name: kind
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/CareLogKind"
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 7
+            default: 2
       responses:
         "200":
           description: OK
@@ -3943,6 +4600,86 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/care-log/{entryId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/CareLogEntryId"
+    patch:
+      operationId: updateCareLogEntry
+      tags: [carelog]
+      summary: Correct a logged feed, sleep or diaper
+      description: |
+        Same people as createCareLogEntry. Replaces the times and details
+        with the body; kind must match the entry (400 otherwise) and the
+        child stays. 404 when the entry is not in the family. A caregiver's
+        change is written to the access log. Sends a live update of kind
+        care_log.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareLogEntryInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareLogEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteCareLogEntry
+      tags: [carelog]
+      summary: Remove a feed, sleep or diaper logged by mistake
+      description: |
+        Same people as createCareLogEntry. 404 when the entry is not in the
+        family. A caregiver's delete is written to the access log. Sends a
+        live update of kind care_log.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/handoffs:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -6241,6 +6978,59 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/story:
+    get:
+      operationId: getStory
+      tags: [story]
+      summary: Our story so far, the family's memory book written from what they already did
+      description: |
+        A read-only aggregation of data the family already has, grouped
+        into chapters by stage, oldest first. Nothing is stored for it and
+        nothing is invented: every moment comes from a row (a past
+        appointment, a shared journal line, a care log entry, a handoff,
+        the baby's arrival, a vaccine given, a lesson read, a quiz both
+        parents answered, a name both liked, a talk marked as had) or from
+        the sourced weekly content for a week or age the family has
+        already passed (fruit sizes, "most babies by" lines, each with
+        `sources`). Content lines describe what most children do by an age,
+        never what this child did.
+
+        Privacy. The book is the same for both parents. Journal lines
+        appear only when their author shared them with the partner or the
+        family (a private entry never appears, not even to its author) or
+        marked them as a first and shared them. Appointments appear only
+        with visibility family. Mood, labs and session notes never appear.
+        A grandparent or nanny gets a caregiver edition: the baby's arrival
+        and age lines, pregnancy weeks only with `pregnancy_updates`, and
+        handoffs they took part in only with `care_log`; never journal
+        lines, appointments, vaccines, lessons, quizzes, names or talks.
+
+        `next` says what writes the next page ("when you both like the
+        same name"), so an early family sees its first pages and an
+        invitation instead of an empty book. Dates follow the family's demo
+        clock; nothing after today appears.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Story"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/portraits:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -6277,12 +7067,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -6372,12 +7156,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/portraits/{portraitId}:
     parameters:
@@ -6408,12 +7186,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -6452,12 +7224,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
 components:
   parameters:
@@ -6473,6 +7239,22 @@ components:
         operations written for parents return 404 for a caregiver id, and
         operations open to caregivers return 403 forbidden when their role
         or permissions do not allow the action.
+      schema:
+        type: string
+        format: uuid
+
+    CareLogEntryId:
+      name: entryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    GrowthMeasurementId:
+      name: measurementId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -7369,7 +8151,7 @@ components:
 
     PassportPerson:
       type: object
-      required: [id, kind, name, isActingParent, labs, vaccines, allergies, growth, careTeam]
+      required: [id, kind, name, isActingParent, labs, vaccines, allergies, growth, careTeam, screenings, screeningOptions]
       properties:
         id:
           type: string
@@ -7409,6 +8191,18 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CareTeamMember"
+        screenings:
+          type: array
+          description: Screenings on record (lab records without a single value), newest first.
+          items:
+            $ref: "#/components/schemas/Screening"
+        screeningOptions:
+          type: array
+          description: |
+            The screening catalog for this person's stage, grouped, to pick from
+            when logging. Ends with a group holding kind other (free text).
+          items:
+            $ref: "#/components/schemas/ScreeningOptionGroup"
 
     LabResult:
       type: object
@@ -7447,7 +8241,7 @@ components:
         range). Computed by the server from database state. The wording is
         fixed and never diagnostic: it only says to discuss the value with a
         doctor.
-      required: [direction, message, basis]
+      required: [direction, message, basis, reason]
       properties:
         direction:
           type: string
@@ -7459,6 +8253,10 @@ components:
           type: string
           description: Where the range comes from.
           example: Reference range reported with this lab result
+        reason:
+          type: string
+          description: Why this value is flagged, as a sentence built from the value and the stored range. Never diagnostic.
+          example: Because 24 ng/mL is below 30 to 100 ng/mL, the reference range entered with this result. The flag only compares the two numbers; it is not a diagnosis.
 
     VaccineKey:
       type: string
@@ -7488,9 +8286,12 @@ components:
     ScreeningKind:
       type: string
       description: |
-        glucose_screen = pregnancy glucose screening; gbs = group B strep
-        test in pregnancy; vision_screen = a child's vision screening.
-      enum: [glucose_screen, gbs, vision_screen]
+        A key from the screening catalog (PassportPerson.screeningOptions,
+        api/internal/health/catalog.go), or other with a free-text name.
+        The plan reads some keys: glucose_screen and gbs in pregnancy,
+        vision_screen for a child.
+      pattern: "^[a-z0-9_]{1,40}$"
+      example: glucose_screen
 
     ScreeningInput:
       type: object
@@ -7501,6 +8302,12 @@ components:
           format: uuid
         kind:
           $ref: "#/components/schemas/ScreeningKind"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: Required when kind is other; ignored otherwise.
+          example: Thyroid ultrasound
         takenOn:
           type: string
           format: date
@@ -7508,13 +8315,58 @@ components:
         visibility:
           $ref: "#/components/schemas/Visibility"
 
+    ScreeningEdit:
+      type: object
+      required: [kind, takenOn, visibility]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ScreeningKind"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: Required when kind is other; ignored otherwise.
+        takenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    ScreeningOption:
+      type: object
+      required: [kind, name]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ScreeningKind"
+        name:
+          type: string
+          example: Glucose screening
+
+    ScreeningOptionGroup:
+      type: object
+      description: A group of screenings commonly offered at one stage, to pick from when logging. A list to log against, not a recommendation.
+      required: [label, options]
+      properties:
+        label:
+          type: string
+          example: Pregnancy
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreeningOption"
+
     Screening:
       type: object
-      required: [id, kind, takenOn, visibility]
+      required: [id, kind, name, takenOn, visibility]
       properties:
         id:
           type: string
           format: uuid
+        name:
+          type: string
+          description: The catalog name, or the free text for kind other.
+          example: Glucose screening
         childId:
           type: string
           format: uuid
@@ -7614,17 +8466,27 @@ components:
 
     GrowthPoint:
       type: object
-      required: [measuredOn, ageMonths, weightKg, heightCm]
+      required: [id, measuredOn, ageMonths, ageDays, weightKg, heightCm]
       properties:
+        id:
+          type: string
+          format: uuid
         measuredOn:
           type: string
           format: date
         ageMonths:
           type: integer
+        ageDays:
+          type: integer
+          description: Days since birth on the visit day, for labelling the first weeks.
         weightKg:
           type: number
         heightCm:
           type: number
+          description: Length lying down under 2 years, standing height after.
+        headCm:
+          type: number
+          description: Head circumference, when it was measured.
         weightPercentile:
           type: integer
           minimum: 1
@@ -7634,6 +8496,29 @@ components:
           type: integer
           minimum: 1
           maximum: 99
+
+    GrowthMeasurementInput:
+      type: object
+      required: [childId, measuredOn, weightKg, heightCm]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        measuredOn:
+          type: string
+          format: date
+        weightKg:
+          type: number
+          minimum: 0.3
+          maximum: 80
+        heightCm:
+          type: number
+          minimum: 20
+          maximum: 200
+        headCm:
+          type: number
+          minimum: 20
+          maximum: 65
 
     CareRole:
       type: string
@@ -7655,6 +8540,123 @@ components:
           type: string
         phone:
           type: string
+
+    CareTeamInput:
+      type: object
+      required: [name, role]
+      properties:
+        childId:
+          type: string
+          format: uuid
+          description: Set to add the clinician for this child; leave out for the acting parent.
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: Dr. Maya Reyes
+        role:
+          $ref: "#/components/schemas/CareRole"
+        clinic:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+
+    CareTeamEdit:
+      type: object
+      required: [name, role]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        role:
+          $ref: "#/components/schemas/CareRole"
+        clinic:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+
+    AllergyInput:
+      type: object
+      required: [substance, certainty, visibility]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        substance:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: Peanut
+        certainty:
+          $ref: "#/components/schemas/AllergyCertainty"
+        reaction:
+          type: string
+          maxLength: 160
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    AllergyEdit:
+      type: object
+      required: [substance, certainty, visibility]
+      properties:
+        substance:
+          type: string
+          minLength: 1
+          maxLength: 80
+        certainty:
+          $ref: "#/components/schemas/AllergyCertainty"
+        reaction:
+          type: string
+          maxLength: 160
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    LabResultEdit:
+      type: object
+      required: [name, value, unit, takenOn, visibility]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        value:
+          type: number
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 20
+        refLow:
+          type: number
+          description: Leave out when the report gives no lower bound.
+        refHigh:
+          type: number
+          description: Leave out when the report gives no upper bound.
+        takenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    ImmunizationEdit:
+      type: object
+      required: [vaccine, givenOn]
+      properties:
+        vaccine:
+          $ref: "#/components/schemas/VaccineKey"
+        dose:
+          type: string
+          minLength: 1
+          maxLength: 60
+        givenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
 
     AgendaTopic:
       type: object
@@ -9675,7 +10677,10 @@ components:
 
     FeedMethod:
       type: string
-      enum: [breast_left, breast_right, bottle_breast_milk, bottle_formula]
+      description: |
+        A breastfeed names its side (both = switched sides); its length is
+        endedAt minus startedAt. A bottle names the milk; amountMl its amount.
+      enum: [breast_left, breast_right, breast_both, bottle_breast_milk, bottle_formula]
 
     DiaperContent:
       type: string
@@ -10952,6 +11957,147 @@ components:
           type: string
           format: date-time
 
+    Story:
+      type: object
+      required: [chapters, next]
+      properties:
+        chapters:
+          type: array
+          description: Oldest first. The last one is the chapter the family is in now.
+          items:
+            $ref: "#/components/schemas/StoryChapter"
+        next:
+          type: array
+          description: What writes the next pages, most likely first. At least one.
+          items:
+            $ref: "#/components/schemas/StoryInvitation"
+
+    StoryChapterKind:
+      type: string
+      description: |
+        getting_ready = planning and trying; trimester_1 to trimester_3 =
+        pregnancy weeks 1 to 13, 14 to 27 and 28 to 40; newborn = the first
+        12 weeks of life; first_year = 3 to 11 months; toddler = 1 to 2
+        years; preschool = 3 and 4 years; school_age = 5 years and up.
+      enum: [getting_ready, trimester_1, trimester_2, trimester_3, newborn, first_year, toddler, preschool, school_age]
+
+    StoryChapter:
+      type: object
+      required: [kind, title, startsOn, current, stage, moments]
+      properties:
+        kind:
+          $ref: "#/components/schemas/StoryChapterKind"
+        title:
+          type: string
+          description: A warm chapter title, for example "The secret weeks" or "Leo is home".
+          example: Getting to know you
+        span:
+          type: string
+          description: The chapter's range in plain words, for example "Weeks 14 to 27".
+          example: Weeks 14 to 27
+        startsOn:
+          type: string
+          format: date
+        endsOn:
+          type: string
+          format: date
+          description: Absent for the chapter the family is in now.
+        current:
+          type: boolean
+        stage:
+          $ref: "#/components/schemas/Stage"
+        comparison:
+          type: string
+          description: Pregnancy chapters only. The baby's size at the last week of the chapter the family reached, for the illustration.
+          example: an eggplant
+        moments:
+          type: array
+          description: Oldest first. May be empty only for the current chapter, which then carries the invitations in Story.next.
+          items:
+            $ref: "#/components/schemas/StoryMoment"
+
+    StoryMomentKind:
+      type: string
+      description: |
+        pregnancy_week = a key week passed, with its sourced size;
+        appointment = a past visit with visibility family; journal = a
+        shared journal line (first marks a "First!"); baby_home = the day
+        the baby came home; care_log = feeds, sleep and changes logged,
+        with count and who logged; handoff = the baby handed from one
+        person to another; vaccines = doses given on one day; stage_line =
+        a sourced "most babies by" line for an age passed; lesson_read =
+        a lesson finished; quiz_compared = both parents answered a lesson's
+        quiz; names_liked = names both parents like; couple_talk = a talk
+        prompt marked as talked about.
+      enum: [pregnancy_week, appointment, journal, baby_home, care_log, handoff, vaccines, stage_line, lesson_read, quiz_compared, names_liked, couple_talk]
+
+    StoryMoment:
+      type: object
+      required: [id, kind, on, title, peopleIds]
+      properties:
+        id:
+          type: string
+          description: Stable within the family, for list keys.
+          example: week-20
+        kind:
+          $ref: "#/components/schemas/StoryMomentKind"
+        "on":
+          type: string
+          format: date
+        title:
+          type: string
+          description: One line, written from the data.
+          example: Halfway there, about the size of a banana
+        detail:
+          type: string
+          description: A second, quieter line.
+        quote:
+          type: string
+          description: Journal moments only, the shared text, at most 280 characters.
+        first:
+          type: boolean
+          description: Journal moments only, the author marked it as a first.
+        peopleIds:
+          type: array
+          description: Who did it (Family.parents and Family.caregivers ids), so each shows with their avatar. Empty for content lines.
+          items:
+            type: string
+            format: uuid
+        week:
+          type: integer
+          description: pregnancy_week only.
+        comparison:
+          type: string
+          description: pregnancy_week only, the size comparison with its article.
+          example: a banana
+        count:
+          type: integer
+          description: care_log, handoff, vaccines and names_liked, how many.
+        names:
+          type: array
+          description: names_liked only, the names both parents like, oldest first.
+          items:
+            type: string
+        sources:
+          type: array
+          description: Content-derived moments (pregnancy_week, stage_line) carry the pages they paraphrase.
+          items:
+            $ref: "#/components/schemas/Source"
+
+    StoryInvitation:
+      type: object
+      required: [kind, title]
+      properties:
+        kind:
+          $ref: "#/components/schemas/StoryMomentKind"
+        title:
+          type: string
+          description: Completes "The next page is written when...".
+          example: you both like the same name
+        "on":
+          type: string
+          format: date
+          description: When it will happen by itself, for dated pages (the next key week).
     Portrait:
       type: object
       description: |
