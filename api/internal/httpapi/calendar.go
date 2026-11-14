@@ -39,7 +39,7 @@ func (s *Server) ListCalendarEvents(ctx context.Context, req ListCalendarEventsR
 	case kind == errNotFound:
 		return ListCalendarEvents404JSONResponse(errNoMember), nil
 	}
-	today := s.today()
+	today := s.today(ctx)
 	from, to := today, today.AddDate(0, 0, 6)
 	if p := req.Params.From; p != nil {
 		from = p.Time
@@ -75,7 +75,7 @@ func (s *Server) ListCalendarEvents(ctx context.Context, req ListCalendarEventsR
 	for _, e := range events {
 		items = append(items, calendarEventOut(e))
 	}
-	return ListCalendarEvents200JSONResponse{From: dateOf(from), To: dateOf(to), Items: items}, nil
+	return ListCalendarEvents200JSONResponse{From: apiDate(from), To: apiDate(to), Items: items}, nil
 }
 
 func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEventRequestObject) (CreateCalendarEventResponseObject, error) {
@@ -131,4 +131,4 @@ func (s *Server) UpdateAppointmentQuestion(_ context.Context, _ UpdateAppointmen
 	return UpdateAppointmentQuestion501JSONResponse(Error{Code: "not_implemented", Message: "appointment questions are not available yet"}), nil
 }
 
-func dateOf(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
+func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }

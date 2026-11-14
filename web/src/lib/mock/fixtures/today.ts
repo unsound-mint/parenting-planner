@@ -1,24 +1,16 @@
 import type { components } from "@/lib/api/schema.gen";
 import { mock } from "../registry";
+import { at, calendarEvent, couple, dayOf, events, taskId, taskPlan } from "../timeline";
 
 type Guide = components["schemas"]["Guide"];
-type CalendarEvent = components["schemas"]["CalendarEvent"];
 
 // Preview data for the home screen: the weekly pregnancy card, stage guides and
 // Today. It follows the demo family (Emily, week 25, due 2027-02-27, partner
-// Jake, a grandparent and a nanny). A mock cannot see the acting person's role,
-// so every person gets the same body; the real API sends each role its own.
+// Jake, a grandparent and a nanny). Events and tasks come from the shared timeline
+// (lib/mock/timeline.ts); the guides are the same for everyone.
 
 const DEMO_WEEK = 25;
 const source = { title: "ACOG patient education (summarized)", url: "https://www.acog.org/womens-health", checkedAt: "2026-11-10" };
-
-const days = (n: number, hour = 9, minute = 30) => {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() + n);
-  d.setUTCHours(hour, minute, 0, 0);
-  return d;
-};
-const isoDate = (n: number) => days(n).toISOString().slice(0, 10);
 
 const birthPrep = (week: number): Guide[] =>
   [
@@ -70,31 +62,22 @@ export const todayMocks = {
     children: [],
   })),
 
-  ...mock("/members/{memberId}/today", "get", (ctx) => {
+  ...mock("/members/{memberId}/today", "get", async (ctx) => {
     const memberId = ctx.path.memberId;
-    const event = (id: string, title: string, at: Date, extra: Partial<CalendarEvent> = {}): CalendarEvent => ({
-      id,
-      kind: "appointment",
-      title,
-      startsAt: at.toISOString(),
-      allDay: false,
-      attendeeIds: [memberId],
-      visibility: "family",
-      ...extra,
-    });
+    const family = await ctx.family();
+    const c = couple(family);
+    const role = memberId === c.partner.id ? "partner" : "mother";
+    const mine = Object.values(taskPlan).filter((t) => c[t.owner].id === memberId);
     return {
       memberId,
-      role: "mother",
-      date: isoDate(0),
+      role,
+      date: dayOf(0),
       stage: "pregnancy",
       planItems: [],
-      tasks: [
-        { id: "task-car-seat", title: "Pick a car seat", assigneeId: memberId, kind: "task", done: false, dueOn: isoDate(3) },
-        { id: "task-bag", title: "Start the hospital bag list", assigneeId: memberId, kind: "task", done: false, dueOn: isoDate(6) },
-      ],
-      events: [event("event-visit", "Prenatal visit with Dr. Reyes", days(1, 14, 30), { location: "Oak Street Clinic" })],
-      nextShift: event("shift-next", "Nanny shift", days(1, 13, 0), { kind: "shift", endsAt: days(1, 21, 0).toISOString() }),
-      careSummary: { onDuty: { memberId, since: days(0, 8, 0).toISOString(), via: "shift" } },
+      tasks: mine.map((t) => ({ id: taskId(family.id, t.n), title: t.title, assigneeId: memberId, kind: "task" as const, done: false, dueOn: dayOf(t.day) })),
+      events: [calendarEvent(events.prenatalVisit, c)],
+      nextShift: { id: "shift-next", kind: "shift", title: "Nanny shift", startsAt: at(1, "08:00"), endsAt: at(1, "16:00"), allDay: false, attendeeIds: [memberId], visibility: "family" },
+      careSummary: { onDuty: { memberId, since: at(0, "08:00"), via: "shift" } },
       pendingHandoffs: [],
       guides: [],
     };
