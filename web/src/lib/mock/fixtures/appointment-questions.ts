@@ -1,23 +1,78 @@
+import type { AppointmentQuestion, Family } from "@/lib/api/types";
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { isoAt, uid } from "./dates";
-import { calendarEvent, couple, events, lastVisit } from "../timeline";
+import { mockNow } from "@/lib/clock";
+import { calendarEvent, childEvents, couple, events, lastVisit, olderStage, planningEvents, type Couple } from "../timeline";
 
 const obVisit = events.prenatalVisit.id;
 const scan = events.anatomyScan.id;
 
+/** The demo questions, shared with the appointment prep mock so both views list the same ones. */
+export function demoQuestions(memberId: string): AppointmentQuestion[] {
+  return [
+    { id: uid(610), authorId: memberId, text: "Is the glucose screen fasting or not?", appointmentId: obVisit, askedForAppointmentId: obVisit, carriedOver: false, answered: false, visibility: "partner", createdAt: isoAt(-2, 19) },
+    { id: uid(611), authorId: memberId, text: "Can I keep running at 25 weeks?", appointmentId: obVisit, askedForAppointmentId: obVisit, carriedOver: false, answered: false, visibility: "private", createdAt: isoAt(-1, 8) },
+    { id: uid(612), authorId: memberId, text: "How do we know when to leave for the hospital?", appointmentId: obVisit, askedForAppointmentId: lastVisit.id, carriedOver: true, answered: false, visibility: "partner", createdAt: isoAt(-21, 12) },
+    { id: uid(613), authorId: memberId, text: "Is mild back pain normal this week?", appointmentId: scan, askedForAppointmentId: scan, carriedOver: false, answered: true, answer: "Common now. Heat and a support belt help; call if it comes in waves.", answeredAt: isoAt(-14, 17), visibility: "private", createdAt: isoAt(-25, 10) },
+  ];
+}
+
+// The next visits and the questions parents saved for them, per older stage.
+function older(stage: "planning" | "child", family: Family, c: Couple, me: string) {
+  const q = (n: number, o: Pick<AppointmentQuestion, "text" | "appointmentId" | "askedForAppointmentId" | "visibility"> & Partial<AppointmentQuestion>): AppointmentQuestion => ({
+    id: uid(640 + n),
+    authorId: me,
+    carriedOver: false,
+    answered: false,
+    createdAt: isoAt(-n, 19),
+    ...o,
+  });
+  if (stage === "planning") {
+    const visit = planningEvents.preconceptionVisit.id;
+    const shot = planningEvents.mmrShot.id;
+    return {
+      appointments: [calendarEvent(planningEvents.mmrShot, c), calendarEvent(planningEvents.preconceptionVisit, c)],
+      items: [
+        q(1, { text: "Can I get the flu shot at the same visit?", appointmentId: shot, askedForAppointmentId: shot, visibility: "private" }),
+        q(2, { text: "Should I take anything besides folic acid?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+        q(3, { text: "Do we need carrier screening, and will insurance pay for it?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+        q(4, { text: "How long after the MMR shot should we wait to try?", appointmentId: visit, askedForAppointmentId: lastVisit.id, carriedOver: true, visibility: "partner" }),
+      ],
+    };
+  }
+  const visit = childEvents.checkup.id;
+  return {
+    appointments: [calendarEvent(childEvents.checkup, c)],
+    items: [
+      q(1, { text: "Is the vision screen part of the check-up?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+      q(2, { text: "Which boosters are due before kindergarten?", appointmentId: visit, askedForAppointmentId: visit, visibility: "partner" }),
+      q(3, { text: `Is it normal that ${family.children[0]?.name ?? "she"} still wakes at night sometimes?`, appointmentId: visit, askedForAppointmentId: lastVisit.id, carriedOver: true, visibility: "private" }),
+    ],
+  };
+}
+
 // Two upcoming appointments (from the shared timeline), one question carried over from a visit that already happened.
 export const appointmentQuestionMocks = {
   ...mock("/members/{memberId}/appointment-questions", "get", async (ctx) => {
-    const c = couple(await ctx.family());
-    return {
-    appointments: [calendarEvent(events.prenatalVisit, c), calendarEvent(events.anatomyScan, c)],
-    items: [
-      { id: uid(610), authorId: ctx.path.memberId, text: "Is the glucose screen fasting or not?", appointmentId: obVisit, askedForAppointmentId: obVisit, carriedOver: false, answered: false, visibility: "partner", createdAt: isoAt(-2, 19) },
-      { id: uid(611), authorId: ctx.path.memberId, text: "Can I keep running at 25 weeks?", appointmentId: obVisit, askedForAppointmentId: obVisit, carriedOver: false, answered: false, visibility: "private", createdAt: isoAt(-1, 8) },
-      { id: uid(612), authorId: ctx.path.memberId, text: "How do we know when to leave for the hospital?", appointmentId: obVisit, askedForAppointmentId: lastVisit.id, carriedOver: true, answered: false, visibility: "partner", createdAt: isoAt(-21, 12) },
-      { id: uid(613), authorId: ctx.path.memberId, text: "Is mild back pain normal this week?", appointmentId: scan, askedForAppointmentId: scan, carriedOver: false, answered: true, answer: "Common now. Heat and a support belt help; call if it comes in waves.", answeredAt: isoAt(-14, 17), visibility: "private", createdAt: isoAt(-25, 10) },
-    ],
-    };
+    const family = await ctx.family();
+    // Every demo question is about the pregnancy; loss support shows none.
+    if (inLossSupport(family)) return { appointments: [], items: [] };
+    const c = couple(family);
+    const stage = olderStage(family);
+    if (stage) return older(stage, family, c, ctx.path.memberId);
+    // As the real list does: an unanswered question of a visit that has passed moves
+    // to the next upcoming visit of the same kind (carried over), or to none.
+    const now = mockNow().getTime();
+    const visits = [events.prenatalVisit, events.tdapVisit, events.anatomyScan].map((e) => calendarEvent(e, c));
+    const startsAt = (id: string) => Date.parse(visits.find((v) => v.id === id)?.startsAt ?? "");
+    const next = (id: string) => (id === obVisit ? visits.find((v) => v.id === events.tdapVisit.id && startsAt(v.id) > now)?.id : undefined);
+    const items = demoQuestions(ctx.path.memberId).map((q): AppointmentQuestion => {
+      if (q.answered || !q.appointmentId || startsAt(q.appointmentId) > now) return q;
+      const moved = next(q.appointmentId);
+      return { ...q, appointmentId: moved, carriedOver: moved !== q.askedForAppointmentId };
+    });
+    return { appointments: visits.filter((v) => items.some((q) => q.appointmentId === v.id)), items };
   }),
   ...mock("/members/{memberId}/appointment-questions", "post", (ctx) => ({
     id: uid(620),

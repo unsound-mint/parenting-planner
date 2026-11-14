@@ -1,6 +1,7 @@
 import type { components } from "@/lib/api/schema.gen";
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
-import { at, calendarEvent, couple, dayOf, events, taskId, taskPlan } from "../timeline";
+import { at, calendarEvent, childEvents, childTaskPlan, couple, dayOf, events, olderStage, planningEvents, planningTaskPlan, taskId, taskPlan } from "../timeline";
 
 type Guide = components["schemas"]["Guide"];
 
@@ -28,8 +29,8 @@ const birthPrep = (week: number): Guide[] =>
   }));
 
 const articles: Guide[] = [
-  { id: "hospital-bag", title: "Packing the hospital bag", summary: "Pack by week 36; the list is short.", steps: ["Documents and insurance card.", "Phone charger.", "Going-home outfit for the baby."], minutes: 4 },
-  { id: "choose-pediatrician", title: "Choosing a pediatrician", summary: "Visit two or three before the due date.", steps: ["Ask friends and your OB for names.", "Check that your insurance covers them.", "Book a short meet-and-greet."], minutes: 3 },
+  { id: "hospital-bag", title: "Packing the hospital bag", summary: "Pack by week 36; the list is short.", steps: ["Documents and insurance card.", "Phone charger.", "Going-home outfit for the baby."], minutes: 4, action: { kind: "add_task" as const, title: "Pack the hospital bag" } },
+  { id: "choose-pediatrician", title: "Choosing a pediatrician", summary: "Visit two or three before the due date.", steps: ["Ask friends and your OB for names.", "Check that your insurance covers them.", "Book a short meet-and-greet."], minutes: 3, action: { kind: "ask_at_visit" as const, question: "Which pediatricians do you recommend near us?" } },
 ].map((g) => ({ ...g, kind: "article" as const, stages: ["pregnancy" as const], weekFrom: 24, weekTo: 30, audience: ["mother" as const, "partner" as const], locked: false, source }));
 
 export const todayMocks = {
@@ -67,17 +68,22 @@ export const todayMocks = {
     const family = await ctx.family();
     const c = couple(family);
     const role = memberId === c.partner.id ? "partner" : "mother";
-    const mine = Object.values(taskPlan).filter((t) => c[t.owner].id === memberId);
+    // Both demo tasks and the visit are pregnancy prep; loss support hides them.
+    const loss = inLossSupport(family);
+    const stage = olderStage(family);
+    const plan = stage === "planning" ? planningTaskPlan : stage === "child" ? childTaskPlan : taskPlan;
+    const mine = loss ? [] : Object.values(plan).filter((t) => c[t.owner].id === memberId);
+    const next = stage === "planning" ? planningEvents.mmrShot : stage === "child" ? childEvents.checkup : events.prenatalVisit;
     return {
       memberId,
       role,
       date: dayOf(0),
-      stage: "pregnancy",
+      stage: family.stage,
       planItems: [],
       tasks: mine.map((t) => ({ id: taskId(family.id, t.n), title: t.title, assigneeId: memberId, kind: "task" as const, done: false, dueOn: dayOf(t.day) })),
-      events: [calendarEvent(events.prenatalVisit, c)],
-      nextShift: { id: "shift-next", kind: "shift", title: "Nanny shift", startsAt: at(1, "08:00"), endsAt: at(1, "16:00"), allDay: false, attendeeIds: [memberId], visibility: "family" },
-      careSummary: { onDuty: { memberId, since: at(0, "08:00"), via: "shift" } },
+      events: loss ? [] : [calendarEvent(next, c)],
+      // Shifts and the care summary are for the baby at home: none for planning or preschool.
+      ...(stage ? {} : { nextShift: { id: "shift-next", kind: "shift", title: "Nanny shift", startsAt: at(1, "08:00"), endsAt: at(1, "16:00"), allDay: false, attendeeIds: [memberId], visibility: "family" as const }, careSummary: { onDuty: { memberId, since: at(0, "08:00"), via: "shift" as const } } }),
       pendingHandoffs: [],
       guides: [],
     };

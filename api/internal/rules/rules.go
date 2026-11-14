@@ -120,7 +120,8 @@ func All() []Rule {
 	rs = append(rs, pregnancyRules...)
 	rs = append(rs, postpartumRules...)
 	rs = append(rs, childRules...)
-	return append(rs, wellbeingRules...)
+	rs = append(rs, wellbeingRules...)
+	return append(rs, screeningRules...)
 }
 
 func day(y int, m time.Month, d int) time.Time { return time.Date(y, m, d, 0, 0, 0, 0, time.UTC) }

@@ -121,3 +121,6 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 // empty state on 501.
 
 func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
+func (s *Server) UpdateCalendarEvent(_ context.Context, _ UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
+	return UpdateCalendarEvent501JSONResponse(Error{Code: "not_implemented", Message: "the calendar is not available yet"}), nil
+}
