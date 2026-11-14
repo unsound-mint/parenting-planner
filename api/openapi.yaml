@@ -18,7 +18,10 @@ tags:
   - name: family
   - name: plan
   - name: wellbeing
+  - name: directory
   - name: passport
+
+  - name: care
 paths:
   /healthz:
     get:
@@ -86,6 +89,47 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /family/upgrade-intents:
+    post:
+      operationId: createUpgradeIntent
+      tags: [family]
+      summary: Record that the family wants a paid plan
+      description: |
+        There are no payments. This stores which tier the family asked for and
+        when; it shows as "upgrade requested" on the family. Either parent of the
+        session's family may send it. A second request replaces the first.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpgradeIntentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpgradeIntent"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/plan:
     get:
       operationId: getMemberPlan
@@ -111,6 +155,49 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/weekly-plan:
+    get:
+      operationId: getMemberWeeklyPlan
+      tags: [plan]
+      summary: A short written plan for this parent's week
+      description: |
+        A note written for the acting parent from the data they may see: their
+        due plan items, their own recent mood and sleep, diary topics the
+        partner shared with them, and the family's stage. The other parent
+        gets a different plan. Private records (diary, mood, labs, session
+        notes) that were not shared with this parent never feed it. The text
+        never diagnoses. Urgent symptoms and self-harm mentions are not
+        written here; they go to the fixed urgent-help screen. When the AI
+        call fails, fallback is true and the sections are built from the rule
+        plan.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeeklyPlan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
           description: Error
           content:
             application/json:
@@ -147,6 +234,66 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/plan/{ruleId}/status:
+    put:
+      operationId: setPlanItemProgress
+      tags: [plan]
+      summary: The acting parent marks a plan item as booked or done
+      description: |
+        Records progress on one plan item for this parent. A booked or done item
+        stays on the plan, shown as settled, so nothing disappears unseen.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: glucose-screen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanItemProgressInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -214,6 +361,356 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /providers:
+    get:
+      operationId: listProviders
+      tags: [directory]
+      summary: Providers in the ecosystem directory, optionally filtered
+      description: |
+        Every provider is synthetic demo data. The directory is the same for
+        every family and holds no personal records, so any parent in the session
+        may read it. Sorted by next available date, soonest first.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Only providers of this type.
+          schema:
+            $ref: "#/components/schemas/ProviderType"
+        - name: state
+          in: query
+          required: false
+          description: Only providers licensed in this US state (two-letter code).
+          schema:
+            $ref: "#/components/schemas/UsState"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/booking-requests:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createBookingRequest
+      tags: [directory]
+      summary: The acting parent asks a provider for an appointment
+      description: |
+        Saves a request with status requested; nothing is sent to a real
+        provider. A request is sensitive: it can reveal that a parent is seeking
+        care, so only the parent who made it can see it, never the partner.
+        Asking the same provider twice returns 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingRequestInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingRequest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listBookingRequests
+      tags: [directory]
+      summary: The acting parent's own booking requests
+      description: Only requests made by this parent, newest first. The partner's requests are never included.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingRequestList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-patterns:
+    get:
+      operationId: listMoodPatterns
+      tags: [wellbeing]
+      summary: Patterns detected in the acting parent's own recent check-ins
+      description: |
+        Detected from the acting parent's own check-ins of the last 7 days, for
+        example low mood on three days. Check-ins are private by default, so a
+        pattern is computed only from the acting parent's own entries and is
+        returned only to them. Nothing from the other parent's check-ins is
+        used, even when those were shared. Empty list when there is no pattern.
+        Wording is never diagnostic (docs/product.md, principle 3).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodPatternList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-agenda:
+    get:
+      operationId: getPsychologistAgenda
+      tags: [care]
+      summary: Topics for the acting parent's next psychologist session
+      description: |
+        Topics only, as the parent chose them. Private text such as diary
+        entries is never part of the agenda. The agenda belongs to the acting parent: the other parent can neither read
+        it nor see that a session is booked.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistAgenda"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-slots:
+    get:
+      operationId: listPsychologistSlots
+      tags: [care]
+      summary: Open session times with the demo psychologist, next 14 days
+      description: |
+        Synthetic provider and slots; there is no real provider integration.
+        Slots already booked by the acting parent are left out. Booking
+        availability is not shared between parents.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistSlots"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-bookings:
+    post:
+      operationId: createPsychologistBooking
+      tags: [care]
+      summary: The acting parent books one open slot
+      description: |
+        The booking is stored for the acting parent only and is private to them.
+        Returns 409 slot_taken if the slot is gone.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PsychologistBookingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistBooking"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/session-notes:
+    post:
+      operationId: createSessionNote
+      tags: [care]
+      summary: The acting parent writes a short note after a session
+      description: |
+        Always private to the author; there is no visibility field and the
+        server never widens it. The note feeds the author's next weekly plan.
+        The booking must belong to the acting parent and must have started.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionNoteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionNote"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   parameters:
@@ -267,6 +764,32 @@ components:
       type: string
       enum: [mother, partner]
 
+    Tier:
+      type: string
+      description: The plan the family is on. Demo families start on free; there is no billing.
+      enum: [free, plus, concierge]
+
+    PaidTier:
+      type: string
+      enum: [plus, concierge]
+
+    UpgradeIntentInput:
+      type: object
+      required: [tier]
+      properties:
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+
+    UpgradeIntent:
+      type: object
+      required: [tier, requestedAt]
+      properties:
+        tier:
+          $ref: "#/components/schemas/PaidTier"
+        requestedAt:
+          type: string
+          format: date-time
+
     Family:
       type: object
       required: [id, template, stage, parents, children]
@@ -285,6 +808,10 @@ components:
         gestationalWeek:
           type: integer
           description: Completed weeks of pregnancy today, derived from dueDate.
+        tier:
+          $ref: "#/components/schemas/Tier"
+        upgradeRequest:
+          $ref: "#/components/schemas/UpgradeIntent"
         parents:
           type: array
           items:
@@ -369,6 +896,69 @@ components:
           description: Why this applies to this parent now, based on their data.
         source:
           $ref: "#/components/schemas/Source"
+        progress:
+          $ref: "#/components/schemas/PlanItemProgress"
+
+    PlanItemProgress:
+      type: string
+      description: What the parent has done about an item. Absent until they record something.
+      enum: [booked, done]
+
+    PlanItemProgressInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/PlanItemProgress"
+
+    WeeklyPlan:
+      type: object
+      required: [memberId, generatedAt, fallback, intro, sections]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        generatedAt:
+          type: string
+          format: date-time
+        fallback:
+          type: boolean
+          description: True when the rule-based plan was used because the AI call failed.
+        intro:
+          type: string
+          description: One or two warm sentences that open the note.
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyPlanSection"
+
+    WeeklyPlanSection:
+      type: object
+      required: [title, points]
+      properties:
+        title:
+          type: string
+          example: For you
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyPlanPoint"
+
+    WeeklyPlanPoint:
+      type: object
+      required: [text, reason]
+      properties:
+        text:
+          type: string
+          description: What to do, in one or two plain sentences. Never a diagnosis. Any medical point must carry a source.
+        reason:
+          type: string
+          description: The data behind the point, for example "You slept 5.5 hours on average this week."
+        ruleId:
+          type: string
+          description: The rule plan item this point comes from, when it has one.
+        source:
+          $ref: "#/components/schemas/Source"
 
     Source:
       type: object
@@ -448,6 +1038,149 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/MoodCheckin"
+
+    MoodPatternKind:
+      type: string
+      description: |
+        low_mood = mood at or below 2 on several days; low_mood_and_sleep = the
+        same days also had under 6 hours of sleep.
+      enum: [low_mood, low_mood_and_sleep]
+
+    MoodPattern:
+      type: object
+      required: [kind, startedOn, days, checkinIds, message, providerType, source]
+      properties:
+        kind:
+          $ref: "#/components/schemas/MoodPatternKind"
+        startedOn:
+          type: string
+          format: date
+          description: Date of the first check-in in the pattern.
+        days:
+          type: integer
+          description: Number of check-in days in the pattern.
+        checkinIds:
+          type: array
+          description: The acting parent's check-ins that make up the pattern, oldest first.
+          items:
+            type: string
+            format: uuid
+        message:
+          type: string
+          description: Plain, kind and non-diagnostic. Describes what the check-ins show and suggests talking to someone.
+        providerType:
+          $ref: "#/components/schemas/ProviderType"
+        source:
+          $ref: "#/components/schemas/Source"
+
+    MoodPatternList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoodPattern"
+
+
+    ProviderType:
+      type: string
+      description: What kind of care the provider offers.
+      enum: [perinatal_therapist, psychologist, doula, lactation_consultant, sleep_consultant, child_therapist, tutor]
+
+    UsState:
+      type: string
+      description: Two-letter US state code.
+      pattern: "^[A-Z]{2}$"
+      example: CA
+
+    Provider:
+      type: object
+      required: [id, name, type, city, state, languages, nextAvailable, priceUsd, summary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/ProviderType"
+        city:
+          type: string
+        state:
+          $ref: "#/components/schemas/UsState"
+        languages:
+          type: array
+          items:
+            type: string
+          example: [English, Spanish]
+        nextAvailable:
+          type: string
+          format: date
+        priceUsd:
+          type: integer
+          description: Price of one session in US dollars.
+        summary:
+          type: string
+          description: One plain sentence on what this provider helps with.
+
+    ProviderList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Provider"
+
+    BookingRequestInput:
+      type: object
+      required: [providerId]
+      properties:
+        providerId:
+          type: string
+          format: uuid
+        note:
+          type: string
+          maxLength: 500
+          description: Optional message for the provider.
+
+    BookingRequestStatus:
+      type: string
+      description: Only requested exists for now; the demo never confirms a booking.
+      enum: [requested]
+
+    BookingRequest:
+      type: object
+      required: [id, memberId, providerId, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        memberId:
+          type: string
+          format: uuid
+          description: The parent who made the request.
+        providerId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/BookingRequestStatus"
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    BookingRequestList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/BookingRequest"
 
     Passport:
       type: object
@@ -631,4 +1364,129 @@ components:
         clinic:
           type: string
         phone:
+          type: string
+
+    AgendaTopic:
+      type: object
+      required: [id, text, addedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          description: The topic the parent chose, never the entry text.
+        addedAt:
+          type: string
+          format: date-time
+
+    Psychologist:
+      type: object
+      required: [id, name, credentials, focus]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        credentials:
+          type: string
+          example: PhD, licensed clinical psychologist
+        focus:
+          type: string
+          example: Perinatal and postpartum mental health
+
+    PsychologistBooking:
+      type: object
+      required: [id, provider, startsAt, durationMinutes, noteWritten]
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          $ref: "#/components/schemas/Psychologist"
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        noteWritten:
+          type: boolean
+          description: True once the parent has written a session note for this booking.
+
+    PsychologistAgenda:
+      type: object
+      required: [topics]
+      properties:
+        topics:
+          type: array
+          description: Oldest first, so the longest-waiting topic is on top.
+          items:
+            $ref: "#/components/schemas/AgendaTopic"
+        nextSession:
+          $ref: "#/components/schemas/PsychologistBooking"
+        noteDue:
+          allOf:
+            - $ref: "#/components/schemas/PsychologistBooking"
+          description: The latest session that has started and has no note yet.
+
+    Slot:
+      type: object
+      required: [id, startsAt, durationMinutes]
+      properties:
+        id:
+          type: string
+          format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+
+    PsychologistSlots:
+      type: object
+      required: [provider, items]
+      properties:
+        provider:
+          $ref: "#/components/schemas/Psychologist"
+        items:
+          type: array
+          description: Earliest first.
+          items:
+            $ref: "#/components/schemas/Slot"
+
+    PsychologistBookingInput:
+      type: object
+      required: [slotId]
+      properties:
+        slotId:
+          type: string
+          format: uuid
+
+    SessionNoteInput:
+      type: object
+      required: [bookingId, text]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+
+    SessionNote:
+      type: object
+      required: [id, bookingId, writtenAt, text]
+      properties:
+        id:
+          type: string
+          format: uuid
+        bookingId:
+          type: string
+          format: uuid
+        writtenAt:
+          type: string
+          format: date-time
+        text:
           type: string
