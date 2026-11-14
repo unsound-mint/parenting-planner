@@ -4,17 +4,22 @@ import {
   Blocks,
   BookOpen,
   Brain,
+  CalendarClock,
   ClipboardCheck,
   Footprints,
   HeartHandshake,
   HeartPulse,
+  ListChecks,
   Lock,
   Milk,
+  NotebookPen,
+  PenLine,
   Sparkles,
   Sprout,
   Stethoscope,
   Syringe,
   TestTube,
+  UserRound,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -68,3 +73,12 @@ export const statusTint: Record<PlanItemStatus, string> = {
   due: "bg-status-due-soft text-status-due",
   upcoming: "bg-status-up-soft text-status-up",
 };
+
+/** Psychologist flow concepts (docs/product.md, must-have 7). */
+export const careIcon = {
+  diary: NotebookPen,
+  agenda: ListChecks,
+  session: CalendarClock,
+  note: PenLine,
+  provider: UserRound,
+} satisfies Record<string, LucideIcon>;

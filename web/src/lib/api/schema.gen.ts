@@ -103,6 +103,131 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/diary-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The acting parent's diary entries from the last 90 days
+         * @description Only entries written by the acting parent, newest first. Entries of the
+         *     other parent are never returned here, whatever their visibility.
+         */
+        get: operations["listDiaryEntries"];
+        put?: never;
+        /**
+         * The acting parent writes a diary entry and chooses who may see it
+         * @description Diary entries are private to their author by default. The client sends
+         *     visibility explicitly and the server never widens it.
+         *     private = author only. partner = author and the other parent.
+         *     care_team = the author's psychologist agenda: only agendaTopic is
+         *     placed on the agenda, the full text is never shared. The other parent
+         *     never sees a care_team entry or its topic. Family is not allowed here.
+         *     agendaTopic is required when visibility is care_team and ignored otherwise.
+         */
+        post: operations["createDiaryEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-agenda": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Topics for the acting parent's next psychologist session
+         * @description Topics only, taken from the agendaTopic of the parent's own care_team
+         *     diary entries. The full entry text is never part of the agenda. The
+         *     agenda belongs to the acting parent: the other parent can neither read
+         *     it nor see that a session is booked.
+         */
+        get: operations["getPsychologistAgenda"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open session times with the demo psychologist, next 14 days
+         * @description Synthetic provider and slots; there is no real provider integration.
+         *     Slots already booked by the acting parent are left out. Booking
+         *     availability is not shared between parents.
+         */
+        get: operations["listPsychologistSlots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent books one open slot
+         * @description The booking is stored for the acting parent only and is private to them.
+         *     Returns 409 slot_taken if the slot is gone.
+         */
+        post: operations["createPsychologistBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/session-notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent writes a short note after a session
+         * @description Always private to the author; there is no visibility field and the
+         *     server never widens it. The note feeds the author's next weekly plan.
+         *     The booking must belong to the acting parent and must have started.
+         */
+        post: operations["createSessionNote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -223,6 +348,100 @@ export interface components {
         MoodCheckinList: {
             /** @description Newest first. */
             items: components["schemas"]["MoodCheckin"][];
+        };
+        DiaryEntryInput: {
+            body: string;
+            /**
+             * @description private, partner, or care_team (puts agendaTopic on the psychologist agenda).
+             * @enum {string}
+             */
+            visibility: "private" | "partner" | "care_team";
+            /** @description A short topic to bring to the psychologist. Required when visibility is care_team. */
+            agendaTopic?: string;
+        };
+        DiaryEntry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            authorId: string;
+            /** Format: date-time */
+            writtenAt: string;
+            body: string;
+            visibility: components["schemas"]["Visibility"];
+            agendaTopic?: string;
+        };
+        DiaryEntryList: {
+            /** @description Newest first. */
+            items: components["schemas"]["DiaryEntry"][];
+        };
+        AgendaTopic: {
+            /** Format: uuid */
+            id: string;
+            /** @description The topic the parent chose, never the entry text. */
+            text: string;
+            /** Format: date-time */
+            addedAt: string;
+            /**
+             * Format: uuid
+             * @description The entry it came from; only the author sees this agenda.
+             */
+            diaryEntryId?: string;
+        };
+        Provider: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @example PhD, licensed clinical psychologist */
+            credentials: string;
+            /** @example Perinatal and postpartum mental health */
+            focus: string;
+        };
+        PsychologistBooking: {
+            /** Format: uuid */
+            id: string;
+            provider: components["schemas"]["Provider"];
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+            /** @description True once the parent has written a session note for this booking. */
+            noteWritten: boolean;
+        };
+        PsychologistAgenda: {
+            /** @description Oldest first, so the longest-waiting topic is on top. */
+            topics: components["schemas"]["AgendaTopic"][];
+            nextSession?: components["schemas"]["PsychologistBooking"];
+            /** @description The latest session that has started and has no note yet. */
+            noteDue?: components["schemas"]["PsychologistBooking"];
+        };
+        Slot: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+        };
+        PsychologistSlots: {
+            provider: components["schemas"]["Provider"];
+            /** @description Earliest first. */
+            items: components["schemas"]["Slot"][];
+        };
+        PsychologistBookingInput: {
+            /** Format: uuid */
+            slotId: string;
+        };
+        SessionNoteInput: {
+            /** Format: uuid */
+            bookingId: string;
+            text: string;
+        };
+        SessionNote: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: date-time */
+            writtenAt: string;
+            text: string;
         };
     };
     responses: never;
@@ -461,6 +680,372 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listDiaryEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiaryEntryList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createDiaryEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiaryEntryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiaryEntry"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPsychologistAgenda: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistAgenda"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listPsychologistSlots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistSlots"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createPsychologistBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PsychologistBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistBooking"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createSessionNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionNoteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionNote"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };

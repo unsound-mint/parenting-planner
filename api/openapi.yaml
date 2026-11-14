@@ -18,6 +18,7 @@ tags:
   - name: family
   - name: plan
   - name: wellbeing
+  - name: care
 paths:
   /healthz:
     get:
@@ -173,6 +174,269 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/diary-entries:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createDiaryEntry
+      tags: [care]
+      summary: The acting parent writes a diary entry and chooses who may see it
+      description: |
+        Diary entries are private to their author by default. The client sends
+        visibility explicitly and the server never widens it.
+        private = author only. partner = author and the other parent.
+        care_team = the author's psychologist agenda: only agendaTopic is
+        placed on the agenda, the full text is never shared. The other parent
+        never sees a care_team entry or its topic. Family is not allowed here.
+        agendaTopic is required when visibility is care_team and ignored otherwise.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiaryEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntry"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listDiaryEntries
+      tags: [care]
+      summary: The acting parent's diary entries from the last 90 days
+      description: |
+        Only entries written by the acting parent, newest first. Entries of the
+        other parent are never returned here, whatever their visibility.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntryList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-agenda:
+    get:
+      operationId: getPsychologistAgenda
+      tags: [care]
+      summary: Topics for the acting parent's next psychologist session
+      description: |
+        Topics only, taken from the agendaTopic of the parent's own care_team
+        diary entries. The full entry text is never part of the agenda. The
+        agenda belongs to the acting parent: the other parent can neither read
+        it nor see that a session is booked.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistAgenda"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-slots:
+    get:
+      operationId: listPsychologistSlots
+      tags: [care]
+      summary: Open session times with the demo psychologist, next 14 days
+      description: |
+        Synthetic provider and slots; there is no real provider integration.
+        Slots already booked by the acting parent are left out. Booking
+        availability is not shared between parents.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistSlots"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-bookings:
+    post:
+      operationId: createPsychologistBooking
+      tags: [care]
+      summary: The acting parent books one open slot
+      description: |
+        The booking is stored for the acting parent only and is private to them.
+        Returns 409 slot_taken if the slot is gone.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PsychologistBookingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistBooking"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/session-notes:
+    post:
+      operationId: createSessionNote
+      tags: [care]
+      summary: The acting parent writes a short note after a session
+      description: |
+        Always private to the author; there is no visibility field and the
+        server never widens it. The note feeds the author's next weekly plan.
+        The booking must belong to the acting parent and must have started.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionNoteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionNote"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
           description: Error
           content:
             application/json:
@@ -412,3 +676,180 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/MoodCheckin"
+
+    DiaryEntryInput:
+      type: object
+      required: [body, visibility]
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        visibility:
+          type: string
+          description: private, partner, or care_team (puts agendaTopic on the psychologist agenda).
+          enum: [private, partner, care_team]
+        agendaTopic:
+          type: string
+          minLength: 1
+          maxLength: 120
+          description: A short topic to bring to the psychologist. Required when visibility is care_team.
+
+    DiaryEntry:
+      type: object
+      required: [id, authorId, writtenAt, body, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        writtenAt:
+          type: string
+          format: date-time
+        body:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        agendaTopic:
+          type: string
+
+    DiaryEntryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/DiaryEntry"
+
+    AgendaTopic:
+      type: object
+      required: [id, text, addedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          description: The topic the parent chose, never the entry text.
+        addedAt:
+          type: string
+          format: date-time
+        diaryEntryId:
+          type: string
+          format: uuid
+          description: The entry it came from; only the author sees this agenda.
+
+    Provider:
+      type: object
+      required: [id, name, credentials, focus]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        credentials:
+          type: string
+          example: PhD, licensed clinical psychologist
+        focus:
+          type: string
+          example: Perinatal and postpartum mental health
+
+    PsychologistBooking:
+      type: object
+      required: [id, provider, startsAt, durationMinutes, noteWritten]
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          $ref: "#/components/schemas/Provider"
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        noteWritten:
+          type: boolean
+          description: True once the parent has written a session note for this booking.
+
+    PsychologistAgenda:
+      type: object
+      required: [topics]
+      properties:
+        topics:
+          type: array
+          description: Oldest first, so the longest-waiting topic is on top.
+          items:
+            $ref: "#/components/schemas/AgendaTopic"
+        nextSession:
+          $ref: "#/components/schemas/PsychologistBooking"
+        noteDue:
+          allOf:
+            - $ref: "#/components/schemas/PsychologistBooking"
+          description: The latest session that has started and has no note yet.
+
+    Slot:
+      type: object
+      required: [id, startsAt, durationMinutes]
+      properties:
+        id:
+          type: string
+          format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+
+    PsychologistSlots:
+      type: object
+      required: [provider, items]
+      properties:
+        provider:
+          $ref: "#/components/schemas/Provider"
+        items:
+          type: array
+          description: Earliest first.
+          items:
+            $ref: "#/components/schemas/Slot"
+
+    PsychologistBookingInput:
+      type: object
+      required: [slotId]
+      properties:
+        slotId:
+          type: string
+          format: uuid
+
+    SessionNoteInput:
+      type: object
+      required: [bookingId, text]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+
+    SessionNote:
+      type: object
+      required: [id, bookingId, writtenAt, text]
+      properties:
+        id:
+          type: string
+          format: uuid
+        bookingId:
+          type: string
+          format: uuid
+        writtenAt:
+          type: string
+          format: date-time
+        text:
+          type: string

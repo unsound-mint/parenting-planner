@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 const items: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "", label: "This week", icon: CalendarCheck },
   { href: "/journey", label: "Journey", icon: Route },
+  // Enable when the API lands (#174; also import Brain from lucide-react). The route /family/[memberId]/care exists.
+  // { href: "/care", label: "Care", icon: Brain },
 ];
 
 export function FamilyNav({ memberId }: { memberId: string }) {
