@@ -26,7 +26,7 @@ function Chip({ icon: Icon, children, label, strong }: { icon: React.ElementType
   return (
     <li
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-label",
+        "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-label whitespace-nowrap",
         strong ? "bg-status-up-soft font-semibold text-status-up" : "bg-muted text-foreground",
       )}
     >
@@ -107,11 +107,14 @@ export function ProviderCard({
 
   if (!feature) {
     return (
-      <li className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-4">
-        <div className="md:w-72 md:shrink-0">{head}</div>
-        <div className="md:flex-1">{chips}</div>
-        <div className="md:shrink-0">
-          <BookButton memberId={memberId} providerId={provider.id} providerName={provider.name} requested={requested} compact />
+      // Sized by the card, not the screen: the list sits in two or three columns, where a row does not fit.
+      <li className="@container rounded-2xl border border-border bg-card p-4">
+        <div className="flex flex-col gap-3 @2xl:flex-row @2xl:items-center @2xl:gap-4">
+          <div className="min-w-0 @2xl:w-72 @2xl:shrink-0">{head}</div>
+          <div className="@2xl:flex-1">{chips}</div>
+          <div className="@2xl:shrink-0">
+            <BookButton memberId={memberId} providerId={provider.id} providerName={provider.name} requested={requested} compact />
+          </div>
         </div>
       </li>
     );
