@@ -43,6 +43,8 @@ The generated router validates every request against `openapi.yaml` (400 `invali
 
 Each module is a Go package that owns its tables and its endpoints in the contract. Built: family and members, plan, wellbeing (mood check-ins). Planned: diary, health records (passport, labs, vaccines, growth), care team and providers, bookings, planner (AI), billing. `api/AGENTS.md` has the recipe for adding one.
 
+Tables, owners, visibility, and which screen uses each table: `docs/data-model.md` (ER diagram of main plus the tables in open PRs).
+
 Convention tests (`*/conventions_test.go`) check the rules a reviewer would otherwise check by hand: sensitive tables have visibility, sensitive reads mirror `internal/access`, every rule and endpoint has a test. `scripts/check-migrations.sh` fails if an applied migration changes.
 
 ## Local development
