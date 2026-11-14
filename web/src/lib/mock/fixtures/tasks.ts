@@ -21,7 +21,7 @@ const seeded = new Set<string>();
 const taskId = familyTaskId;
 
 /** Positions of paperwork tasks in the seed below that other fixtures link to (leave deadlines). */
-export const paperworkN = { leaveNotice: 8 };
+export const paperworkN = { leaveNotice: 8, inNetwork: 9, preRegister: 10 };
 
 const day = 86_400_000;
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * day).toISOString().slice(0, 10);
