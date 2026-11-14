@@ -38,3 +38,6 @@ INSERT INTO care_team (family_id, role, name, phone, address) VALUES ($1, $2, $3
 
 -- name: ListCareTeam :many
 SELECT * FROM care_team WHERE family_id = $1 ORDER BY role, name;
+
+-- name: UpdateFamilyStage :one
+UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING *;

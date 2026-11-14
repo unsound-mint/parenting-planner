@@ -357,3 +357,26 @@ func (q *Queries) RevokeCaregiver(ctx context.Context, arg RevokeCaregiverParams
 	_, err := q.db.Exec(ctx, revokeCaregiver, arg.ID, arg.FamilyID, arg.RevokedAt)
 	return err
 }
+
+const updateFamilyStage = `-- name: UpdateFamilyStage :one
+UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING id, template, stage, due_date, created_at
+`
+
+type UpdateFamilyStageParams struct {
+	ID      uuid.UUID
+	Stage   string
+	DueDate *time.Time
+}
+
+func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStageParams) (Family, error) {
+	row := q.db.QueryRow(ctx, updateFamilyStage, arg.ID, arg.Stage, arg.DueDate)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+	)
+	return i, err
+}
