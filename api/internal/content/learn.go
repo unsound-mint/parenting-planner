@@ -10,7 +10,8 @@ import (
 )
 
 // Every *_paths.json file is part of the learning catalog, read in file name
-// order: learn_paths.json holds 8 paths, 32 lessons and their quizzes. Adding a
+// order: learn_paths.json holds 8 paths, 32 lessons and their quizzes, and
+// nutrition_paths.json 4 food paths from planning to preschool. Adding a
 // file in the same shape adds paths without code changes. Each file carries its
 // own sources map; every path needs "stages" (a path without any is never
 // offered); weeks matter only for lessons offered in pregnancy; each lesson
@@ -103,6 +104,8 @@ type Question struct {
 	Choices              []Choice
 	CorrectChoiceID      string
 	Explanation          string
+	// Source backs the explanation: the question's own, else the lesson's.
+	Source Source
 }
 
 type Choice struct{ ID, Text string }
@@ -203,6 +206,7 @@ func loadPathFile(name string, data []byte) []LearnPath {
 					Options  []string `json:"options"`
 					Answer   string   `json:"answer"`
 					Why      string   `json:"why"`
+					Source   string   `json:"source"`
 				} `json:"quiz"`
 			} `json:"lessons"`
 		} `json:"paths"`
@@ -241,7 +245,10 @@ func loadPathFile(name string, data []byte) []LearnPath {
 				lesson.ExtraSources = append(lesson.ExtraSources, source(id))
 			}
 			for i, q := range l.Quiz {
-				question := Question{ID: fmt.Sprintf("%s-q%d", l.ID, i+1), LessonID: l.ID, Prompt: q.Question, Explanation: q.Why}
+				question := Question{ID: fmt.Sprintf("%s-q%d", l.ID, i+1), LessonID: l.ID, Prompt: q.Question, Explanation: q.Why, Source: lesson.Source}
+				if q.Source != "" {
+					question.Source = source(q.Source)
+				}
 				for j, o := range q.Options {
 					c := Choice{ID: choiceIDs[j : j+1], Text: o}
 					question.Choices = append(question.Choices, c)

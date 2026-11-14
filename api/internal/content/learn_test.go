@@ -132,3 +132,39 @@ func TestLessonsFitTheirStage(t *testing.T) {
 		t.Error("a night plan for after the birth is not for preschool parents")
 	}
 }
+
+// MedlinePlus encyclopedia pages (medlineplus.gov/ency) are A.D.A.M. content
+// that forbids derivative works, so no lesson or quiz may cite one.
+func TestNoLessonCitesADAMContent(t *testing.T) {
+	for _, p := range learnPaths {
+		for _, l := range p.Lessons {
+			srcs := append([]Source{l.Source}, l.ExtraSources...)
+			for _, q := range l.Quiz {
+				srcs = append(srcs, q.Source)
+			}
+			for _, s := range srcs {
+				if strings.Contains(s.URL, "medlineplus.gov/ency") {
+					t.Errorf("%s cites %s", l.ID, s.URL)
+				}
+			}
+		}
+	}
+}
+
+func TestNutritionPathsJoinTheCatalog(t *testing.T) {
+	for stage, want := range map[string]string{"planning": "eating-before-baby", "pregnancy": "eating-in-pregnancy", "infant": "first-foods", "preschool": "toddler-plates"} {
+		found := false
+		for _, p := range LearnPathsFor(State{Stage: stage}) {
+			found = found || p.ID == want
+		}
+		if !found {
+			t.Errorf("%s does not offer %s", stage, want)
+		}
+	}
+	if _, ok := LessonFor(State{Stage: "preschool"}, "whats-in-the-cup"); ok {
+		t.Error("the cup lesson is for 12 to 36 months, not preschool")
+	}
+	if q := questionsByID["everyday-habits-q1"]; q.Source.URL != "https://www.fda.gov/food/consumers/advice-about-eating-fish" {
+		t.Errorf("fish question cites %s", q.Source.URL)
+	}
+}

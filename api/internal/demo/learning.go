@@ -98,6 +98,8 @@ var learnStories = map[Template]learnStory{
 			{mother, "whats-common", -4, -4},
 			{partner, "fmla-basics", -2, -2},
 			{partner, "research-on-couples", -1, 0},
+			{mother, "folate-you-can-taste", -8, -8},
+			{partner, "plate-you-both-like", -6, -6},
 		},
 		names: []learnName{
 			{"Nora", mother, []who{mother, partner}, -15},
@@ -128,6 +130,7 @@ var learnStories = map[Template]learnStory{
 		reads: []learnRead{
 			{mother, "check-in-habit", -6, -6},
 			{partner, "us-time", -3, -3},
+			{mother, "picky-is-normal", -10, -10},
 		},
 	},
 }

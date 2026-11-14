@@ -229,7 +229,7 @@ func AnswerQuestion(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID,
 		}
 		out = Result{
 			Answer: answerOut(a, question), QuestionID: question.ID, CorrectChoiceID: question.CorrectChoiceID,
-			Explanation: question.Explanation, Source: lesson.Source,
+			Explanation: question.Explanation, Source: question.Source,
 		}
 		if c.Other == uuid.Nil {
 			return nil
