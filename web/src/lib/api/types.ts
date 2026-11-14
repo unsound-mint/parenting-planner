@@ -70,6 +70,7 @@ export type Today = S["Today"];
 export type PregnancyWeek = S["PregnancyWeek"];
 export type PregnancyWeekSummary = S["PregnancyWeekSummary"];
 export type Guide = S["Guide"];
+export type GuideAction = S["GuideAction"];
 export type FamilyUpdate = S["FamilyUpdate"];
 export type Task = S["Task"];
 export type AppointmentQuestion = S["AppointmentQuestion"];

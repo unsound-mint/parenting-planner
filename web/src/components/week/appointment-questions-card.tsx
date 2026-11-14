@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarClock, Check, CornerDownRight, Plus } from "lucide-react";
@@ -14,7 +15,7 @@ import { Input } from "@/components/ui/input";
 
 // Share choices for a new question. Questions are health data: private unless
 // the author picks otherwise (docs/product.md).
-function audiences(partnerName?: string): { value: Visibility; label: string }[] {
+export function audiences(partnerName?: string): { value: Visibility; label: string }[] {
   return [
     { value: "private", label: "Only me" },
     ...(partnerName ? [{ value: "partner" as const, label: partnerName }] : []),
@@ -145,7 +146,9 @@ function Visit({ visit, items, memberId }: { visit: CalendarEvent; items: Appoin
           <CalendarClock className="size-3.5" aria-hidden />
           <time dateTime={visit.startsAt}>{formatShortDate(visit.startsAt.slice(0, 10))}</time>
         </span>
-        <p className="min-w-0 flex-1 pt-1 text-label font-semibold text-balance">{visit.title}</p>
+        <Link href={`/family/${memberId}/appointments/${visit.id}`} className="min-w-0 flex-1 pt-1 text-label font-semibold text-balance hover:underline">
+          {visit.title}
+        </Link>
         <span className="shrink-0 pt-1.5 font-mono text-caption text-muted-foreground">{waiting === 0 ? "all asked" : `${waiting} to ask`}</span>
       </div>
       {items.length > 0 && (
@@ -159,7 +162,7 @@ function Visit({ visit, items, memberId }: { visit: CalendarEvent; items: Appoin
   );
 }
 
-function Question({ q, memberId }: { q: AppointmentQuestion; memberId: string }) {
+export function Question({ q, memberId }: { q: AppointmentQuestion; memberId: string }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [answer, setAnswer] = useState("");

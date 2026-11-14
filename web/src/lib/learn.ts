@@ -1,10 +1,10 @@
-import type { Guide, PlanItem, Weekday } from "@/lib/api/types";
+import type { Guide, GuideAction, PlanItem, Weekday } from "@/lib/api/types";
 import { guideRepeatsPlan } from "@/lib/week";
 
-// Learn: every lesson ends in exactly one action. The contract's Guide has no
-// action field yet, so the choice lives here, by guide id. A guide not listed
-// gets the default: put a question about it on the next visit. Move this into
-// the catalog (api/internal/content) once Guide carries an action.
+// Learn: every lesson ends in exactly one action. Guide.action says which; until
+// the API fills it, the table below chooses by guide id. A guide with neither
+// gets the default: put a question about it on the next visit. Delete the table
+// once the catalog (api/internal/content) sets action on every guide.
 
 export type LessonAction =
   | { kind: "task"; title: string; label?: string }
@@ -59,9 +59,23 @@ const actions: Record<string, LessonAction> = {
   "school-booster-seat": task("Check the booster seat fit"),
 };
 
+/** The contract's action as a LessonAction; undefined when its payload is missing. */
+function fromContract({ kind, label, title, question, shift }: GuideAction): LessonAction | undefined {
+  switch (kind) {
+    case "add_task":
+      return title ? { kind: "task", title, label } : undefined;
+    case "ask_at_visit":
+      return question ? { kind: "question", text: question, label } : undefined;
+    case "commit_shift":
+      return shift ? { kind: "shift", ...shift, label } : undefined;
+    case "practice":
+      return { kind: "practice", label };
+  }
+}
+
 /** The one action of a lesson. */
 export function lessonAction(guide: Guide): LessonAction {
-  return actions[guide.id] ?? ask(`Ask about: ${guide.title.toLowerCase()}`);
+  return (guide.action && fromContract(guide.action)) || actions[guide.id] || ask(`Ask about: ${guide.title.toLowerCase()}`);
 }
 
 /**

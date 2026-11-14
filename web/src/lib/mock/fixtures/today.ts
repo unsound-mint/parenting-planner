@@ -29,8 +29,8 @@ const birthPrep = (week: number): Guide[] =>
   }));
 
 const articles: Guide[] = [
-  { id: "hospital-bag", title: "Packing the hospital bag", summary: "Pack by week 36; the list is short.", steps: ["Documents and insurance card.", "Phone charger.", "Going-home outfit for the baby."], minutes: 4 },
-  { id: "choose-pediatrician", title: "Choosing a pediatrician", summary: "Visit two or three before the due date.", steps: ["Ask friends and your OB for names.", "Check that your insurance covers them.", "Book a short meet-and-greet."], minutes: 3 },
+  { id: "hospital-bag", title: "Packing the hospital bag", summary: "Pack by week 36; the list is short.", steps: ["Documents and insurance card.", "Phone charger.", "Going-home outfit for the baby."], minutes: 4, action: { kind: "add_task" as const, title: "Pack the hospital bag" } },
+  { id: "choose-pediatrician", title: "Choosing a pediatrician", summary: "Visit two or three before the due date.", steps: ["Ask friends and your OB for names.", "Check that your insurance covers them.", "Book a short meet-and-greet."], minutes: 3, action: { kind: "ask_at_visit" as const, question: "Which pediatricians do you recommend near us?" } },
 ].map((g) => ({ ...g, kind: "article" as const, stages: ["pregnancy" as const], weekFrom: 24, weekTo: 30, audience: ["mother" as const, "partner" as const], locked: false, source }));
 
 export const todayMocks = {

@@ -4,6 +4,7 @@ import { serverApi } from "@/lib/api/server";
 import { countWord, familyContext } from "@/lib/format";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
 import { AppointmentQuestions } from "@/components/week/appointment-questions";
+import { HospitalEntry } from "@/components/hospital/hospital-entry";
 import { PlanWithNote } from "@/components/week/plan-with-note";
 import { MoodSleepCard } from "@/components/week/mood-sleep-card";
 import { BabyHome } from "@/components/baby/baby-home";
@@ -105,6 +106,11 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
             <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
           </Suspense>
         </div>
+        {family.stage === "pregnancy" && !family.pregnancyLoss && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && (
+          <Suspense fallback={null}>
+            <HospitalEntry memberId={memberId} />
+          </Suspense>
+        )}
         <WeekCardSlot card={card} babyOnly />
         {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
         {!family.pregnancyLoss && <GuidesSlot guides={guides} plan={plan.items} />}
