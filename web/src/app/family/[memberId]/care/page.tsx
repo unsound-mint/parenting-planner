@@ -57,15 +57,14 @@ function CareView({ memberId, name, context, agenda, slots }: ViewProps) {
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
 
-  let headline = `Your psychologist, ${name}. Bring what matters and pick a time.`;
-  if (noteDue) headline = `How did your session with ${noteDue.provider.name} go, ${name}?`;
-  else if (next) headline = `Your session with ${next.provider.name} is ${whenWords(daysUntilInstant(next.startsAt))}.`;
-  else if (topics.length > 0)
-    headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready for your psychologist, ${name}. Pick a time.`;
+  let headline = `Pick a time with your psychologist, ${name}.`;
+  if (noteDue) headline = `How did it go, ${name}?`;
+  else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt))}.`;
+  else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 lg:grid-cols-[minmax(0,720px)]">
-      <section aria-labelledby="care-headline" className="flex min-w-0 flex-col gap-6">
+    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8">
+      <section aria-labelledby="care-headline" className="flex min-w-0 max-w-5xl flex-col gap-6">
         <div>
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
@@ -76,7 +75,7 @@ function CareView({ memberId, name, context, agenda, slots }: ViewProps) {
         {!agenda ? (
           <Unavailable />
         ) : (
-          <>
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)]">
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
@@ -85,7 +84,7 @@ function CareView({ memberId, name, context, agenda, slots }: ViewProps) {
               <SlotPicker memberId={memberId} slots={slots} topicCount={topics.length} />
             ) : null}
             <AgendaCard topics={topics} />
-          </>
+          </div>
         )}
       </section>
 
