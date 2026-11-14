@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { CalendarFeed, CalendarFeedScope } from "@/lib/api/types";
+import { syncNote } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 
 // One secret link per person. The API shows the URL once, when it is created, so
@@ -136,9 +137,9 @@ export function CalendarSubscribe({ memberId, initial, canChooseScope }: { membe
           <LockKeyhole aria-hidden className="size-4 shrink-0 text-foreground" />
           Psychologist sessions are never included.
         </li>
-        <li className="flex items-center gap-2">
-          <RefreshCw aria-hidden className="size-4 shrink-0" />
-          Google Calendar updates only every few hours.
+        <li className="flex items-start gap-2">
+          <RefreshCw aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <span>{syncNote}</span>
         </li>
       </ul>
     </section>

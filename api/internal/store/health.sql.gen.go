@@ -184,8 +184,8 @@ func (q *Queries) CreateImmunization(ctx context.Context, arg CreateImmunization
 }
 
 const createLabResult = `-- name: CreateLabResult :one
-INSERT INTO lab_results (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high
+INSERT INTO lab_results (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high
 `
 
 type CreateLabResultParams struct {
@@ -198,6 +198,7 @@ type CreateLabResultParams struct {
 	TakenOn         time.Time
 	Result          []byte
 	Note            *string
+	Name            *string
 }
 
 func (q *Queries) CreateLabResult(ctx context.Context, arg CreateLabResultParams) (LabResult, error) {
@@ -211,6 +212,7 @@ func (q *Queries) CreateLabResult(ctx context.Context, arg CreateLabResultParams
 		arg.TakenOn,
 		arg.Result,
 		arg.Note,
+		arg.Name,
 	)
 	var i LabResult
 	err := row.Scan(
@@ -330,6 +332,26 @@ func (q *Queries) CreateScheduledDose(ctx context.Context, arg CreateScheduledDo
 	return i, err
 }
 
+const deleteAllergy = `-- name: DeleteAllergy :execrows
+DELETE FROM allergies
+WHERE id = $1 AND family_id = $2
+  AND (subject_member_id = $3 OR subject_child_id IS NOT NULL)
+`
+
+type DeleteAllergyParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ActorID  uuid.NullUUID
+}
+
+func (q *Queries) DeleteAllergy(ctx context.Context, arg DeleteAllergyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteAllergy, arg.ID, arg.FamilyID, arg.ActorID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteGrowthMeasurement = `-- name: DeleteGrowthMeasurement :execrows
 DELETE FROM growth_measurements WHERE id = $1 AND family_id = $2
 `
@@ -341,6 +363,66 @@ type DeleteGrowthMeasurementParams struct {
 
 func (q *Queries) DeleteGrowthMeasurement(ctx context.Context, arg DeleteGrowthMeasurementParams) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteGrowthMeasurement, arg.ID, arg.FamilyID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteImmunization = `-- name: DeleteImmunization :execrows
+DELETE FROM immunizations
+WHERE id = $1 AND family_id = $2
+  AND (subject_member_id = $3 OR subject_child_id IS NOT NULL)
+`
+
+type DeleteImmunizationParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ActorID  uuid.NullUUID
+}
+
+func (q *Queries) DeleteImmunization(ctx context.Context, arg DeleteImmunizationParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteImmunization, arg.ID, arg.FamilyID, arg.ActorID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteLabValue = `-- name: DeleteLabValue :execrows
+DELETE FROM lab_results
+WHERE id = $1 AND family_id = $2 AND value IS NOT NULL
+  AND (subject_member_id = $3 OR subject_child_id IS NOT NULL)
+`
+
+type DeleteLabValueParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ActorID  uuid.NullUUID
+}
+
+func (q *Queries) DeleteLabValue(ctx context.Context, arg DeleteLabValueParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteLabValue, arg.ID, arg.FamilyID, arg.ActorID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteScreening = `-- name: DeleteScreening :execrows
+DELETE FROM lab_results
+WHERE id = $1 AND family_id = $2 AND value IS NULL
+  AND (subject_member_id = $3 OR subject_child_id IS NOT NULL)
+`
+
+type DeleteScreeningParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ActorID  uuid.NullUUID
+}
+
+func (q *Queries) DeleteScreening(ctx context.Context, arg DeleteScreeningParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteScreening, arg.ID, arg.FamilyID, arg.ActorID)
 	if err != nil {
 		return 0, err
 	}
@@ -561,6 +643,59 @@ func (q *Queries) ListPassportLabsVisibleToParent(ctx context.Context, arg ListP
 	return items, nil
 }
 
+const listPassportScreeningsVisibleToParent = `-- name: ListPassportScreeningsVisibleToParent :many
+SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high FROM lab_results
+WHERE family_id = $1
+  AND value IS NULL
+  AND (subject_child_id IS NOT NULL OR owner_member_id = $2 OR visibility IN ('partner', 'family'))
+ORDER BY taken_on DESC, created_at DESC
+`
+
+type ListPassportScreeningsVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+}
+
+// Mirrors access.CanParentReadHealthRecord: records about the child, own records,
+// plus records shared with the partner or the family. Screenings are the lab
+// records without a single value.
+func (q *Queries) ListPassportScreeningsVisibleToParent(ctx context.Context, arg ListPassportScreeningsVisibleToParentParams) ([]LabResult, error) {
+	rows, err := q.db.Query(ctx, listPassportScreeningsVisibleToParent, arg.FamilyID, arg.ViewerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LabResult{}
+	for rows.Next() {
+		var i LabResult
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.SubjectMemberID,
+			&i.SubjectChildID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.Kind,
+			&i.TakenOn,
+			&i.Result,
+			&i.Note,
+			&i.CreatedAt,
+			&i.Name,
+			&i.Value,
+			&i.Unit,
+			&i.RefLow,
+			&i.RefHigh,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listScheduledDoses = `-- name: ListScheduledDoses :many
 SELECT id, family_id, subject_member_id, subject_child_id, vaccine, dose, due_on FROM vaccine_schedule WHERE family_id = $1 ORDER BY due_on
 `
@@ -629,6 +764,51 @@ func (q *Queries) NextScheduledDose(ctx context.Context, arg NextScheduledDosePa
 	return dose, err
 }
 
+const updateAllergy = `-- name: UpdateAllergy :one
+UPDATE allergies
+SET substance = $1, certainty = $2, reaction = $3, visibility = $4
+WHERE id = $5 AND family_id = $6
+  AND (subject_member_id = $7 OR subject_child_id IS NOT NULL)
+RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, substance, certainty, reaction, noted_on, created_at
+`
+
+type UpdateAllergyParams struct {
+	Substance  string
+	Certainty  string
+	Reaction   *string
+	Visibility string
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	ActorID    uuid.NullUUID
+}
+
+func (q *Queries) UpdateAllergy(ctx context.Context, arg UpdateAllergyParams) (Allergy, error) {
+	row := q.db.QueryRow(ctx, updateAllergy,
+		arg.Substance,
+		arg.Certainty,
+		arg.Reaction,
+		arg.Visibility,
+		arg.ID,
+		arg.FamilyID,
+		arg.ActorID,
+	)
+	var i Allergy
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Substance,
+		&i.Certainty,
+		&i.Reaction,
+		&i.NotedOn,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateGrowthMeasurement = `-- name: UpdateGrowthMeasurement :one
 UPDATE growth_measurements
 SET measured_on = $1, weight_kg = $2, height_cm = $3, head_cm = $4
@@ -662,6 +842,159 @@ func (q *Queries) UpdateGrowthMeasurement(ctx context.Context, arg UpdateGrowthM
 		&i.WeightKg,
 		&i.HeightCm,
 		&i.HeadCm,
+	)
+	return i, err
+}
+
+const updateImmunization = `-- name: UpdateImmunization :one
+UPDATE immunizations
+SET vaccine = $1, dose = $2, given_on = $3
+WHERE id = $4 AND family_id = $5
+  AND (subject_member_id = $6 OR subject_child_id IS NOT NULL)
+RETURNING id, family_id, subject_member_id, subject_child_id, vaccine, given_on, dose
+`
+
+type UpdateImmunizationParams struct {
+	Vaccine  string
+	Dose     *string
+	GivenOn  time.Time
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	ActorID  uuid.NullUUID
+}
+
+func (q *Queries) UpdateImmunization(ctx context.Context, arg UpdateImmunizationParams) (Immunization, error) {
+	row := q.db.QueryRow(ctx, updateImmunization,
+		arg.Vaccine,
+		arg.Dose,
+		arg.GivenOn,
+		arg.ID,
+		arg.FamilyID,
+		arg.ActorID,
+	)
+	var i Immunization
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.Vaccine,
+		&i.GivenOn,
+		&i.Dose,
+	)
+	return i, err
+}
+
+const updateLabValue = `-- name: UpdateLabValue :one
+
+UPDATE lab_results
+SET kind = $1, name = $2, value = $3, unit = $4, ref_low = $5, ref_high = $6,
+    taken_on = $7, visibility = $8
+WHERE id = $9 AND family_id = $10 AND value IS NOT NULL
+  AND (subject_member_id = $11 OR subject_child_id IS NOT NULL)
+RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high
+`
+
+type UpdateLabValueParams struct {
+	Kind       string
+	Name       *string
+	Value      *float64
+	Unit       *string
+	RefLow     *float64
+	RefHigh    *float64
+	TakenOn    time.Time
+	Visibility string
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	ActorID    uuid.NullUUID
+}
+
+// Editing health records (PUT and DELETE under /members/{memberId}/...).
+// The write rule: the record is about the acting parent or about a child of
+// the family. Another parent's own records are never written, and a row that
+// does not match is indistinguishable from a missing one (404).
+func (q *Queries) UpdateLabValue(ctx context.Context, arg UpdateLabValueParams) (LabResult, error) {
+	row := q.db.QueryRow(ctx, updateLabValue,
+		arg.Kind,
+		arg.Name,
+		arg.Value,
+		arg.Unit,
+		arg.RefLow,
+		arg.RefHigh,
+		arg.TakenOn,
+		arg.Visibility,
+		arg.ID,
+		arg.FamilyID,
+		arg.ActorID,
+	)
+	var i LabResult
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Kind,
+		&i.TakenOn,
+		&i.Result,
+		&i.Note,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Value,
+		&i.Unit,
+		&i.RefLow,
+		&i.RefHigh,
+	)
+	return i, err
+}
+
+const updateScreening = `-- name: UpdateScreening :one
+UPDATE lab_results
+SET kind = $1, name = $2, taken_on = $3, visibility = $4
+WHERE id = $5 AND family_id = $6 AND value IS NULL
+  AND (subject_member_id = $7 OR subject_child_id IS NOT NULL)
+RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high
+`
+
+type UpdateScreeningParams struct {
+	Kind       string
+	Name       *string
+	TakenOn    time.Time
+	Visibility string
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+	ActorID    uuid.NullUUID
+}
+
+func (q *Queries) UpdateScreening(ctx context.Context, arg UpdateScreeningParams) (LabResult, error) {
+	row := q.db.QueryRow(ctx, updateScreening,
+		arg.Kind,
+		arg.Name,
+		arg.TakenOn,
+		arg.Visibility,
+		arg.ID,
+		arg.FamilyID,
+		arg.ActorID,
+	)
+	var i LabResult
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Kind,
+		&i.TakenOn,
+		&i.Result,
+		&i.Note,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Value,
+		&i.Unit,
+		&i.RefLow,
+		&i.RefHigh,
 	)
 	return i, err
 }

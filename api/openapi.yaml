@@ -1049,6 +1049,460 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /members/{memberId}/immunizations/{immunizationId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: immunizationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateImmunization
+      tags: [health]
+      summary: The acting parent corrects one logged vaccine dose
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Only given doses (status done) have an immunization id; scheduled
+        doses are 404. 400 when givenOn is in the future.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImmunizationEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaccineDose"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteImmunization
+      tags: [health]
+      summary: The acting parent removes one logged vaccine dose
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        A scheduled dose with the same label comes back as due or upcoming.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/screenings/{screeningId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: screeningId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateScreening
+      tags: [health]
+      summary: The acting parent corrects one logged screening
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited. 400 for a kind outside the catalog, kind other without a
+        name, or takenOn in the future.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreeningEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Screening"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteScreening
+      tags: [health]
+      summary: The acting parent removes one logged screening
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited. The plan reads screenings on the next request, so a
+        removed screening can bring its plan item back.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/lab-results/{labId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: labId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateLabResult
+      tags: [health]
+      summary: The acting parent corrects one lab value
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Replaces the value, unit, date, reference range and visibility.
+        Audited. 400 when refLow is above refHigh or takenOn is in the future.
+        The flag is recomputed from the stored range.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LabResultEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LabResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteLabResult
+      tags: [health]
+      summary: The acting parent removes one lab value
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited. Screenings (records without a value) are 404 here.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/allergies:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createAllergy
+      tags: [health]
+      summary: The acting parent records an allergy for them or a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Sensitive: visibility is
+        required and the write is audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllergyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Allergy"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/allergies/{allergyId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: allergyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateAllergy
+      tags: [health]
+      summary: The acting parent corrects one allergy
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllergyEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Allergy"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteAllergy
+      tags: [health]
+      summary: The acting parent removes one allergy
+      description: |
+        Only records about the acting parent or a child of the family can be
+        changed; another parent's records, unknown ids and ids from another
+        family are 404.
+        Audited.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/care-team:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createCareTeamMember
+      tags: [health]
+      summary: The acting parent adds a doctor or clinician for them or a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Care team rows are
+        family data without a visibility; a psychologist is only ever listed
+        for the parent it belongs to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareTeamInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTeamMember"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/care-team/{careTeamId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: careTeamId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      operationId: updateCareTeamMember
+      tags: [health]
+      summary: The acting parent corrects one care team member
+      description: |
+        Allowed for rows about the acting parent or a child, and for rows
+        without a subject (shared by role, for example the family
+        pediatrician; a change shows for everyone the role covers). Another
+        parent's rows and any psychologist that is not the acting parent's
+        are 404.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareTeamEdit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTeamMember"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteCareTeamMember
+      tags: [health]
+      summary: The acting parent removes one care team member
+      description: |
+        Same rows as the update. Removing a row without a subject removes it
+        for everyone the role covers.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /providers:
     get:
       operationId: listProviders
@@ -1683,6 +2137,70 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/caregivers/{caregiverId}:
+    patch:
+      operationId: updateCaregiverPermissions
+      tags: [invitations]
+      summary: A parent changes what a grandparent or nanny may see
+      description: |
+        Mother or partner only; a grandparent or nanny gets 403. Replaces the
+        caregiver's permissions at once: the next request they make is checked
+        against the new list, and the same list shows on their invitation. A
+        removed caregiver, or an id that is not a caregiver of this family, is
+        404. Recorded in the access log as a change to the invitation.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: caregiverId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [permissions]
+              properties:
+                permissions:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    $ref: "#/components/schemas/CaregiverPermission"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Caregiver"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -2858,8 +3376,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
+    delete:
+      operationId: deleteCalendarEvent
+      tags: [calendar]
+      summary: The owner deletes an appointment, class or reminder
+      description: |
+        Same access as updateCalendarEvent: only the acting parent who owns a
+        stored event; the partner gets 404, a grandparent or nanny 403. Notes
+        and questions attached to the event are deleted with it. Sends a live
+        update of kind calendar_event to everyone who could see the event.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -7551,7 +8093,7 @@ components:
 
     PassportPerson:
       type: object
-      required: [id, kind, name, isActingParent, labs, vaccines, allergies, growth, careTeam]
+      required: [id, kind, name, isActingParent, labs, vaccines, allergies, growth, careTeam, screenings, screeningOptions]
       properties:
         id:
           type: string
@@ -7591,6 +8133,18 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CareTeamMember"
+        screenings:
+          type: array
+          description: Screenings on record (lab records without a single value), newest first.
+          items:
+            $ref: "#/components/schemas/Screening"
+        screeningOptions:
+          type: array
+          description: |
+            The screening catalog for this person's stage, grouped, to pick from
+            when logging. Ends with a group holding kind other (free text).
+          items:
+            $ref: "#/components/schemas/ScreeningOptionGroup"
 
     LabResult:
       type: object
@@ -7629,7 +8183,7 @@ components:
         range). Computed by the server from database state. The wording is
         fixed and never diagnostic: it only says to discuss the value with a
         doctor.
-      required: [direction, message, basis]
+      required: [direction, message, basis, reason]
       properties:
         direction:
           type: string
@@ -7641,6 +8195,10 @@ components:
           type: string
           description: Where the range comes from.
           example: Reference range reported with this lab result
+        reason:
+          type: string
+          description: Why this value is flagged, as a sentence built from the value and the stored range. Never diagnostic.
+          example: Because 24 ng/mL is below 30 to 100 ng/mL, the reference range entered with this result. The flag only compares the two numbers; it is not a diagnosis.
 
     VaccineKey:
       type: string
@@ -7670,9 +8228,12 @@ components:
     ScreeningKind:
       type: string
       description: |
-        glucose_screen = pregnancy glucose screening; gbs = group B strep
-        test in pregnancy; vision_screen = a child's vision screening.
-      enum: [glucose_screen, gbs, vision_screen]
+        A key from the screening catalog (PassportPerson.screeningOptions,
+        api/internal/health/catalog.go), or other with a free-text name.
+        The plan reads some keys: glucose_screen and gbs in pregnancy,
+        vision_screen for a child.
+      pattern: "^[a-z0-9_]{1,40}$"
+      example: glucose_screen
 
     ScreeningInput:
       type: object
@@ -7683,6 +8244,12 @@ components:
           format: uuid
         kind:
           $ref: "#/components/schemas/ScreeningKind"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: Required when kind is other; ignored otherwise.
+          example: Thyroid ultrasound
         takenOn:
           type: string
           format: date
@@ -7690,13 +8257,58 @@ components:
         visibility:
           $ref: "#/components/schemas/Visibility"
 
+    ScreeningEdit:
+      type: object
+      required: [kind, takenOn, visibility]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ScreeningKind"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: Required when kind is other; ignored otherwise.
+        takenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    ScreeningOption:
+      type: object
+      required: [kind, name]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ScreeningKind"
+        name:
+          type: string
+          example: Glucose screening
+
+    ScreeningOptionGroup:
+      type: object
+      description: A group of screenings commonly offered at one stage, to pick from when logging. A list to log against, not a recommendation.
+      required: [label, options]
+      properties:
+        label:
+          type: string
+          example: Pregnancy
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreeningOption"
+
     Screening:
       type: object
-      required: [id, kind, takenOn, visibility]
+      required: [id, kind, name, takenOn, visibility]
       properties:
         id:
           type: string
           format: uuid
+        name:
+          type: string
+          description: The catalog name, or the free text for kind other.
+          example: Glucose screening
         childId:
           type: string
           format: uuid
@@ -7870,6 +8482,123 @@ components:
           type: string
         phone:
           type: string
+
+    CareTeamInput:
+      type: object
+      required: [name, role]
+      properties:
+        childId:
+          type: string
+          format: uuid
+          description: Set to add the clinician for this child; leave out for the acting parent.
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: Dr. Maya Reyes
+        role:
+          $ref: "#/components/schemas/CareRole"
+        clinic:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+
+    CareTeamEdit:
+      type: object
+      required: [name, role]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        role:
+          $ref: "#/components/schemas/CareRole"
+        clinic:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 40
+
+    AllergyInput:
+      type: object
+      required: [substance, certainty, visibility]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        substance:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: Peanut
+        certainty:
+          $ref: "#/components/schemas/AllergyCertainty"
+        reaction:
+          type: string
+          maxLength: 160
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    AllergyEdit:
+      type: object
+      required: [substance, certainty, visibility]
+      properties:
+        substance:
+          type: string
+          minLength: 1
+          maxLength: 80
+        certainty:
+          $ref: "#/components/schemas/AllergyCertainty"
+        reaction:
+          type: string
+          maxLength: 160
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    LabResultEdit:
+      type: object
+      required: [name, value, unit, takenOn, visibility]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        value:
+          type: number
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 20
+        refLow:
+          type: number
+          description: Leave out when the report gives no lower bound.
+        refHigh:
+          type: number
+          description: Leave out when the report gives no upper bound.
+        takenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    ImmunizationEdit:
+      type: object
+      required: [vaccine, givenOn]
+      properties:
+        vaccine:
+          $ref: "#/components/schemas/VaccineKey"
+        dose:
+          type: string
+          minLength: 1
+          maxLength: 60
+        givenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
 
     AgendaTopic:
       type: object

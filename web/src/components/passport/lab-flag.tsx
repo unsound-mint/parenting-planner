@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Check, MessageCirclePlus } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { LabResult } from "@/lib/api/types";
-import { formatShortDate } from "@/lib/format";
 
 function rangeText(lab: LabResult): string {
   if (lab.refLow != null && lab.refHigh != null) return `${lab.refLow} to ${lab.refHigh} ${lab.unit}`;
@@ -13,9 +12,9 @@ function rangeText(lab: LabResult): string {
   return `up to ${lab.refHigh} ${lab.unit}`;
 }
 
-// The flag under a lab value: the contract's fixed wording, the range it was
-// measured against, and one action. The only place on the passport that says
-// "discuss with your doctor"; Next steps links here instead of repeating it.
+// The flag under a lab value: the contract's fixed wording, why it is flagged,
+// and one action. The only place on the passport that says "discuss with your
+// doctor".
 // `canAsk` is false for another parent's results: the question endpoint writes
 // to the acting parent's own visit list.
 export function LabFlag({ lab, memberId, canAsk, owner }: { lab: LabResult; memberId: string; canAsk: boolean; owner?: string }) {
@@ -43,9 +42,10 @@ export function LabFlag({ lab, memberId, canAsk, owner }: { lab: LabResult; memb
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-status-due-soft px-3 py-2.5 text-status-due">
       <p className="text-label font-semibold">{flag.message}</p>
-      <p className="font-mono text-caption">
-        Range {rangeText(lab)}. {flag.basis}, {formatShortDate(lab.takenOn)}.
-      </p>
+      {/* Why it is flagged, from the server: the value against the range on
+          its own report. Ranges differ between labs, so the report's range is
+          the basis, never a range of ours. */}
+      <p className="text-label font-normal">{flag.reason}</p>
       {canAsk &&
         (added ? (
           <p className="flex min-h-11 items-center gap-1.5 text-label font-semibold md:min-h-9">

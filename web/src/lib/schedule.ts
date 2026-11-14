@@ -103,3 +103,7 @@ export function easternClock(iso: string): string {
 export type StoredKind = "appointment" | "class" | "reminder" | "other";
 export const storedKinds: StoredKind[] = ["appointment", "class", "reminder", "other"];
 export const isStoredKind = (k: CalendarEvent["kind"]): k is StoredKind => (storedKinds as string[]).includes(k);
+
+/** Google decides how often it re-reads a subscribed link (often 12 to 24 hours); we cannot push to it. */
+export const syncNote =
+  "Google Calendar checks subscribed links on its own schedule, often every 12 to 24 hours. To see one event right away, open it in Calendar and choose Add to Google Calendar.";

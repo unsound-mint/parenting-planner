@@ -5,6 +5,7 @@ import (
 	"time"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/unsound-mint/parenting-planner/api/internal/health"
 	"github.com/unsound-mint/parenting-planner/api/internal/passport"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -37,7 +38,9 @@ func passportPersonOut(p passport.Person, today time.Time) PassportPerson {
 		Id: p.MemberID, Kind: PassportPersonKindParent, Name: p.Name, IsActingParent: p.IsViewer,
 		Labs: make([]LabResult, 0, len(p.Labs)), Vaccines: make([]VaccineDose, 0, len(p.Vaccines)),
 		Allergies: make([]Allergy, 0, len(p.Allergies)), Growth: make([]GrowthPoint, 0, len(p.Growth)),
-		CareTeam: make([]CareTeamMember, 0, len(p.CareTeam)),
+		CareTeam:         make([]CareTeamMember, 0, len(p.CareTeam)),
+		Screenings:       make([]Screening, 0, len(p.Screenings)),
+		ScreeningOptions: make([]ScreeningOptionGroup, 0, len(p.ScreeningOptions)),
 	}
 	if p.IsChild() {
 		out.Id, out.Kind = p.ChildID, PassportPersonKindChild
@@ -50,16 +53,23 @@ func passportPersonOut(p passport.Person, today time.Time) PassportPerson {
 	for _, l := range p.Labs {
 		out.Labs = append(out.Labs, labOut(l))
 	}
+	for _, l := range p.Screenings {
+		out.Screenings = append(out.Screenings, screeningOut(l))
+	}
+	for _, g := range p.ScreeningOptions {
+		og := ScreeningOptionGroup{Label: g.Label, Options: make([]ScreeningOption, 0, len(g.Options))}
+		for _, o := range g.Options {
+			og.Options = append(og.Options, ScreeningOption{Kind: ScreeningKind(o.Kind), Name: o.Name})
+		}
+		out.ScreeningOptions = append(out.ScreeningOptions, og)
+	}
 	for _, v := range p.Vaccines {
 		d := VaccineDose{Id: v.ID, Name: vaccineName(v.Vaccine), Dose: v.Dose, Status: VaccineStatus(v.Status), Visibility: VisibilityFamily}
 		d.GivenOn, d.DueOn = optDate(v.GivenOn), optDate(v.DueOn)
 		out.Vaccines = append(out.Vaccines, d)
 	}
 	for _, a := range p.Allergies {
-		out.Allergies = append(out.Allergies, Allergy{
-			Id: a.ID, Substance: a.Substance, Certainty: AllergyCertainty(a.Certainty),
-			Reaction: a.Reaction, NotedOn: optDate(a.NotedOn), Visibility: Visibility(a.Visibility),
-		})
+		out.Allergies = append(out.Allergies, allergyOut(a))
 	}
 	for _, g := range p.Growth {
 		out.Growth = append(out.Growth, growthOut(g, store.Child{BirthDate: *p.BirthDate}))
@@ -85,9 +95,34 @@ func labOut(l store.LabResult) LabResult {
 	}
 	// Computed from the row the viewer may read, so it follows the same visibility.
 	if dir, ok := rules.LabOutOfRange(*l.Value, l.RefLow, l.RefHigh); ok {
-		out.Flag = &LabFlag{Direction: LabFlagDirection(dir), Message: rules.LabFlagMessage, Basis: rules.LabFlagBasis}
+		unit := ""
+		if l.Unit != nil {
+			unit = *l.Unit
+		}
+		out.Flag = &LabFlag{
+			Direction: LabFlagDirection(dir), Message: rules.LabFlagMessage, Basis: rules.LabFlagBasis,
+			Reason: rules.LabFlagReason(*l.Value, unit, l.RefLow, l.RefHigh, dir),
+		}
 	}
 	return out
+}
+
+func screeningOut(l store.LabResult) Screening {
+	out := Screening{
+		Id: l.ID, Kind: ScreeningKind(l.Kind), Name: health.ScreeningName(l.Kind, l.Name),
+		TakenOn: openapi_types.Date{Time: l.TakenOn}, Visibility: Visibility(l.Visibility),
+	}
+	if l.SubjectChildID.Valid {
+		out.ChildId = &l.SubjectChildID.UUID
+	}
+	return out
+}
+
+func allergyOut(a store.Allergy) Allergy {
+	return Allergy{
+		Id: a.ID, Substance: a.Substance, Certainty: AllergyCertainty(a.Certainty),
+		Reaction: a.Reaction, NotedOn: optDate(a.NotedOn), Visibility: Visibility(a.Visibility),
+	}
 }
 
 // careRoles maps care_team.role to the contract. Roles that are not one
