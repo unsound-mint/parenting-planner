@@ -1,36 +1,31 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
-import { Check, Heart, Plus, X } from "lucide-react";
+import { Check, Heart, X } from "lucide-react";
 import { api } from "@/lib/api/client";
-import type { BabyName, Parent, PartnerNudge, TalkPrompt } from "@/lib/api/types";
+import type { Parent, PartnerNudge, TalkPrompt } from "@/lib/api/types";
 import { Avatar } from "@/components/joy/partner-chip";
 import { SoftCard } from "@/components/joy/soft-card";
 import { duration, ease, spring } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
 
-// "Tonight, together": what the other parent did lately (GET /together nudge),
-// one question to talk about tonight, and the names you both like. Everything
-// here is shared between the two parents, never with caregivers.
+// "Tonight, together": what the other parent did lately (GET /together nudge)
+// and one question to talk about tonight. Baby names have their own card on
+// This week (the names quest). Shared between the two parents, never with caregivers.
 
 export function TogetherCard({
   memberId,
-  me,
   partner,
   nudge,
   prompts,
-  names,
   className,
 }: {
   memberId: string;
-  me: Parent;
   partner: Parent;
   nudge?: PartnerNudge;
   prompts: TalkPrompt[];
-  /** Undefined hides the name list (after birth, or when the endpoint has nothing). */
-  names?: BabyName[];
   className?: string;
 }) {
   // Closing the nudge hides it at once; the server keeps it closed for this parent.
@@ -71,7 +66,6 @@ export function TogetherCard({
       {/* The rest slides up into the nudge's place once it has gone. */}
       <motion.div layout="position" transition={spring.ui}>
         {prompts.length > 0 && <TalkPrompts memberId={memberId} prompts={prompts} first={!shown} />}
-        {names && <Names memberId={memberId} me={me} partner={partner} initial={names} />}
       </motion.div>
     </SoftCard>
   );
@@ -188,108 +182,5 @@ function Celebrate({ on }: { on: boolean }) {
         </motion.span>
       ))}
     </span>
-  );
-}
-
-function Names({ memberId, me, partner, initial }: { memberId: string; me: Parent; partner: Parent; initial: BabyName[] }) {
-  const [names, setNames] = useState(initial);
-  const [adding, setAdding] = useState(false);
-  const [value, setValue] = useState("");
-  const input = useRef<HTMLInputElement>(null);
-  const both = names.filter((n) => n.bothLike).slice(0, 5);
-  // Names the other parent likes and you have not said yet: one tap to agree.
-  const theirs = names.filter((n) => !n.bothLike && n.likedBy.includes(partner.id) && !n.likedBy.includes(me.id)).slice(0, 2);
-  const mine = names.filter((n) => !n.bothLike && n.likedBy.includes(me.id) && n.addedBy === me.id).slice(0, 2);
-
-  async function like(n: BabyName) {
-    setNames((all) => all.map((x) => (x.id === n.id ? { ...x, likedBy: [...x.likedBy, me.id], bothLike: true } : x)));
-    const { data, error } = await api.PUT("/members/{memberId}/baby-names/{nameId}/like", { params: { path: { memberId, nameId: n.id } } });
-    if (error) {
-      setNames((all) => all.map((x) => (x.id === n.id ? n : x)));
-      toast.error("Could not save that. Please try again.");
-    } else if (data) setNames((all) => all.map((x) => (x.id === n.id ? data : x)));
-  }
-
-  async function add(e: React.FormEvent) {
-    e.preventDefault();
-    const name = value.trim();
-    if (!name) return;
-    const { data, error, response } = await api.POST("/members/{memberId}/baby-names", { params: { path: { memberId } }, body: { name } });
-    if (error) {
-      toast.error(response.status === 409 ? `${name} is already on your list.` : "Could not add the name. Please try again.");
-      return;
-    }
-    if (data) setNames((all) => [data, ...all]);
-    setValue("");
-    setAdding(false);
-    toast.success(`${name} is on the list. ${partner.displayName} can like it too.`);
-  }
-
-  const chip = "inline-flex min-h-8 items-center rounded-full px-3 font-heading text-[0.9375rem] font-medium [font-variation-settings:'SOFT'_100]";
-  return (
-    <div className="pt-5.5">
-      <ul className="flex flex-wrap items-center gap-2.5 text-label font-normal text-ink-2">
-        <li>{both.length > 0 ? "Names you both like" : "Names for the list"}</li>
-        <AnimatePresence initial={false}>
-          {both.map((n) => (
-            <motion.li key={n.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring.ui} className={cn(chip, "bg-card")}>
-              {n.name}
-              {n.addedBy === partner.id && (
-                <sup className="ml-0.5 font-sans text-[0.625rem] font-semibold text-them" title={`${partner.displayName} added it`}>
-                  {partner.displayName.charAt(0)}
-                </sup>
-              )}
-            </motion.li>
-          ))}
-          {theirs.map((n) => (
-            <motion.li key={n.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring.ui}>
-              <button
-                type="button"
-                onClick={() => like(n)}
-                title={`${partner.displayName} likes it. Tap if you do too.`}
-                className={cn(chip, "press gap-1.5 border border-dashed border-them/40 text-ink-2 transition-colors duration-(--duration-fast) hover:bg-card")}
-              >
-                <Heart aria-hidden className="size-3.5 text-them" />
-                {n.name}
-                <span className="sr-only">, {partner.displayName} likes it. Like it too.</span>
-              </button>
-            </motion.li>
-          ))}
-          {mine.map((n) => (
-            <motion.li key={n.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring.ui} className={cn(chip, "border border-dashed border-line-2 text-ink-2")} title={`Waiting for ${partner.displayName}`}>
-              {n.name}
-            </motion.li>
-          ))}
-        </AnimatePresence>
-        <li>
-          {adding ? (
-            <form onSubmit={add} className="flex items-center gap-1.5">
-              <input
-                ref={input}
-                autoFocus
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setAdding(false)}
-                maxLength={60}
-                aria-label="A name you like"
-                placeholder="A name you like"
-                className="h-9 w-36 rounded-full border border-line-2 bg-card px-3 text-body outline-none focus:border-them"
-              />
-              <button type="submit" className="press inline-flex size-9 items-center justify-center rounded-full bg-them text-white" aria-label="Add the name">
-                <Plus aria-hidden className="size-4" />
-              </button>
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setAdding(true)}
-              className="min-h-8 px-1 text-label font-medium text-them underline decoration-them/40 underline-offset-4 hover:decoration-current"
-            >
-              Add one
-            </button>
-          )}
-        </li>
-      </ul>
-    </div>
   );
 }

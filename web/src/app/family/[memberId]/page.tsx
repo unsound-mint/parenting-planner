@@ -13,7 +13,9 @@ import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
 import { LossSupport } from "@/components/loss/loss-support";
 import { Rise } from "@/components/joy/rise";
 import type { Mood } from "@/components/joy/mood-face";
-import { PageFrame, PageGrid } from "@/components/shell/page";
+import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
+import { NamesQuestCard } from "@/components/names/names-quest-card";
+import { NextPaperworkCard } from "@/components/paperwork/next-paperwork-card";
 import { See3DLink } from "@/components/baby-3d/see-3d-link";
 import { labLine } from "@/components/lab/lab-link";
 import { ShareWeekButton } from "@/components/share/share-week-button";
@@ -33,8 +35,9 @@ import { WeekThanks } from "@/components/week/week-thanks";
 // This week: one hero (the baby's size in pregnancy, what is happening now in
 // other stages, with the 3D baby and "Share this week" under it), then two
 // rows: reads and "Tonight, together"; the quick journal and the calm list of
-// practical things. A third row holds what the two of you do this week: one
-// mission, one suggested thank-you, and the "For the two of you" links (labor
+// practical things. A third row holds what the two of you do this week: the
+// names quest before the birth or the next paperwork step after it, with one
+// suggested thank-you under it; one mission; and the "For the two of you" links (labor
 // coach late in pregnancy, virtual baby, Compatibility Lab, money), grouped in
 // one list rather than a card each. Everything is the family's live data.
 //
@@ -86,7 +89,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const sizeWeek = (w: number) => optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week: w } } }));
 
   const beforeBirth = ["pregnancy", "planning", "trying"].includes(family.stage);
-  const [{ data: plan }, { data: checkins }, { data: patterns }, questions, card, start, end, stageNow, paths, together, names, bag, birthPlan, shifts, missions, thanks, lab] =
+  const [{ data: plan }, { data: checkins }, { data: patterns }, questions, card, start, end, stageNow, paths, together, bag, birthPlan, shifts, missions, thanks, lab] =
     await Promise.all([
       api.GET("/members/{memberId}/plan", path),
       api.GET("/members/{memberId}/mood-checkins", path),
@@ -100,8 +103,6 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       !pregnant && !loss ? optional(api.GET("/members/{memberId}/now", path)) : undefined,
       !loss ? optional(api.GET("/members/{memberId}/learning-paths", path)) : undefined,
       !loss && partner ? optional(api.GET("/members/{memberId}/together", path)) : undefined,
-      // Names are for before the birth: pregnancy, or dreaming while planning.
-      !loss && partner && beforeBirth ? optional(api.GET("/members/{memberId}/baby-names", path)) : undefined,
       pregnant ? optional(api.GET("/members/{memberId}/tasks", { params: { path: { memberId }, query: { kind: "hospital_bag" } } })) : undefined,
       // The bag row links to "Going to the hospital" only when that screen has data, so it never opens a 404.
       pregnant ? optional(api.GET("/members/{memberId}/birth-plan", path)) : undefined,
@@ -168,8 +169,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
 
   const hasReads = !!paths && pickReads(paths.items, memberId).reads.length > 0;
   const togetherCard =
-    partner && together && (together.nudge || together.prompts.length > 0 || names) ? (
-      <TogetherCard memberId={memberId} me={parent} partner={partner} nudge={together.nudge} prompts={together.prompts} names={names?.items} className="h-full" />
+    partner && together && (together.nudge || together.prompts.length > 0) ? (
+      <TogetherCard memberId={memberId} partner={partner} nudge={together.nudge} prompts={together.prompts} className="h-full" />
     ) : null;
   const second = hasReads || togetherCard ? "@5xl:row-start-2" : "@5xl:row-start-1";
 
@@ -185,6 +186,10 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
 
   const mission = missions && pickMission(missions.items) ? missions.items : undefined;
   const thank = thanks?.items[0];
+  // Names are for before the birth (the quest answers 409 after it); paperwork is for the first weeks.
+  const namesQuest = beforeBirth && !!partner;
+  const paperwork = family.stage === "postpartum";
+  const firstCell = namesQuest || paperwork || !!thank;
   const twoOfYou = (
     <TwoOfYou
       memberId={memberId}
@@ -193,7 +198,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       labLine={lab && partner ? labLine(lab.cards, partner.displayName) : undefined}
       money
       together={!!partner}
-      after={(mission ? 1 : 0) + (thank ? 1 : 0)}
+      after={(mission ? 1 : 0) + (firstCell ? 1 : 0)}
     />
   );
 
@@ -229,14 +234,26 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       </div>
 
       <PageGrid cols={3}>
-        {mission && (
+        {firstCell && (
           <Rise i={5} className="min-w-0">
-            <WeekMission memberId={memberId} items={mission} people={family.parents} className="h-full" />
+            <Stack>
+              {namesQuest && (
+                <Suspense fallback={null}>
+                  <NamesQuestCard memberId={memberId} parents={family.parents} />
+                </Suspense>
+              )}
+              {paperwork && (
+                <Suspense fallback={null}>
+                  <NextPaperworkCard memberId={memberId} />
+                </Suspense>
+              )}
+              {thank && <WeekThanks memberId={memberId} suggestion={thank} people={familyPeople(family)} />}
+            </Stack>
           </Rise>
         )}
-        {thank && (
+        {mission && (
           <Rise i={6} className="min-w-0">
-            <WeekThanks memberId={memberId} suggestion={thank} people={familyPeople(family)} />
+            <WeekMission memberId={memberId} items={mission} people={family.parents} className="h-full" />
           </Rise>
         )}
         {twoOfYou}
