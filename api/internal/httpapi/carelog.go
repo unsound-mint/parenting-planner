@@ -11,7 +11,7 @@ import (
 
 var (
 	errNoCareLogAccess   = Error{Code: "forbidden", Message: "you do not have access to the care log"}
-	errBabyNotHome           = Error{Code: "no_child", Message: "the baby is not home yet"}
+	errBabyNotHome       = Error{Code: "no_child", Message: "the baby is not home yet"}
 	errBadChild          = Error{Code: "bad_child", Message: "no such child in this family"}
 	errCareLogDetail     = Error{Code: "missing_detail", Message: "a feed needs feedMethod and a diaper needs diaper"}
 	errCareLogTimes      = Error{Code: "bad_times", Message: "endedAt must not be before startedAt"}
