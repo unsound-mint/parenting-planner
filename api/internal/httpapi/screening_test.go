@@ -176,3 +176,18 @@ func TestMoodScreeningChangesThePlan(t *testing.T) {
 		t.Error("a shared result still feeds only its author's plan")
 	}
 }
+
+// Replaced by real tests when the [BE] issue for sharing and drafts lands.
+func TestMoodScreeningSharingAndDraftsAreNotImplementedYet(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
+	for _, call := range []stubCall{
+		{"PATCH", m + "/mood-screenings/00000000-0000-4000-8000-000000000001", map[string]any{"visibility": "partner"}},
+		{"GET", m + "/mood-screening-drafts", nil},
+		{"PUT", m + "/mood-screening-drafts/epds", map[string]any{"answers": []int{0, 1, 2}}},
+		{"DELETE", m + "/mood-screening-drafts/epds", nil},
+	} {
+		call.expectNotImplemented(t, c)
+	}
+}

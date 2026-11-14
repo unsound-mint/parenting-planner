@@ -4267,6 +4267,186 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/mood-screenings/{screeningId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: screeningId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateMoodScreening
+      tags: [screening]
+      summary: The author changes who may read one of their results
+      description: |
+        Only the author can share or unshare a result; any other id, including
+        the other parent's result, is 404. visibility must be private or
+        partner: a result is never visible to the care team or the family
+        group, so those two values are 400. Sharing with the partner shows
+        them the band and score only, never the answers and never the
+        self-harm flag (see listMoodScreenings). Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodScreeningUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-screening-drafts:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listMoodScreeningDrafts
+      tags: [screening]
+      summary: The questionnaires the acting parent started and has not finished
+      description: |
+        Mother and partner; a grandparent or nanny gets 404. At most one draft
+        per instrument, only the acting parent's own. A draft is never shared
+        with anyone, whatever the visibility chosen later for the result, and
+        it never scores or feeds the plan. Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningDraftList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-screening-drafts/{instrument}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: instrument
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/ScreeningInstrument"
+    put:
+      operationId: saveMoodScreeningDraft
+      tags: [screening]
+      summary: The acting parent saves how far they got
+      description: |
+        Replaces the draft for this instrument. answers are the scores given
+        so far, in question order, so the next question is answers.length + 1.
+        No more answers than the questionnaire has questions (400); the
+        values are checked against the instrument's printed scores. A draft
+        older than 14 days is dropped. Parents only, audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodScreeningDraftInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodScreeningDraft"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteMoodScreeningDraft
+      tags: [screening]
+      summary: The acting parent starts over or discards a draft
+      description: |
+        204 even when there is no draft. createMoodScreening deletes the draft
+        of its instrument itself, so the UI only calls this for "start over".
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/pregnancy-loss:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -8170,6 +8350,52 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/MoodScreeningResult"
+
+    MoodScreeningUpdate:
+      type: object
+      required: [visibility]
+      properties:
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    MoodScreeningDraftInput:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          description: Scores given so far, in question order. May be empty.
+          maxItems: 10
+          items:
+            type: integer
+            minimum: 0
+            maximum: 3
+
+    MoodScreeningDraft:
+      type: object
+      required: [instrument, answers, updatedAt]
+      properties:
+        instrument:
+          $ref: "#/components/schemas/ScreeningInstrument"
+        answers:
+          type: array
+          description: Scores given so far, in question order; the next question is answers.length + 1.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 3
+        updatedAt:
+          type: string
+          format: date-time
+
+    MoodScreeningDraftList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoodScreeningDraft"
 
     PregnancyLossInput:
       type: object
