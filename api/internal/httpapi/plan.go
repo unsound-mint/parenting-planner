@@ -41,3 +41,9 @@ func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObje
 func (s *Server) GetMemberWeeklyPlan(_ context.Context, _ GetMemberWeeklyPlanRequestObject) (GetMemberWeeklyPlanResponseObject, error) {
 	return GetMemberWeeklyPlan501JSONResponse(Error{Code: "not_implemented", Message: "the weekly plan is not built yet"}), nil
 }
+
+// SetPlanItemProgress is a stub until the plan status store lands; the web app
+// hides the "Mark as booked" button until then (web/src/lib/features.ts).
+func (s *Server) SetPlanItemProgress(ctx context.Context, req SetPlanItemProgressRequestObject) (SetPlanItemProgressResponseObject, error) {
+	return SetPlanItemProgress501JSONResponse(Error{Code: "not_implemented", Message: "marking plan items is not available yet"}), nil
+}
