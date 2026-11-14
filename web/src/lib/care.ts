@@ -29,7 +29,8 @@ export function agoWords(iso: string, now = new Date()): string {
   if (min < 2) return "just now";
   if (min < 60) return `${min} min ago`;
   const h = Math.floor(min / 60);
-  if (h < 24) return min % 60 === 0 ? `${h} h ago` : `${h} h ${min % 60} min ago`;
+  // Past a few hours the minutes are noise ("23 h 7 min ago" also overflowed the tile).
+  if (h < 24) return min % 60 === 0 || h >= 3 ? `${h} h ago` : `${h} h ${min % 60} min ago`;
   const d = Math.floor(h / 24);
   return `${d} ${d === 1 ? "day" : "days"} ago`;
 }
@@ -58,4 +59,55 @@ export function nextFeedEstimate(entries: CareLogEntry[]): string | null {
   const gaps = feeds.slice(0, -1).map((t, i) => t - feeds[i + 1]);
   const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
   return new Date(feeds[0] + mean).toISOString();
+}
+
+/** "1 h 35 min", "40 min". */
+export function durationWords(ms: number): string {
+  const min = Math.max(0, Math.round(ms / 60_000));
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  return min % 60 === 0 ? `${h} h` : `${h} h ${min % 60} min`;
+}
+
+/** A breastfeed's side, or undefined for a bottle. */
+export function breastSide(e?: CareLogEntry): "left" | "right" | "both" | undefined {
+  switch (e?.feedMethod) {
+    case "breast_left":
+      return "left";
+    case "breast_right":
+      return "right";
+    case "breast_both":
+      return "both";
+  }
+  return undefined;
+}
+
+/** Hour (0 to 23) and minute of an instant on the Eastern clock. */
+export function clockOf(iso: string | number): { h: number; m: number } {
+  const parts = clockParts.formatToParts(new Date(iso));
+  return { h: Number(parts.find((p) => p.type === "hour")?.value ?? 0) % 24, m: Number(parts.find((p) => p.type === "minute")?.value ?? 0) };
+}
+
+const wallParts = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "America/New_York",
+});
+
+/** "2026-11-15T14:05": an instant as Eastern wall time, for <input type="datetime-local">. */
+export function toEasternInput(iso: string | number): string {
+  const p = Object.fromEntries(wallParts.formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour === "24" ? "00" : p.hour}:${p.minute}`;
+}
+
+/** The instant of an Eastern wall time typed into a datetime-local input. */
+export function fromEasternInput(value: string): string {
+  const guess = Date.parse(`${value}:00Z`);
+  // The wall time the guess shows in Eastern, read back as if it were UTC, gives the zone offset.
+  const shown = Date.parse(`${toEasternInput(guess)}:00Z`);
+  return new Date(guess + (guess - shown)).toISOString();
 }

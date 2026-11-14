@@ -225,7 +225,7 @@ func (q *Queries) GetSupplyItem(ctx context.Context, arg GetSupplyItemParams) (S
 }
 
 const latestGrowthMeasurement = `-- name: LatestGrowthMeasurement :one
-SELECT id, family_id, child_id, measured_on, weight_kg, height_cm FROM growth_measurements WHERE family_id = $1 AND child_id = $2 ORDER BY measured_on DESC LIMIT 1
+SELECT id, family_id, child_id, measured_on, weight_kg, height_cm, head_cm FROM growth_measurements WHERE family_id = $1 AND child_id = $2 ORDER BY measured_on DESC LIMIT 1
 `
 
 type LatestGrowthMeasurementParams struct {
@@ -243,6 +243,7 @@ func (q *Queries) LatestGrowthMeasurement(ctx context.Context, arg LatestGrowthM
 		&i.MeasuredOn,
 		&i.WeightKg,
 		&i.HeightCm,
+		&i.HeadCm,
 	)
 	return i, err
 }

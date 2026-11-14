@@ -3,15 +3,15 @@ import Link from "next/link";
 import { ChevronRight, Handshake, Hourglass, ShoppingBasket, Utensils } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today, VoiceNote } from "@/lib/api/types";
-import { agoWords, isAsleep, lastActivityAt, nextFeedEstimate } from "@/lib/care";
+import { agoWords, breastSide, durationWords, isAsleep, lastActivityAt, nextFeedEstimate } from "@/lib/care";
 import { getEssentialsOnly } from "@/lib/essentials";
 import { familyContext, formatClock } from "@/lib/format";
 import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
 import { careLogIcon, careLogLabel, careLogTint, diaperLabel, feedMethodLabel, roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { AllergyChips, AllergyLabel, BabyCard } from "@/components/baby/baby-card";
-import { QuickAdd, WhenPicker, WhenProvider, type QuickAction } from "@/components/baby/care-logger";
-import { DayTimeline } from "@/components/baby/day-timeline";
+import { FeedLogger, QuickAdd, SleepLogger, WhenPicker, WhenProvider, type QuickAction } from "@/components/baby/care-logger";
+import { CareChart } from "@/components/baby/care-chart";
 import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
 import { VoicePlayer } from "@/components/baby/voice-player";
 import { previewMocksEnabled } from "@/lib/mock/registry";
@@ -19,18 +19,6 @@ import { CaregiverHome } from "@/components/week/caregiver-home";
 import { PageFrame } from "@/components/shell/page";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
-const feedActions: QuickAction[] = [
-  { kind: "feed", label: "Left", feedMethod: "breast_left" },
-  { kind: "feed", label: "Right", feedMethod: "breast_right" },
-  { kind: "feed", label: "Breast milk", feedMethod: "bottle_breast_milk" },
-  { kind: "feed", label: "Formula", feedMethod: "bottle_formula" },
-];
-const sleepActions: QuickAction[] = [
-  { kind: "sleep", label: "15 min", minutes: 15 },
-  { kind: "sleep", label: "30 min", minutes: 30 },
-  { kind: "sleep", label: "1 h", minutes: 60 },
-  { kind: "sleep", label: "2 h", minutes: 120 },
-];
 const diaperActions: QuickAction[] = [
   { kind: "diaper", label: "Wet", diaper: "wet" },
   { kind: "diaper", label: "Dirty", diaper: "dirty" },
@@ -63,7 +51,8 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
   const [log, handoffs, passport, voiceProbe, essentialsOnly] = await Promise.all([
-    canLog ? api.GET("/members/{memberId}/care-log", path) : undefined,
+    // A week, for the chart's 7-day view; the 24-hour view is the end of it.
+    canLog ? api.GET("/members/{memberId}/care-log", { params: { path: { memberId }, query: { days: 7 } } }) : undefined,
     canLog ? api.GET("/members/{memberId}/handoffs", path) : undefined,
     canCard ? api.GET("/members/{memberId}/children/{childId}/passport", { params: { path: { memberId, childId: child.id } } }) : undefined,
     // Probe: a read of a note that cannot exist is 404 once voice notes work and 501 before.
@@ -88,19 +77,19 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
     (p) => p.id !== memberId && allows({ role: p.role, permissions: family.caregivers?.find((c) => c.id === p.id)?.permissions }, "care_log"),
   );
 
-  const lastFeed = care.latest.lastFeed;
-  const headline = incoming
-    ? `${byId.get(incoming.fromMemberId)?.displayName ?? "Someone"} is handing ${child.name} over to you.`
-    : lastFeed
-      ? `${child.name} last ate ${agoWords(lastFeed.startedAt, now)}.`
-      : `${child.name}'s day starts here. Log the first feed.`;
+  const headline = incoming ? `${byId.get(incoming.fromMemberId)?.displayName ?? "Someone"} is handing ${child.name} over to you.` : `${child.name}'s day`;
+  // The side to offer first is the one not used last time; after "both" either is fine.
+  const lastBreast = care.items.find((e) => e.kind === "feed" && breastSide(e));
+  const nextSide = ({ left: "right", right: "left", both: undefined } as const)[breastSide(lastBreast) ?? "both"];
+  const lastBottle = care.items.find((e) => e.kind === "feed" && !breastSide(e))?.feedMethod;
+  const openSleep = isAsleep(care.latest.lastSleep) ? care.latest.lastSleep : undefined;
+  const names = Object.fromEntries(people.map((p) => [p.id, p.displayName]));
 
   return (
-    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      {/* At the widest the logging side splits in two: log now on the left, today's timeline on the right. */}
-      <div className="flex min-w-0 flex-col gap-6 @7xl:grid @7xl:grid-cols-2 @7xl:items-start">
-        <header className="flex flex-col gap-3 @7xl:col-span-2">
-          <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,1.25fr)] @7xl:grid-cols-[minmax(0,3fr)_minmax(22rem,1fr)]">
+      <div className="flex min-w-0 flex-col gap-8">
+        <header className="flex flex-col gap-3">
+          <h1 className="text-headline text-balance">{headline}</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label font-normal text-muted-foreground">
             {isCaregiver(me.role) ? `${roleLabel[me.role]} view · ` : ""}
             {familyContext(family)}
@@ -114,32 +103,29 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
           )}
         </header>
 
-        {incoming && (
-          <div className="min-w-0 @7xl:col-span-2">
-            <IncomingHandoff memberId={memberId} handoff={incoming} from={byId.get(incoming.fromMemberId)} now={now} />
-          </div>
-        )}
+        {incoming && <IncomingHandoff memberId={memberId} handoff={incoming} from={byId.get(incoming.fromMemberId)} now={now} />}
 
+        {/* Status now and logging in one place: each card says when it last happened and logs the next one. */}
         <WhenProvider>
           <section aria-labelledby="log-title" className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <h2 id="log-title" className="text-title">
-                Log now
+              <h2 id="log-title" className="text-headline">
+                Right now
               </h2>
               <div className="w-full sm:w-auto sm:min-w-80">
                 <WhenPicker />
               </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <Tile kind="feed" entry={care.latest.lastFeed} now={now}>
-                <QuickAdd memberId={memberId} childId={child.id} actions={feedActions} />
-              </Tile>
-              <Tile kind="sleep" entry={care.latest.lastSleep} now={now}>
-                <QuickAdd memberId={memberId} childId={child.id} actions={sleepActions} />
-              </Tile>
-              <Tile kind="diaper" entry={care.latest.lastDiaper} now={now}>
+            <div className="grid gap-3 @4xl:grid-cols-3">
+              <LogCard kind="feed" entry={care.latest.lastFeed} now={now}>
+                <FeedLogger memberId={memberId} childId={child.id} nextSide={nextSide} lastBottle={lastBottle} />
+              </LogCard>
+              <LogCard kind="sleep" entry={care.latest.lastSleep} now={now}>
+                <SleepLogger memberId={memberId} childId={child.id} open={openSleep && { id: openSleep.id, startedAt: openSleep.startedAt }} />
+              </LogCard>
+              <LogCard kind="diaper" entry={care.latest.lastDiaper} now={now}>
                 <QuickAdd memberId={memberId} childId={child.id} actions={diaperActions} />
-              </Tile>
+              </LogCard>
             </div>
           </section>
         </WhenProvider>
@@ -147,17 +133,14 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         {essentialsOnly ? (
           <NextFeed estimate={nextFeedEstimate(care.items)} />
         ) : (
-          <section aria-labelledby="today-title" className="rounded-2xl border border-border bg-card p-4">
-            <h2 id="today-title" className="mb-3 text-title">
-              Today
-            </h2>
-            <DayTimeline entries={care.items} now={now} />
+          <section aria-labelledby="day-title" className="rounded-3xl border border-line bg-card p-4 md:p-6">
+            <CareChart entries={care.items} now={now.toISOString()} memberId={memberId} names={names} />
           </section>
         )}
 
         {caregiver && slots && (
           <>
-            <CaregiverTodaySlot shiftOnly today={slots.today} names={Object.fromEntries(people.map((p) => [p.id, p.displayName]))} />
+            <CaregiverTodaySlot shiftOnly today={slots.today} names={names} />
             <WeekCardSlot card={slots.card} />
             <GuidesSlot guides={slots.guides} />
           </>
@@ -233,28 +216,41 @@ function OnDutyChip({ person, since, isMe }: { person: Person; since: string; is
   );
 }
 
-function Tile({ kind, entry, now, children }: { kind: CareLogKind; entry?: CareLogEntry; now: Date; children: React.ReactNode }) {
+function LogCard({ kind, entry, now, children }: { kind: CareLogKind; entry?: CareLogEntry; now: Date; children: React.ReactNode }) {
   const Icon = careLogIcon[kind];
   const asleep = isAsleep(entry);
-  const main = !entry ? "Not yet" : kind === "sleep" ? (asleep ? "Asleep" : "Awake") : agoWords(entry.startedAt, now);
-  const sub = !entry
-    ? "Nothing logged"
+  const main = !entry
+    ? "Not logged yet"
     : kind === "sleep"
-      ? `since ${formatClock(lastActivityAt(entry))}`
-      : formatClock(entry.startedAt);
+      ? asleep
+        ? `Asleep ${durationWords(now.getTime() - Date.parse(entry.startedAt))}`
+        : "Awake"
+      : agoWords(entry.startedAt, now);
+  const what = !entry
+    ? ""
+    : kind === "feed"
+      ? `${feedMethodLabel[entry.feedMethod ?? "bottle_formula"]}${entry.amountMl ? `, ${entry.amountMl} ml` : ""}`
+      : kind === "diaper"
+        ? diaperLabel[entry.diaper ?? "wet"]
+        : "";
+  const sub = !entry
+    ? "Log the first one below"
+    : kind === "sleep"
+      ? `since ${formatClock(asleep ? entry.startedAt : lastActivityAt(entry))}`
+      : `${formatClock(entry.startedAt)} · ${what}`;
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-6">
-      <div className="flex items-center gap-3 md:w-44 md:shrink-0">
-        <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", careLogTint[kind].soft)}>
+    <div className="flex min-w-0 flex-col gap-4 rounded-3xl border border-line bg-card p-4 md:p-5">
+      <div className="flex items-start gap-3">
+        <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-full", careLogTint[kind].soft)}>
           <Icon aria-hidden className="size-5" />
         </span>
         <div className="min-w-0">
-          <h3 className="text-caption font-medium text-muted-foreground">{careLogLabel[kind]}</h3>
-          <p className="truncate text-title font-semibold">{main}</p>
-          <p className="font-mono text-caption text-muted-foreground">{sub}</p>
+          <h3 className="text-label font-medium text-muted-foreground">{careLogLabel[kind]}</h3>
+          <p className="text-title font-semibold">{main}</p>
+          <p className="text-caption text-muted-foreground">{sub}</p>
         </div>
       </div>
-      <div className="min-w-0 md:flex-1">{children}</div>
+      <div className="mt-auto">{children}</div>
     </div>
   );
 }
