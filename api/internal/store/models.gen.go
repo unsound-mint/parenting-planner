@@ -478,6 +478,13 @@ type Notification struct {
 	ReadAt            pgtype.Timestamptz
 }
 
+type NudgeDismissal struct {
+	FamilyID    uuid.UUID
+	MemberID    uuid.UUID
+	NudgeKey    string
+	DismissedAt time.Time
+}
+
 type PartnerOffer struct {
 	ID          uuid.UUID
 	FamilyID    uuid.UUID
@@ -608,6 +615,23 @@ type Session struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 	MemberID  uuid.NullUUID
+}
+
+type SessionBrief struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	OwnerMemberID  uuid.UUID
+	Visibility     string
+	BookingID      uuid.NullUUID
+	IncludeMood    bool
+	EntryIds       []uuid.UUID
+	NoteSealed     []byte
+	Status         string
+	SendAt         pgtype.Timestamptz
+	SentAt         pgtype.Timestamptz
+	SnapshotSealed []byte
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type SessionNote struct {

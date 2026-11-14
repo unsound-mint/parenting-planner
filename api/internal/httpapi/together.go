@@ -35,9 +35,9 @@ func (s *Server) GetTogether(ctx context.Context, req GetTogetherRequestObject) 
 	if err != nil {
 		return nil, err
 	}
-	out := Together{Prompts: make([]TalkPrompt, 0, len(card.Prompts))}
+	out := Together{Prompts: make([]TalkPrompt, 0, len(card.Prompts)), ClosedNudgeIds: card.Closed}
 	if n := card.Nudge; n != nil {
-		out.Nudge = &PartnerNudge{MemberId: n.MemberID, Kind: PartnerNudgeKind(n.Kind), At: n.At.UTC(), Text: n.Text}
+		out.Nudge = &PartnerNudge{Id: n.Key, MemberId: n.MemberID, Kind: PartnerNudgeKind(n.Kind), At: n.At.UTC(), Text: n.Text}
 		if n.LessonID != "" {
 			id := n.LessonID
 			out.Nudge.LessonId = &id
@@ -194,4 +194,20 @@ func (s *Server) setBabyNameLike(ctx context.Context, memberID MemberId, nameID 
 
 func babyNameOut(n together.Name) BabyName {
 	return BabyName{Id: n.ID, Name: n.Name, AddedBy: n.AddedBy, LikedBy: n.LikedBy, BothLike: n.BothLike, CreatedAt: n.CreatedAt.UTC()}
+}
+
+func (s *Server) CreateNudgeDismissal(ctx context.Context, req CreateNudgeDismissalRequestObject) (CreateNudgeDismissalResponseObject, error) {
+	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return CreateNudgeDismissal401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return CreateNudgeDismissal404JSONResponse(errNoMember), nil
+	}
+	if err := together.Dismiss(ctx, s.pool, familyID, req.MemberId, req.Body.Id, s.now(ctx)); err != nil {
+		return nil, err
+	}
+	return CreateNudgeDismissal204Response{}, nil
 }

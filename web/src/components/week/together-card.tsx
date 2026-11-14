@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
-import { Check, Heart, Plus } from "lucide-react";
+import { Check, Heart, Plus, X } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { BabyName, Parent, PartnerNudge, TalkPrompt } from "@/lib/api/types";
 import { Avatar } from "@/components/joy/partner-chip";
@@ -33,16 +33,46 @@ export function TogetherCard({
   names?: BabyName[];
   className?: string;
 }) {
+  // Closing the nudge hides it at once; the server keeps it closed for this parent.
+  const [closed, setClosed] = useState<string>();
+  const shown = nudge && nudge.id !== closed ? nudge : undefined;
+
+  async function close(n: PartnerNudge) {
+    setClosed(n.id);
+    const { error } = await api.POST("/members/{memberId}/nudge-dismissals", { params: { path: { memberId } }, body: { id: n.id } });
+    if (error) {
+      setClosed(undefined);
+      toast.error("Could not close that. Please try again.");
+    }
+  }
+
   return (
-    <SoftCard tone="them" className={cn("flex flex-col", !nudge && "justify-center", className)}>
-      {nudge && (
-        <p className="flex items-start gap-3 rounded-2xl bg-card/65 px-4 py-3.5 text-body">
-          <Avatar person={partner} size="sm" className="mt-0.5" />
-          <span>{nudge.text}</span>
-        </p>
-      )}
-      {prompts.length > 0 && <TalkPrompts memberId={memberId} prompts={prompts} first={!nudge} />}
-      {names && <Names memberId={memberId} me={me} partner={partner} initial={names} />}
+    <SoftCard tone="them" className={cn("flex flex-col", !shown && "justify-center", className)}>
+      <AnimatePresence initial={false} mode="popLayout">
+        {shown && (
+          <motion.div
+            key={shown.id}
+            exit={{ opacity: 0, scale: 0.96, transition: { duration: duration.base, ease: ease.out } }}
+            className="flex items-start gap-3 rounded-2xl bg-card/65 py-3.5 pr-2 pl-4 text-body"
+          >
+            <Avatar person={partner} size="sm" className="mt-0.5" />
+            <p className="min-w-0 flex-1 py-0.5">{shown.text}</p>
+            <button
+              type="button"
+              aria-label="Close this note"
+              onClick={() => close(shown)}
+              className="press -my-1 flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-card hover:text-ink focus-visible:ring-3 focus-visible:ring-them/40"
+            >
+              <X className="size-4" aria-hidden />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* The rest slides up into the nudge's place once it has gone. */}
+      <motion.div layout="position" transition={spring.ui}>
+        {prompts.length > 0 && <TalkPrompts memberId={memberId} prompts={prompts} first={!shown} />}
+        {names && <Names memberId={memberId} me={me} partner={partner} initial={names} />}
+      </motion.div>
     </SoftCard>
   );
 }
