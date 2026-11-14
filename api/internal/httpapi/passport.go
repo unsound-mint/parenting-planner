@@ -122,7 +122,7 @@ func careTeamOut(c store.CareTeam) (CareTeamMember, bool) {
 
 // vaccineNames are display names for the vaccine keys the rules use.
 var vaccineNames = map[string]string{
-	"tdap": "Tdap", "flu": "Flu", "covid19": "COVID-19", "rsv": "RSV", "hepb": "Hepatitis B",
+	"tdap": "Tdap", "td": "Td", "flu": "Flu", "covid19": "COVID-19", "rsv": "RSV", "hepb": "Hepatitis B",
 	"hepa": "Hepatitis A", "dtap": "DTaP", "mmr": "MMR", "varicella": "Varicella", "hib": "Hib",
 	"pcv": "Pneumococcal", "ipv": "Polio", "rotavirus": "Rotavirus",
 }

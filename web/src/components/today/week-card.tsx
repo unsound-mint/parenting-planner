@@ -14,7 +14,9 @@ const TRIMESTER_ENDS = [13, 27];
 // to do this week and the birth preparation modules. Everything comes from the
 // card (getPregnancyWeek); the first line of "why it matters" carries the
 // reason, the rest opens in place so nothing is printed twice.
-export function WeekCard({ card }: { card: PregnancyWeek }) {
+// withWeek={false}: the page already shows the week (This week has it in the top
+// bar), so the card starts with what to do instead of the number.
+export function WeekCard({ card, withWeek = true }: { card: PregnancyWeek; withWeek?: boolean }) {
   const [more, setMore] = useState(false);
   const toGo = Math.max(0, FULL_TERM - card.week);
   const action = card.tasks[0];
@@ -24,26 +26,38 @@ export function WeekCard({ card }: { card: PregnancyWeek }) {
   const hasMore = Boolean(rest || card.development || moreTasks.length || card.questions.length);
 
   return (
-    <section aria-labelledby="week-card-title" className="rounded-2xl border border-border bg-card p-5">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h2 id="week-card-title" className="text-label text-muted-foreground">
-            Pregnancy week
-          </h2>
-          <p className="font-mono text-display leading-none tabular-nums">
-            <span className="sr-only">Week </span>
-            {card.week}
-          </p>
-        </div>
-        <p className="pb-1 text-right text-label text-muted-foreground">{toGo === 0 ? "Full term" : `${toGo} weeks to go`}</p>
-      </div>
+    <section
+      aria-labelledby="week-card-title"
+      className={cn("rounded-2xl border border-border bg-card p-5", !withWeek && "[&>h2+*]:mt-0 [&>h2+*]:border-t-0 [&>h2+*]:pt-0")}
+    >
+      {!withWeek && (
+        <h2 id="week-card-title" className="sr-only">
+          Week {card.week}
+        </h2>
+      )}
+      {withWeek && (
+        <>
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 id="week-card-title" className="text-label text-muted-foreground">
+                Pregnancy week
+              </h2>
+              <p className="font-mono text-display leading-none tabular-nums">
+                <span className="sr-only">Week </span>
+                {card.week}
+              </p>
+            </div>
+            <p className="pb-1 text-right text-label text-muted-foreground">{toGo === 0 ? "Full term" : `${toGo} weeks to go`}</p>
+          </div>
 
-      <div className="relative mt-4 h-2 rounded-full bg-muted" role="img" aria-label={`Week ${card.week} of ${FULL_TERM}`}>
-        <span className="absolute inset-y-0 left-0 rounded-full bg-mom" style={{ width: `${Math.min(100, (card.week / FULL_TERM) * 100)}%` }} />
-        {TRIMESTER_ENDS.map((w) => (
-          <span key={w} className="absolute inset-y-0 w-0.5 bg-card" style={{ left: `${(w / FULL_TERM) * 100}%` }} />
-        ))}
-      </div>
+          <div className="relative mt-4 h-2 rounded-full bg-muted" role="img" aria-label={`Week ${card.week} of ${FULL_TERM}`}>
+            <span className="absolute inset-y-0 left-0 rounded-full bg-mom" style={{ width: `${Math.min(100, (card.week / FULL_TERM) * 100)}%` }} />
+            {TRIMESTER_ENDS.map((w) => (
+              <span key={w} className="absolute inset-y-0 w-0.5 bg-card" style={{ left: `${(w / FULL_TERM) * 100}%` }} />
+            ))}
+          </div>
+        </>
+      )}
 
       {card.size && (
         <div className="mt-5 flex items-center gap-4">
@@ -78,7 +92,7 @@ export function WeekCard({ card }: { card: PregnancyWeek }) {
         </div>
       )}
 
-      <p className="mt-4 text-body">{headline}</p>
+      {headline && <p className="mt-4 text-body">{headline}</p>}
 
       {hasMore && (
         <>
@@ -88,7 +102,7 @@ export function WeekCard({ card }: { card: PregnancyWeek }) {
             aria-expanded={more}
             className="mt-2 inline-flex min-h-11 items-center gap-1 rounded-lg text-label font-semibold text-muted-foreground transition-colors duration-150 hover:text-foreground md:min-h-8"
           >
-            More about week {card.week}
+            {withWeek ? `More about week ${card.week}` : "More this week"}
             <ChevronDown className={cn("size-4 transition-transform duration-220 ease-(--ease-out)", more && "rotate-180")} aria-hidden />
           </button>
           <div className={cn("grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out)", more ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!more}>
