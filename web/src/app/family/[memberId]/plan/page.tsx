@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
+import { optional } from "@/components/today/slots";
 import { PlanScreen } from "@/components/plan/plan-screen";
 
 // "Plan": the family's owned tasks in one place. The shared plan, US paperwork
@@ -36,7 +37,24 @@ async function Plan({ params }: { params: Promise<{ memberId: string }> }) {
     (p) => p.id !== memberId && (!isCaregiver(p.role) || family.caregivers?.find((c) => c.id === p.id)?.permissions.includes("family_plan")),
   );
 
-  return <PlanScreen initial={tasks.items} people={people} offerTargets={offerTargets} selfId={memberId} leave={family.pregnancyLoss ? undefined : leave} calls={calls?.items} dueOn={family.dueDate} />;
+  // The week tracker needs a pregnancy with a due date; the weekly card adds this week's suggestions when it has data.
+  const trackWeeks = family.stage === "pregnancy" && !family.pregnancyLoss && !!family.dueDate;
+  const week = family.gestationalWeek;
+  const card = trackWeeks && week != null && week >= 4 && week <= 40 ? (await optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week } } }))) : undefined;
+
+  return (
+    <PlanScreen
+      initial={tasks.items}
+      people={people}
+      offerTargets={offerTargets}
+      selfId={memberId}
+      leave={family.pregnancyLoss ? undefined : leave}
+      calls={calls?.items}
+      dueOn={family.dueDate}
+      trackWeeks={trackWeeks}
+      weekTasks={card?.tasks}
+    />
+  );
 }
 
 function PlanFallback() {
