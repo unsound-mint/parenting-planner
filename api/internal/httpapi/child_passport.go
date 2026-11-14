@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/passport"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -32,7 +32,7 @@ func (s *Server) GetChildPassport(ctx context.Context, req GetChildPassportReque
 		return GetChildPassport404JSONResponse(errNoMember), nil
 	}
 	parent := isParentRole(m.Role)
-	if !parent && !slices.Contains(m.Permissions, "baby_passport") {
+	if !parent && !access.CanCaregiverReadChildRecord(m.Permissions, true) {
 		return GetChildPassport403JSONResponse(errForbidden), nil
 	}
 	today := s.today(ctx)

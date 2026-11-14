@@ -365,9 +365,10 @@ type ListChildAllergiesVisibleToParentParams struct {
 	ChildID  uuid.NullUUID
 }
 
-// Mirrors access.CanParentReadHealthRecord: records about the child are readable by
-// everyone allowed the baby passport (both parents, and caregivers with baby_passport),
-// whatever their owner chose; only the parent's own records use visibility.
+// Mirrors access.CanParentReadHealthRecord and access.CanCaregiverReadChildRecord:
+// records about the child are readable by both parents and by caregivers with
+// baby_passport (the handler checks the permission), whatever their owner chose;
+// only the parent's own records use visibility.
 func (q *Queries) ListChildAllergiesVisibleToParent(ctx context.Context, arg ListChildAllergiesVisibleToParentParams) ([]Allergy, error) {
 	rows, err := q.db.Query(ctx, listChildAllergiesVisibleToParent, arg.FamilyID, arg.ChildID)
 	if err != nil {
