@@ -67,13 +67,13 @@ func TestTasksListIsOneModelWithKindsAndOrder(t *testing.T) {
 			last = it.DueOn.Time
 		}
 	}
-	// Every item has one owner, and the paperwork cites a source.
+	// Every item has one owner, and the paperwork cites a source (the anytime steps have no anchor).
 	for _, it := range all {
 		if it.AssigneeId != mom.Id && it.AssigneeId != jake.Id {
 			t.Errorf("%q has no parent owner", it.Title)
 		}
-		if it.Kind == httpapi.TaskKindPaperwork && (it.Source == nil || it.Source.Url == "" || it.DueAnchor == nil) {
-			t.Errorf("paperwork %q needs a source and an anchor: %+v", it.Title, it)
+		if it.Kind == httpapi.TaskKindPaperwork && (it.Source == nil || it.Source.Url == "") {
+			t.Errorf("paperwork %q needs a source: %+v", it.Title, it)
 		}
 	}
 	// The seeded offer is visible: the car seat is offered to Jake.
@@ -87,7 +87,7 @@ func TestMovingTheDueDateMovesPaperworkDeadlines(t *testing.T) {
 	fam := c.StartDemo("pregnancy")
 	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 	before := taskList(c, mom.Id, "?kind=paperwork")
-	notice := byTitle(before, "Tell your employer you will take parental leave")
+	notice := byTitle(before, "Tell your employer you will take leave")
 	if notice.DueOn == nil || notice.DueOffsetDays == nil || *notice.DueOffsetDays != -30 || *notice.DueAnchor != httpapi.DueDate {
 		t.Fatalf("leave notice = %+v", notice)
 	}
@@ -102,6 +102,9 @@ func TestMovingTheDueDateMovesPaperworkDeadlines(t *testing.T) {
 	c.Patch("/api/members/"+mom.Id.String()+"/family", map[string]any{"dueDate": fam.DueDate.Time.AddDate(0, 0, 14).Format("2006-01-02")}, http.StatusOK, nil)
 	for _, it := range taskList(c, mom.Id, "?kind=paperwork") {
 		old := byTitle(before, it.Title)
+		if it.DueOn == nil { // an anytime step has no deadline to move
+			continue
+		}
 		if d := it.DueOn.Time.Sub(old.DueOn.Time); d != 14*24*time.Hour {
 			t.Errorf("%q moved by %v, want 14 days", it.Title, d)
 		}
