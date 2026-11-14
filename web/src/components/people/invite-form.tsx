@@ -5,38 +5,41 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, Copy, Lock } from "lucide-react";
 import { api } from "@/lib/api/client";
-import type { CaregiverPermission, CaregiverRole, CreatedInvitation } from "@/lib/api/types";
+import type { CaregiverPermission, CaregiverRole, CreatedInvitation, Family } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { roleAccent, roleIcon, roleLabel } from "@/lib/visuals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { invitablePermissions, permissionTextFor } from "@/lib/stage";
 import { PermissionRow } from "./permission-row";
 
 // The contract lists the defaults per role (InvitationInput in api/openapi.yaml).
+// They are cut down to what the family's stage offers (lib/stage.ts).
 const defaults: Record<CaregiverRole, CaregiverPermission[]> = {
   nanny: ["care_log", "baby_passport", "schedule"],
   grandparent: ["care_log", "baby_passport", "schedule", "pregnancy_updates"],
 };
 const roles: CaregiverRole[] = ["nanny", "grandparent"];
-const allPermissions: CaregiverPermission[] = ["care_log", "baby_passport", "schedule", "family_plan", "pregnancy_updates"];
 
 // Role first, then what they may see as switches. The switches are also the
 // "what they will see" preview: off rows are dimmed, and the never-shared line
 // below is fixed because the API cannot grant those records at all.
-export function InviteForm({ memberId }: { memberId: string }) {
+export function InviteForm({ memberId, family }: { memberId: string; family: Pick<Family, "stage"> }) {
+  const allPermissions = invitablePermissions(family);
+  const defaultsFor = (r: CaregiverRole) => defaults[r].filter((p) => allPermissions.includes(p));
   const router = useRouter();
   const [role, setRole] = useState<CaregiverRole>("nanny");
   const [name, setName] = useState("");
-  const [perms, setPerms] = useState<Set<CaregiverPermission>>(new Set(defaults.nanny));
+  const [perms, setPerms] = useState<Set<CaregiverPermission>>(new Set(defaultsFor("nanny")));
   const [created, setCreated] = useState<CreatedInvitation | null>(null);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function pick(r: CaregiverRole) {
     setRole(r);
-    setPerms(new Set(defaults[r]));
+    setPerms(new Set(defaultsFor(r)));
   }
 
   function toggle(p: CaregiverPermission, on: boolean) {
@@ -141,7 +144,7 @@ export function InviteForm({ memberId }: { memberId: string }) {
           <fieldset className="flex flex-col">
             <legend className="mb-1 text-label font-medium">They will see</legend>
             {allPermissions.map((p) => (
-              <PermissionRow key={p} permission={p} on={perms.has(p)} onChange={(v) => toggle(p, v)} />
+              <PermissionRow key={p} permission={p} text={permissionTextFor(family, p)} on={perms.has(p)} onChange={(v) => toggle(p, v)} />
             ))}
             <p className="mt-2 flex items-center gap-2 rounded-xl bg-muted px-3 py-2.5 text-label text-muted-foreground">
               <Lock aria-hidden className="size-4 shrink-0" />

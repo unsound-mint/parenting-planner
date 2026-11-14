@@ -7,11 +7,25 @@ SELECT * FROM families WHERE id = $1;
 -- name: CreateMember :one
 INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING *;
 
+-- Parents only: caregivers are members too but never parents. Use GetPerson to resolve any acting person.
 -- name: ListMembers :many
-SELECT * FROM members WHERE family_id = $1 ORDER BY role;
+SELECT * FROM members WHERE family_id = $1 AND role IN ('mother','partner') ORDER BY role;
 
 -- name: GetMember :one
-SELECT * FROM members WHERE id = $1 AND family_id = $2;
+SELECT * FROM members WHERE id = $1 AND family_id = $2 AND role IN ('mother','partner');
+
+-- Any person who can act: a parent or a caregiver whose access was not revoked.
+-- name: GetPerson :one
+SELECT * FROM members WHERE id = $1 AND family_id = $2 AND revoked_at IS NULL;
+
+-- name: ListCaregivers :many
+SELECT * FROM members WHERE family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL ORDER BY role, display_name;
+
+-- name: CreateCaregiver :one
+INSERT INTO members (family_id, role, display_name, permissions) VALUES ($1, $2, $3, $4) RETURNING *;
+
+-- name: RevokeCaregiver :exec
+UPDATE members SET revoked_at = $3 WHERE id = $1 AND family_id = $2 AND role IN ('grandparent','nanny');
 
 -- name: CreateChild :one
 INSERT INTO children (family_id, name, birth_date) VALUES ($1, $2, $3) RETURNING *;
@@ -44,6 +58,17 @@ UPDATE families SET stage = 'planning', due_date = NULL,
     pregnancy_loss_recorded_at = @recorded_at, pregnancy_loss_occurred_on = @occurred_on,
     pregnancy_loss_prior_stage = stage, pregnancy_loss_prior_due_date = due_date
 WHERE id = @id AND stage = 'pregnancy' RETURNING *;
+
+-- Turning support on drops what the family has not read yet about the pregnancy
+-- and the baby: plan_item_due for the given rules, and handoffs.
+-- name: DeleteUnreadPregnancyNotifications :execrows
+DELETE FROM notifications
+WHERE family_id = @family_id AND read_at IS NULL
+  AND (kind IN ('handoff_received', 'handoff_accepted')
+       OR (kind = 'plan_item_due' AND entity_id = ANY (@rule_ids::text[])));
+
+-- name: FamilyInPregnancyLoss :one
+SELECT (pregnancy_loss_recorded_at IS NOT NULL)::bool FROM families WHERE id = $1;
 
 -- Turns support off and restores what it replaced.
 -- name: RestorePregnancyLoss :one

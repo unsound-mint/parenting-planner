@@ -23,7 +23,16 @@ ALTER TABLE notifications ADD CONSTRAINT notifications_kind_check CHECK (kind IN
     'task_offered','task_offer_answered','handoff_received','handoff_accepted','plan_item_due','value_flagged',
     'appointment_reminder','invitation_accepted','subscription_started','labour_started'));
 
+ALTER TABLE live_events DROP CONSTRAINT live_events_kind_check;
+ALTER TABLE live_events ADD CONSTRAINT live_events_kind_check CHECK (kind IN (
+    'family','task','shift','calendar_event','care_log','handoff','appointment_question','invitation','notification'));
+
 -- +goose Down
+DELETE FROM live_events WHERE kind = 'notification';
+ALTER TABLE live_events DROP CONSTRAINT live_events_kind_check;
+ALTER TABLE live_events ADD CONSTRAINT live_events_kind_check CHECK (kind IN (
+    'family','task','shift','calendar_event','care_log','handoff','appointment_question','invitation'));
+
 DELETE FROM notifications WHERE kind = 'labour_started';
 ALTER TABLE notifications DROP CONSTRAINT notifications_kind_check;
 ALTER TABLE notifications ADD CONSTRAINT notifications_kind_check CHECK (kind IN (

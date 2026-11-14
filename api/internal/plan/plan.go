@@ -102,6 +102,7 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 		Viewer:        rules.Role(viewer.Role),
 		Stage:         fam.Stage,
 		DueDate:       fam.DueDate,
+		PregnancyLoss: fam.PregnancyLossRecordedAt.Valid,
 		PregnancyLabs: map[string]time.Time{},
 		Immunizations: map[rules.Role]map[string]time.Time{rules.Mother: {}, rules.Partner: {}},
 		CareTeam:      map[string]bool{},

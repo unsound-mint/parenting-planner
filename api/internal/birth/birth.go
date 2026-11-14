@@ -7,11 +7,13 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/notify"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -79,7 +81,11 @@ func Get(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID) (P
 	if err != nil {
 		return Plan{}, err
 	}
-	out := Plan{Hospital: bp, MapsURL: MapsURL(bp.HospitalAddress), Docs: append([]Document(nil), catalog...)}
+	docs, err := documentState(ctx, q, familyID, true)
+	if err != nil {
+		return Plan{}, err
+	}
+	out := Plan{Hospital: bp, MapsURL: MapsURL(bp.HospitalAddress), Docs: docs}
 	if bp.DeskPhone != nil {
 		out.Contacts = append(out.Contacts, Contact{Label: "Labour and delivery desk", Name: bp.HospitalName, Phone: *bp.DeskPhone})
 	}
@@ -150,9 +156,72 @@ func SendAlert(ctx context.Context, pool *pgxpool.Pool, familyID, sender uuid.UU
 			}); err != nil {
 				return err
 			}
+			if err := live.Publish(ctx, q, familyID, live.Event{Kind: live.Notification, EntityID: sender.String(), Actor: sender, Audience: []uuid.UUID{m.ID}}, now); err != nil {
+				return err
+			}
 			sent = true
 		}
 		return nil
 	})
 	return sent, err
+}
+
+// AppointmentLogistics uses the configured drive time only when the visit is
+// at the birth hospital. Other locations have no estimate.
+func AppointmentLogistics(ctx context.Context, pool *pgxpool.Pool, family uuid.UUID, location *string) ([]Document, *int, error) {
+	q := store.New(pool)
+	docs, err := documentState(ctx, q, family, false)
+	if err != nil || location == nil {
+		return docs, nil, err
+	}
+	plan, err := q.GetBirthPlan(ctx, family)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return docs, nil, nil
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	if !plan.TravelMinutes.Valid || !strings.EqualFold(strings.TrimSpace(*location), strings.TrimSpace(plan.HospitalAddress)) {
+		return docs, nil, nil
+	}
+	minutes := int(plan.TravelMinutes.Int32)
+	return docs, &minutes, nil
+}
+
+func documentState(ctx context.Context, q *store.Queries, family uuid.UUID, forBirth bool) ([]Document, error) {
+	items := append([]Document(nil), catalog...)
+	if !forBirth {
+		items = []Document{
+			catalog[0],
+			{Title: "Insurance network confirmation", Detail: "Bring confirmation if you checked that the clinic is in network."},
+		}
+	}
+	tasks, err := q.ListTasks(ctx, store.ListTasksParams{FamilyID: family})
+	if err != nil {
+		return nil, err
+	}
+	for i := range items {
+		for _, task := range tasks {
+			title := strings.ToLower(task.Title)
+			match := false
+			switch i {
+			case 0:
+				match = task.Kind == "hospital_bag" && title == "photo id and insurance card"
+			case 1:
+				if task.Kind == "paperwork" {
+					if forBirth {
+						match = strings.Contains(title, "pre-registration") || strings.Contains(title, "preregister")
+					} else {
+						match = strings.Contains(title, "in network") || strings.Contains(title, "in-network")
+					}
+				}
+			}
+			if match {
+				items[i].TaskID = &task.ID
+				items[i].Ready = task.Done
+				break
+			}
+		}
+	}
+	return items, nil
 }

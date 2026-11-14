@@ -1,0 +1,3 @@
+export { Face } from "./face";
+export { SizeIllustration, StageMascot } from "./illustration";
+export { resolveSize, SIZE_TABLE } from "./size-map";

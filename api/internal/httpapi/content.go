@@ -76,8 +76,9 @@ func (s *Server) GetPregnancyWeek(ctx context.Context, req GetPregnancyWeekReque
 	out := PregnancyWeek{
 		Week: card.Week, IsCurrentWeek: card.Week == state.Week, WhyItMatters: card.WhyItMatters,
 		Tasks: card.Tasks, Questions: card.Questions, BirthPrep: make([]Guide, 0, len(card.BirthPrep)),
-		Source: sourceOut(card.Source),
+		Source: sourceOut(card.Source), Development: &card.Development,
 	}
+	out.Size = sizeOut(card.Size)
 	for _, e := range card.BirthPrep {
 		out.BirthPrep = append(out.BirthPrep, guideOut(e))
 	}
@@ -117,6 +118,13 @@ func guideOut(e content.Entry) Guide {
 	if e.Minutes > 0 {
 		g.Minutes = &e.Minutes
 	}
+	if e.RuleID != "" {
+		id := e.RuleID
+		g.RuleId = &id
+	}
+	if e.Action != nil {
+		g.Action = guideActionOut(e.Action)
+	}
 	for _, st := range e.Stages {
 		g.Stages = append(g.Stages, Stage(st))
 	}
@@ -134,4 +142,88 @@ func guideOut(e content.Entry) Guide {
 		g.UnlocksAtWeek = &unlock
 	}
 	return g
+}
+
+func guideActionOut(a *content.Action) *GuideAction {
+	out := GuideAction{Kind: GuideActionKind(a.Kind)}
+	if a.Label != "" {
+		out.Label = &a.Label
+	}
+	if a.Title != "" {
+		out.Title = &a.Title
+	}
+	if a.Question != "" {
+		out.Question = &a.Question
+	}
+	if a.Shift != nil {
+		days := make([]Weekday, 0, len(a.Shift.Days))
+		for _, d := range a.Shift.Days {
+			days = append(days, Weekday(d))
+		}
+		out.Shift = &ShiftSuggestion{Title: a.Shift.Title, Days: days, StartTime: a.Shift.StartTime, EndTime: a.Shift.EndTime}
+	}
+	return &out
+}
+
+// sizeOut maps the catalog size to the contract. Weight is left out where no source gives one.
+func sizeOut(sz content.Size) *BabySize {
+	out := &BabySize{
+		Comparison: sz.Comparison, LengthCm: float32(sz.LengthCm), LengthMeasure: BabySizeLengthMeasure(sz.LengthMeasure),
+		Sources: make([]Source, 0, len(sz.Sources)),
+	}
+	if sz.HasWeight() {
+		w := float32(sz.WeightG)
+		r := []float32{float32(sz.WeightRangeG[0]), float32(sz.WeightRangeG[1])}
+		out.WeightG, out.WeightRangeG = &w, &r
+	}
+	for _, s := range sz.Sources {
+		out.Sources = append(out.Sources, sourceOut(s))
+	}
+	return out
+}
+
+var (
+	errNowPregnant = Error{Code: "pregnant", Message: "the family is pregnant, use the pregnancy week"}
+	errNowNoChild  = Error{Code: "no_child", Message: "no child is on record yet"}
+)
+
+func (s *Server) GetStageNow(ctx context.Context, req GetStageNowRequestObject) (GetStageNowResponseObject, error) {
+	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return GetStageNow401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return GetStageNow404JSONResponse(errNoMember), nil
+	}
+	fam, err := s.q.GetFamily(ctx, familyID)
+	if err != nil {
+		return nil, err
+	}
+	var line content.NowLine
+	switch fam.Stage {
+	case "pregnancy":
+		return GetStageNow409JSONResponse(errNowPregnant), nil
+	case "planning", "trying":
+		line, _ = content.NowForPlanning(fam.Stage)
+	default:
+		kids, err := s.q.ListChildren(ctx, familyID)
+		if err != nil {
+			return nil, err
+		}
+		if len(kids) == 0 {
+			return GetStageNow409JSONResponse(errNowNoChild), nil
+		}
+		// ListChildren is oldest first; the youngest decides the content.
+		line = content.NowForChild(kids[len(kids)-1].BirthDate, s.today(ctx))
+	}
+	out := StageNow{
+		Stage: JourneyStage(line.Stage), Period: line.Period, Headline: line.Headline, Detail: line.Detail,
+		PlayIdea: line.PlayIdea, Note: line.Note, Sources: make([]Source, 0, len(line.Sources)),
+	}
+	for _, src := range line.Sources {
+		out.Sources = append(out.Sources, sourceOut(src))
+	}
+	return GetStageNow200JSONResponse(out), nil
 }

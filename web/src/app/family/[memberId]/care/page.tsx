@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CloudOff, Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import type { DiaryEntry, PsychologistAgenda, PsychologistSlots, ScreeningQuestionnaire } from "@/lib/api/types";
 import { daysUntilInstant, whenWords } from "@/lib/format";
-import { AgendaCard } from "@/components/care/agenda-card";
+import { AgendaCard, TopicsReadyHeadline } from "@/components/care/agenda-card";
 import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
@@ -36,6 +36,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/screening-questionnaires", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !parent) redirect("/family");
   if (!family || !parent) notFound();
 
   return (
@@ -66,10 +68,9 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
 
-  let headline = `Pick a time with your psychologist, ${name}.`;
+  let headline: React.ReactNode = <TopicsReadyHeadline memberId={memberId} topics={topics} fallback={`Pick a time with your psychologist, ${name}.`} />;
   if (noteDue) headline = `How did it go, ${name}?`;
   else if (next) headline = `Your session is ${whenWords(daysUntilInstant(next.startsAt, now))}.`;
-  else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 
   return (
     <PageFrame>

@@ -14,19 +14,6 @@ import (
 func birthPath(m httpapi.Parent) string { return "/api/members/" + m.Id.String() + "/birth-plan" }
 func alertPath(m httpapi.Parent) string { return "/api/members/" + m.Id.String() + "/labour-alerts" }
 
-// The appointment prep and the after-visit note are still 501 stubs.
-func TestAppointmentPrepIsNotImplementedYet(t *testing.T) {
-	c := testutil.New(t)
-	fam := c.StartDemo("pregnancy")
-	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
-	for _, call := range []stubCall{
-		{"GET", m + "/appointments/00000000-0000-4000-8000-000000000600/prep", nil},
-		{"PUT", m + "/appointments/00000000-0000-4000-8000-000000000600/note", map[string]any{"text": "ok"}},
-	} {
-		call.expectNotImplemented(t, c)
-	}
-}
-
 func TestBirthPlanHasTheHospitalContactsAndDocuments(t *testing.T) {
 	c := testutil.New(t)
 	testutil.New(t).Get(birthPath(testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)), http.StatusUnauthorized, nil)
@@ -116,4 +103,31 @@ func TestLabourAlertNotifiesThePartnerOnceWithNoHealthText(t *testing.T) {
 	}
 	testutil.New(t).Post(alertPath(mom), nil, http.StatusUnauthorized, nil)
 	c.Post("/api/members/"+uuid.NewString()+"/labour-alerts", nil, http.StatusNotFound, nil)
+}
+
+func TestAppointmentPrepUsesConfiguredDriveTime(t *testing.T) {
+	c := testutil.New(t)
+	f := c.StartDemo("pregnancy")
+	m := testutil.Parent(t, f, httpapi.ParentRoleMother)
+	questions := aqList(c, m.Id, "")
+	if len(questions.Appointments) == 0 {
+		t.Fatal("no seeded appointment")
+	}
+	var prep httpapi.AppointmentPrep
+	c.Get("/api/members/"+m.Id.String()+"/appointments/"+questions.Appointments[0].Id+"/prep", http.StatusOK, &prep)
+	if prep.Travel == nil || prep.Travel.Minutes != 28 || !prep.Travel.LeaveBy.Equal(prep.Appointment.StartsAt.Add(-28*time.Minute)) {
+		t.Fatalf("travel: %+v", prep.Travel)
+	}
+	if len(prep.Documents) == 0 || prep.Documents[0].TaskId == nil {
+		t.Fatalf("missing document task link: %+v", prep.Documents)
+	}
+	ev := event("Appointment at another clinic", "family", 24*time.Hour)
+	ev["location"] = "123 Other Road"
+	var saved httpapi.CalendarEvent
+	c.Post(calBase(m), ev, http.StatusCreated, &saved)
+	prep = httpapi.AppointmentPrep{}
+	c.Get("/api/members/"+m.Id.String()+"/appointments/"+saved.Id+"/prep", http.StatusOK, &prep)
+	if prep.Travel != nil {
+		t.Fatalf("unexpected trip estimate: %+v", prep.Travel)
+	}
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, CloudOff, Lock, Plus } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { CalendarEvent, CalendarScope } from "@/lib/api/types";
@@ -46,6 +46,8 @@ async function Calendar({
   const { data: family } = await api.GET("/family");
   const people = family ? familyPeople(family) : [];
   const me = people.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !me) redirect("/family");
   if (!family || !me) notFound();
   // After serverApi(): "today" is request time, so it must come after the request is dynamic.
   // It is the family's demo day, not the real one ("Skip a week").

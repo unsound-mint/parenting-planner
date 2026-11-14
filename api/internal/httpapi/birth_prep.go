@@ -3,8 +3,12 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"github.com/jackc/pgx/v5/pgtype"
+	"time"
 
+	"github.com/unsound-mint/parenting-planner/api/internal/appointments"
 	"github.com/unsound-mint/parenting-planner/api/internal/birth"
+	"github.com/unsound-mint/parenting-planner/api/internal/calendar"
 )
 
 var errNoBirthPlan = Error{Code: "not_found", Message: "this family has no birth plan"}
@@ -64,13 +68,86 @@ func (s *Server) CreateLabourAlert(ctx context.Context, req CreateLabourAlertReq
 	return CreateLabourAlert204Response{}, nil
 }
 
-// STUBS for the rest of #428 and for the after-visit note: appointment prep needs the
-// calendar and the appointment questions, which are not on main yet.
+var errVisitNotStarted = Error{Code: "visit_not_started", Message: "you can save a note once the visit starts"}
 
-func (s *Server) GetAppointmentPrep(_ context.Context, _ GetAppointmentPrepRequestObject) (GetAppointmentPrepResponseObject, error) {
-	return GetAppointmentPrep501JSONResponse(Error{Code: "not_implemented", Message: "appointment prep is not available yet"}), nil
+func (s *Server) GetAppointmentPrep(ctx context.Context, req GetAppointmentPrepRequestObject) (GetAppointmentPrepResponseObject, error) {
+	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return GetAppointmentPrep401JSONResponse(errNoSession), nil
+	case kind != errNone:
+		return GetAppointmentPrep404JSONResponse(errNoMember), nil
+	}
+	prep, err := appointments.GetPrep(ctx, s.pool, familyID, member.ID, req.AppointmentId, s.now(ctx))
+	if errors.Is(err, appointments.ErrNoAppointment) {
+		return GetAppointmentPrep404JSONResponse(errNoAppointment), nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	e := prep.Event
+	out := AppointmentPrep{
+		Appointment: calendarEventOut(calendar.Event{ID: e.ID.String(), Kind: e.Kind, Title: e.Title, StartsAt: e.StartsAt,
+			EndsAt: calendarEnd(e.EndsAt), AllDay: e.AllDay, Location: e.Location, OwnerID: &e.OwnerMemberID,
+			AttendeeIDs: e.AttendeeIds, Visibility: e.Visibility}),
+
+		Questions: make([]AppointmentQuestion, 0, len(prep.Questions)),
+	}
+	docs, travel, err := birth.AppointmentLogistics(ctx, s.pool, familyID, e.Location)
+	if err != nil {
+		return nil, err
+	}
+	out.Documents = bringItems(docs)
+	if travel != nil {
+		minutes := *travel + 10
+		maps := birth.MapsURL(*e.Location)
+		out.Travel = &AppointmentTravel{LeaveBy: e.StartsAt.Add(-time.Duration(minutes) * time.Minute).UTC(), Minutes: minutes, MapsUrl: &maps}
+	}
+	for _, question := range prep.Questions {
+		out.Questions = append(out.Questions, questionOut(question))
+	}
+	if n := prep.Note; n != nil {
+		out.Note = &AppointmentNote{Text: n.Body, UpdatedAt: n.UpdatedAt.UTC()}
+	}
+	return GetAppointmentPrep200JSONResponse(out), nil
 }
 
-func (s *Server) SaveAppointmentNote(_ context.Context, _ SaveAppointmentNoteRequestObject) (SaveAppointmentNoteResponseObject, error) {
-	return SaveAppointmentNote501JSONResponse(Error{Code: "not_implemented", Message: "visit notes are not available yet"}), nil
+func (s *Server) SaveAppointmentNote(ctx context.Context, req SaveAppointmentNoteRequestObject) (SaveAppointmentNoteResponseObject, error) {
+	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return SaveAppointmentNote401JSONResponse(errNoSession), nil
+	case kind != errNone:
+		return SaveAppointmentNote404JSONResponse(errNoMember), nil
+	}
+	note, err := appointments.SaveNote(ctx, s.pool, familyID, member.ID, req.AppointmentId, req.Body.Text, s.now(ctx))
+	switch {
+	case errors.Is(err, appointments.ErrNoAppointment):
+		return SaveAppointmentNote404JSONResponse(errNoAppointment), nil
+	case errors.Is(err, appointments.ErrVisitNotStarted):
+		return SaveAppointmentNote409JSONResponse(errVisitNotStarted), nil
+	case err != nil:
+		return nil, err
+	}
+	return SaveAppointmentNote200JSONResponse{Text: note.Body, UpdatedAt: note.UpdatedAt.UTC()}, nil
+}
+
+func calendarEnd(ts pgtype.Timestamptz) *time.Time {
+	if !ts.Valid {
+		return nil
+	}
+	return &ts.Time
+}
+
+func bringItems(docs []birth.Document) []BringItem {
+	items := make([]BringItem, 0, len(docs))
+	for _, doc := range docs {
+		detail := doc.Detail
+		items = append(items, BringItem{Title: doc.Title, Detail: &detail, TaskId: doc.TaskID, Ready: doc.Ready})
+	}
+	return items
 }

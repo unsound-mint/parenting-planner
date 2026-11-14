@@ -36,11 +36,6 @@ export function DemoClock({ memberId, daysAhead, className, onSkip }: { memberId
 
   return (
     <>
-      {daysAhead > 0 && (
-        <span className={cn("order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 font-mono text-caption font-medium text-status-due", className)}>
-          Demo time +{daysAhead} days
-        </span>
-      )}
       <button
         type="button"
         onClick={skip}
@@ -53,6 +48,11 @@ export function DemoClock({ memberId, daysAhead, className, onSkip }: { memberId
       >
         <FastForward className="size-3.5" aria-hidden />
         {pending ? "Skipping..." : "Skip a week"}
+        {daysAhead > 0 && (
+          <span title={`Demo time is ${daysAhead} days ahead`} className="rounded-full bg-status-due-soft px-1.5 font-mono text-caption text-status-due">
+            +{daysAhead}d
+          </span>
+        )}
       </button>
     </>
   );

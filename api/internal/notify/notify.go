@@ -9,9 +9,8 @@
 // text, screening answers or a session note in one. Nothing from mood, diary,
 // screening or session notes creates a notification for anyone else.
 //
-// Not wired yet, because the pieces are not on main: the live update of kind
-// notification (#241) and suppressing pregnancy and baby kinds while the family
-// is in pregnancy loss support (#275). Both belong in Send.
+// Not wired yet, because the piece is not on main: the live update of kind
+// notification (#241). It belongs in Send.
 package notify
 
 import (
@@ -68,6 +67,13 @@ type Notification struct {
 
 // Send writes one notification with q, the caller's transaction.
 func Send(ctx context.Context, q *store.Queries, n Notification) error {
+	// Baby kinds stay quiet while the family is in pregnancy loss support.
+	if n.Kind == HandoffReceived || n.Kind == HandoffAccepted {
+		inLoss, err := q.FamilyInPregnancyLoss(ctx, n.FamilyID)
+		if err != nil || inLoss {
+			return err
+		}
+	}
 	var entity *string
 	if n.EntityID != "" {
 		entity = &n.EntityID

@@ -1,7 +1,8 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
+import { hasOlderChild, isPlanning } from "@/lib/stage";
 import { optional } from "@/components/today/slots";
 import { PlanScreen } from "@/components/plan/plan-screen";
 
@@ -29,9 +30,11 @@ async function Plan({ params }: { params: Promise<{ memberId: string }> }) {
   ]);
   const people = family ? familyPeople(family) : [];
   const self = people.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !self) redirect("/family");
   if (!family || !self || isCaregiver(self.role) || !tasks) notFound();
 
-  // The leave planner counts toward a birth; pregnancy loss support hides its tab.
+  // The leave planner counts toward a birth; pregnancy loss support, planning and an older child hide its tab.
   // Who a task can be offered to: the other parent, and caregivers who may use the family plan.
   const offerTargets = people.filter(
     (p) => p.id !== memberId && (!isCaregiver(p.role) || family.caregivers?.find((c) => c.id === p.id)?.permissions.includes("family_plan")),
@@ -48,7 +51,7 @@ async function Plan({ params }: { params: Promise<{ memberId: string }> }) {
       people={people}
       offerTargets={offerTargets}
       selfId={memberId}
-      leave={family.pregnancyLoss ? undefined : leave}
+      leave={family.pregnancyLoss || isPlanning(family) || hasOlderChild(family) ? undefined : leave}
       calls={calls?.items}
       dueOn={family.dueDate}
       trackWeeks={trackWeeks}

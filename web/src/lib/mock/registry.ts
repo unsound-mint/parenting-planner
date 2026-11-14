@@ -87,6 +87,8 @@ export function mockMiddleware(table: MockTable): Middleware {
         body: body as never,
         family,
       });
+      // A fixture with nothing to preview for this family answers undefined: the 501 stands, and the screen is hidden.
+      if (data === undefined && entry.status !== 204) return undefined;
       if (entry.status === 204) return new Response(null, { status: 204 });
       return new Response(JSON.stringify(data), {
         status: entry.status,

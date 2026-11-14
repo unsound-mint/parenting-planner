@@ -88,6 +88,38 @@ func (q *Queries) CreateCareTeamMemberFor(ctx context.Context, arg CreateCareTea
 	return i, err
 }
 
+const createCaregiver = `-- name: CreateCaregiver :one
+INSERT INTO members (family_id, role, display_name, permissions) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, phone
+`
+
+type CreateCaregiverParams struct {
+	FamilyID    uuid.UUID
+	Role        string
+	DisplayName string
+	Permissions []string
+}
+
+func (q *Queries) CreateCaregiver(ctx context.Context, arg CreateCaregiverParams) (Member, error) {
+	row := q.db.QueryRow(ctx, createCaregiver,
+		arg.FamilyID,
+		arg.Role,
+		arg.DisplayName,
+		arg.Permissions,
+	)
+	var i Member
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Role,
+		&i.DisplayName,
+		&i.BirthDate,
+		&i.Permissions,
+		&i.RevokedAt,
+		&i.Phone,
+	)
+	return i, err
+}
+
 const createChild = `-- name: CreateChild :one
 INSERT INTO children (family_id, name, birth_date) VALUES ($1, $2, $3) RETURNING id, family_id, name, birth_date
 `
@@ -139,7 +171,7 @@ func (q *Queries) CreateFamily(ctx context.Context, arg CreateFamilyParams) (Fam
 }
 
 const createMember = `-- name: CreateMember :one
-INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, phone
+INSERT INTO members (family_id, role, display_name, birth_date) VALUES ($1, $2, $3, $4) RETURNING id, family_id, role, display_name, birth_date, permissions, revoked_at, phone
 `
 
 type CreateMemberParams struct {
@@ -163,6 +195,8 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 		&i.Role,
 		&i.DisplayName,
 		&i.BirthDate,
+		&i.Permissions,
+		&i.RevokedAt,
 		&i.Phone,
 	)
 	return i, err
@@ -175,6 +209,39 @@ DELETE FROM families WHERE id = $1
 func (q *Queries) DeleteFamily(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteFamily, id)
 	return err
+}
+
+const deleteUnreadPregnancyNotifications = `-- name: DeleteUnreadPregnancyNotifications :execrows
+DELETE FROM notifications
+WHERE family_id = $1 AND read_at IS NULL
+  AND (kind IN ('handoff_received', 'handoff_accepted')
+       OR (kind = 'plan_item_due' AND entity_id = ANY ($2::text[])))
+`
+
+type DeleteUnreadPregnancyNotificationsParams struct {
+	FamilyID uuid.UUID
+	RuleIds  []string
+}
+
+// Turning support on drops what the family has not read yet about the pregnancy
+// and the baby: plan_item_due for the given rules, and handoffs.
+func (q *Queries) DeleteUnreadPregnancyNotifications(ctx context.Context, arg DeleteUnreadPregnancyNotificationsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUnreadPregnancyNotifications, arg.FamilyID, arg.RuleIds)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const familyInPregnancyLoss = `-- name: FamilyInPregnancyLoss :one
+SELECT (pregnancy_loss_recorded_at IS NOT NULL)::bool FROM families WHERE id = $1
+`
+
+func (q *Queries) FamilyInPregnancyLoss(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, familyInPregnancyLoss, id)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const getFamily = `-- name: GetFamily :one
@@ -222,7 +289,7 @@ func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family,
 }
 
 const getMember = `-- name: GetMember :one
-SELECT id, family_id, role, display_name, birth_date, phone FROM members WHERE id = $1 AND family_id = $2
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE id = $1 AND family_id = $2 AND role IN ('mother','partner')
 `
 
 type GetMemberParams struct {
@@ -239,6 +306,34 @@ func (q *Queries) GetMember(ctx context.Context, arg GetMemberParams) (Member, e
 		&i.Role,
 		&i.DisplayName,
 		&i.BirthDate,
+		&i.Permissions,
+		&i.RevokedAt,
+		&i.Phone,
+	)
+	return i, err
+}
+
+const getPerson = `-- name: GetPerson :one
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE id = $1 AND family_id = $2 AND revoked_at IS NULL
+`
+
+type GetPersonParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+}
+
+// Any person who can act: a parent or a caregiver whose access was not revoked.
+func (q *Queries) GetPerson(ctx context.Context, arg GetPersonParams) (Member, error) {
+	row := q.db.QueryRow(ctx, getPerson, arg.ID, arg.FamilyID)
+	var i Member
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.Role,
+		&i.DisplayName,
+		&i.BirthDate,
+		&i.Permissions,
+		&i.RevokedAt,
 		&i.Phone,
 	)
 	return i, err
@@ -267,6 +362,39 @@ func (q *Queries) ListCareTeam(ctx context.Context, familyID uuid.UUID) ([]CareT
 			&i.Clinic,
 			&i.SubjectMemberID,
 			&i.SubjectChildID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCaregivers = `-- name: ListCaregivers :many
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE family_id = $1 AND role IN ('grandparent','nanny') AND revoked_at IS NULL ORDER BY role, display_name
+`
+
+func (q *Queries) ListCaregivers(ctx context.Context, familyID uuid.UUID) ([]Member, error) {
+	rows, err := q.db.Query(ctx, listCaregivers, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Member{}
+	for rows.Next() {
+		var i Member
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.Role,
+			&i.DisplayName,
+			&i.BirthDate,
+			&i.Permissions,
+			&i.RevokedAt,
+			&i.Phone,
 		); err != nil {
 			return nil, err
 		}
@@ -308,9 +436,10 @@ func (q *Queries) ListChildren(ctx context.Context, familyID uuid.UUID) ([]Child
 }
 
 const listMembers = `-- name: ListMembers :many
-SELECT id, family_id, role, display_name, birth_date, phone FROM members WHERE family_id = $1 ORDER BY role
+SELECT id, family_id, role, display_name, birth_date, permissions, revoked_at, phone FROM members WHERE family_id = $1 AND role IN ('mother','partner') ORDER BY role
 `
 
+// Parents only: caregivers are members too but never parents. Use GetPerson to resolve any acting person.
 func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member, error) {
 	rows, err := q.db.Query(ctx, listMembers, familyID)
 	if err != nil {
@@ -326,6 +455,8 @@ func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member
 			&i.Role,
 			&i.DisplayName,
 			&i.BirthDate,
+			&i.Permissions,
+			&i.RevokedAt,
 			&i.Phone,
 		); err != nil {
 			return nil, err
@@ -394,6 +525,21 @@ func (q *Queries) RestorePregnancyLoss(ctx context.Context, id uuid.UUID) (Famil
 		&i.PregnancyLossPriorDueDate,
 	)
 	return i, err
+}
+
+const revokeCaregiver = `-- name: RevokeCaregiver :exec
+UPDATE members SET revoked_at = $3 WHERE id = $1 AND family_id = $2 AND role IN ('grandparent','nanny')
+`
+
+type RevokeCaregiverParams struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	RevokedAt pgtype.Timestamptz
+}
+
+func (q *Queries) RevokeCaregiver(ctx context.Context, arg RevokeCaregiverParams) error {
+	_, err := q.db.Exec(ctx, revokeCaregiver, arg.ID, arg.FamilyID, arg.RevokedAt)
+	return err
 }
 
 const skipFamilyDemoClock = `-- name: SkipFamilyDemoClock :one
