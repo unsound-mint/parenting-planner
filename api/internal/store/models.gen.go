@@ -121,6 +121,14 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ChildMilestone struct {
+	FamilyID      uuid.UUID
+	ChildID       uuid.UUID
+	MilestoneID   string
+	ObservedOn    time.Time
+	SetByMemberID uuid.NullUUID
+}
+
 type ContentOverride struct {
 	FamilyID  uuid.UUID
 	Kind      string
