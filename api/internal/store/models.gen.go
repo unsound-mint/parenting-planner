@@ -80,6 +80,16 @@ type BabyNameLike struct {
 	CreatedAt time.Time
 }
 
+type BirthPlan struct {
+	FamilyID        uuid.UUID
+	HospitalName    string
+	HospitalAddress string
+	HospitalPhone   *string
+	DeskPhone       *string
+	TravelMinutes   pgtype.Int4
+	PreferencesNote *string
+}
+
 type BookingRequest struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -276,6 +286,7 @@ type Member struct {
 	BirthDate   *time.Time
 	Permissions []string
 	RevokedAt   pgtype.Timestamptz
+	Phone       *string
 }
 
 type MoodCheckin struct {

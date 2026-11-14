@@ -196,6 +196,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedPsychologist(ctx, q, fam.ID, mom.ID, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedBirthPlan(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedPregnancyPassport(ctx, q, fam.ID, mom.ID, partner.ID, today, week); err != nil {
 		return uuid.Nil, err
 	}
@@ -349,7 +352,7 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 	visit := func(title string, days int) (uuid.UUID, error) {
 		e, err := q.CreateCalendarEvent(ctx, store.CreateCalendarEventParams{
 			FamilyID: familyID, OwnerMemberID: mom, Visibility: "family", Kind: "appointment", Title: title,
-			StartsAt: today.AddDate(0, 0, days).Add(10 * time.Hour),
+			StartsAt: today.AddDate(0, 0, days).Add(10 * time.Hour), Location: ptr(demoBirthAddress),
 		})
 		if err != nil {
 			return uuid.Nil, err
@@ -397,4 +400,22 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 		}
 	}
 	return nil
+}
+
+// seedBirthPlan gives the pregnant family a birth hospital, a desk phone, a note of preferences
+// and the parents' phones. All invented.
+const demoBirthAddress = "1200 Riverbend Dr, Austin, TX 78701"
+
+func seedBirthPlan(ctx context.Context, q *store.Queries, familyID, mom, partner uuid.UUID) error {
+	if _, err := q.UpsertBirthPlan(ctx, store.UpsertBirthPlanParams{
+		FamilyID: familyID, HospitalName: "Riverbend Women's Hospital", HospitalAddress: demoBirthAddress,
+		HospitalPhone: ptr("(512) 555-0100"), DeskPhone: ptr("(512) 555-0111"), TravelMinutes: pgtype.Int4{Int32: 18, Valid: true},
+		PreferencesNote: ptr("Ask about skin-to-skin right after birth and who may cut the cord."),
+	}); err != nil {
+		return err
+	}
+	if err := q.SetMemberPhone(ctx, store.SetMemberPhoneParams{ID: mom, Phone: ptr("(512) 555-0142"), FamilyID: familyID}); err != nil {
+		return err
+	}
+	return q.SetMemberPhone(ctx, store.SetMemberPhoneParams{ID: partner, Phone: ptr("(512) 555-0143"), FamilyID: familyID})
 }

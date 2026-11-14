@@ -38,6 +38,7 @@ const (
 	AppointmentReminder Kind = "appointment_reminder"
 	InvitationAccepted  Kind = "invitation_accepted"
 	SubscriptionStarted Kind = "subscription_started"
+	LabourStarted       Kind = "labour_started"
 )
 
 // Window is how far back List looks; Limit is the most it returns.
