@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
 )
@@ -62,9 +61,8 @@ func TestMoneyIsForParentsOfThisFamilyOnly(t *testing.T) {
 	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 	var b httpapi.Budget
 	c.Get(memberPath(mom.Id)+"/budget", http.StatusOK, &b)
-	item, opt := b.Items[0].Id.String(), uuid.NewString()
+	item := b.Items[0].Id.String()
 	plan := map[string]any{"deductibleCents": 100000, "outOfPocketMaxCents": 500000, "coinsurancePercent": 20, "alreadyPaidCents": 0}
-	option := map[string]any{"name": "X", "kind": "center", "status": "inquiring"}
 	budgetItem := map[string]any{"category": "other", "name": "x", "amountCents": 1, "cadence": "once", "payer": "shared"}
 	calls := func(m string, status int) {
 		t.Helper()
@@ -74,10 +72,6 @@ func TestMoneyIsForParentsOfThisFamilyOnly(t *testing.T) {
 		c.Delete(m+"/budget-items/"+item, status, nil)
 		c.Get(m+"/birth-cost-plan", status, nil)
 		c.Put(m+"/birth-cost-plan", plan, status, nil)
-		c.Get(m+"/childcare-options", status, nil)
-		c.Post(m+"/childcare-options", option, status, nil)
-		c.Put(m+"/childcare-options/"+opt, option, status, nil)
-		c.Delete(m+"/childcare-options/"+opt, status, nil)
 	}
 	for _, cg := range fam.Caregivers {
 		calls(memberPath(cg.Id), http.StatusNotFound)
@@ -122,55 +116,6 @@ func TestBirthCostPlanIsAnEstimate(t *testing.T) {
 	c.Put(mom+"/birth-cost-plan", map[string]any{"deductibleCents": 1, "outOfPocketMaxCents": 800000, "coinsurancePercent": 101, "alreadyPaidCents": 0}, http.StatusBadRequest, nil)
 }
 
-func TestChildcareOptionsFeedTheCalendar(t *testing.T) {
-	c := testutil.New(t)
-	fam := c.StartDemo("pregnancy")
-	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
-	m := memberPath(mom.Id)
-
-	var list httpapi.ChildcareList
-	c.Get(m+"/childcare-options", http.StatusOK, &list)
-	if len(list.Items) != 2 || list.Benchmark.LowMonthlyCents <= 0 || list.Benchmark.Source.Url == "" {
-		t.Fatalf("seed: %+v", list)
-	}
-	today := testutil.Now
-	window := "?from=" + today.Format("2006-01-02") + "&to=" + today.AddDate(0, 0, 30).Format("2006-01-02")
-	var cal httpapi.CalendarEventList
-	c.Get(m+"/calendar-events"+window, http.StatusOK, &cal)
-	deadlines := func() (n int) {
-		for _, e := range cal.Items {
-			if e.Kind == httpapi.CalendarEventKindChildcareDeadline && e.AllDay {
-				n++
-			}
-		}
-		return
-	}
-	if deadlines() != 2 {
-		t.Fatalf("want 2 childcare deadlines in the calendar, got %d", deadlines())
-	}
-	// Partner scope never shows them as the other parent's items; family scope does.
-	c.Get(m+"/calendar-events"+window+"&scope=mine", http.StatusOK, &cal)
-	if deadlines() != 0 {
-		t.Errorf("mine scope should not list childcare deadlines")
-	}
-
-	// Declining an option removes its deadline.
-	first := list.Items[0]
-	c.Put(m+"/childcare-options/"+first.Id.String(), map[string]any{"name": first.Name, "kind": first.Kind, "status": "declined"}, http.StatusOK, nil)
-	c.Get(m+"/calendar-events"+window, http.StatusOK, &cal)
-	if deadlines() != 1 {
-		t.Errorf("after declining want 1 deadline, got %d", deadlines())
-	}
-	var created httpapi.ChildcareOption
-	c.Post(m+"/childcare-options", map[string]any{"name": "Nanny Rosa", "kind": "nanny", "status": "inquiring", "monthlyCostCents": 280000, "applicationDeadline": today.AddDate(0, 0, 3).Format("2006-01-02")}, http.StatusCreated, &created)
-	c.Get(m+"/calendar-events"+window, http.StatusOK, &cal)
-	if deadlines() != 2 {
-		t.Errorf("new option deadline missing")
-	}
-	c.Delete(m+"/childcare-options/"+created.Id.String(), http.StatusNoContent, nil)
-	c.Post(m+"/childcare-options", map[string]any{"name": "x", "kind": "castle", "status": "inquiring"}, http.StatusBadRequest, nil)
-}
-
 func TestEveryDemoFamilyHasAFilledBudget(t *testing.T) {
 	for _, tpl := range []string{"planning", "pregnancy", "newborn", "preschool"} {
 		c := testutil.New(t)
@@ -178,10 +123,8 @@ func TestEveryDemoFamilyHasAFilledBudget(t *testing.T) {
 		m := memberPath(testutil.Parent(t, fam, httpapi.ParentRoleMother).Id)
 		var b httpapi.Budget
 		c.Get(m+"/budget", http.StatusOK, &b)
-		var l httpapi.ChildcareList
-		c.Get(m+"/childcare-options", http.StatusOK, &l)
-		if len(b.Items) < 5 || len(l.Items) != 2 {
-			t.Errorf("%s: %d budget items, %d daycares", tpl, len(b.Items), len(l.Items))
+		if len(b.Items) < 5 {
+			t.Errorf("%s: %d budget items", tpl, len(b.Items))
 		}
 	}
 }

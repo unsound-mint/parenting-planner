@@ -1,4 +1,4 @@
-// Package money owns the shared baby budget, the birth cost plan and the childcare list.
+// Package money owns the shared baby budget, and the birth cost plan.
 // Both parents read and edit all of it; the httpapi handlers answer 404 to caregivers, so
 // nothing here knows about roles. Every query filters by family id.
 package money
@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -145,82 +144,4 @@ func SaveCostInput(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid
 		UpdatedBy: uuid.NullUUID{UUID: actor, Valid: true}, UpdatedAt: now,
 	})
 	return err
-}
-
-type NewOption struct {
-	Name, Kind, Status  string
-	MonthlyCostCents    *int64
-	ApplicationDeadline *time.Time
-	WaitlistPosition    *int32
-	Contact, Notes      *string
-}
-
-func int8p(v *int64) pgtype.Int8 {
-	if v == nil {
-		return pgtype.Int8{}
-	}
-	return pgtype.Int8{Int64: *v, Valid: true}
-}
-
-func int4p(v *int32) pgtype.Int4 {
-	if v == nil {
-		return pgtype.Int4{}
-	}
-	return pgtype.Int4{Int32: *v, Valid: true}
-}
-
-func ListOptions(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID) ([]store.ChildcareOption, error) {
-	return store.New(pool).ListChildcareOptions(ctx, familyID)
-}
-
-func CreateOption(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, in NewOption) (store.ChildcareOption, error) {
-	return store.New(pool).CreateChildcareOption(ctx, store.CreateChildcareOptionParams{
-		FamilyID: familyID, Name: strings.TrimSpace(in.Name), Kind: in.Kind, Status: in.Status, MonthlyCostCents: int8p(in.MonthlyCostCents),
-		ApplicationDeadline: in.ApplicationDeadline, WaitlistPosition: int4p(in.WaitlistPosition), Contact: in.Contact, Notes: in.Notes,
-		CreatedBy: uuid.NullUUID{UUID: actor, Valid: true},
-	})
-}
-
-func UpdateOption(ctx context.Context, pool *pgxpool.Pool, familyID, id uuid.UUID, in NewOption) (store.ChildcareOption, error) {
-	o, err := store.New(pool).UpdateChildcareOption(ctx, store.UpdateChildcareOptionParams{
-		ID: id, FamilyID: familyID, Name: strings.TrimSpace(in.Name), Kind: in.Kind, Status: in.Status, MonthlyCostCents: int8p(in.MonthlyCostCents),
-		ApplicationDeadline: in.ApplicationDeadline, WaitlistPosition: int4p(in.WaitlistPosition), Contact: in.Contact, Notes: in.Notes,
-	})
-	if errors.Is(err, pgx.ErrNoRows) {
-		return o, ErrNotFound
-	}
-	return o, err
-}
-
-func DeleteOption(ctx context.Context, pool *pgxpool.Pool, familyID, id uuid.UUID) error {
-	n, err := store.New(pool).DeleteChildcareOption(ctx, store.DeleteChildcareOptionParams{ID: id, FamilyID: familyID})
-	if err == nil && n == 0 {
-		return ErrNotFound
-	}
-	return err
-}
-
-// OpenStatuses are the options whose application deadline still matters.
-func deadlineOpen(status string) bool {
-	return status == "inquiring" || status == "toured" || status == "waitlisted"
-}
-
-// DeadlineEvents are the options with an open application deadline in [from, to), for the calendar.
-func DeadlineEvents(ctx context.Context, q *store.Queries, familyID uuid.UUID, from, to time.Time) ([]store.ChildcareOption, error) {
-	rows, err := q.ListChildcareOptions(ctx, familyID)
-	if err != nil {
-		return nil, err
-	}
-	var out []store.ChildcareOption
-	for _, o := range rows {
-		if o.ApplicationDeadline == nil || !deadlineOpen(o.Status) {
-			continue
-		}
-		d := *o.ApplicationDeadline
-		day := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
-		if !day.Before(from) && day.Before(to) {
-			out = append(out, o)
-		}
-	}
-	return out, nil
 }

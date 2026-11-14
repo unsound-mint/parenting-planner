@@ -25,18 +25,3 @@ ON CONFLICT (family_id) DO UPDATE SET deductible_cents = EXCLUDED.deductible_cen
     out_of_pocket_max_cents = EXCLUDED.out_of_pocket_max_cents, coinsurance_percent = EXCLUDED.coinsurance_percent,
     already_paid_cents = EXCLUDED.already_paid_cents, updated_by = EXCLUDED.updated_by, updated_at = EXCLUDED.updated_at
 RETURNING *;
-
--- name: ListChildcareOptions :many
-SELECT * FROM childcare_options WHERE family_id = $1 ORDER BY created_at, id;
-
--- name: CreateChildcareOption :one
-INSERT INTO childcare_options (family_id, name, kind, status, monthly_cost_cents, application_deadline, waitlist_position, contact, notes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;
-
--- name: UpdateChildcareOption :one
-UPDATE childcare_options SET name = $3, kind = $4, status = $5, monthly_cost_cents = $6, application_deadline = $7,
-    waitlist_position = $8, contact = $9, notes = $10
-WHERE id = $1 AND family_id = $2 RETURNING *;
-
--- name: DeleteChildcareOption :execrows
-DELETE FROM childcare_options WHERE id = $1 AND family_id = $2;

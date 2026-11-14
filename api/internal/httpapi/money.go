@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 
-	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/money"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
-// Money pack: budget, birth cost plan, childcare list. Parents only: a caregiver's
+// Money pack: budget and birth cost plan. Parents only: a caregiver's
 // session fails actingMember and gets the same 404 as an unknown person.
 
 func moneySource(s money.Source) Source {
@@ -212,120 +211,3 @@ func (s *Server) UpdateBirthCostPlan(ctx context.Context, req UpdateBirthCostPla
 }
 
 var errBadCostPlan = Error{Code: "bad_plan", Message: "the out-of-pocket maximum cannot be lower than the deductible"}
-
-func childcareOut(o store.ChildcareOption) ChildcareOption {
-	out := ChildcareOption{
-		Id: o.ID, Name: o.Name, Kind: ChildcareKind(o.Kind), Status: ChildcareStatus(o.Status),
-		Contact: o.Contact, Notes: o.Notes,
-	}
-	if o.MonthlyCostCents.Valid {
-		v := o.MonthlyCostCents.Int64
-		out.MonthlyCostCents = &v
-	}
-	if o.ApplicationDeadline != nil {
-		d := openapi_types.Date{Time: *o.ApplicationDeadline}
-		out.ApplicationDeadline = &d
-	}
-	if o.WaitlistPosition.Valid {
-		v := int(o.WaitlistPosition.Int32)
-		out.WaitlistPosition = &v
-	}
-	return out
-}
-
-func newOption(b ChildcareOptionInput) money.NewOption {
-	o := money.NewOption{
-		Name: b.Name, Kind: string(b.Kind), Status: string(b.Status),
-		MonthlyCostCents: b.MonthlyCostCents, Contact: b.Contact, Notes: b.Notes,
-	}
-	if b.ApplicationDeadline != nil {
-		t := b.ApplicationDeadline.Time
-		o.ApplicationDeadline = &t
-	}
-	if b.WaitlistPosition != nil {
-		v := int32(*b.WaitlistPosition)
-		o.WaitlistPosition = &v
-	}
-	return o
-}
-
-func (s *Server) ListChildcareOptions(ctx context.Context, req ListChildcareOptionsRequestObject) (ListChildcareOptionsResponseObject, error) {
-	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
-	switch {
-	case err != nil:
-		return nil, err
-	case kind == errUnauthorized:
-		return ListChildcareOptions401JSONResponse(errNoSession), nil
-	case kind == errNotFound:
-		return ListChildcareOptions404JSONResponse(errNoMember), nil
-	}
-	rows, err := money.ListOptions(ctx, s.pool, familyID)
-	if err != nil {
-		return nil, err
-	}
-	out := ListChildcareOptions200JSONResponse{Items: make([]ChildcareOption, 0, len(rows))}
-	for _, o := range rows {
-		out.Items = append(out.Items, childcareOut(o))
-	}
-	out.Benchmark.LowMonthlyCents = money.ChildcareLowMonthly
-	out.Benchmark.HighMonthlyCents = money.ChildcareHighMonthly
-	out.Benchmark.Source = moneySource(money.DOLChildcare)
-	return out, nil
-}
-
-func (s *Server) CreateChildcareOption(ctx context.Context, req CreateChildcareOptionRequestObject) (CreateChildcareOptionResponseObject, error) {
-	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
-	switch {
-	case err != nil:
-		return nil, err
-	case kind == errUnauthorized:
-		return CreateChildcareOption401JSONResponse(errNoSession), nil
-	case kind == errNotFound:
-		return CreateChildcareOption404JSONResponse(errNoMember), nil
-	}
-	o, err := money.CreateOption(ctx, s.pool, familyID, m.ID, newOption(*req.Body))
-	if err != nil {
-		return nil, err
-	}
-	return CreateChildcareOption201JSONResponse(childcareOut(o)), nil
-}
-
-func (s *Server) UpdateChildcareOption(ctx context.Context, req UpdateChildcareOptionRequestObject) (UpdateChildcareOptionResponseObject, error) {
-	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
-	switch {
-	case err != nil:
-		return nil, err
-	case kind == errUnauthorized:
-		return UpdateChildcareOption401JSONResponse(errNoSession), nil
-	case kind == errNotFound:
-		return UpdateChildcareOption404JSONResponse(errNoMember), nil
-	}
-	o, err := money.UpdateOption(ctx, s.pool, familyID, req.OptionId, newOption(*req.Body))
-	if errors.Is(err, money.ErrNotFound) {
-		return UpdateChildcareOption404JSONResponse(errNoItem), nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return UpdateChildcareOption200JSONResponse(childcareOut(o)), nil
-}
-
-func (s *Server) DeleteChildcareOption(ctx context.Context, req DeleteChildcareOptionRequestObject) (DeleteChildcareOptionResponseObject, error) {
-	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
-	switch {
-	case err != nil:
-		return nil, err
-	case kind == errUnauthorized:
-		return DeleteChildcareOption401JSONResponse(errNoSession), nil
-	case kind == errNotFound:
-		return DeleteChildcareOption404JSONResponse(errNoMember), nil
-	}
-	err = money.DeleteOption(ctx, s.pool, familyID, req.OptionId)
-	if errors.Is(err, money.ErrNotFound) {
-		return DeleteChildcareOption404JSONResponse(errNoItem), nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return DeleteChildcareOption204Response{}, nil
-}

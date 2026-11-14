@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createBudgetItem = `-- name: CreateBudgetItem :one
@@ -53,55 +52,6 @@ func (q *Queries) CreateBudgetItem(ctx context.Context, arg CreateBudgetItemPara
 	return i, err
 }
 
-const createChildcareOption = `-- name: CreateChildcareOption :one
-INSERT INTO childcare_options (family_id, name, kind, status, monthly_cost_cents, application_deadline, waitlist_position, contact, notes, created_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, family_id, name, kind, status, monthly_cost_cents, application_deadline, waitlist_position, contact, notes, created_by, created_at
-`
-
-type CreateChildcareOptionParams struct {
-	FamilyID            uuid.UUID
-	Name                string
-	Kind                string
-	Status              string
-	MonthlyCostCents    pgtype.Int8
-	ApplicationDeadline *time.Time
-	WaitlistPosition    pgtype.Int4
-	Contact             *string
-	Notes               *string
-	CreatedBy           uuid.NullUUID
-}
-
-func (q *Queries) CreateChildcareOption(ctx context.Context, arg CreateChildcareOptionParams) (ChildcareOption, error) {
-	row := q.db.QueryRow(ctx, createChildcareOption,
-		arg.FamilyID,
-		arg.Name,
-		arg.Kind,
-		arg.Status,
-		arg.MonthlyCostCents,
-		arg.ApplicationDeadline,
-		arg.WaitlistPosition,
-		arg.Contact,
-		arg.Notes,
-		arg.CreatedBy,
-	)
-	var i ChildcareOption
-	err := row.Scan(
-		&i.ID,
-		&i.FamilyID,
-		&i.Name,
-		&i.Kind,
-		&i.Status,
-		&i.MonthlyCostCents,
-		&i.ApplicationDeadline,
-		&i.WaitlistPosition,
-		&i.Contact,
-		&i.Notes,
-		&i.CreatedBy,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const deleteBudgetItem = `-- name: DeleteBudgetItem :execrows
 DELETE FROM budget_items WHERE id = $1 AND family_id = $2
 `
@@ -113,23 +63,6 @@ type DeleteBudgetItemParams struct {
 
 func (q *Queries) DeleteBudgetItem(ctx context.Context, arg DeleteBudgetItemParams) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteBudgetItem, arg.ID, arg.FamilyID)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected(), nil
-}
-
-const deleteChildcareOption = `-- name: DeleteChildcareOption :execrows
-DELETE FROM childcare_options WHERE id = $1 AND family_id = $2
-`
-
-type DeleteChildcareOptionParams struct {
-	ID       uuid.UUID
-	FamilyID uuid.UUID
-}
-
-func (q *Queries) DeleteChildcareOption(ctx context.Context, arg DeleteChildcareOptionParams) (int64, error) {
-	result, err := q.db.Exec(ctx, deleteChildcareOption, arg.ID, arg.FamilyID)
 	if err != nil {
 		return 0, err
 	}
@@ -192,43 +125,6 @@ func (q *Queries) ListBudgetItems(ctx context.Context, familyID uuid.UUID) ([]Bu
 	return items, nil
 }
 
-const listChildcareOptions = `-- name: ListChildcareOptions :many
-SELECT id, family_id, name, kind, status, monthly_cost_cents, application_deadline, waitlist_position, contact, notes, created_by, created_at FROM childcare_options WHERE family_id = $1 ORDER BY created_at, id
-`
-
-func (q *Queries) ListChildcareOptions(ctx context.Context, familyID uuid.UUID) ([]ChildcareOption, error) {
-	rows, err := q.db.Query(ctx, listChildcareOptions, familyID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ChildcareOption{}
-	for rows.Next() {
-		var i ChildcareOption
-		if err := rows.Scan(
-			&i.ID,
-			&i.FamilyID,
-			&i.Name,
-			&i.Kind,
-			&i.Status,
-			&i.MonthlyCostCents,
-			&i.ApplicationDeadline,
-			&i.WaitlistPosition,
-			&i.Contact,
-			&i.Notes,
-			&i.CreatedBy,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const updateBudgetItem = `-- name: UpdateBudgetItem :one
 UPDATE budget_items SET category = $3, name = $4, amount_cents = $5, cadence = $6, payer = $7
 WHERE id = $1 AND family_id = $2 RETURNING id, family_id, category, name, amount_cents, cadence, payer, created_by, created_at
@@ -263,56 +159,6 @@ func (q *Queries) UpdateBudgetItem(ctx context.Context, arg UpdateBudgetItemPara
 		&i.AmountCents,
 		&i.Cadence,
 		&i.Payer,
-		&i.CreatedBy,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const updateChildcareOption = `-- name: UpdateChildcareOption :one
-UPDATE childcare_options SET name = $3, kind = $4, status = $5, monthly_cost_cents = $6, application_deadline = $7,
-    waitlist_position = $8, contact = $9, notes = $10
-WHERE id = $1 AND family_id = $2 RETURNING id, family_id, name, kind, status, monthly_cost_cents, application_deadline, waitlist_position, contact, notes, created_by, created_at
-`
-
-type UpdateChildcareOptionParams struct {
-	ID                  uuid.UUID
-	FamilyID            uuid.UUID
-	Name                string
-	Kind                string
-	Status              string
-	MonthlyCostCents    pgtype.Int8
-	ApplicationDeadline *time.Time
-	WaitlistPosition    pgtype.Int4
-	Contact             *string
-	Notes               *string
-}
-
-func (q *Queries) UpdateChildcareOption(ctx context.Context, arg UpdateChildcareOptionParams) (ChildcareOption, error) {
-	row := q.db.QueryRow(ctx, updateChildcareOption,
-		arg.ID,
-		arg.FamilyID,
-		arg.Name,
-		arg.Kind,
-		arg.Status,
-		arg.MonthlyCostCents,
-		arg.ApplicationDeadline,
-		arg.WaitlistPosition,
-		arg.Contact,
-		arg.Notes,
-	)
-	var i ChildcareOption
-	err := row.Scan(
-		&i.ID,
-		&i.FamilyID,
-		&i.Name,
-		&i.Kind,
-		&i.Status,
-		&i.MonthlyCostCents,
-		&i.ApplicationDeadline,
-		&i.WaitlistPosition,
-		&i.Contact,
-		&i.Notes,
 		&i.CreatedBy,
 		&i.CreatedAt,
 	)

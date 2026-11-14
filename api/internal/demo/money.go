@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -42,19 +41,7 @@ var childBudget = []budgetSeed{
 	{"other", "Birthday party", "once", "shared", 200},
 }
 
-type optionSeed struct {
-	name, kind, status, contact, notes string
-	dollars                            int64 // monthly; 0 = unknown
-	deadlineDays                       int   // days from today; 0 = none
-	waitlist                           int32
-}
-
-var daycareOptions = []optionSeed{
-	{"Little Oaks Daycare", "center", "waitlisted", "front desk, 555-0142", "Toured on a Tuesday, lots of light. Infant room has a 2-year waitlist.", 1350, 9, 14},
-	{"Maple Street Home Daycare", "home_based", "toured", "Ms. Alvarez, 555-0177", "Six children, one extra helper. Cheaper, closer to the train.", 950, 21, 0},
-}
-
-// seedMoney gives every demo family a filled budget and two daycare inquiries.
+// seedMoney gives every demo family a filled budget.
 func seedMoney(ctx context.Context, q *store.Queries, fam uuid.UUID, stage string, today time.Time) error {
 	lines := babyBudget
 	if stage == "toddler" || stage == "preschool" || stage == "school_age" {
@@ -71,23 +58,6 @@ func seedMoney(ctx context.Context, q *store.Queries, fam uuid.UUID, stage strin
 		FamilyID: fam, DeductibleCents: 300_000, OutOfPocketMaxCents: 750_000, CoinsurancePercent: 20, UpdatedAt: today,
 	}); err != nil {
 		return err
-	}
-	for _, o := range daycareOptions {
-		cost := o.dollars * 100
-		p := store.CreateChildcareOptionParams{
-			FamilyID: fam, Name: o.name, Kind: o.kind, Status: o.status, MonthlyCostCents: pgtype.Int8{Int64: cost, Valid: true},
-			Contact: &o.contact, Notes: &o.notes,
-		}
-		if o.deadlineDays != 0 {
-			d := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, time.UTC).AddDate(0, 0, o.deadlineDays)
-			p.ApplicationDeadline = &d
-		}
-		if o.waitlist != 0 {
-			p.WaitlistPosition = pgtype.Int4{Int32: o.waitlist, Valid: true}
-		}
-		if _, err := q.CreateChildcareOption(ctx, p); err != nil {
-			return err
-		}
 	}
 	return nil
 }

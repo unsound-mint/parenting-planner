@@ -19,7 +19,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/live"
-	"github.com/unsound-mint/parenting-planner/api/internal/money"
 	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
@@ -191,15 +190,6 @@ func ListForParent(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uui
 			return err
 		}
 		out = append(out, taskEvents...)
-		if scope == Family { // childcare applications belong to both parents, not to one of them
-			cc, err := money.DeadlineEvents(ctx, q, familyID, from, to)
-			if err != nil {
-				return err
-			}
-			for _, o := range cc {
-				out = append(out, childcareEvent(o))
-			}
-		}
 		if scope != Partner { // psychologist sessions are the owner's own, always private
 			sessions, err := ownSessions(ctx, q, familyID, viewer, from, to)
 			if err != nil {
@@ -211,16 +201,6 @@ func ListForParent(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uui
 		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entity, "")
 	})
 	return out, err
-}
-
-// childcareEvent is the application deadline of an open childcare option, as an all-day family event.
-func childcareEvent(o store.ChildcareOption) Event {
-	d := *o.ApplicationDeadline
-	return Event{
-		ID: o.ID.String(), Kind: "childcare_deadline", Title: "Apply: " + o.Name,
-		StartsAt: time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC), AllDay: true,
-		AttendeeIDs: []uuid.UUID{}, Visibility: "family",
-	}
 }
 
 func ownSessions(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, from, to time.Time) ([]Event, error) {
@@ -339,8 +319,19 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	if !to.After(from) || to.Sub(from) > MaxWindow {
 		return nil, ErrBadWindow
 	}
-	rows, err := store.New(pool).ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
-		FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+	// The events are parents' records a caregiver may see: the read goes in the
+	// access log in the same transaction, like a parent's List.
+	var rows []store.ListCaregiverCalendarEventsVisibleToParentRow
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		var err error
+		rows, err = q.ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+		})
+		if err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entity, "")
 	})
 	if err != nil {
 		return nil, err

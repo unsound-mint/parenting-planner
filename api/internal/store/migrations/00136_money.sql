@@ -28,25 +28,6 @@ CREATE TABLE birth_cost_plans (
     updated_at             timestamptz NOT NULL DEFAULT now()
 );
 
--- Daycares, nannies and family arrangements the parents are looking at.
--- application_deadline feeds the calendar while the option is still open.
-CREATE TABLE childcare_options (
-    id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    family_id            uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
-    name                 text NOT NULL,
-    kind                 text NOT NULL CHECK (kind IN ('center','home_based','nanny','family')),
-    status               text NOT NULL CHECK (status IN ('inquiring','toured','waitlisted','applied','accepted','declined')),
-    monthly_cost_cents   bigint CHECK (monthly_cost_cents >= 0),
-    application_deadline date,
-    waitlist_position    integer CHECK (waitlist_position >= 1),
-    contact              text,
-    notes                text,
-    created_by           uuid REFERENCES members(id) ON DELETE SET NULL,
-    created_at           timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX childcare_options_family_idx ON childcare_options (family_id, created_at, id);
-
 -- +goose Down
-DROP TABLE childcare_options;
 DROP TABLE birth_cost_plans;
 DROP TABLE budget_items;

@@ -10,9 +10,9 @@ import { ChildcareCard } from "@/components/money/childcare-card";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame } from "@/components/shell/page";
 
-// Money: one shared baby budget, a birth cost estimate and the childcare search.
-// Parents only (the API answers 404 to caregivers). Reached from the Calendar,
-// where the childcare deadlines also show.
+// Money: one shared baby budget, a birth cost estimate and the childcare search
+// (the family childcare tracker). Parents only (the API answers 404 to caregivers).
+// Reached from the Calendar.
 export default function MoneyPage({ params }: PageProps<"/family/[memberId]/money">) {
   return (
     <Suspense fallback={<MoneyFallback />}>
@@ -32,7 +32,7 @@ async function Money({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/family"),
     api.GET("/members/{memberId}/budget", path),
     api.GET("/members/{memberId}/birth-cost-plan", path),
-    api.GET("/members/{memberId}/childcare-options", path),
+    api.GET("/family/childcare-options"),
     api.GET("/members/{memberId}/leave-plan", path),
   ]);
   if (budget.response.status === 401) redirect("/");

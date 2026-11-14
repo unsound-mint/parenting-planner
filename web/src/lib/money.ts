@@ -1,4 +1,4 @@
-import { Baby, Building2, CalendarOff, Ellipsis, HeartPulse, Hospital, Home, Milk, School, Stethoscope, UserRound, Users, type LucideIcon } from "lucide-react";
+import { Baby, Building2, CalendarOff, Ellipsis, HeartPulse, Hospital, Milk, School, Stethoscope, UserRound, Users, type LucideIcon } from "lucide-react";
 import type { BudgetCategory, BudgetPayer, ChildcareKind, ChildcareStatus } from "@/lib/api/types";
 
 /** Whole dollars, "$1,234". The API speaks cents; the screen never shows them. */
@@ -21,19 +21,19 @@ export const categories = Object.keys(categoryMeta) as BudgetCategory[];
 export const payerBg: Record<BudgetPayer, string> = { mother: "bg-mom", partner: "bg-partner", shared: "bg-muted-foreground/45" };
 
 export const childcareKindMeta: Record<ChildcareKind, { label: string; icon: LucideIcon }> = {
-  center: { label: "Daycare center", icon: Building2 },
-  home_based: { label: "Home daycare", icon: Home },
+  daycare: { label: "Daycare center", icon: Building2 },
   nanny: { label: "Nanny", icon: UserRound },
   family: { label: "Family helps", icon: Users },
 };
 
-export const childcareStatuses: ChildcareStatus[] = ["inquiring", "toured", "waitlisted", "applied", "accepted", "declined"];
+export const childcareStatuses: ChildcareStatus[] = ["researching", "toured", "applied", "waitlisted", "offered", "accepted", "declined"];
 
 export const childcareStatusLabel: Record<ChildcareStatus, string> = {
-  inquiring: "Asked",
+  researching: "Looking",
   toured: "Toured",
-  waitlisted: "On waitlist",
   applied: "Applied",
+  waitlisted: "On waitlist",
+  offered: "Offered a spot",
   accepted: "Got a spot",
   declined: "Passed",
 };
