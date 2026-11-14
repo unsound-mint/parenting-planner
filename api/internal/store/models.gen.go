@@ -229,6 +229,7 @@ type GrowthMeasurement struct {
 	MeasuredOn time.Time
 	WeightKg   float64
 	HeightCm   float64
+	HeadCm     *float64
 }
 
 type Handoff struct {
@@ -426,6 +427,20 @@ type PlanItemProgress struct {
 	RuleID    string
 	Status    string
 	UpdatedAt time.Time
+}
+
+type Portrait struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	ChildID          uuid.NullUUID
+	Month            pgtype.Int2
+	Week             pgtype.Int2
+	Kind             string
+	UploaderMemberID uuid.NullUUID
+	Width            pgtype.Int4
+	Height           pgtype.Int4
+	Image            []byte
+	CreatedAt        time.Time
 }
 
 type PostcardLine struct {

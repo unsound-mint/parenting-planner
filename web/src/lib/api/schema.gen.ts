@@ -424,6 +424,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/growth-measurements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent records a child's weight, length and head size
+         * @description Parents only (404 for a caregiver id). childId must be a child of
+         *     the family (404 otherwise); measuredOn not after today (400). The
+         *     passport lists it on the next read.
+         */
+        post: operations["createGrowthMeasurement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/growth-measurements/{measurementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                measurementId: components["parameters"]["GrowthMeasurementId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a growth measurement
+         * @description Parents only. 404 when the measurement is not in the family.
+         */
+        delete: operations["deleteGrowthMeasurement"];
+        options?: never;
+        head?: never;
+        /**
+         * Correct a growth measurement
+         * @description Parents only. Replaces the date and values with the body; the child
+         *     stays (childId in the body is ignored). 404 when the measurement is
+         *     not in the family.
+         */
+        patch: operations["updateGrowthMeasurement"];
+        trace?: never;
+    };
     "/members/{memberId}/screenings": {
         parameters: {
             query?: never;
@@ -2450,7 +2521,8 @@ export interface paths {
          * @description Mother and partner; a grandparent or nanny with care_log (403
          *     without it). Newest first. latest holds the last feed, sleep and
          *     diaper even when older than 48 hours, and who is on duty now.
-         *     Empty before "Baby is home".
+         *     Empty before "Baby is home". days widens the window to that many
+         *     days back (the week view of the Baby screen); default 2.
          */
         get: operations["listCareLogEntries"];
         put?: never;
@@ -2467,6 +2539,48 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/care-log/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                entryId: components["parameters"]["CareLogEntryId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a feed, sleep or diaper logged by mistake
+         * @description Same people as createCareLogEntry. 404 when the entry is not in the
+         *     family. A caregiver's delete is written to the access log. Sends a
+         *     live update of kind care_log.
+         */
+        delete: operations["deleteCareLogEntry"];
+        options?: never;
+        head?: never;
+        /**
+         * Correct a logged feed, sleep or diaper
+         * @description Same people as createCareLogEntry. Replaces the times and details
+         *     with the body; kind must match the entry (400 otherwise) and the
+         *     child stays. 404 when the entry is not in the family. A caregiver's
+         *     change is written to the access log. Sends a live update of kind
+         *     care_log.
+         */
+        patch: operations["updateCareLogEntry"];
         trace?: never;
     };
     "/members/{memberId}/handoffs": {
@@ -4603,14 +4717,30 @@ export interface components {
             visibility: components["schemas"]["Visibility"];
         };
         GrowthPoint: {
+            /** Format: uuid */
+            id: string;
             /** Format: date */
             measuredOn: string;
             ageMonths: number;
+            /** @description Days since birth on the visit day, for labelling the first weeks. */
+            ageDays: number;
             weightKg: number;
+            /** @description Length lying down under 2 years, standing height after. */
             heightCm: number;
+            /** @description Head circumference, when it was measured. */
+            headCm?: number;
             /** @description Against the WHO or CDC chart for the child's age and sex, computed by the server. */
             weightPercentile?: number;
             heightPercentile?: number;
+        };
+        GrowthMeasurementInput: {
+            /** Format: uuid */
+            childId: string;
+            /** Format: date */
+            measuredOn: string;
+            weightKg: number;
+            heightCm: number;
+            headCm?: number;
         };
         /** @enum {string} */
         CareRole: "obstetrician" | "pediatrician" | "primary_care" | "psychologist" | "lactation_consultant" | "midwife" | "dentist";
@@ -5910,8 +6040,12 @@ export interface components {
         };
         /** @enum {string} */
         CareLogKind: "feed" | "sleep" | "diaper";
-        /** @enum {string} */
-        FeedMethod: "breast_left" | "breast_right" | "bottle_breast_milk" | "bottle_formula";
+        /**
+         * @description A breastfeed names its side (both = switched sides); its length is
+         *     endedAt minus startedAt. A bottle names the milk; amountMl its amount.
+         * @enum {string}
+         */
+        FeedMethod: "breast_left" | "breast_right" | "breast_both" | "bottle_breast_milk" | "bottle_formula";
         /** @enum {string} */
         DiaperContent: "wet" | "dirty" | "both";
         CareLogEntryInput: {
@@ -6648,6 +6782,8 @@ export interface components {
          *     or permissions do not allow the action.
          */
         MemberId: string;
+        CareLogEntryId: string;
+        GrowthMeasurementId: string;
         PortraitId: string;
         EventId: string;
         TaskId: string;
@@ -7739,6 +7875,179 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VaccineDose"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createGrowthMeasurement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrowthMeasurementInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrowthPoint"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteGrowthMeasurement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                measurementId: components["parameters"]["GrowthMeasurementId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateGrowthMeasurement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                measurementId: components["parameters"]["GrowthMeasurementId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrowthMeasurementInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrowthPoint"];
                 };
             };
             /** @description Error */
@@ -12822,6 +13131,7 @@ export interface operations {
         parameters: {
             query?: {
                 kind?: components["schemas"]["CareLogKind"];
+                days?: number;
             };
             header?: never;
             path: {
@@ -12976,6 +13286,135 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteCareLogEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                entryId: components["parameters"]["CareLogEntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateCareLogEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                entryId: components["parameters"]["CareLogEntryId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CareLogEntryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareLogEntry"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16181,15 +16620,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     createPortrait: {
@@ -16276,15 +16706,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     deletePortrait: {
@@ -16342,15 +16763,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Not implemented yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     getPortraitImage: {
@@ -16394,15 +16806,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Not implemented yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

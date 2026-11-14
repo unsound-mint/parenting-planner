@@ -397,7 +397,7 @@ Screens come from `docs/demo-script.md`, the pages in `web/src/app/`, and the co
 | Access log ("who saw what") | `audit_log` | `GET .../access-log` (stub on main) | main (table); #363 builds the endpoint |
 | Night shifts | none | `.../shifts` (stubs) | none |
 | Care log and handoffs | none | `.../care-log`, `.../handoffs` (stubs) | none |
-| Simulator (scenarios, practice rounds) | none | `.../simulator`, `.../simulator-rounds...` (stubs) | none |
+| Simulator (scenarios, practice rounds) | none | `.../simulator`, `.../simulator-rounds...` (stubs; 404 outside pregnancy, since the rounds rehearse the first nights home) | none |
 | Pricing (`/pricing`) | `upgrade_intents` | `POST /family/upgrade-intents` | main |
 | Checkout (Stripe test mode) | `subscriptions`, `stripe_events` | `.../checkout-sessions...`, `/billing/stripe-webhook` (stubs on main) | #362 |
 | Help, crisis button (`/help`) | none (fixed content, no AI) | none | no table needed |
