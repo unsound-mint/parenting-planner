@@ -8,6 +8,7 @@ const provider = { id, name, credentials, focus };
 function agendaTopics(family: Parameters<typeof couple>[0]) {
   const { partner } = couple(family);
   return [
+    { id: uid(413), text: "Birth anxiety", addedAt: isoAt(-1, 22), diaryEntryId: uid(450) },
     { id: uid(410), text: "Sleeping badly since week 22", addedAt: isoAt(-5, 20) },
     { id: uid(411), text: "Worried about going back to work after leave", addedAt: isoAt(-3, 9) },
     { id: uid(412), text: `How to split night shifts with ${partner.displayName}`, addedAt: isoAt(-1, 21) },
