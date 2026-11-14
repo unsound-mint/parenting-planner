@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
+	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -65,14 +66,35 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 		},
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			slog.Error("handler failed", "method", r.Method, "path", r.URL.Path, "err", err)
+			monitor.Report(r, err)
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
 	})
 	// Middlewares run last-to-first: validate, then resolve the session.
-	return HandlerWithOptions(strict, StdHTTPServerOptions{
+	return recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
 		Middlewares: []MiddlewareFunc{s.session, validate},
-	}), nil
+	})), nil
+}
+
+// recoverPanics turns a panic in a handler into a logged and reported 500
+// instead of a dropped connection.
+func recoverPanics(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			rec := recover()
+			if rec == nil {
+				return
+			}
+			if rec == http.ErrAbortHandler {
+				panic(rec)
+			}
+			slog.Error("handler panicked", "method", r.Method, "path", r.URL.Path, "panic", rec)
+			monitor.ReportPanic(r, rec)
+			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
+		}()
+		next.ServeHTTP(w, r)
+	})
 }
 
 // today is the date used for plans. Families are in the US; UTC is close
@@ -102,16 +124,18 @@ func (s *Server) session(next http.Handler) http.Handler {
 var (
 	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
+	// errForbidden is for a person who is in the family but may not do this.
+	errForbidden = Error{Code: "forbidden", Message: "this person may not do that"}
 
 	errNoBooking         = Error{Code: "not_found", Message: "no such session for this parent"}
 	errSlotTaken         = Error{Code: "slot_taken", Message: "this time is no longer open"}
 	errSessionNotStarted = Error{Code: "session_not_started", Message: "you can write a note once the session has started"}
 	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
 	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
+	errNoPlanItem        = Error{Code: "not_found", Message: "this item is not on this parent's plan"}
 )
 
 var (
-	errForbidden            = Error{Code: "forbidden", Message: "only a parent can do this"}
 	errNoInvitation         = Error{Code: "not_found", Message: "no such invitation"}
 	errInvitationNotPending = Error{Code: "invitation_not_pending", Message: "this invitation was already used, revoked or has expired"}
 	errInvitationNotActive  = Error{Code: "invitation_not_active", Message: "this invitation is already revoked or has expired"}

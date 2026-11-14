@@ -10,13 +10,15 @@ export type Role = Parent["role"] | Caregiver["role"];
 export type Person = { id: string; role: Role; displayName: string };
 
 /** First path segment under /family/<id>: "" is the home screen. */
-export type Screen = "" | "journey";
+export type Screen = "" | "journey" | "care" | "passport" | "directory" | "plan" | "calendar" | "simulator";
 
 const screens: Record<Role, readonly Screen[]> = {
-  mother: ["", "journey"],
-  partner: ["", "journey"],
-  grandparent: [""],
-  nanny: [""],
+  mother: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator"],
+  partner: ["", "journey", "care", "passport", "directory", "plan", "calendar", "simulator"],
+  // Their calendar shows only their own shifts, and only with the schedule permission.
+  // The family layout hides the entry when the API refuses (see unavailableScreens).
+  grandparent: ["", "calendar", "simulator"],
+  nanny: ["", "calendar", "simulator"],
 };
 
 export function canOpen(role: Role, screen: string): boolean {
@@ -41,4 +43,11 @@ export function familyPeople(family: Pick<Family, "parents"> & Partial<Pick<Fami
 export function pathFor(person: Person, screen: string): string {
   const base = `/family/${person.id}`;
   return screen && canOpen(person.role, screen) ? `${base}/${screen}` : base;
+}
+
+/** Screens to hide from the nav: their endpoint is not built (501) or refuses this person (403, 404). */
+export function unavailableScreens(statuses: Record<string, number>): string[] {
+  return Object.entries(statuses)
+    .filter(([, status]) => status === 501 || status === 403 || status === 404)
+    .map(([screen]) => screen);
 }

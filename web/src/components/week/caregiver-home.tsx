@@ -1,5 +1,6 @@
 import { Baby, CalendarHeart, Lock, type LucideIcon } from "lucide-react";
-import type { Caregiver, Family } from "@/lib/api/types";
+import type { Caregiver, Family, Guide, PregnancyWeek, Today } from "@/lib/api/types";
+import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 import { familyContext } from "@/lib/format";
 import { roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -7,7 +8,20 @@ import { cn } from "@/lib/utils";
 // Home for a grandparent or nanny. They see the baby's care, never a parent's
 // health data (CaregiverRole in api/openapi.yaml). Everything here is read from
 // the family; the care schedule itself lands with its API.
-export function CaregiverHome({ family, caregiver }: { family: Family; caregiver: Caregiver }) {
+export function CaregiverHome({
+  family,
+  caregiver,
+  today,
+  guides,
+  card,
+}: {
+  family: Family;
+  caregiver: Caregiver;
+  today?: Pending<Today>;
+  guides?: Pending<{ items: Guide[] }>;
+  card?: Pending<PregnancyWeek>;
+}) {
+  const names = Object.fromEntries([...family.parents, ...(family.caregivers ?? [])].map((p) => [p.id, p.displayName]));
   const child = family.children[0];
   const expecting = family.stage === "pregnancy";
   const headline = expecting
@@ -24,6 +38,10 @@ export function CaregiverHome({ family, caregiver }: { family: Family; caregiver
           {roleLabel[caregiver.role]} view · {familyContext(family)}
         </p>
       </header>
+
+      <CaregiverTodaySlot today={today} names={names} />
+      <WeekCardSlot card={card} />
+      <GuidesSlot guides={guides} />
 
       <section aria-labelledby="sees" className="grid gap-3 sm:grid-cols-2">
         <h2 id="sees" className="sr-only">
