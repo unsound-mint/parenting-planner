@@ -10,12 +10,12 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/content"
 	"github.com/unsound-mint/parenting-planner/api/internal/plan"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
+	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
 
 // GetToday builds the acting person's Today screen from the same sources as
 // the other endpoints. A section the person may not see is left empty, never
-// filled with someone else's data. Tasks stay empty until the tasks module
-// lands (#224); pregnancyWeek is left out because the contract requires a size
+// filled with someone else's data. pregnancyWeek is left out because the contract requires a size
 // comparison and the catalog has no sourced sizes.
 func (s *Server) GetToday(ctx context.Context, req GetTodayRequestObject) (GetTodayResponseObject, error) {
 	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
@@ -79,6 +79,25 @@ func (s *Server) GetToday(ctx context.Context, req GetTodayRequestObject) (GetTo
 			ev := calendarEventOut(*next)
 			out.NextShift = &ev
 		}
+	}
+
+	// Tasks: the person's own that are overdue or due within 7 days, then the ones offered to them.
+	if has("family_plan") {
+		items, err := tasks.List(ctx, s.pool, familyID, nil)
+		if err != nil {
+			return nil, err
+		}
+		week := today.AddDate(0, 0, 7)
+		var offered []Task
+		for _, it := range items {
+			switch {
+			case it.PendingAssigneeMemberID.Valid && it.PendingAssigneeMemberID.UUID == m.ID && !it.Done:
+				offered = append(offered, taskOut(it))
+			case it.AssigneeMemberID == m.ID && !it.Done && it.Kind != "hospital_bag" && it.Deadline.On != nil && it.Deadline.On.Before(week):
+				out.Tasks = append(out.Tasks, taskOut(it))
+			}
+		}
+		out.Tasks = append(out.Tasks, offered...)
 	}
 
 	// Care: the summary and handoffs waiting for the person, once the baby is home.
