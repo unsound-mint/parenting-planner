@@ -21,6 +21,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
+	"github.com/unsound-mint/parenting-planner/api/internal/thanks"
 )
 
 const SessionTTL = 30 * 24 * time.Hour
@@ -92,6 +93,12 @@ func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) e
 // SkipDays is how far one "Skip ahead a week" moves a family's demo clock.
 const SkipDays = 7
 
+// MaxOffsetDays bounds the demo clock: two years ahead covers every stage
+// change a demo shows. Each skip copies a week of check-ins, so without a
+// bound a loop of skips would grow the family's rows forever. A skip past
+// the bound changes nothing.
+const MaxOffsetDays = 2 * 364
+
 // SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
 // rows change; a new demo is a new family, which starts at real time.
 //
@@ -103,12 +110,19 @@ const SkipDays = 7
 func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
+		fam, err := q.GetFamily(ctx, familyID)
+		if err != nil {
+			return err
+		}
+		if int(fam.DemoOffsetDays)+SkipDays > MaxOffsetDays {
+			return nil
+		}
 		if err := q.CopyMoodCheckinsForwardVisibleToParent(ctx, store.CopyMoodCheckinsForwardVisibleToParentParams{
 			Days: SkipDays, FamilyID: familyID, FromAt: now.AddDate(0, 0, -SkipDays), ToAt: now,
 		}); err != nil {
 			return err
 		}
-		_, err := q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+		_, err = q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
 		return err
 	})
 }
@@ -214,7 +228,7 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
 		return uuid.Nil, err
 	}
-	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := seedInsuranceCalls(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
@@ -224,6 +238,12 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedPlanTasks(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	// Emily has already thanked Jake for the crib he ordered.
+	crib := today.AddDate(0, 0, -tasks.CribDoneDaysAgo)
+	if err := thanks.Seed(ctx, q, fam.ID, mom.ID, partner.ID, "Thank you for ordering the crib, I did not have to think about it once.",
+		thanks.Key("tasks_done", partner.ID, crib), crib.Add(20*time.Hour)); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil

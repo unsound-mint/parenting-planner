@@ -254,6 +254,14 @@ func CreateHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 		}
 		var sid uuid.NullUUID
 		if shiftID != nil {
+			// The column has no foreign key: only a shift of this family may be named.
+			shifts, err := q.ListShifts(ctx, familyID)
+			if err != nil {
+				return err
+			}
+			if !slices.ContainsFunc(shifts, func(s store.Shift) bool { return s.ID == *shiftID }) {
+				return ErrHandoffInvalid
+			}
 			sid = uuid.NullUUID{UUID: *shiftID, Valid: true}
 		}
 		h, err := q.CreateHandoff(ctx, store.CreateHandoffParams{FamilyID: familyID, FromMemberID: from.ID, ToMemberID: to, Note: note, ShiftID: sid, CreatedAt: now})
