@@ -18,7 +18,6 @@ func TestAdminIsNotImplementedYet(t *testing.T) {
 		{"GET", "/api/admin/partner-offers", nil},
 		{"POST", "/api/admin/partner-offers", map[string]any{"partnerName": "Nestwell", "title": "20% off a convertible car seat", "detail": "For families in their third trimester.", "url": "https://example.com/offer", "stages": []string{"pregnancy"}, "audience": []string{"mother", "partner"}, "active": true}},
 		{"PATCH", "/api/admin/partner-offers/00000000-0000-4000-8000-000000000001", map[string]any{"active": false}},
-		{"GET", "/api/admin/analytics", nil},
 	} {
 		call.expectNotImplemented(t, c)
 	}
