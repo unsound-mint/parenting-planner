@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/unsound-mint/parenting-planner/api/internal/billing"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -27,6 +28,8 @@ type Config struct {
 	SecureCookies bool
 	// Now is the clock; tests override it.
 	Now func() time.Time
+	// Billing holds the Stripe keys; empty means payments answer 503.
+	Billing billing.Config
 }
 
 type Server struct {
@@ -68,10 +71,11 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
 	})
-	// Middlewares run last-to-first: validate, then resolve the session.
+	// Middlewares run last-to-first: check the Stripe webhook signature on
+	// the raw body, validate, then resolve the session.
 	return HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate},
+		Middlewares: []MiddlewareFunc{s.session, validate, s.verifyStripeSignature},
 	}), nil
 }
 

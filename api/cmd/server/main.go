@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/unsound-mint/parenting-planner/api/internal/billing"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -32,7 +33,11 @@ func run() error {
 	}
 	defer pool.Close()
 
-	handler, err := httpapi.New(pool, httpapi.Config{SecureCookies: os.Getenv("COOKIE_SECURE") != "false"})
+	billingCfg := billing.FromEnv()
+	handler, err := httpapi.New(pool, httpapi.Config{
+		SecureCookies: os.Getenv("COOKIE_SECURE") != "false",
+		Billing:       billingCfg,
+	})
 	if err != nil {
 		return err
 	}
@@ -47,7 +52,8 @@ func run() error {
 		defer cancel()
 		_ = srv.Shutdown(shutdownCtx)
 	}()
-	slog.Info("api listening", "addr", srv.Addr)
+	// Log only whether payments are set up, never the keys.
+	slog.Info("api listening", "addr", srv.Addr, "payments", billingCfg.Enabled())
 	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

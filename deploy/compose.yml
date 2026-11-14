@@ -1,6 +1,9 @@
 # Production on musicroombot. Caddy on the host terminates TLS and routes
 # /api/* to the Go API (127.0.0.1:8792) and everything else to Next (127.0.0.1:8790).
-# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD.
+# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD, and for Stripe
+# test payments STRIPE_SECRET_KEY (sk_test_...), STRIPE_WEBHOOK_SECRET (whsec_...)
+# and PUBLIC_BASE_URL (https://parenting.unsoundmint.com). Without all three
+# the payment endpoints answer 503 and every family stays on free.
 name: parenting
 services:
   postgres:
@@ -23,6 +26,9 @@ services:
       postgres: { condition: service_healthy }
     environment:
       DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:
