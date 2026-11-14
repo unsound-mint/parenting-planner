@@ -27,6 +27,7 @@ var (
 	ErrInvalidOffer = errors.New("a task cannot be offered to its own assignee")
 	ErrBadAssignee  = errors.New("the task can be offered to a parent or to a caregiver with family_plan")
 	ErrNotOfferedTo = errors.New("the task was not offered to you")
+	ErrNoOffer      = errors.New("the task has no open offer")
 	ErrBadBag       = errors.New("a hospital bag item needs bag, and only a hospital bag item has one")
 )
 
@@ -254,6 +255,29 @@ func Decline(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Pers
 	return answer(ctx, pool, familyID, p, id, now, func(q *store.Queries) (store.Task, error) {
 		return q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: id, FamilyID: familyID})
 	})
+}
+
+// Withdraw takes back an offer nobody has answered yet. Only the assignee may.
+func Withdraw(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time) (store.Task, error) {
+	var out store.Task
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		t, err := lock(ctx, q, familyID, id)
+		if err != nil {
+			return err
+		}
+		if t.AssigneeMemberID != p.ID {
+			return ErrNotAssignee
+		}
+		if !t.PendingAssigneeMemberID.Valid {
+			return ErrNoOffer
+		}
+		if out, err = q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: id, FamilyID: familyID}); err != nil {
+			return err
+		}
+		return publish(ctx, q, familyID, p.ID, id, now)
+	})
+	return out, err
 }
 
 func answer(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, id uuid.UUID, now time.Time, apply func(*store.Queries) (store.Task, error)) (store.Task, error) {

@@ -128,7 +128,7 @@ export function FeedCard({ memberId, feed }: { memberId: string; feed: CalendarF
           {feed.lastFetchedAt ? `Last read ${formatShortDate(feed.lastFetchedAt)}` : "Not read by a calendar app yet"}
         </p>
       )}
-      <p className="text-caption text-muted-foreground">Psychologist sessions are never included. {syncNote}</p>
+      <p className="text-caption text-muted-foreground">Psychologist sessions and private visits are never included; shared visits show as &ldquo;Appointment&rdquo;. {syncNote}</p>
       <Link href={`/family/${memberId}/calendar#subscribe`} className={linkClass}>
         {feed.active ? "Manage the link" : "Create a link"}
         <ChevronRight aria-hidden className="size-4" />

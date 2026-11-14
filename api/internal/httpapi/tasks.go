@@ -18,6 +18,7 @@ var (
 	errNotAssignee    = Error{Code: "not_assignee", Message: "only the assignee can offer the task"}
 	errInvalidOffer   = Error{Code: "invalid_offer", Message: "a task cannot be offered to its own assignee"}
 	errBadTaskTarget  = Error{Code: "bad_assignee", Message: "the task can be offered to a parent or to a caregiver with family_plan"}
+	errNotOffered     = Error{Code: "not_offered", Message: "this task has no open offer"}
 	errNotOfferedToMe = Error{Code: "not_offered_to_you", Message: "this task was not offered to you"}
 )
 
@@ -245,4 +246,32 @@ func (s *Server) DeclineTaskReassignment(ctx context.Context, req DeclineTaskRea
 		return nil, err
 	}
 	return DeclineTaskReassignment200JSONResponse(out), nil
+}
+
+func (s *Server) WithdrawTaskReassignment(ctx context.Context, req WithdrawTaskReassignmentRequestObject) (WithdrawTaskReassignmentResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return WithdrawTaskReassignment401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return WithdrawTaskReassignment404JSONResponse(errNoMember), nil
+	}
+	t, err := tasks.Withdraw(ctx, s.pool, familyID, taskPerson(m), req.TaskId, s.now(ctx))
+	switch {
+	case errors.Is(err, tasks.ErrNotFound):
+		return WithdrawTaskReassignment404JSONResponse(errNoTask), nil
+	case errors.Is(err, tasks.ErrNotAssignee):
+		return WithdrawTaskReassignment409JSONResponse(errNotAssignee), nil
+	case errors.Is(err, tasks.ErrNoOffer):
+		return WithdrawTaskReassignment409JSONResponse(errNotOffered), nil
+	case err != nil:
+		return nil, err
+	}
+	out, err := s.oneTask(ctx, familyID, t)
+	if err != nil {
+		return nil, err
+	}
+	return WithdrawTaskReassignment200JSONResponse(out), nil
 }

@@ -1523,7 +1523,7 @@ paths:
       description: |
         Every provider is synthetic demo data. The directory is the same for
         every family and holds no personal records, so any parent in the session
-        may read it. Sorted by next available date, soonest first.
+        may read it. Sorted by name; open times come from listProviderSlots.
       parameters:
         - name: type
           in: query
@@ -1557,31 +1557,71 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /members/{memberId}/booking-requests:
+  /members/{memberId}/provider-slots:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listProviderSlots
+      tags: [directory]
+      summary: Open times with directory providers, next 14 days
+      description: |
+        Synthetic availability, stored per family; there is no real provider
+        integration. Soonest first. A time is left out when the acting parent
+        booked it, or when anyone in the family booked it and shared the
+        booking; the partner's private bookings hide nothing, so this list
+        never reveals them.
+      parameters:
+        - name: providerId
+          in: query
+          required: false
+          description: Only this provider's times.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderSlotList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/provider-bookings:
     parameters:
       - $ref: "#/components/parameters/MemberId"
     post:
-      operationId: createBookingRequest
+      operationId: createProviderBooking
       tags: [directory]
-      summary: The acting parent asks a provider for an appointment
+      summary: The acting parent books an open time with a provider
       description: |
-        Saves a request with status requested; nothing is sent to a real
-        provider. A request is sensitive: it can reveal that a parent is seeking
-        care, so only the parent who made it can see it, never the partner.
-        Asking the same provider twice returns 409.
+        Nothing is sent to a real provider. The parent chooses who sees the
+        booking: private (only them) or family (their partner too, and it is on
+        the shared calendar). Returns 409 slot_taken if the time is gone.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BookingRequestInput"
+              $ref: "#/components/schemas/ProviderBookingInput"
       responses:
         "201":
           description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BookingRequest"
+                $ref: "#/components/schemas/ProviderBooking"
         "400":
           description: Error
           content:
@@ -1607,17 +1647,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     get:
-      operationId: listBookingRequests
+      operationId: listProviderBookings
       tags: [directory]
-      summary: The acting parent's own booking requests
-      description: Only requests made by this parent, newest first. The partner's requests are never included.
+      summary: Bookings the acting parent may see, from 30 days ago on
+      description: |
+        The parent's own bookings and the ones their partner shared with the
+        family. Soonest first, so the next visit leads; past ones (up to 30
+        days) come first and are marked by their time.
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BookingRequestList"
+                $ref: "#/components/schemas/ProviderBookingList"
         "401":
           description: Error
           content:
@@ -1631,6 +1674,80 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/provider-bookings/{bookingId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: bookingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateProviderBooking
+      tags: [directory]
+      summary: Move a booking to another open time, or change who sees it or its note
+      description: |
+        Only the parent who booked it. slotId must be an open future time with
+        the same provider (409 slot_taken otherwise). A booking that has
+        started cannot move (409 booking_started).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderBookingUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderBooking"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteProviderBooking
+      tags: [directory]
+      summary: Cancel a booking; its time opens again
+      description: Only the parent who booked it.
+      responses:
+        "204":
+          description: Cancelled
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /members/{memberId}/mood-patterns:
     get:
       operationId: listMoodPatterns
@@ -1851,6 +1968,174 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/psychologist-bookings/{bookingId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: bookingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updatePsychologistBooking
+      tags: [care]
+      summary: The acting parent moves one of their upcoming sessions to another open slot
+      description: |
+        Only the parent's own bookings that have not started; any other id is
+        404 no_booking. 409 slot_taken when the new slot is unknown, past or
+        already booked by this parent. A brief scheduled for the session moves
+        with it: it is sent the day before the new time. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PsychologistBookingInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PsychologistBooking"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deletePsychologistBooking
+      tags: [care]
+      summary: The acting parent cancels one of their upcoming sessions
+      description: |
+        Only the parent's own bookings that have not started (a past session
+        keeps its note); any other id is 404 no_booking. The slot opens again.
+        A brief that was waiting to be sent goes back to a draft, so nothing is
+        sent for a cancelled session. Audited.
+      responses:
+        "204":
+          description: Cancelled
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/session-brief:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getSessionBrief
+      tags: [care]
+      summary: The acting parent's brief for their next psychologist session
+      description: |
+        The brief is what the parent chooses to send their psychologist before
+        a session: the agenda topics, the text of the journal entries they
+        picked, an optional summary of their own mood check-ins and a note.
+        Nothing reaches the psychologist until the parent schedules or sends
+        it. While a draft, items and mood are built from the parent's current
+        agenda and check-ins; once scheduled or sent they are the copy frozen
+        at that moment. A scheduled brief counts as sent from sendAt (the day
+        before the session) on the family's clock. Always 200: with nothing
+        saved yet it is an empty draft. Private to the author; the partner
+        reads their own brief. Audited.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionBrief"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updateSessionBrief
+      tags: [care]
+      summary: The acting parent saves, schedules or sends their brief
+      description: |
+        status draft saves the choices and cancels a scheduled send.
+        scheduled freezes the brief and sends it the day before the next
+        session (when the session is less than a day away it is sent at
+        once). sent freezes it and marks it sent now, for a brief the parent
+        delivered themselves (the printed copy). Both need a booked session:
+        409 no_session otherwise. 409 brief_sent once it has been sent. sharedEntryIds are the
+        parent's own journal entries on the agenda whose text goes with the
+        brief; any other id is 400 unknown_entry. Audited.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionBriefInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionBrief"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
           description: Error
           content:
             application/json:
@@ -2153,6 +2438,50 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/caregivers/{caregiverId}/revoke:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - name: caregiverId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      operationId: revokeCaregiver
+      tags: [invitations]
+      summary: A parent removes a grandparent's or nanny's access directly
+      description: |
+        For caregivers who are in the family without an invitation of their
+        own (the demo families). Same effect as revoking an accepted
+        invitation: they drop out of family.caregivers and their member id
+        gets 404 everywhere. Mother or partner only (403 otherwise); 404 when
+        the id is not an active caregiver of this family. Recorded in the
+        access log as a revoked invitation.
+      responses:
+        "204":
+          description: Access removed
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
 
   /members/{memberId}/caregivers/{caregiverId}:
     patch:
@@ -3533,6 +3862,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/tasks/{taskId}/reassignment/withdraw:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/TaskId"
+    post:
+      operationId: withdrawTaskReassignment
+      tags: [tasks]
+      summary: The assignee takes back an offer nobody has answered yet
+      description: |
+        Only the current assignee; 409 not_assignee for anyone else and
+        409 not_offered when the task has no open offer. The task never
+        moved, so it simply stops being offered. Sends a live update of kind task.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/load-map:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -3561,9 +3934,11 @@ paths:
         third colour.
 
         The area is handed over with the existing reassignment flow: the
-        screen offers each id in handoverTaskIds to the other parent with
+        screen offers each id in handoverTaskIds to anyone in takers with
         proposeTaskReassignment, and the task moves only when they accept.
-        offeredToMeTaskIds are offers waiting for the acting parent.
+        offeredToMeTaskIds are offers waiting for the acting parent;
+        withdrawTaskReassignment takes back an offer nobody answered.
+        items lists the tasks behind a task area, so the screen can open them.
       responses:
         "200":
           description: OK
@@ -7145,14 +7520,15 @@ paths:
     patch:
       operationId: updateDiaryEntry
       tags: [wellbeing]
-      summary: The author changes who may read one of their entries
+      summary: The author edits one of their entries or changes who may read it
       description: |
-        Only the author can share or unshare an entry. Any other entry id,
-        including the other parent's entry, is 404.
+        Only the author can edit, share or unshare an entry. Any other entry
+        id, including the other parent's entry, is 404.
 
         visibility is always sent (the UI sends the current value when only
-        the topic changes). agendaTopic adds or changes the topic on the
-        author's psychologist agenda; an empty string removes it. Audited.
+        something else changes). body and mood replace the text and the
+        feeling. agendaTopic adds or changes the topic on the author's
+        psychologist agenda; an empty string removes it. Audited.
       requestBody:
         required: true
         content:
@@ -7186,6 +7562,68 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteDiaryEntry
+      tags: [wellbeing]
+      summary: The author deletes one of their entries
+      description: |
+        Only the author; any other id is 404. Its topic leaves the agenda and
+        a draft brief stops carrying its text; a brief that was scheduled with
+        its text goes back to a draft. Audited.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/nudge-dismissals:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createNudgeDismissal
+      tags: [together]
+      summary: The acting parent closes a partner nudge
+      description: |
+        id is PartnerNudge.id. The nudge stays closed for this parent only;
+        the next activity of the other parent makes a new nudge. Parents only;
+        a caregiver gets 404. Repeating it is fine.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NudgeDismissalInput"
+      responses:
+        "204":
+          description: Closed
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -10873,7 +11311,7 @@ components:
     ProviderType:
       type: string
       description: What kind of care the provider offers.
-      enum: [perinatal_therapist, psychologist, doula, lactation_consultant, sleep_consultant, child_therapist, tutor]
+      enum: [perinatal_therapist, psychologist, doula, lactation_consultant, sleep_consultant, child_therapist, tutor, pediatrician, obstetrician]
 
     UsState:
       type: string
@@ -10883,7 +11321,7 @@ components:
 
     Provider:
       type: object
-      required: [id, name, type, city, state, languages, nextAvailable, priceUsd, summary]
+      required: [id, name, type, city, state, languages, priceUsd, summary, credentials, bio, visitModes, sessionMinutes]
       properties:
         id:
           type: string
@@ -10901,15 +11339,26 @@ components:
           items:
             type: string
           example: [English, Spanish]
-        nextAvailable:
-          type: string
-          format: date
         priceUsd:
           type: integer
           description: Price of one session in US dollars.
         summary:
           type: string
           description: One plain sentence on what this provider helps with.
+        credentials:
+          type: string
+          example: IBCLC
+        bio:
+          type: string
+          description: Two or three plain sentences for the profile.
+        visitModes:
+          type: array
+          items:
+            type: string
+            enum: [in_person, video, home]
+        sessionMinutes:
+          type: integer
+          description: Length of one visit.
 
     ProviderList:
       type: object
@@ -10920,26 +11369,67 @@ components:
           items:
             $ref: "#/components/schemas/Provider"
 
-    BookingRequestInput:
+    ProviderSlot:
       type: object
-      required: [providerId]
+      required: [id, providerId, startsAt, durationMinutes]
       properties:
+        id:
+          type: string
+          format: uuid
         providerId:
           type: string
           format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+
+    ProviderSlotList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Soonest first.
+          items:
+            $ref: "#/components/schemas/ProviderSlot"
+
+    BookingVisibility:
+      type: string
+      description: private = only the parent who booked; family = their partner too, on the shared calendar.
+      enum: [private, family]
+
+    ProviderBookingInput:
+      type: object
+      required: [slotId, visibility]
+      properties:
+        slotId:
+          type: string
+          format: uuid
+        visibility:
+          $ref: "#/components/schemas/BookingVisibility"
         note:
           type: string
           maxLength: 500
-          description: Optional message for the provider.
+          description: Optional note for the visit (what to bring up).
 
-    BookingRequestStatus:
-      type: string
-      description: Only requested exists for now; the demo never confirms a booking.
-      enum: [requested]
-
-    BookingRequest:
+    ProviderBookingUpdate:
       type: object
-      required: [id, memberId, providerId, status, createdAt]
+      description: Every field optional; absent means unchanged. An empty note clears it.
+      properties:
+        slotId:
+          type: string
+          format: uuid
+        visibility:
+          $ref: "#/components/schemas/BookingVisibility"
+        note:
+          type: string
+          maxLength: 500
+
+    ProviderBooking:
+      type: object
+      required: [id, memberId, providerId, providerName, startsAt, durationMinutes, visibility, createdAt]
       properties:
         id:
           type: string
@@ -10947,27 +11437,33 @@ components:
         memberId:
           type: string
           format: uuid
-          description: The parent who made the request.
+          description: The parent who booked; only they can move or cancel it.
         providerId:
           type: string
           format: uuid
-        status:
-          $ref: "#/components/schemas/BookingRequestStatus"
+        providerName:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+        visibility:
+          $ref: "#/components/schemas/BookingVisibility"
         note:
           type: string
         createdAt:
           type: string
           format: date-time
 
-    BookingRequestList:
+    ProviderBookingList:
       type: object
       required: [items]
       properties:
         items:
           type: array
-          description: Newest first.
           items:
-            $ref: "#/components/schemas/BookingRequest"
+            $ref: "#/components/schemas/ProviderBooking"
 
     Passport:
       type: object
@@ -12753,10 +13249,44 @@ components:
           minimum: 0
           description: Of count, how many fall in the last 7 days. Only on care log areas, so a screen can say who has picked up more this week.
 
+    LoadMapItem:
+      type: object
+      required: [taskId, title, kind, done, assigneeId, createdById]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        kind:
+          $ref: "#/components/schemas/TaskKind"
+        dueOn:
+          type: string
+          format: date
+        done:
+          type: boolean
+        assigneeId:
+          type: string
+          format: uuid
+          description: Who carries it now.
+        createdById:
+          type: string
+          format: uuid
+          description: Who first put it on the plan (noticed it).
+        pendingAssigneeId:
+          type: string
+          format: uuid
+          description: Who it is offered to, while nobody has answered.
+
     LoadMapArea:
       type: object
-      required: [key, label, unit, owned, handoverTaskIds, offeredToMeTaskIds, offeredByMeTaskIds]
+      required: [key, label, unit, owned, handoverTaskIds, offeredToMeTaskIds, offeredByMeTaskIds, items]
       properties:
+        items:
+          type: array
+          description: The tasks counted in this area, open ones first then soonest due. Empty for care areas.
+          items:
+            $ref: "#/components/schemas/LoadMapItem"
         key:
           $ref: "#/components/schemas/LoadMapAreaKey"
         label:
@@ -12795,8 +13325,14 @@ components:
 
     LoadMap:
       type: object
-      required: [windowDays, areas]
+      required: [windowDays, areas, takers]
       properties:
+        takers:
+          type: array
+          description: Everyone but the acting parent who can take a task, meaning the other parent and any grandparent or nanny with family_plan.
+          items:
+            type: string
+            format: uuid
         windowDays:
           type: integer
           example: 14
@@ -12901,8 +13437,10 @@ components:
       description: |
         appointment, class, reminder and other are stored events; shift is
         one occurrence of an active shift; task is a task due date;
-        psychologist_session is the owner's own booking, always private.
-      enum: [appointment, class, reminder, other, shift, task, psychologist_session]
+        psychologist_session is the owner's own booking, always private;
+        provider_visit is a directory booking (the owner's own, or the
+        partner's when they shared it with the family).
+      enum: [appointment, class, reminder, other, shift, task, psychologist_session, provider_visit]
 
     CalendarEventInputKind:
       type: string
@@ -13693,14 +14231,143 @@ components:
         partnerAnswer:
           $ref: "#/components/schemas/QuizAnswer"
 
+    NudgeDismissalInput:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 200
+
+    SessionBriefStatus:
+      type: string
+      description: |
+        draft = only the parent sees it; scheduled = frozen and sent at
+        sendAt; sent = with the psychologist.
+      enum: [draft, scheduled, sent]
+
+    SessionBriefInput:
+      type: object
+      required: [status, includeMood, sharedEntryIds]
+      properties:
+        status:
+          $ref: "#/components/schemas/SessionBriefStatus"
+        includeMood:
+          type: boolean
+          description: Add the summary of the parent's own check-ins.
+        sharedEntryIds:
+          type: array
+          maxItems: 30
+          items:
+            type: string
+            format: uuid
+        note:
+          type: string
+          maxLength: 1500
+          description: A few words for the psychologist. Empty removes it.
+
+    SessionBriefItem:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          description: The topic title.
+        diaryEntryId:
+          type: string
+          format: uuid
+        writtenAt:
+          type: string
+          format: date-time
+          description: When the journal entry behind the topic was written.
+        entryText:
+          type: string
+          description: The entry's text, only when the parent chose to send it.
+
+    MoodDay:
+      type: object
+      required: [day, mood]
+      properties:
+        day:
+          type: string
+          format: date
+          description: Eastern calendar day.
+        mood:
+          type: number
+          description: The average of that day's check-ins, 1 to 5.
+
+    MoodSummary:
+      type: object
+      required: [from, to, checkins, lowDays, days]
+      description: |
+        What the parent logged, described, never assessed: how many
+        check-ins, on how many days mood was 2 or lower, average sleep.
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        checkins:
+          type: integer
+        lowDays:
+          type: integer
+        averageSleep:
+          type: number
+        days:
+          type: array
+          description: Oldest first, days with a check-in only.
+          items:
+            $ref: "#/components/schemas/MoodDay"
+
+    SessionBrief:
+      type: object
+      required: [status, includeMood, sharedEntryIds, items]
+      properties:
+        status:
+          $ref: "#/components/schemas/SessionBriefStatus"
+        session:
+          $ref: "#/components/schemas/PsychologistBooking"
+        sendAt:
+          type: string
+          format: date-time
+          description: When a scheduled brief goes out, the day before the session.
+        sentAt:
+          type: string
+          format: date-time
+        includeMood:
+          type: boolean
+        sharedEntryIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        note:
+          type: string
+        items:
+          type: array
+          description: In agenda order. Frozen once scheduled or sent.
+          items:
+            $ref: "#/components/schemas/SessionBriefItem"
+        mood:
+          $ref: "#/components/schemas/MoodSummary"
+        updatedAt:
+          type: string
+          format: date-time
+
     PartnerNudgeKind:
       type: string
       enum: [lesson_finished, quiz_answered, name_added]
 
     PartnerNudge:
       type: object
-      required: [memberId, kind, at, text]
+      required: [id, memberId, kind, at, text]
       properties:
+        id:
+          type: string
+          description: Stable for the same activity; send it to createNudgeDismissal to close the nudge.
         memberId:
           type: string
           format: uuid
@@ -13890,8 +14557,16 @@ components:
 
     Together:
       type: object
-      required: [prompts]
+      required: [prompts, closedNudgeIds]
       properties:
+        closedNudgeIds:
+          type: array
+          description: |
+            Ids of nudges this parent closed in the last 30 days, for nudges
+            the client builds itself (the quiz to compare answers uses
+            the same id as the partner nudge for that quiz).
+          items:
+            type: string
         nudge:
           $ref: "#/components/schemas/PartnerNudge"
         prompts:
@@ -15310,7 +15985,7 @@ components:
       maximum: 5
       description: |
         How the author felt when writing, on the MoodCheckin.mood scale (1 =
-        very low, 5 = very good). Optional, set once when the entry is written.
+        very low, 5 = very good). Optional; the author can change it later.
         It is part of the entry, so it has the entry's visibility: whoever may
         read the entry sees it. It is not a mood check-in and does not feed
         mood patterns, agenda topics or the plan.
@@ -15328,6 +16003,13 @@ components:
         first:
           type: boolean
           description: Mark or unmark the entry as a first. Leave out to keep it.
+        body:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: New text for the entry. Leave out to keep it.
+        mood:
+          $ref: "#/components/schemas/DiaryMood"
 
     DiaryEntry:
       type: object

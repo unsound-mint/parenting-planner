@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
@@ -55,9 +56,12 @@ export function PlanScreen({
   const [tasks, setTasks] = useState(initial);
   const [leave, setLeave] = useState(initialLeave);
   const [calls, setCalls] = useState(initialCalls);
-  const [focusTask, setFocusTask] = useState<string>();
+  // "?task=<id>" (from Who carries what) opens the tab the task is on and brings it into view.
+  const taskParam = useSearchParams().get("task");
+  const linked = initial.find((x) => x.id === taskParam);
+  const [focusTask, setFocusTask] = useState<string | undefined>(linked?.id);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [tab, setTab] = useState<Tab>("task");
+  const [tab, setTab] = useState<Tab>(linked?.kind ?? "task");
 
   // A leave deadline sends you to its task: bring it into view once the tab has rendered.
   useEffect(() => {
