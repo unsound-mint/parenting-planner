@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/unsound-mint/parenting-planner/api/internal/access"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -128,13 +129,24 @@ type ctxKey struct{}
 // clockKey holds the session family's demo clock offset in days.
 type clockKey struct{}
 
-// session resolves the cookie to a family id and its demo clock offset and
-// stores both in the context.
+// sessionMemberKey holds the person the session belongs to (uuid.NullUUID):
+// not Valid for a demo session, the caregiver for an accepted invitation.
+type sessionMemberKey struct{}
+
+// canActAs applies access.CanSessionActAs to the request's session.
+func canActAs(ctx context.Context, memberID uuid.UUID) bool {
+	bound, _ := ctx.Value(sessionMemberKey{}).(uuid.NullUUID)
+	return access.CanSessionActAs(bound, memberID)
+}
+
+// session resolves the cookie to a family id, the member the session is bound
+// to (if any) and the demo clock offset, and stores them in the context.
 func (s *Server) session(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if c, err := r.Cookie(sessionCookie); err == nil && c.Value != "" {
 			if row, err := s.q.GetSessionFamily(r.Context(), demo.HashToken(c.Value)); err == nil {
 				ctx := context.WithValue(r.Context(), ctxKey{}, row.FamilyID)
+				ctx = context.WithValue(ctx, sessionMemberKey{}, row.MemberID)
 				r = r.WithContext(context.WithValue(ctx, clockKey{}, row.DemoOffsetDays))
 			} else if !errors.Is(err, pgx.ErrNoRows) {
 				slog.Error("session lookup", "err", err)
@@ -182,10 +194,14 @@ const (
 
 // actingMember resolves the session's family and checks that memberID is a
 // parent in it. Every /members/{memberId}/... handler starts with this.
+// A session bound to a caregiver gets errNotFound for every other id.
 func (s *Server) actingMember(ctx context.Context, memberID uuid.UUID) (familyID uuid.UUID, m store.Member, kind errKind, err error) {
 	familyID, ok := ctx.Value(ctxKey{}).(uuid.UUID)
 	if !ok {
 		return uuid.Nil, store.Member{}, errUnauthorized, nil
+	}
+	if !canActAs(ctx, memberID) {
+		return familyID, m, errNotFound, nil
 	}
 	m, err = s.q.GetMember(ctx, store.GetMemberParams{ID: memberID, FamilyID: familyID})
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -201,6 +217,9 @@ func (s *Server) actingPerson(ctx context.Context, memberID uuid.UUID) (familyID
 	familyID, ok := ctx.Value(ctxKey{}).(uuid.UUID)
 	if !ok {
 		return uuid.Nil, store.Member{}, errUnauthorized, nil
+	}
+	if !canActAs(ctx, memberID) {
+		return familyID, m, errNotFound, nil
 	}
 	m, err = s.q.GetPerson(ctx, store.GetPersonParams{ID: memberID, FamilyID: familyID})
 	if errors.Is(err, pgx.ErrNoRows) {

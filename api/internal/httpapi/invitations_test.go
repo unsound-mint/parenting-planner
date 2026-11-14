@@ -140,13 +140,17 @@ func TestRevokePendingAndAcceptedInvitations(t *testing.T) {
 	c.Post(invitePath(mom)+"/00000000-0000-4000-8000-000000000001/revoke", nil, http.StatusNotFound, nil)
 
 	// Revoking an accepted caregiver removes their access at once.
+	grandma := testutil.New(t)
 	var got httpapi.InvitationAcceptance
-	c.Post("/api/invitations/"+b.Token+"/accept", nil, http.StatusCreated, &got)
+	grandma.Post("/api/invitations/"+b.Token+"/accept", nil, http.StatusCreated, &got)
 	cg := "/api/members/" + got.MemberId.String()
-	c.Get(cg+"/invitations", http.StatusForbidden, nil) // active: a known person, not a parent
-	// accept replaced this client's session with the caregiver's; the family is the same
+	grandma.Get(cg+"/invitations", http.StatusForbidden, nil) // active: a known person, not a parent
+	grandma.Get("/api/family", http.StatusOK, nil)
 	c.Post(invitePath(mom)+"/"+b.Invitation.Id.String()+"/revoke", nil, http.StatusOK, &inv)
-	c.Get(cg+"/invitations", http.StatusNotFound, nil)
+	// The revoked caregiver's session no longer works anywhere, not even for the family.
+	grandma.Get(cg+"/invitations", http.StatusUnauthorized, nil)
+	grandma.Get("/api/family", http.StatusUnauthorized, nil)
+	c.Get(cg+"/invitations", http.StatusNotFound, nil) // and the parent cannot act as them
 	var f httpapi.Family
 	c.Get("/api/family", http.StatusOK, &f)
 	for _, x := range f.Caregivers {
@@ -181,7 +185,7 @@ func TestAccessLogShowsInvitationEventsAndCaregiverActivity(t *testing.T) {
 	var created httpapi.CreatedInvitation
 	c.Post(invitePath(mom), inviteBody("nanny", "care_log"), http.StatusCreated, &created)
 	var got httpapi.InvitationAcceptance
-	c.Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusCreated, &got)
+	testutil.New(t).Post("/api/invitations/"+created.Token+"/accept", nil, http.StatusCreated, &got)
 	c.Post(invitePath(mom)+"/"+created.Invitation.Id.String()+"/revoke", nil, http.StatusOK, nil)
 
 	var log httpapi.AccessLogList

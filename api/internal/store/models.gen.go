@@ -232,6 +232,7 @@ type Session struct {
 	FamilyID  uuid.UUID
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	MemberID  uuid.NullUUID
 }
 
 type SessionNote struct {
