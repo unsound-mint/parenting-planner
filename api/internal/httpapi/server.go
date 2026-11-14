@@ -108,6 +108,10 @@ var (
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
 	// errForbidden is for a person who is in the family but may not do this.
 	errForbidden = Error{Code: "forbidden", Message: "this person may not do that"}
+	// Payments (billing.go).
+	errPaymentsUnavailable = Error{Code: "payments_unavailable", Message: "payments are not set up on this server"}
+	errAlreadySubscribed   = Error{Code: "already_subscribed", Message: "the family already has this plan"}
+	errNoCheckout          = Error{Code: "not_found", Message: "no such checkout for this family"}
 
 	errNoBooking         = Error{Code: "not_found", Message: "no such session for this parent"}
 	errSlotTaken         = Error{Code: "slot_taken", Message: "this time is no longer open"}

@@ -11,16 +11,9 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/billing"
 )
 
-var (
-	errPaymentsUnavailable = Error{Code: "payments_unavailable", Message: "payments are not set up on this server"}
-	errAlreadySubscribed   = Error{Code: "already_subscribed", Message: "the family already has this plan"}
-	errNoCheckout          = Error{Code: "not_found", Message: "no such checkout for this family"}
-)
-
 const stripeWebhookPath = "/api/billing/stripe-webhook"
 
-// CreateCheckoutSession starts a Stripe Checkout for the family. Parents only:
-// actingMember returns 404 for anyone else.
+// CreateCheckoutSession starts a Stripe Checkout for the family. Parents only.
 func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSessionRequestObject) (CreateCheckoutSessionResponseObject, error) {
 	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
 	switch {
@@ -30,6 +23,11 @@ func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSe
 		return CreateCheckoutSession401JSONResponse(errNoSession), nil
 	case kind == errNotFound:
 		return CreateCheckoutSession404JSONResponse(errNoMember), nil
+	}
+	// Caregivers cannot be resolved here yet; once they are members, this
+	// is the check that answers them with 403.
+	if !isParent(m.Role) {
+		return CreateCheckoutSession403JSONResponse(errForbidden), nil
 	}
 	if !s.cfg.Billing.Enabled() {
 		return CreateCheckoutSession503JSONResponse(errPaymentsUnavailable), nil
@@ -52,7 +50,7 @@ func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSe
 // screen and applies the tier if it is paid, so the screen never waits for
 // the webhook. Activate is idempotent with the webhook.
 func (s *Server) GetCheckoutSession(ctx context.Context, req GetCheckoutSessionRequestObject) (GetCheckoutSessionResponseObject, error) {
-	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
@@ -60,6 +58,11 @@ func (s *Server) GetCheckoutSession(ctx context.Context, req GetCheckoutSessionR
 		return GetCheckoutSession401JSONResponse(errNoSession), nil
 	case kind == errNotFound:
 		return GetCheckoutSession404JSONResponse(errNoMember), nil
+	}
+	// Caregivers cannot be resolved here yet; once they are members, this
+	// is the check that answers them with 403.
+	if !isParent(m.Role) {
+		return GetCheckoutSession403JSONResponse(errForbidden), nil
 	}
 	if !s.cfg.Billing.Enabled() {
 		return GetCheckoutSession503JSONResponse(errPaymentsUnavailable), nil
@@ -133,4 +136,8 @@ func (s *Server) verifyStripeSignature(next http.Handler) http.Handler {
 		r.Body = io.NopCloser(bytes.NewReader(body))
 		next.ServeHTTP(w, r)
 	})
+}
+
+func isParent(role string) bool {
+	return role == string(ParentRoleMother) || role == string(ParentRolePartner)
 }
