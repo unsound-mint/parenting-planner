@@ -15,11 +15,13 @@ ORDER BY seq;
 SELECT * FROM tasks WHERE id = $1 AND family_id = $2 FOR UPDATE;
 
 -- name: SetTaskDone :one
-UPDATE tasks SET done = $2, done_at = $3, done_by_member_id = $4 WHERE id = $1 RETURNING *;
+UPDATE tasks SET done = @done, done_at = @done_at, done_by_member_id = @done_by_member_id
+WHERE id = @id AND family_id = @family_id RETURNING *;
 
 -- name: SetTaskPendingAssignee :one
-UPDATE tasks SET pending_assignee_member_id = $2 WHERE id = $1 RETURNING *;
+UPDATE tasks SET pending_assignee_member_id = @pending_assignee_member_id
+WHERE id = @id AND family_id = @family_id RETURNING *;
 
 -- name: AcceptTaskReassignment :one
 UPDATE tasks SET assignee_member_id = pending_assignee_member_id, pending_assignee_member_id = NULL
-WHERE id = $1 AND pending_assignee_member_id IS NOT NULL RETURNING *;
+WHERE id = @id AND family_id = @family_id AND pending_assignee_member_id IS NOT NULL RETURNING *;

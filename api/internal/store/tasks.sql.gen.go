@@ -15,11 +15,16 @@ import (
 
 const acceptTaskReassignment = `-- name: AcceptTaskReassignment :one
 UPDATE tasks SET assignee_member_id = pending_assignee_member_id, pending_assignee_member_id = NULL
-WHERE id = $1 AND pending_assignee_member_id IS NOT NULL RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+WHERE id = $1 AND family_id = $2 AND pending_assignee_member_id IS NOT NULL RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
 `
 
-func (q *Queries) AcceptTaskReassignment(ctx context.Context, id uuid.UUID) (Task, error) {
-	row := q.db.QueryRow(ctx, acceptTaskReassignment, id)
+type AcceptTaskReassignmentParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) AcceptTaskReassignment(ctx context.Context, arg AcceptTaskReassignmentParams) (Task, error) {
+	row := q.db.QueryRow(ctx, acceptTaskReassignment, arg.ID, arg.FamilyID)
 	var i Task
 	err := row.Scan(
 		&i.ID,
@@ -203,22 +208,25 @@ func (q *Queries) ListTasks(ctx context.Context, arg ListTasksParams) ([]Task, e
 }
 
 const setTaskDone = `-- name: SetTaskDone :one
-UPDATE tasks SET done = $2, done_at = $3, done_by_member_id = $4 WHERE id = $1 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+UPDATE tasks SET done = $1, done_at = $2, done_by_member_id = $3
+WHERE id = $4 AND family_id = $5 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
 `
 
 type SetTaskDoneParams struct {
-	ID             uuid.UUID
 	Done           bool
 	DoneAt         pgtype.Timestamptz
 	DoneByMemberID uuid.NullUUID
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
 }
 
 func (q *Queries) SetTaskDone(ctx context.Context, arg SetTaskDoneParams) (Task, error) {
 	row := q.db.QueryRow(ctx, setTaskDone,
-		arg.ID,
 		arg.Done,
 		arg.DoneAt,
 		arg.DoneByMemberID,
+		arg.ID,
+		arg.FamilyID,
 	)
 	var i Task
 	err := row.Scan(
@@ -247,16 +255,18 @@ func (q *Queries) SetTaskDone(ctx context.Context, arg SetTaskDoneParams) (Task,
 }
 
 const setTaskPendingAssignee = `-- name: SetTaskPendingAssignee :one
-UPDATE tasks SET pending_assignee_member_id = $2 WHERE id = $1 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
+UPDATE tasks SET pending_assignee_member_id = $1
+WHERE id = $2 AND family_id = $3 RETURNING id, seq, family_id, kind, title, detail, due_on, due_anchor, due_offset_days, bag, assignee_member_id, pending_assignee_member_id, done, done_at, done_by_member_id, source_title, source_url, source_checked_on, created_by_member_id, created_at
 `
 
 type SetTaskPendingAssigneeParams struct {
-	ID                      uuid.UUID
 	PendingAssigneeMemberID uuid.NullUUID
+	ID                      uuid.UUID
+	FamilyID                uuid.UUID
 }
 
 func (q *Queries) SetTaskPendingAssignee(ctx context.Context, arg SetTaskPendingAssigneeParams) (Task, error) {
-	row := q.db.QueryRow(ctx, setTaskPendingAssignee, arg.ID, arg.PendingAssigneeMemberID)
+	row := q.db.QueryRow(ctx, setTaskPendingAssignee, arg.PendingAssigneeMemberID, arg.ID, arg.FamilyID)
 	var i Task
 	err := row.Scan(
 		&i.ID,

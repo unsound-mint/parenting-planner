@@ -57,7 +57,7 @@ func SeedPaperwork(ctx context.Context, q *store.Queries, familyID, mother, part
 			return err
 		}
 		if done[i] {
-			if _, err := q.SetTaskDone(ctx, store.SetTaskDoneParams{ID: t.ID, Done: true, DoneAt: ts(now), DoneByMemberID: uuid.NullUUID{UUID: t.AssigneeMemberID, Valid: true}}); err != nil {
+			if _, err := q.SetTaskDone(ctx, store.SetTaskDoneParams{ID: t.ID, FamilyID: familyID, Done: true, DoneAt: ts(now), DoneByMemberID: uuid.NullUUID{UUID: t.AssigneeMemberID, Valid: true}}); err != nil {
 				return err
 			}
 		}
@@ -110,7 +110,7 @@ func SeedPlanTasks(ctx context.Context, q *store.Queries, familyID, mother, part
 			return err
 		}
 		if t.offered != nil {
-			if _, err := q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: created.ID, PendingAssigneeMemberID: uuid.NullUUID{UUID: *t.offered, Valid: true}}); err != nil {
+			if _, err := q.SetTaskPendingAssignee(ctx, store.SetTaskPendingAssigneeParams{ID: created.ID, FamilyID: familyID, PendingAssigneeMemberID: uuid.NullUUID{UUID: *t.offered, Valid: true}}); err != nil {
 				return err
 			}
 		}
