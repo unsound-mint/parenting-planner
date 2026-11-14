@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { HelpWorker } from "@/components/help/help-worker";
 import { PRODUCT_NAME, PRODUCT_TAGLINE } from "@/lib/product";
 
 const inter = Inter({
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
+        <HelpWorker />
       </body>
     </html>
   );
