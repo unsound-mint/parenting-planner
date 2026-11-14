@@ -57,6 +57,32 @@ type AuditLog struct {
 	At            time.Time
 }
 
+type BabyName struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	Name      string
+	AddedBy   uuid.UUID
+	CreatedAt time.Time
+}
+
+type BabyNameLike struct {
+	NameID    uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	CreatedAt time.Time
+}
+
+type BookingRequest struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ProviderID    uuid.UUID
+	Status        string
+	Note          *string
+	CreatedAt     time.Time
+}
+
 type CalendarEvent struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -117,6 +143,13 @@ type ContentOverride struct {
 	Title     *string
 	Body      *string
 	UpdatedAt time.Time
+}
+
+type CoupleTalk struct {
+	FamilyID uuid.UUID
+	PromptID string
+	TalkedBy uuid.UUID
+	TalkedAt time.Time
 }
 
 type DiaryEntry struct {
@@ -202,6 +235,14 @@ type LabResult struct {
 	Unit            *string
 	RefLow          *float64
 	RefHigh         *float64
+}
+
+type LessonRead struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	LessonID   string
+	StartedAt  time.Time
+	FinishedAt pgtype.Timestamptz
 }
 
 type LiveEvent struct {
@@ -320,6 +361,18 @@ type PostcardLofe struct {
 	CreatedAt    time.Time
 }
 
+type Provider struct {
+	ID              uuid.UUID
+	Name            string
+	Type            string
+	City            string
+	State           string
+	Languages       []string
+	AvailableInDays int16
+	PriceUsd        int32
+	Summary         string
+}
+
 type Psychologist struct {
 	ID          uuid.UUID
 	Name        string
@@ -342,6 +395,14 @@ type PsychologistSlot struct {
 	PsychologistID  uuid.UUID
 	StartsAt        time.Time
 	DurationMinutes int16
+}
+
+type QuizAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	QuestionID string
+	ChoiceID   string
+	AnsweredAt time.Time
 }
 
 type Session struct {

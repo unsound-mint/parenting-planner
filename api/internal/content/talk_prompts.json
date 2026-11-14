@@ -1,0 +1,357 @@
+{
+ "about": "Couple and journal prompts mapped to pregnancy weeks. Our own writing, no health claims, so no sources.",
+ "prompts": [
+  {
+   "id": "p01",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    4,
+    12
+   ],
+   "text": "When did it first feel real for each of you? Tell the story from your side.",
+   "privateByDefault": false
+  },
+  {
+   "id": "p02",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    4,
+    12
+   ],
+   "text": "Write down how you found out, while the details are still fresh.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p03",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    6,
+    16
+   ],
+   "text": "Which traditions from your own childhoods do you want to keep, and which would you quietly drop?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p04",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    8,
+    20
+   ],
+   "text": "What kind of parent do you hope to be? Three words are enough.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p05",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    8,
+    20
+   ],
+   "text": "Who do we tell, when, and how? Make a short list together.",
+   "privateByDefault": false
+  },
+  {
+   "id": "p06",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    12,
+    24
+   ],
+   "text": "Each write five names you love, then swap lists. Circle one from the other's list.",
+   "privateByDefault": false
+  },
+  {
+   "id": "p07",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    12,
+    28
+   ],
+   "text": "Describe the first family trip you imagine taking with the baby.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p08",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    14,
+    26
+   ],
+   "text": "What did your parents get right? What do you want to do differently?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p09",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    14,
+    26
+   ],
+   "text": "How do we each feel about finding out the sex before the birth, or keeping it a surprise?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p10",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    16,
+    30
+   ],
+   "text": "Start a letter to the baby. Tell them about the world they are coming into this month.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p11",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    18,
+    30
+   ],
+   "text": "Which songs or books do we want the baby to hear from us first?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p12",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    18,
+    30
+   ],
+   "text": "How much leave can each of us take, and how do we want to stagger it?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p13",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    20,
+    32
+   ],
+   "text": "Write about the first time you felt or saw the baby move. Where were you?",
+   "privateByDefault": true
+  },
+  {
+   "id": "p14",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    20,
+    34
+   ],
+   "text": "What will the nursery corner look like? Pick one thing each that has to be there.",
+   "privateByDefault": false
+  },
+  {
+   "id": "p15",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    22,
+    34
+   ],
+   "text": "Who are the three people we can call at 2 a.m. if we need help?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p16",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    22,
+    36
+   ],
+   "text": "What are you most looking forward to about the first month? What are you least sure about?",
+   "privateByDefault": true
+  },
+  {
+   "id": "p17",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    24,
+    36
+   ],
+   "text": "What should the baby call each of our parents? Ask them what they would like.",
+   "privateByDefault": false
+  },
+  {
+   "id": "p18",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    24,
+    36
+   ],
+   "text": "Which chores does each of us own today, and which will change after the birth?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p19",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    26,
+    38
+   ],
+   "text": "Write a note to yourself to read on the hardest night of the first month.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p20",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    28,
+    38
+   ],
+   "text": "How do we want to split nights in the first weeks: shifts, or tasks?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p21",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    28,
+    38
+   ],
+   "text": "Visitors in the first two weeks: who, how long, and who says no if we are tired?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p22",
+   "kind": "journal",
+   "theme": "practical",
+   "weeks": [
+    28,
+    40
+   ],
+   "text": "What do you need to feel rested enough? Write down your non-negotiables.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p23",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    30,
+    40
+   ],
+   "text": "Finish the letter to the baby together. Each add one paragraph.",
+   "privateByDefault": false
+  },
+  {
+   "id": "p24",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    30,
+    40
+   ],
+   "text": "What do we each want in the birth room, and what should the partner speak up for?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p25",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    30,
+    40
+   ],
+   "text": "Shortlist the names. Say each one out loud with our family name. Which feels like them?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p26",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    32,
+    40
+   ],
+   "text": "Describe your bump, your mood and the room you are sitting in, for the baby to read one day.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p27",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    32,
+    40
+   ],
+   "text": "Is the hospital bag packed? What is the one thing each of us would forget?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p28",
+   "kind": "couple",
+   "theme": "practical",
+   "weeks": [
+    34,
+    40
+   ],
+   "text": "Who walks the dog, feeds the cat or picks up older kids if labor starts at night?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p29",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    36,
+    40
+   ],
+   "text": "What do we want to do as a couple in the last weeks before the baby comes?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p30",
+   "kind": "journal",
+   "theme": "dreaming",
+   "weeks": [
+    36,
+    40
+   ],
+   "text": "Write down what you hope the first hour with the baby feels like.",
+   "privateByDefault": true
+  },
+  {
+   "id": "p31",
+   "kind": "couple",
+   "theme": "dreaming",
+   "weeks": [
+    4,
+    40
+   ],
+   "text": "What is one thing you love about how your partner is handling this pregnancy?",
+   "privateByDefault": false
+  },
+  {
+   "id": "p32",
+   "kind": "journal",
+   "theme": "practical",
+   "weeks": [
+    4,
+    40
+   ],
+   "text": "One line for this week: how are you, really?",
+   "privateByDefault": true
+  }
+ ]
+}

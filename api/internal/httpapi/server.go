@@ -209,6 +209,9 @@ var (
 	errVoiceNoteType     = Error{Code: "invalid_request", Message: "record as audio/webm, audio/mp4 or audio/ogg"}
 	errVoiceNoteEmpty    = Error{Code: "invalid_request", Message: "the recording is empty"}
 	errVoiceNoteTooLarge = Error{Code: "too_large", Message: "a voice note can be at most 1 MB"}
+
+	errUnknownProvider  = Error{Code: "unknown_provider", Message: "no such provider in the directory"}
+	errAlreadyRequested = Error{Code: "already_requested", Message: "you already asked this provider for an appointment"}
 )
 
 var (
