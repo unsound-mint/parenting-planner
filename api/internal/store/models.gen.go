@@ -40,6 +40,21 @@ type CalendarEventAttendee struct {
 	MemberID uuid.UUID
 }
 
+type CareLogEntry struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	ChildID        uuid.UUID
+	AuthorMemberID uuid.UUID
+	Kind           string
+	StartedAt      time.Time
+	EndedAt        pgtype.Timestamptz
+	FeedMethod     *string
+	AmountMl       pgtype.Int2
+	Diaper         *string
+	Note           *string
+	CreatedAt      time.Time
+}
+
 type CareTeam struct {
 	ID       uuid.UUID
 	FamilyID uuid.UUID
@@ -62,6 +77,18 @@ type Family struct {
 	Stage     string
 	DueDate   *time.Time
 	CreatedAt time.Time
+}
+
+type Handoff struct {
+	ID           uuid.UUID
+	FamilyID     uuid.UUID
+	FromMemberID uuid.UUID
+	ToMemberID   uuid.UUID
+	Note         *string
+	ShiftID      uuid.NullUUID
+	Status       string
+	CreatedAt    time.Time
+	AcceptedAt   pgtype.Timestamptz
 }
 
 type Immunization struct {
