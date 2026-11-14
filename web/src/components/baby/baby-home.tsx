@@ -15,6 +15,7 @@ import { VoicePlayer } from "@/components/baby/voice-player";
 import { previewMocksEnabled } from "@/lib/mock/registry";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { PageFrame } from "@/components/shell/page";
+import { PortraitFlipbook } from "@/components/portrait";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
 const feedActions: QuickAction[] = [
@@ -94,7 +95,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
   return (
     <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       {/* At the widest the logging side splits in two: log now on the left, today's timeline on the right. */}
-      <div className="flex min-w-0 flex-col gap-6 @7xl:grid @7xl:grid-cols-2 @7xl:items-start">
+      <div className="flex min-w-0 flex-col gap-6 @7xl:grid @7xl:grid-cols-2 @7xl:content-start @7xl:items-start">
         <header className="flex flex-col gap-3 @7xl:col-span-2">
           <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label font-normal text-muted-foreground">
@@ -182,6 +183,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
           )
         )}
         {passport?.data && <BabyCard passport={passport.data} />}
+        <PortraitFlipbook memberId={memberId} childId={child.id} />
       </aside>
     </PageFrame>
   );
