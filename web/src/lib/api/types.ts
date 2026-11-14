@@ -166,3 +166,5 @@ export type Thanks = S["Thanks"];
 export type ThanksInput = S["ThanksInput"];
 export type ThanksSuggestion = S["ThanksSuggestion"];
 export type ThanksBasis = S["ThanksBasis"];
+export type Portrait = S["Portrait"];
+export type PortraitList = S["PortraitList"];
