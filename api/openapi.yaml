@@ -41,6 +41,7 @@ tags:
   - name: offers
   - name: admin
   - name: account
+  - name: portraits
 paths:
   /healthz:
     get:
@@ -5573,6 +5574,224 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/portraits:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listPortraits
+      tags: [portraits]
+      summary: The family's portrait series, the bump by week and each child by month
+      description: |
+        Family-shared, like the care log: both parents see every portrait. A
+        grandparent or nanny sees the children's portraits with baby_passport
+        and the bump with pregnancy_updates; with neither, 403. Newest moment
+        first: children by age in months, descending, then the bump by
+        pregnancy week, descending. Metadata only; a photo's pixels come from
+        getPortraitImage. Seeded demo portraits are kind illustration and have
+        no image: the web draws them.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortraitList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createPortrait
+      tags: [portraits]
+      summary: Upload this month's portrait of a child, or this week's bump photo
+      description: |
+        Parents only (403 for a grandparent or nanny). With childId and month
+        (age in whole months) it is that child's portrait; without childId,
+        week (pregnancy week) makes it a bump photo. Any other combination is
+        400. One portrait per slot: uploading to a taken slot replaces it,
+        seeded illustration or photo alike.
+        The body is the raw image, resized in the browser to at most 1600 px
+        and encoded as JPEG. The server accepts image/jpeg and image/png
+        (checked from the bytes, not the header; anything else is 400), at
+        most 1.5 MB (413 too_large, cut off while reading) and at most 4096
+        px a side. It decodes and re-encodes the image as JPEG, so EXIF,
+        location and any other metadata never reach the database. Stored in
+        the database with the family and deleted with it, and when the
+        visitor starts a new demo from the same browser.
+      parameters:
+        - name: childId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: month
+          in: query
+          required: false
+          description: The child's age in whole months on the photo.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 72
+        - name: week
+          in: query
+          required: false
+          description: The pregnancy week of a bump photo.
+          schema:
+            type: integer
+            minimum: 4
+            maximum: 42
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portrait"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/portraits/{portraitId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/PortraitId"
+    delete:
+      operationId: deletePortrait
+      tags: [portraits]
+      summary: Delete a portrait
+      description: |
+        Parents only (403 for a grandparent or nanny); either parent may
+        delete any portrait of the family. The row and its image are gone at
+        once. 404 for an id outside the family.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/portraits/{portraitId}/image:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/PortraitId"
+    get:
+      operationId: getPortraitImage
+      tags: [portraits]
+      summary: A photo portrait's pixels
+      description: |
+        The re-encoded JPEG, to whoever may list that portrait (see
+        listPortraits); anyone else, and a seeded illustration, gets 404.
+        Served only through the session, never from a public URL; the
+        browser may keep it privately for an hour.
+      responses:
+        "200":
+          description: The image.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   parameters:
     MemberId:
@@ -5587,6 +5806,14 @@ components:
         operations written for parents return 404 for a caregiver id, and
         operations open to caregivers return 403 forbidden when their role
         or permissions do not allow the action.
+      schema:
+        type: string
+        format: uuid
+
+    PortraitId:
+      name: portraitId
+      in: path
+      required: true
       schema:
         type: string
         format: uuid
@@ -9557,3 +9784,49 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    Portrait:
+      type: object
+      description: |
+        One frame of the flipbook. A child's portrait has childId and month; a
+        bump photo has week and no childId.
+      required: [id, kind, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        childId:
+          type: string
+          format: uuid
+        month:
+          type: integer
+          description: The child's age in whole months.
+        week:
+          type: integer
+          description: The pregnancy week of a bump photo.
+        kind:
+          type: string
+          enum: [photo, illustration]
+          description: photo is an upload served by getPortraitImage; illustration is seeded demo art the web draws.
+        width:
+          type: integer
+          description: Pixels, photos only.
+        height:
+          type: integer
+          description: Pixels, photos only.
+        uploadedBy:
+          type: string
+          format: uuid
+          description: The parent who uploaded a photo.
+        createdAt:
+          type: string
+          format: date-time
+
+    PortraitList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Portrait"
