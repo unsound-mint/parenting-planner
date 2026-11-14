@@ -4,6 +4,7 @@ import type { components } from "./schema.gen";
 type S = components["schemas"];
 export type Family = S["Family"];
 export type Parent = S["Parent"];
+export type Caregiver = S["Caregiver"];
 export type Plan = S["Plan"];
 export type PlanItem = S["PlanItem"];
 export type DemoTemplate = S["DemoTemplate"];

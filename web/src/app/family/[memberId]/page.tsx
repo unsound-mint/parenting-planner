@@ -4,6 +4,7 @@ import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
 import { PlanBoard } from "@/components/week/plan-board";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
+import { CaregiverHome } from "@/components/week/caregiver-home";
 import { SleepChart } from "@/components/week/sleep-chart";
 
 // "This week": the acting parent's plan from the rules engine, the reason and
@@ -25,6 +26,9 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
   ]);
+  // Grandparents and nannies get the baby's care, not a parent's plan (lib/roles.ts).
+  const caregiver = family?.caregivers?.find((c) => c.id === memberId);
+  if (family && caregiver) return <CaregiverHome family={family} caregiver={caregiver} />;
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
