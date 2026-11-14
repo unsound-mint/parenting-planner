@@ -164,6 +164,14 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ChildMilestone struct {
+	FamilyID      uuid.UUID
+	ChildID       uuid.UUID
+	MilestoneID   string
+	ObservedOn    time.Time
+	SetByMemberID uuid.NullUUID
+}
+
 type ChildcareOption struct {
 	ID               uuid.UUID
 	FamilyID         uuid.UUID
