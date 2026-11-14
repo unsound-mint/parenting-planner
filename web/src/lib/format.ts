@@ -37,7 +37,9 @@ export const stageLabel: Record<Stage, string> = {
 };
 
 /** One line under the greeting: where the family is right now. */
+// Empty in pregnancy loss support: no week, no due date, and not "Planning" either.
 export function familyContext(family: Family): string {
+  if (family.pregnancyLoss) return "";
   if (family.stage === "pregnancy" && family.gestationalWeek != null) {
     const due = family.dueDate ? ` · due ${formatShortDate(family.dueDate)}` : "";
     return `Week ${family.gestationalWeek} of pregnancy${due}`;
@@ -57,7 +59,7 @@ export const statusLabel: Record<PlanItemStatus, string> = {
 };
 
 /** Whole days from today (UTC) to an ISO date; negative when it has passed. */
-export function daysUntil(isoDate: string, now = new Date()): number {
+export function daysUntil(isoDate: string, now: Date): number {
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   return Math.round((new Date(isoDate).getTime() - today) / 86_400_000);
 }
@@ -81,7 +83,7 @@ export const formatDayNumber = (iso: string) => dayNumFmt.format(new Date(iso));
 export const dayKey = (iso: string) => dayKeyFmt.format(new Date(iso));
 
 /** Whole calendar days from today to an instant, in Eastern time. */
-export function daysUntilInstant(iso: string, now = new Date()): number {
+export function daysUntilInstant(iso: string, now: Date): number {
   return Math.round((Date.parse(dayKey(iso)) - Date.parse(dayKey(now.toISOString()))) / 86_400_000);
 }
 

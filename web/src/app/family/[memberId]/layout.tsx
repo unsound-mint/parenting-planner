@@ -3,13 +3,16 @@ import { Suspense, ViewTransition } from "react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
+import { inLossSupport } from "@/lib/loss";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
+import { DemoClock } from "@/components/shell/demo-clock";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
+import { FamilyClockProvider } from "@/components/shell/family-clock";
 
 // Frame for every family screen: navigation, the role switch and the urgent
 // help entry, which must stay visible on every screen (docs/design.md, rule 5).
@@ -49,14 +52,15 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
       ]);
   const hidden = unavailableScreens({
     calendar: calendar.response.status,
-    simulator: simulator.response.status,
+    // Newborn practice is baby prep: none of it while the family is in pregnancy loss support.
+    simulator: inLossSupport(family) ? 404 : simulator.response.status,
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
     ...(invitations ? { people: invitations.response.status } : {}),
   });
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
-      <aside className="flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
+      <aside className="print:hidden flex shrink-0 flex-col gap-6 border-b border-border bg-card px-4 py-4 md:w-56 md:border-r md:border-b-0 md:py-6">
         <div className="flex items-center justify-between gap-3 md:block">
           <p className="px-2 text-[15px] font-semibold tracking-tight">{PRODUCT_NAME}</p>
           <div className="md:hidden">
@@ -67,17 +71,21 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
+          <Link href="/admin" className="mt-1.5 inline-block underline underline-offset-2 hover:text-foreground">
+            Demo admin
+          </Link>
         </div>
       </aside>
 
       {/* One width cap for the header and the page, so their edges line up (docs/design.md, Layout). */}
       <div className="flex w-full min-w-0 max-w-page flex-1 flex-col">
-        <header className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
+        <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
           <RoleSwitch people={people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
           <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
             Demo data
           </span>
+          <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} />
           <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
             {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           </Link>
@@ -92,7 +100,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           </div>
         </header>
         <LiveUpdates memberId={memberId} />
-        <ViewTransition>{children}</ViewTransition>
+        <FamilyClockProvider daysAhead={family.demoDaysAhead ?? 0}>
+          <ViewTransition>{children}</ViewTransition>
+        </FamilyClockProvider>
       </div>
     </div>
   );
@@ -101,7 +111,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
 function ShellFallback() {
   return (
     <div className="flex min-h-dvh flex-1">
-      <aside className="hidden w-56 border-r border-border bg-card md:block" />
+      <aside className="hidden print:hidden w-56 border-r border-border bg-card md:block" />
       <p className="p-10 text-muted-foreground">Opening your family...</p>
     </div>
   );

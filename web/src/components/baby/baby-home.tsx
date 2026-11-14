@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Handshake, Hourglass } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
-import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today } from "@/lib/api/types";
+import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today, VoiceNote } from "@/lib/api/types";
 import { agoWords, isAsleep, lastActivityAt } from "@/lib/care";
 import { familyContext, formatClock } from "@/lib/format";
 import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
@@ -11,6 +11,8 @@ import { AllergyChips, AllergyLabel, BabyCard } from "@/components/baby/baby-car
 import { QuickAdd, WhenPicker, WhenProvider, type QuickAction } from "@/components/baby/care-logger";
 import { DayTimeline } from "@/components/baby/day-timeline";
 import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
+import { VoicePlayer } from "@/components/baby/voice-player";
+import { previewMocksEnabled } from "@/lib/mock/registry";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { PageFrame } from "@/components/shell/page";
 import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
@@ -58,11 +60,15 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [log, handoffs, passport] = await Promise.all([
+  const [log, handoffs, passport, voiceProbe] = await Promise.all([
     canLog ? api.GET("/members/{memberId}/care-log", path) : undefined,
     canLog ? api.GET("/members/{memberId}/handoffs", path) : undefined,
     canCard ? api.GET("/members/{memberId}/children/{childId}/passport", { params: { path: { memberId, childId: child.id } } }) : undefined,
+    // Probe: a read of a note that cannot exist is 404 once voice notes work and 501 before.
+    // Preview mocks cover the upload but not audio, so in preview the recorder stays on.
+    canLog ? api.GET("/members/{memberId}/voice-notes/{voiceNoteId}", { params: { path: { memberId, voiceNoteId: NO_NOTE } }, parseAs: "stream" }) : undefined,
   ]);
+  const voice = previewMocksEnabled || (voiceProbe !== undefined && voiceProbe.response.status !== 501);
   if (log?.response.status === 401) redirect("/");
   // 501 (not built yet) or 403: nothing to draw, so the caregiver keeps the plain greeting.
   const care = log?.data;
@@ -152,13 +158,16 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
       <aside className="flex min-w-0 flex-col gap-6 lg:pt-1">
         {outgoing ? (
-          <section aria-labelledby="handoff-title" className="flex items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-4">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-status-due-soft text-status-due">
-              <Hourglass aria-hidden className="size-4.5" />
-            </span>
-            <h2 id="handoff-title" className="text-title">
-              Waiting for {byId.get(outgoing.toMemberId)?.displayName ?? "them"} to accept
-            </h2>
+          <section aria-labelledby="handoff-title" className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card p-4">
+            <div className="flex items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-status-due-soft text-status-due">
+                <Hourglass aria-hidden className="size-4.5" />
+              </span>
+              <h2 id="handoff-title" className="text-title">
+                Waiting for {byId.get(outgoing.toMemberId)?.displayName ?? "them"} to accept
+              </h2>
+            </div>
+            {outgoing.voiceNote && <HandoffVoice memberId={memberId} note={outgoing.voiceNote} label="Your voice note" />}
           </section>
         ) : (
           recipients.length > 0 &&
@@ -168,7 +177,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
                 <Handshake aria-hidden className="size-4.5 text-muted-foreground" />
                 Hand over {child.name}
               </h2>
-              <HandoffForm memberId={memberId} recipients={recipients} childName={child.name} />
+              <HandoffForm memberId={memberId} recipients={recipients} childName={child.name} voice={voice} />
             </section>
           )
         )}
@@ -226,11 +235,19 @@ function IncomingHandoff({ memberId, handoff, from, now }: { memberId: string; h
       </h2>
       <SummaryChips summary={s} now={now} />
       {handoff.note && <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-body">{handoff.note}</p>}
+      {handoff.voiceNote && <HandoffVoice memberId={memberId} note={handoff.voiceNote} label={`Voice note from ${from?.displayName ?? "them"}`} className="mt-3" />}
       <div className="mt-4">
         <AcceptHandoff memberId={memberId} handoffId={handoff.id} fromName={from?.displayName ?? "They"} />
       </div>
     </section>
   );
+}
+
+const NO_NOTE = "00000000-0000-4000-8000-000000000000";
+
+// The audio is served by the API (getVoiceNote) to anyone who may see the handoff.
+function HandoffVoice({ memberId, note, label, className }: { memberId: string; note: VoiceNote; label: string; className?: string }) {
+  return <VoicePlayer src={`/api/members/${memberId}/voice-notes/${note.id}`} durationSeconds={note.durationSeconds} label={label} className={className} />;
 }
 
 function SummaryChips({ summary, now }: { summary: CareSummary; now: Date }) {

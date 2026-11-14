@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Allergy struct {
@@ -120,6 +121,27 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type PartnerOffer struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	PartnerName string
+	Title       string
+	Detail      string
+	Url         string
+	Stages      []string
+	Audience    []string
+	Active      bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type PartnerOfferClick struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	OfferID   uuid.UUID
+	ClickedAt time.Time
+}
+
 type PlanItemProgress struct {
 	ID        uuid.UUID
 	FamilyID  uuid.UUID
@@ -184,4 +206,16 @@ type VaccineSchedule struct {
 	Vaccine         string
 	Dose            string
 	DueOn           time.Time
+}
+
+type VoiceNote struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	UploaderMemberID uuid.UUID
+	HandoffID        uuid.NullUUID
+	ContentType      string
+	SizeBytes        int32
+	DurationSeconds  pgtype.Int4
+	Audio            []byte
+	CreatedAt        time.Time
 }

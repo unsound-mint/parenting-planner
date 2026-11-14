@@ -1,5 +1,6 @@
 import type { Family, PlanItem } from "@/lib/api/types";
 import { countThings, daysUntil } from "@/lib/format";
+import { familyNow } from "@/lib/clock";
 
 const MIN_WEEKS = 6;
 const MAX_WEEKS = 16;
@@ -24,8 +25,9 @@ export type Lane = {
  */
 export function laneWindow(family: Family, items: PlanItem[]): Lane {
   const sorted = [...items].sort((a, b) => (a.dueBy ?? "9999-12-31").localeCompare(b.dueBy ?? "9999-12-31"));
-  const dueDays = (d?: string) => (d ? daysUntil(d) : Infinity);
-  const babyDays = family.stage === "pregnancy" && family.dueDate ? daysUntil(family.dueDate) : Infinity;
+  const now = familyNow(family);
+  const dueDays = (d?: string) => (d ? daysUntil(d, now) : Infinity);
+  const babyDays = family.stage === "pregnancy" && family.dueDate ? daysUntil(family.dueDate, now) : Infinity;
 
   const reach = Math.max(
     0,

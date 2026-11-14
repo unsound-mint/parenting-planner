@@ -1,4 +1,5 @@
 import type { Notification } from "@/lib/api/types";
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { events, taskPlan, couple } from "../timeline";
 import { uid } from "./dates";
@@ -32,15 +33,20 @@ function seed(memberId: string, role: string, mother: string, partner: string): 
   ].map((x) => ({ ...x, id: x.id + memberId.slice(-2) }));
 }
 
+// About the pregnancy or the baby: pregnancy loss support drops them, like the
+// server deletes unread ones (the caregiver's shift reminder is not one).
+const aboutPregnancy = new Set([1, 3, 11, 12, 13].map((i) => uid(9000 + i)));
+
 async function list(memberId: string, family: () => Promise<import("@/lib/api/types").Family>) {
+  const f = await family();
   let items = store.get(memberId);
   if (!items) {
-    const f = await family();
     const { mother, partner } = couple(f);
     const role = f.parents.find((p) => p.id === memberId)?.role ?? "caregiver";
     items = seed(memberId, role, mother.id, partner.id);
     store.set(memberId, items);
   }
+  if (inLossSupport(f)) items = items.filter((i) => !aboutPregnancy.has(i.id));
   return { items, unreadCount: items.filter((i) => !i.readAt).length };
 }
 

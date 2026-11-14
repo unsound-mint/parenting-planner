@@ -38,7 +38,7 @@ async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
         <div>
           <h1 className="text-headline text-balance">{headline}</h1>
           {/* The top bar shows this line from sm up; repeat it here only on phones. */}
-          <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+          <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         </div>
       </header>
 

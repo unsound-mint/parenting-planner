@@ -36,7 +36,7 @@ export function CaregiverHome({
       <header>
         <h1 className="text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground">
-          {roleLabel[caregiver.role]} view · {familyContext(family)}
+          {[`${roleLabel[caregiver.role]} view`, familyContext(family)].filter(Boolean).join(" · ")}
         </p>
       </header>
 

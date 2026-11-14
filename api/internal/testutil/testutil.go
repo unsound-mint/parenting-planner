@@ -205,6 +205,7 @@ func (c *Client) Raw(method, path, contentType string, body io.Reader) (int, []b
 		c.t.Fatal(err)
 	}
 	defer res.Body.Close()
+	c.LastHeader = res.Header
 	raw, _ := io.ReadAll(res.Body)
 	return res.StatusCode, raw
 }

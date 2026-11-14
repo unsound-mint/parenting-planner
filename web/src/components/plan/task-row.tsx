@@ -11,6 +11,7 @@ import { roleAccent, roleLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { OwnerAvatar } from "./owner";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
 /** What a row needs from the screen: who is who, and the four things a person can do. */
 export type TaskCtx = {
@@ -52,9 +53,10 @@ export function DoneToggle({ task, ctx }: { task: Task; ctx: TaskCtx }) {
 
 /** Date in mono and the days left as a tinted chip. Nothing for an undated task. */
 export function DueChip({ task, className }: { task: Task; className?: string }) {
-  const days = taskDays(task);
+  const now = useFamilyNow();
+  const days = taskDays(task, now);
   if (!task.dueOn || days === undefined) return null;
-  const tone = dueTone(task);
+  const tone = dueTone(task, now);
   return (
     <span className={cn("inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-0.5 font-mono text-caption whitespace-nowrap", toneClass[tone], className)}>
       <span>{formatShortDate(task.dueOn)}</span>

@@ -46,7 +46,7 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
     <PageFrame>
       <header>
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
-        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
       </header>
       {/* lg: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). 2xl: three columns. */}

@@ -10,6 +10,7 @@ import { BabyHome } from "@/components/baby/baby-home";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
 import { PageFrame } from "@/components/shell/page";
 import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
+import { familyNow } from "@/lib/clock";
 
 // "This week": the acting parent's plan from the rules engine, the reason and
 // source behind each item, and a quick mood check-in. All of it is live data.
@@ -73,8 +74,9 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
 
   const needs = plan.items.filter((i) => i.status !== "upcoming").length;
   // Status only: the focus card right below names the first thing.
-  const headline =
-    needs === 0
+  const headline = family.pregnancyLoss
+    ? `We are so sorry, ${parent.displayName}. Take the time you need.`
+    : needs === 0
       ? `Nothing needs you this week, ${parent.displayName}.`
       : `${countWord(needs)} ${needs === 1 ? "thing needs" : "things need"} you this week, ${parent.displayName}.`;
   // The switch is a one-time step near the birth: last on the page, under everything that needs doing now.
@@ -87,7 +89,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
           {headline}
         </h1>
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
-        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         <div className="mt-3 empty:hidden">
           <StageSlot guides={guides} memberId={memberId} family={family} />
         </div>
@@ -97,14 +99,15 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       {/* From 2xl: two columns. The questions card is placed first in the right one and spans
           into the last, flexible row, so its height never opens gaps between the cards on the left. */}
       <aside aria-label="You and your visits" className="grid min-w-0 content-start items-start gap-6 lg:pt-1 2xl:grid-cols-2 2xl:grid-rows-[repeat(4,auto)_1fr]">
-        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} />
+        <MoodSleepCard memberId={memberId} partnerName={partner?.displayName} checkins={own} pattern={pattern} talkInPlan={talkInPlan} now={familyNow(family)} />
         <div className="min-w-0 empty:hidden 2xl:col-start-2 2xl:row-span-5 2xl:row-start-1">
           <Suspense fallback={null}>
             <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
           </Suspense>
         </div>
         <WeekCardSlot card={card} babyOnly />
-        <GuidesSlot guides={guides} plan={plan.items} />
+        {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
+        {!family.pregnancyLoss && <GuidesSlot guides={guides} plan={plan.items} />}
         {late && <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />}
       </aside>
     </PageFrame>

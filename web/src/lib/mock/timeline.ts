@@ -1,6 +1,7 @@
 import type { CalendarEvent, Family, Parent } from "@/lib/api/types";
 import { dayKey, formatClock } from "@/lib/format";
 import { addDays, todayKey } from "@/lib/schedule";
+import { mockNow } from "@/lib/clock";
 import { uid } from "./fixtures/dates";
 
 // One demo timeline for every preview mock. A fixture that mentions the prenatal
@@ -36,7 +37,7 @@ export function easternAt(day: string, hhmm: string): string {
 }
 
 /** Eastern calendar day n days from today. */
-export const dayOf = (n: number) => addDays(todayKey(), n);
+export const dayOf = (n: number) => addDays(todayKey(mockNow()), n);
 /** UTC instant for an Eastern clock time n days from today. */
 export const at = (n: number, hhmm: string) => easternAt(dayOf(n), hhmm);
 

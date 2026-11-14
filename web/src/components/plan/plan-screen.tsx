@@ -1,23 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-import type { HospitalBag, Task } from "@/lib/api/types";
+import type { HospitalBag, InsuranceCall, LeavePlan, Task } from "@/lib/api/types";
 import { countThings } from "@/lib/format";
 import type { Person } from "@/lib/roles";
 import { byKind, isOffered, openFirst } from "@/lib/tasks";
-import { bagIcon, paperworkIcon, planIcon } from "@/lib/visuals";
+import { bagIcon, insuranceIcon, leaveIcon, paperworkIcon, planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
 import { HospitalBags } from "./hospital-bags";
+import { InsuranceLog, insuranceHeadline } from "./insurance-log";
+import { LeavePlanner, leaveHeadline } from "./leave-planner";
 import { PaperworkTimeline } from "./paperwork-timeline";
 import { TaskRow, type TaskCtx } from "./task-row";
+import { useFamilyNow } from "@/components/shell/family-clock";
 
-type Tab = "task" | "paperwork" | "hospital_bag";
+type Tab = "task" | "paperwork" | "hospital_bag" | "leave" | "insurance";
 
 // One screen for every owned checklist: the shared plan, US paperwork and the
 // hospital bags are all Task rows told apart by kind. Changes go to the API and
@@ -27,15 +30,31 @@ export function PlanScreen({
   people,
   offerTargets,
   selfId,
+  leave: initialLeave,
+  calls: initialCalls,
+  dueOn,
 }: {
   initial: Task[];
   people: Person[];
   offerTargets: Person[];
   selfId: string;
+  /** Left out while the leave endpoints are not available: the tab is hidden. */
+  leave?: LeavePlan;
+  calls?: InsuranceCall[];
+  dueOn?: string;
 }) {
+  const now = useFamilyNow();
   const [tasks, setTasks] = useState(initial);
+  const [leave, setLeave] = useState(initialLeave);
+  const [calls, setCalls] = useState(initialCalls);
+  const [focusTask, setFocusTask] = useState<string>();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("task");
+
+  // A leave deadline sends you to its paperwork task: bring it into view once the tab has rendered.
+  useEffect(() => {
+    if (tab === "paperwork" && focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [tab, focusTask]);
 
   const replace = (t: Task) => setTasks((all) => all.map((x) => (x.id === t.id ? t : x)));
 
@@ -107,6 +126,9 @@ export function PlanScreen({
     ...(paperwork.length ? [{ id: "paperwork" as const, label: "Paperwork", icon: paperworkIcon, open: paperwork.filter((t) => !t.done).length }] : []),
     ...(bags.length ? [{ id: "hospital_bag" as const, label: "Hospital bag", icon: bagIcon.mother, open: bags.filter((t) => !t.done).length }] : []),
   ];
+  const myLeave = leave?.parents.find((p) => p.memberId === selfId);
+  if (leave) tabs.push({ id: "leave", label: "Leave", icon: leaveIcon, open: myLeave?.deadlines.length ?? 0 });
+  if (calls) tabs.push({ id: "insurance", label: "Insurance calls", icon: insuranceIcon, open: calls.filter((c) => c.authorId === selfId && c.followUpOn).length });
   const active = tabs.some((t) => t.id === tab) ? tab : "task";
 
   // The headline belongs to the open tab: it only counts that tab's tasks, so it never
@@ -117,7 +139,11 @@ export function PlanScreen({
   const other = people.find((p) => p.id !== selfId && offersToMe.some((t) => t.assigneeId === p.id));
 
   const headline =
-    offersToMe.length > 0
+    active === "leave" && leave
+      ? leaveHeadline(leave, selfId, now)
+      : active === "insurance" && calls
+        ? insuranceHeadline(calls, selfId, now)
+        : offersToMe.length > 0
       ? `${other?.displayName ?? "Your partner"} offered you ${offersToMe.length === 1 ? "a task" : countThings(offersToMe.length).toLowerCase()}. Accept or decline below.`
       : mine.length > 0
         ? active === "hospital_bag"
@@ -128,10 +154,10 @@ export function PlanScreen({
           : "Nothing is waiting on you here.";
   return (
     <PageFrame>
-      <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
+      <h1 className="max-w-2xl text-headline text-balance print:hidden">{headline}</h1>
 
       {tabs.length > 1 && (
-        <div role="tablist" aria-label="Plan sections" className="flex gap-1 overflow-x-auto rounded-2xl bg-muted p-1 md:w-fit md:rounded-full">
+        <div role="tablist" aria-label="Plan sections" className="print:hidden flex gap-1 overflow-x-auto rounded-2xl bg-muted p-1 md:w-fit md:rounded-full">
           {tabs.map((t) => {
             const on = t.id === active;
             return (
@@ -142,7 +168,10 @@ export function PlanScreen({
                 id={`tab-${t.id}`}
                 aria-selected={on}
                 aria-controls={`panel-${t.id}`}
-                onClick={() => setTab(t.id)}
+                onClick={() => {
+                  setFocusTask(undefined);
+                  setTab(t.id);
+                }}
                 className={cn(
                   "flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl px-2 sm:px-3 text-label font-medium whitespace-nowrap outline-none transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9 md:flex-none md:rounded-full md:px-4",
                   on ? "bg-card shadow-[0_1px_2px_rgb(0_0_0/0.08)]" : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
@@ -159,7 +188,21 @@ export function PlanScreen({
 
       <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`} className="min-w-0">
         {active === "task" && <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} onAdd={(title, dueOn) => add(title, { dueOn })} />}
-        {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} />}
+        {active === "paperwork" && <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />}
+        {active === "leave" && leave && (
+          <LeavePlanner
+            initial={leave}
+            people={people}
+            selfId={selfId}
+            dueOn={dueOn}
+            onChange={setLeave}
+            onOpenTask={(id) => {
+              setFocusTask(id);
+              setTab("paperwork");
+            }}
+          />
+        )}
+        {active === "insurance" && calls && <InsuranceLog calls={calls} people={people} selfId={selfId} onCreated={(c) => setCalls((all) => [...(all ?? []), c])} />}
         {active === "hospital_bag" && <HospitalBags tasks={bags} ctx={ctx} onAdd={(title, bag) => add(title, { kind: "hospital_bag", bag })} />}
       </div>
     </PageFrame>

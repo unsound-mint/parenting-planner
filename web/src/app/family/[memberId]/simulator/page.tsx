@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { inLossSupport } from "@/lib/loss";
 import { Baby } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { SimulatorScenario } from "@/lib/api/types";
@@ -22,8 +23,13 @@ export default function SimulatorPage({ params }: PageProps<"/family/[memberId]/
 async function Simulator({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
-  const { data: progress, response } = await api.GET("/members/{memberId}/simulator", { params: { path: { memberId } } });
+  const [{ data: progress, response }, { data: family }] = await Promise.all([
+    api.GET("/members/{memberId}/simulator", { params: { path: { memberId } } }),
+    api.GET("/family"),
+  ]);
   if (!progress || response.status === 501 || response.status === 404) notFound();
+  // The nav hides it in pregnancy loss support (layout.tsx); a direct visit gets the same.
+  if (family && inLossSupport(family)) notFound();
 
   const weak = progress.weakSpots;
   const headline =
