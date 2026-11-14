@@ -93,7 +93,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
         </div>
       </PageGrid>
       <PageGrid cols={3} className="mt-4 gap-4 lg:mt-6 lg:gap-6">
-        <LabsCard labs={person.labs} showVisibility={person.isActingParent} />
+        <LabsCard labs={person.labs} showVisibility={person.isActingParent} memberId={memberId} canAsk={canLog} owner={person.kind === "child" ? person.name : undefined} />
         <div className="flex min-w-0 flex-col gap-4 lg:gap-6 @7xl:contents">
           <VaccineTimeline vaccines={person.vaccines} />
           {person.kind === "child" && <GrowthCard growth={person.growth} />}
