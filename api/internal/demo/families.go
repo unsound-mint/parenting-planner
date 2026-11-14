@@ -30,13 +30,14 @@ type seeder struct {
 	q     *store.Queries
 	today time.Time
 	fam   uuid.UUID
+	stage string
 	err   error
 	// paperwork, when set, seeds the paperwork checklist for these parents at the end.
 	paperwork *struct{ mother, partner uuid.UUID }
 }
 
 func newSeeder(ctx context.Context, q *store.Queries, today time.Time, t Template, stage string, due *time.Time) *seeder {
-	s := &seeder{ctx: ctx, q: q, today: today}
+	s := &seeder{ctx: ctx, q: q, today: today, stage: stage}
 	fam, err := q.CreateFamily(ctx, store.CreateFamilyParams{Template: string(t), Stage: stage, DueDate: due})
 	s.fam, s.err = fam.ID, err
 	return s
@@ -153,6 +154,9 @@ func (s *seeder) learning(t Template, mom, dad uuid.UUID) {
 func (s *seeder) done() (uuid.UUID, error) {
 	if s.err == nil {
 		s.err = seedCaregivers(s.ctx, s.q, s.fam)
+	}
+	if s.err == nil {
+		s.err = seedMoney(s.ctx, s.q, s.fam, s.stage, s.today)
 	}
 	if s.err == nil && s.paperwork != nil {
 		s.err = tasks.SeedPaperwork(s.ctx, s.q, s.fam, s.paperwork.mother, s.paperwork.partner, map[int]bool{0: true}, s.today)

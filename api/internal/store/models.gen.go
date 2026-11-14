@@ -72,6 +72,16 @@ type BabyNameLike struct {
 	CreatedAt time.Time
 }
 
+type BirthCostPlan struct {
+	FamilyID            uuid.UUID
+	DeductibleCents     int64
+	OutOfPocketMaxCents int64
+	CoinsurancePercent  int16
+	AlreadyPaidCents    int64
+	UpdatedBy           uuid.NullUUID
+	UpdatedAt           time.Time
+}
+
 type BookingRequest struct {
 	ID            uuid.UUID
 	FamilyID      uuid.UUID
@@ -81,6 +91,18 @@ type BookingRequest struct {
 	Status        string
 	Note          *string
 	CreatedAt     time.Time
+}
+
+type BudgetItem struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	Category    string
+	Name        string
+	AmountCents int64
+	Cadence     string
+	Payer       string
+	CreatedBy   uuid.NullUUID
+	CreatedAt   time.Time
 }
 
 type CalendarEvent struct {
@@ -134,6 +156,21 @@ type Child struct {
 	FamilyID  uuid.UUID
 	Name      string
 	BirthDate time.Time
+}
+
+type ChildcareOption struct {
+	ID                  uuid.UUID
+	FamilyID            uuid.UUID
+	Name                string
+	Kind                string
+	Status              string
+	MonthlyCostCents    pgtype.Int8
+	ApplicationDeadline *time.Time
+	WaitlistPosition    pgtype.Int4
+	Contact             *string
+	Notes               *string
+	CreatedBy           uuid.NullUUID
+	CreatedAt           time.Time
 }
 
 type ContentOverride struct {

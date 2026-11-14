@@ -202,6 +202,9 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedMoney(ctx, q, fam.ID, "pregnancy", today); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}

@@ -36,6 +36,7 @@ tags:
   - name: billing
   - name: notifications
   - name: leave
+  - name: money
   - name: insurance
   - name: screening
   - name: offers
@@ -4250,6 +4251,330 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/budget:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getBudget
+      tags: [money]
+      summary: The family's shared baby budget with totals and starter suggestions
+      description: |
+        Mother and partner see and edit the same budget. A grandparent or nanny
+        gets 404. Totals are computed on read: a monthly item counts twelve
+        times in the first-year total. suggestions are starter lines (with a
+        typical amount) that are not yet in the budget, matched by name.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Budget"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/budget-items:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createBudgetItem
+      tags: [money]
+      summary: Add a line to the shared budget
+      description: Mother and partner; a grandparent or nanny gets 404.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/budget-items/{itemId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/BudgetItemId"
+    put:
+      operationId: updateBudgetItem
+      tags: [money]
+      summary: Change a budget line
+      description: Mother and partner; either may edit a line the other added. An item of another family is 404.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetItemInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteBudgetItem
+      tags: [money]
+      summary: Remove a budget line
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/birth-cost-plan:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getBirthCostPlan
+      tags: [money]
+      summary: Birth cost estimate from the family's health plan numbers (US)
+      description: |
+        Mother and partner; caregivers get 404. input is absent until a parent
+        saves their plan; the estimate is then computed with typical numbers
+        from the sources. Always an estimate: actual charges depend on coverage
+        and clinical circumstances.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BirthCostPlan"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updateBirthCostPlan
+      tags: [money]
+      summary: Save the deductible, out-of-pocket maximum and coinsurance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BirthCostInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BirthCostPlan"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/childcare-options:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listChildcareOptions
+      tags: [money]
+      summary: Daycares, nannies and family arrangements the parents are looking at
+      description: |
+        Mother and partner; caregivers get 404. Oldest first. Application
+        deadlines of options that are still open also appear in the calendar
+        as events of kind childcare_deadline.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createChildcareOption
+      tags: [money]
+      summary: Add a childcare option
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildcareOptionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/childcare-options/{optionId}:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+      - $ref: "#/components/parameters/ChildcareOptionId"
+    put:
+      operationId: updateChildcareOption
+      tags: [money]
+      summary: Change a childcare option (status, cost, deadline, notes)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildcareOptionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteChildcareOption
+      tags: [money]
+      summary: Remove a childcare option
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/leave-plan:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -5862,6 +6187,22 @@ components:
 
     BabyNameId:
       name: nameId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    BudgetItemId:
+      name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    ChildcareOptionId:
+      name: optionId
       in: path
       required: true
       schema:
@@ -7615,8 +7956,10 @@ components:
       description: |
         appointment, class, reminder and other are stored events; shift is
         one occurrence of an active shift; task is a task due date;
-        psychologist_session is the owner's own booking, always private.
-      enum: [appointment, class, reminder, other, shift, task, psychologist_session]
+        psychologist_session is the owner's own booking, always private;
+        childcare_deadline is the application deadline of a childcare option
+        that is still open (parents only, family scope).
+      enum: [appointment, class, reminder, other, shift, task, psychologist_session, childcare_deadline]
 
     CalendarEventInputKind:
       type: string
@@ -9211,6 +9554,312 @@ components:
           description: The acting parent first, then the other parent.
           items:
             $ref: "#/components/schemas/ParentLeave"
+
+    BudgetCategory:
+      type: string
+      enum: [pregnancy_care, delivery, equipment, childcare, leave, food, health, other]
+
+    BudgetCadence:
+      type: string
+      description: once is a single cost; monthly repeats and counts twelve times in the first-year total.
+      enum: [once, monthly]
+
+    BudgetPayer:
+      type: string
+      enum: [mother, partner, shared]
+
+    BudgetItemInput:
+      type: object
+      required: [category, name, amountCents, cadence, payer]
+      properties:
+        category:
+          $ref: "#/components/schemas/BudgetCategory"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        amountCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000
+          description: US cents.
+        cadence:
+          $ref: "#/components/schemas/BudgetCadence"
+        payer:
+          $ref: "#/components/schemas/BudgetPayer"
+
+    BudgetItem:
+      allOf:
+        - $ref: "#/components/schemas/BudgetItemInput"
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+
+    BudgetTotal:
+      type: object
+      required: [oneTimeCents, monthlyCents, firstYearCents]
+      properties:
+        oneTimeCents:
+          type: integer
+          format: int64
+        monthlyCents:
+          type: integer
+          format: int64
+        firstYearCents:
+          type: integer
+          format: int64
+          description: oneTime plus twelve months.
+
+    BudgetCategoryTotal:
+      allOf:
+        - $ref: "#/components/schemas/BudgetTotal"
+        - type: object
+          required: [category]
+          properties:
+            category:
+              $ref: "#/components/schemas/BudgetCategory"
+
+    BudgetPayerTotal:
+      allOf:
+        - $ref: "#/components/schemas/BudgetTotal"
+        - type: object
+          required: [payer]
+          properties:
+            payer:
+              $ref: "#/components/schemas/BudgetPayer"
+
+    BudgetSuggestion:
+      type: object
+      description: A starter line the family may add. The amount is a rough starting point, not advice.
+      required: [category, name, amountCents, cadence, payer]
+      properties:
+        category:
+          $ref: "#/components/schemas/BudgetCategory"
+        name:
+          type: string
+        amountCents:
+          type: integer
+          format: int64
+        cadence:
+          $ref: "#/components/schemas/BudgetCadence"
+        payer:
+          $ref: "#/components/schemas/BudgetPayer"
+        source:
+          $ref: "#/components/schemas/Source"
+
+    Budget:
+      type: object
+      required: [items, total, byCategory, byPayer, suggestions]
+      properties:
+        items:
+          type: array
+          description: Oldest first.
+          items:
+            $ref: "#/components/schemas/BudgetItem"
+        total:
+          $ref: "#/components/schemas/BudgetTotal"
+        byCategory:
+          type: array
+          description: Only categories that have items, biggest first-year total first.
+          items:
+            $ref: "#/components/schemas/BudgetCategoryTotal"
+        byPayer:
+          type: array
+          description: Mother, partner, shared; always all three.
+          items:
+            $ref: "#/components/schemas/BudgetPayerTotal"
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/BudgetSuggestion"
+
+    BirthCostInput:
+      type: object
+      required: [deductibleCents, outOfPocketMaxCents, coinsurancePercent, alreadyPaidCents]
+      properties:
+        deductibleCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000
+        outOfPocketMaxCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000
+        coinsurancePercent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: The share you pay after the deductible.
+        alreadyPaidCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000
+          description: Already spent this plan year; counts toward the deductible and the out-of-pocket maximum.
+
+    BirthCostRange:
+      type: object
+      required: [lowCents, highCents]
+      properties:
+        lowCents:
+          type: integer
+          format: int64
+        highCents:
+          type: integer
+          format: int64
+
+    BirthCostScenario:
+      type: object
+      required: [kind, typicalBilledCents, birth, newborn, total, hitsMaximum]
+      properties:
+        kind:
+          type: string
+          enum: [vaginal, cesarean]
+        typicalBilledCents:
+          type: integer
+          format: int64
+          description: What the source reports insurers and patients together paid, on average, for the birth stay and the newborn.
+        birth:
+          allOf:
+            - $ref: "#/components/schemas/BirthCostRange"
+          description: Your estimated share for the birth.
+        newborn:
+          allOf:
+            - $ref: "#/components/schemas/BirthCostRange"
+          description: Your estimated share for the newborn's first months.
+        total:
+          $ref: "#/components/schemas/BirthCostRange"
+        hitsMaximum:
+          type: boolean
+          description: True when the high end reaches the out-of-pocket maximum, so it cannot go higher this plan year.
+
+    BirthCostPlan:
+      type: object
+      required: [estimateNote, scenarios, billingLines, questions, enrollment, sources]
+      properties:
+        input:
+          $ref: "#/components/schemas/BirthCostInput"
+        estimateNote:
+          type: string
+          description: Fixed wording that says this is an estimate. The web shows it loudly.
+        scenarios:
+          type: array
+          description: Empty until a parent saves their plan numbers. Vaginal, then cesarean.
+          items:
+            $ref: "#/components/schemas/BirthCostScenario"
+        referenceOutOfPocket:
+          type: object
+          description: What people with employer coverage actually paid out of pocket on average, for comparison.
+          required: [vaginalCents, cesareanCents, newbornCents]
+          properties:
+            vaginalCents:
+              type: integer
+              format: int64
+            cesareanCents:
+              type: integer
+              format: int64
+            newbornCents:
+              type: integer
+              format: int64
+        billingLines:
+          type: array
+          description: Bills a family usually sees, so none is a surprise. Names only, no amounts.
+          items:
+            type: string
+        questions:
+          type: array
+          description: Questions to ask the insurer and the hospital.
+          items:
+            type: string
+        enrollment:
+          type: object
+          required: [summary, source]
+          properties:
+            summary:
+              type: string
+            source:
+              $ref: "#/components/schemas/Source"
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/Source"
+
+    ChildcareKind:
+      type: string
+      enum: [center, home_based, nanny, family]
+
+    ChildcareStatus:
+      type: string
+      enum: [inquiring, toured, waitlisted, applied, accepted, declined]
+
+    ChildcareOptionInput:
+      type: object
+      required: [name, kind, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        kind:
+          $ref: "#/components/schemas/ChildcareKind"
+        status:
+          $ref: "#/components/schemas/ChildcareStatus"
+        monthlyCostCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 100000000
+        applicationDeadline:
+          type: string
+          format: date
+        waitlistPosition:
+          type: integer
+          minimum: 1
+          maximum: 9999
+        contact:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 1000
+
+    ChildcareOption:
+      allOf:
+        - $ref: "#/components/schemas/ChildcareOptionInput"
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+
+    ChildcareList:
+      type: object
+      required: [items, benchmark]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChildcareOption"
+        benchmark:
+          type: object
+          description: A typical yearly range for full-day care of one child, shown beside the options.
+          required: [lowMonthlyCents, highMonthlyCents, source]
+          properties:
+            lowMonthlyCents:
+              type: integer
+              format: int64
+            highMonthlyCents:
+              type: integer
+              format: int64
+            source:
+              $ref: "#/components/schemas/Source"
 
     InsuranceCallTopic:
       type: string
