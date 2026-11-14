@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	"errors"
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/plan"
@@ -18,11 +19,11 @@ func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObje
 	case kind == errNotFound:
 		return GetMemberPlan404JSONResponse(errNoMember), nil
 	}
-	items, err := plan.ForMember(ctx, s.q, familyID, req.MemberId, s.today(), s.cfg.Now())
+	items, err := plan.ForMember(ctx, s.q, familyID, req.MemberId, s.today(ctx), s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
-	out := Plan{MemberId: req.MemberId, GeneratedAt: s.cfg.Now().UTC(), Items: make([]PlanItem, 0, len(items))}
+	out := Plan{MemberId: req.MemberId, GeneratedAt: s.now(ctx).UTC(), Items: make([]PlanItem, 0, len(items))}
 	for _, it := range items {
 		out.Items = append(out.Items, planItemOut(it))
 	}
@@ -40,6 +41,10 @@ func planItemOut(it rules.Item) PlanItem {
 	if it.DueBy != nil {
 		pi.DueBy = &openapi_types.Date{Time: *it.DueBy}
 	}
+	if it.Progress != "" {
+		p := PlanItemProgress(it.Progress)
+		pi.Progress = &p
+	}
 	return pi
 }
 
@@ -49,8 +54,24 @@ func (s *Server) GetMemberWeeklyPlan(_ context.Context, _ GetMemberWeeklyPlanReq
 	return GetMemberWeeklyPlan501JSONResponse(Error{Code: "not_implemented", Message: "the weekly plan is not built yet"}), nil
 }
 
-// SetPlanItemProgress is a stub until the plan status store lands; the web app
-// hides the "Mark as booked" button until then (web/src/lib/features.ts).
+// SetPlanItemProgress records the acting parent's progress on an item of their
+// own plan. The other parent's plan is not affected.
 func (s *Server) SetPlanItemProgress(ctx context.Context, req SetPlanItemProgressRequestObject) (SetPlanItemProgressResponseObject, error) {
-	return SetPlanItemProgress501JSONResponse(Error{Code: "not_implemented", Message: "marking plan items is not available yet"}), nil
+	familyID, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return SetPlanItemProgress401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return SetPlanItemProgress404JSONResponse(errNoMember), nil
+	}
+	it, err := plan.SetProgress(ctx, s.pool, familyID, req.MemberId, req.RuleId, string(req.Body.Status), s.today(ctx), s.now(ctx))
+	switch {
+	case errors.Is(err, plan.ErrNotOnPlan):
+		return SetPlanItemProgress404JSONResponse(errNoPlanItem), nil
+	case err != nil:
+		return nil, err
+	}
+	return SetPlanItemProgress200JSONResponse(planItemOut(it)), nil
 }

@@ -1,5 +1,6 @@
 import type { Family, Task } from "@/lib/api/types";
 import { mock } from "../registry";
+import { dayOf, events, taskId as familyTaskId, taskPlan } from "../timeline";
 
 // Preview data for the Plan screen: the shared plan, US paperwork and the three
 // hospital bags of the demo family (Emily, partner Jake, due 2027-02-27). Dates
@@ -11,7 +12,7 @@ const store = new Map<string, Task[]>();
 
 // Server render and browser seed separately, so ids must match: derive them from
 // the family id (still a valid UUID, which the real API checks before it answers 501).
-const taskId = (familyId: string, n: number) => familyId.slice(0, 24) + n.toString(16).padStart(12, "0");
+const taskId = familyTaskId;
 
 const day = 86_400_000;
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * day).toISOString().slice(0, 10);
@@ -36,12 +37,14 @@ function seed(family: Family): Task[] {
     titles.map((title, i) => t({ title, assigneeId, kind: "hospital_bag", bag: b, done: i < packed }));
 
   return [
-    t({ title: "Book the birth class", assigneeId: partner, dueOn: addDays(now, 6) }),
-    t({ title: "Choose a pediatrician", assigneeId: mother, dueOn: addDays(now, 14), detail: "Ask your obstetrician for names, then check that each practice takes your insurance." }),
+    // These two are also on the calendar and Today: keep their positions (taskPlan.n).
+    t({ title: taskPlan.birthClass.title, assigneeId: partner, dueOn: dayOf(taskPlan.birthClass.day) }),
+    t({ title: taskPlan.pediatrician.title, assigneeId: mother, dueOn: dayOf(taskPlan.pediatrician.day), detail: "Ask your obstetrician for names, then check that each practice takes your insurance." }),
     t({ title: "Call the insurer about the hospital stay", assigneeId: partner, pendingAssigneeId: mother, dueOn: addDays(now, 21), detail: "Ask what a two night stay costs and whether the hospital is in network." }),
     t({ title: "Install the car seat", assigneeId: partner, dueOn: addDays(due, -28), detail: "Many fire stations and hospitals check the install for free." }),
     t({ title: "Plan leave dates with your employer", assigneeId: mother }),
-    t({ title: "Tour the maternity ward", assigneeId: mother, dueOn: addDays(now, -6), done: true }),
+    t({ title: events.birthCenterTour.title, assigneeId: partner, dueOn: dayOf(events.birthCenterTour.day) }),
+    t({ title: "Choose the hospital", assigneeId: mother, dueOn: addDays(now, -6), done: true }),
     paper({ title: "Tell HR about your leave", assigneeId: mother, offset: -109, detail: "FMLA asks for 30 days notice when the leave is foreseeable.", source: DOL }),
     paper({ title: "Check that the hospital is in network", assigneeId: partner, offset: -84, source: HEALTHCARE }),
     paper({ title: "Pre-register at the hospital", assigneeId: mother, offset: -49 }),

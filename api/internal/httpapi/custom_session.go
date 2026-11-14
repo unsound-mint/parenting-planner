@@ -20,7 +20,7 @@ func (s *Server) CreateCustomSession(ctx context.Context, req CreateCustomSessio
 	if b.ChildName != nil {
 		d.ChildName = *b.ChildName
 	}
-	familyID, token, err := demo.StartCustom(ctx, s.pool, d, s.today())
+	familyID, token, err := demo.StartCustom(ctx, s.pool, d, s.realToday())
 	if errors.Is(err, demo.ErrBadDetails) {
 		// ErrBadDetails messages are written for the visitor and hold no internals.
 		return CreateCustomSession400JSONResponse{Code: "bad_details", Message: err.Error()}, nil

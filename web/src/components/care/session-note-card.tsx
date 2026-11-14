@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PsychologistBooking } from "@/lib/api/types";
 import { formatClock, formatMonth, formatDayNumber } from "@/lib/format";
@@ -66,9 +65,8 @@ export function SessionNoteCard({ memberId, booking }: { memberId: string; booki
           {pending ? "Saving..." : "Save note"}
         </Button>
       </form>
-      <p className="mt-4 flex items-center gap-2 border-t border-border pt-3 text-caption text-muted-foreground">
-        <Lock className="size-3.5 shrink-0" aria-hidden />
-        Private to you. It only changes your own plan.
+      <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
+        It only changes your own plan.
       </p>
     </section>
   );

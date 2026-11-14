@@ -54,11 +54,12 @@ type Child struct {
 }
 
 type Family struct {
-	ID        uuid.UUID
-	Template  string
-	Stage     string
-	DueDate   *time.Time
-	CreatedAt time.Time
+	ID             uuid.UUID
+	Template       string
+	Stage          string
+	DueDate        *time.Time
+	CreatedAt      time.Time
+	DemoOffsetDays int32
 }
 
 type GrowthMeasurement struct {
@@ -117,6 +118,15 @@ type MoodCheckin struct {
 	Energy        int16
 	SleepHours    float64
 	Note          *string
+}
+
+type PlanItemProgress struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	MemberID  uuid.UUID
+	RuleID    string
+	Status    string
+	UpdatedAt time.Time
 }
 
 type Psychologist struct {

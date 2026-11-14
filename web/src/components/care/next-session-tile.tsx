@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Clock, ListChecks, Lock } from "lucide-react";
+import { CalendarPlus, Clock } from "lucide-react";
 import type { PsychologistBooking } from "@/lib/api/types";
 import { formatClock, formatDayNumber, formatMonth, formatWeekday } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ function icsHref(b: PsychologistBooking): string {
 
 // The booked session: the countdown is the picture, the slot and one action
 // sit beside it. Visible to the booking parent only.
-export function NextSessionTile({ booking, topicCount }: { booking: PsychologistBooking; topicCount: number }) {
+export function NextSessionTile({ booking }: { booking: PsychologistBooking }) {
   return (
     <section aria-labelledby="session-title" className="rounded-2xl border border-primary/30 bg-secondary/60 p-5 sm:p-6">
       <h2 id="session-title" className="sr-only">
@@ -57,15 +57,7 @@ export function NextSessionTile({ booking, topicCount }: { booking: Psychologist
           <CalendarPlus aria-hidden />
           Add to calendar
         </Button>
-        <p className="flex items-center gap-2 text-label text-muted-foreground">
-          <ListChecks className="size-4" aria-hidden />
-          {topicCount} {topicCount === 1 ? "topic" : "topics"} ready
-        </p>
       </div>
-      <p className="mt-4 flex items-center gap-2 text-caption text-muted-foreground">
-        <Lock className="size-3.5" aria-hidden />
-        Only you can see this booking.
-      </p>
     </section>
   );
 }

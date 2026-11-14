@@ -84,7 +84,7 @@ func (s *Server) contentState(ctx context.Context, familyID uuid.UUID) (content.
 	if err != nil {
 		return content.State{}, false, err
 	}
-	today := s.today()
+	today := s.today(ctx)
 	st := content.State{Stage: fam.Stage}
 	st.Week, st.HasWeek = rules.Facts{Today: today, Stage: fam.Stage, DueDate: fam.DueDate}.GestationalWeek()
 	if n := len(kids); n > 0 {

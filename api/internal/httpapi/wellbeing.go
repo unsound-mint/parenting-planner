@@ -23,7 +23,7 @@ func (s *Server) CreateMoodCheckin(ctx context.Context, req CreateMoodCheckinReq
 	b := req.Body
 	c, err := wellbeing.CreateMoodCheckin(ctx, s.pool, familyID, req.MemberId, wellbeing.NewMoodCheckin{
 		Mood: int16(b.Mood), Energy: int16(b.Energy), SleepHours: float64(b.SleepHours), Note: b.Note,
-		Visibility: access.Visibility(b.Visibility), RecordedAt: s.cfg.Now(),
+		Visibility: access.Visibility(b.Visibility), RecordedAt: s.now(ctx),
 	})
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (s *Server) ListMoodCheckins(ctx context.Context, req ListMoodCheckinsReque
 	case kind == errNotFound:
 		return ListMoodCheckins404JSONResponse(errNoMember), nil
 	}
-	rows, err := wellbeing.ListMoodCheckins(ctx, s.pool, familyID, req.MemberId, s.cfg.Now())
+	rows, err := wellbeing.ListMoodCheckins(ctx, s.pool, familyID, req.MemberId, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -59,4 +59,19 @@ func moodCheckinOut(c store.MoodCheckin) MoodCheckin {
 		Mood: int(c.Mood), Energy: int(c.Energy), SleepHours: float32(c.SleepHours),
 		Note: c.Note, Visibility: Visibility(c.Visibility),
 	}
+}
+
+// STUB for #270: Sofia's diary handlers from #202 replace these three when
+// it merges (same operation ids, same file).
+
+func (s *Server) CreateDiaryEntry(_ context.Context, _ CreateDiaryEntryRequestObject) (CreateDiaryEntryResponseObject, error) {
+	return CreateDiaryEntry501JSONResponse(Error{Code: "not_implemented", Message: "the diary is not available yet"}), nil
+}
+
+func (s *Server) ListDiaryEntries(_ context.Context, _ ListDiaryEntriesRequestObject) (ListDiaryEntriesResponseObject, error) {
+	return ListDiaryEntries501JSONResponse(Error{Code: "not_implemented", Message: "the diary is not available yet"}), nil
+}
+
+func (s *Server) UpdateDiaryEntry(_ context.Context, _ UpdateDiaryEntryRequestObject) (UpdateDiaryEntryResponseObject, error) {
+	return UpdateDiaryEntry501JSONResponse(Error{Code: "not_implemented", Message: "the diary is not available yet"}), nil
 }

@@ -17,8 +17,8 @@ func (s *Server) GetMemberJourney(ctx context.Context, req GetMemberJourneyReque
 	case kind == errNotFound:
 		return GetMemberJourney404JSONResponse(errNoMember), nil
 	}
-	today := s.today()
-	j, err := journey.ForMember(ctx, s.q, familyID, req.MemberId, today, s.cfg.Now())
+	today := s.today(ctx)
+	j, err := journey.ForMember(ctx, s.q, familyID, req.MemberId, today, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (s *Server) GetMemberJourney(ctx context.Context, req GetMemberJourneyReque
 		cur.ChildId, cur.ChildAgeWeeks, cur.ChildAgeMonths = &c.ID, &weeks, &months
 	}
 	out := Journey{
-		MemberId: req.MemberId, GeneratedAt: s.cfg.Now().UTC(), Current: cur,
+		MemberId: req.MemberId, GeneratedAt: s.now(ctx).UTC(), Current: cur,
 		Stages: make([]JourneySpan, 0, len(j.Stages)), Upcoming: make([]PlanItem, 0, len(j.Upcoming)),
 	}
 	for _, sp := range j.Stages {

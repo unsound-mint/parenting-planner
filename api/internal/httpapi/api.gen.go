@@ -43,6 +43,54 @@ func (e AllergyCertainty) Valid() bool {
 	}
 }
 
+// Defines values for AnalyticsMetric.
+const (
+	AnalyticsMetricBookingRequested     AnalyticsMetric = "booking_requested"
+	AnalyticsMetricCareLogEntryCreated  AnalyticsMetric = "care_log_entry_created"
+	AnalyticsMetricCheckoutPaid         AnalyticsMetric = "checkout_paid"
+	AnalyticsMetricCheckoutStarted      AnalyticsMetric = "checkout_started"
+	AnalyticsMetricCustomFamilyStarted  AnalyticsMetric = "custom_family_started"
+	AnalyticsMetricDemoStarted          AnalyticsMetric = "demo_started"
+	AnalyticsMetricHandoffCreated       AnalyticsMetric = "handoff_created"
+	AnalyticsMetricInvitationAccepted   AnalyticsMetric = "invitation_accepted"
+	AnalyticsMetricPartnerOfferClicked  AnalyticsMetric = "partner_offer_clicked"
+	AnalyticsMetricSimulatorRoundPlayed AnalyticsMetric = "simulator_round_played"
+	AnalyticsMetricTaskCreated          AnalyticsMetric = "task_created"
+	AnalyticsMetricTaskDone             AnalyticsMetric = "task_done"
+)
+
+// Valid indicates whether the value is a known member of the AnalyticsMetric enum.
+func (e AnalyticsMetric) Valid() bool {
+	switch e {
+	case AnalyticsMetricBookingRequested:
+		return true
+	case AnalyticsMetricCareLogEntryCreated:
+		return true
+	case AnalyticsMetricCheckoutPaid:
+		return true
+	case AnalyticsMetricCheckoutStarted:
+		return true
+	case AnalyticsMetricCustomFamilyStarted:
+		return true
+	case AnalyticsMetricDemoStarted:
+		return true
+	case AnalyticsMetricHandoffCreated:
+		return true
+	case AnalyticsMetricInvitationAccepted:
+		return true
+	case AnalyticsMetricPartnerOfferClicked:
+		return true
+	case AnalyticsMetricSimulatorRoundPlayed:
+		return true
+	case AnalyticsMetricTaskCreated:
+		return true
+	case AnalyticsMetricTaskDone:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for BookingRequestStatus.
 const (
 	Requested BookingRequestStatus = "requested"
@@ -109,6 +157,24 @@ func (e CalendarEventKind) Valid() bool {
 	case CalendarEventKindShift:
 		return true
 	case CalendarEventKindTask:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CalendarFeedScope.
+const (
+	CalendarFeedScopeFamily CalendarFeedScope = "family"
+	CalendarFeedScopeMine   CalendarFeedScope = "mine"
+)
+
+// Valid indicates whether the value is a known member of the CalendarFeedScope enum.
+func (e CalendarFeedScope) Valid() bool {
+	switch e {
+	case CalendarFeedScopeFamily:
+		return true
+	case CalendarFeedScopeMine:
 		return true
 	default:
 		return false
@@ -274,6 +340,30 @@ func (e CheckoutSessionStatus) Valid() bool {
 	}
 }
 
+// Defines values for ContentKind.
+const (
+	ContentKindChecklistItem     ContentKind = "checklist_item"
+	ContentKindGuide             ContentKind = "guide"
+	ContentKindPregnancyWeek     ContentKind = "pregnancy_week"
+	ContentKindSimulatorQuestion ContentKind = "simulator_question"
+)
+
+// Valid indicates whether the value is a known member of the ContentKind enum.
+func (e ContentKind) Valid() bool {
+	switch e {
+	case ContentKindChecklistItem:
+		return true
+	case ContentKindGuide:
+		return true
+	case ContentKindPregnancyWeek:
+		return true
+	case ContentKindSimulatorQuestion:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DemoTemplate.
 const (
 	DemoTemplateCustom    DemoTemplate = "custom"
@@ -303,19 +393,19 @@ func (e DemoTemplate) Valid() bool {
 
 // Defines values for DiaperContent.
 const (
-	Both  DiaperContent = "both"
-	Dirty DiaperContent = "dirty"
-	Wet   DiaperContent = "wet"
+	DiaperContentBoth  DiaperContent = "both"
+	DiaperContentDirty DiaperContent = "dirty"
+	DiaperContentWet   DiaperContent = "wet"
 )
 
 // Valid indicates whether the value is a known member of the DiaperContent enum.
 func (e DiaperContent) Valid() bool {
 	switch e {
-	case Both:
+	case DiaperContentBoth:
 		return true
-	case Dirty:
+	case DiaperContentDirty:
 		return true
-	case Wet:
+	case DiaperContentWet:
 		return true
 	default:
 		return false
@@ -369,8 +459,9 @@ func (e GuideAudience) Valid() bool {
 
 // Defines values for GuideKind.
 const (
-	Article   GuideKind = "article"
-	BirthPrep GuideKind = "birth_prep"
+	Article     GuideKind = "article"
+	BirthPrep   GuideKind = "birth_prep"
+	LossSupport GuideKind = "loss_support"
 )
 
 // Valid indicates whether the value is a known member of the GuideKind enum.
@@ -379,6 +470,8 @@ func (e GuideKind) Valid() bool {
 	case Article:
 		return true
 	case BirthPrep:
+		return true
+	case LossSupport:
 		return true
 	default:
 		return false
@@ -418,6 +511,36 @@ func (e HospitalBag) Valid() bool {
 	case HospitalBagMother:
 		return true
 	case HospitalBagPartner:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for InsuranceCallTopic.
+const (
+	InsuranceCallTopicAddBaby            InsuranceCallTopic = "add_baby"
+	InsuranceCallTopicBilling            InsuranceCallTopic = "billing"
+	InsuranceCallTopicClaim              InsuranceCallTopic = "claim"
+	InsuranceCallTopicCoverage           InsuranceCallTopic = "coverage"
+	InsuranceCallTopicOther              InsuranceCallTopic = "other"
+	InsuranceCallTopicPriorAuthorization InsuranceCallTopic = "prior_authorization"
+)
+
+// Valid indicates whether the value is a known member of the InsuranceCallTopic enum.
+func (e InsuranceCallTopic) Valid() bool {
+	switch e {
+	case InsuranceCallTopicAddBaby:
+		return true
+	case InsuranceCallTopicBilling:
+		return true
+	case InsuranceCallTopicClaim:
+		return true
+	case InsuranceCallTopicCoverage:
+		return true
+	case InsuranceCallTopicOther:
+		return true
+	case InsuranceCallTopicPriorAuthorization:
 		return true
 	default:
 		return false
@@ -523,6 +646,48 @@ func (e LabFlagDirection) Valid() bool {
 	}
 }
 
+// Defines values for LeaveEligibility.
+const (
+	Eligible    LeaveEligibility = "eligible"
+	NotEligible LeaveEligibility = "not_eligible"
+	Unknown     LeaveEligibility = "unknown"
+)
+
+// Valid indicates whether the value is a known member of the LeaveEligibility enum.
+func (e LeaveEligibility) Valid() bool {
+	switch e {
+	case Eligible:
+		return true
+	case NotEligible:
+		return true
+	case Unknown:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LeaveProgramKind.
+const (
+	LeaveProgramKindBoth          LeaveProgramKind = "both"
+	LeaveProgramKindJobProtection LeaveProgramKind = "job_protection"
+	LeaveProgramKindPaidLeave     LeaveProgramKind = "paid_leave"
+)
+
+// Valid indicates whether the value is a known member of the LeaveProgramKind enum.
+func (e LeaveProgramKind) Valid() bool {
+	switch e {
+	case LeaveProgramKindBoth:
+		return true
+	case LeaveProgramKindJobProtection:
+		return true
+	case LeaveProgramKindPaidLeave:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MoodPatternKind.
 const (
 	LowMood         MoodPatternKind = "low_mood"
@@ -535,6 +700,45 @@ func (e MoodPatternKind) Valid() bool {
 	case LowMood:
 		return true
 	case LowMoodAndSleep:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for NotificationKind.
+const (
+	NotificationKindAppointmentReminder NotificationKind = "appointment_reminder"
+	NotificationKindHandoffAccepted     NotificationKind = "handoff_accepted"
+	NotificationKindHandoffReceived     NotificationKind = "handoff_received"
+	NotificationKindInvitationAccepted  NotificationKind = "invitation_accepted"
+	NotificationKindPlanItemDue         NotificationKind = "plan_item_due"
+	NotificationKindSubscriptionStarted NotificationKind = "subscription_started"
+	NotificationKindTaskOfferAnswered   NotificationKind = "task_offer_answered"
+	NotificationKindTaskOffered         NotificationKind = "task_offered"
+	NotificationKindValueFlagged        NotificationKind = "value_flagged"
+)
+
+// Valid indicates whether the value is a known member of the NotificationKind enum.
+func (e NotificationKind) Valid() bool {
+	switch e {
+	case NotificationKindAppointmentReminder:
+		return true
+	case NotificationKindHandoffAccepted:
+		return true
+	case NotificationKindHandoffReceived:
+		return true
+	case NotificationKindInvitationAccepted:
+		return true
+	case NotificationKindPlanItemDue:
+		return true
+	case NotificationKindSubscriptionStarted:
+		return true
+	case NotificationKindTaskOfferAnswered:
+		return true
+	case NotificationKindTaskOffered:
+		return true
+	case NotificationKindValueFlagged:
 		return true
 	default:
 		return false
@@ -639,31 +843,31 @@ func (e PersonRole) Valid() bool {
 
 // Defines values for PlanCategory.
 const (
-	Couple       PlanCategory = "couple"
-	Learning     PlanCategory = "learning"
-	Logistics    PlanCategory = "logistics"
-	MentalHealth PlanCategory = "mental_health"
-	Screening    PlanCategory = "screening"
-	Vaccine      PlanCategory = "vaccine"
-	Visit        PlanCategory = "visit"
+	PlanCategoryCouple       PlanCategory = "couple"
+	PlanCategoryLearning     PlanCategory = "learning"
+	PlanCategoryLogistics    PlanCategory = "logistics"
+	PlanCategoryMentalHealth PlanCategory = "mental_health"
+	PlanCategoryScreening    PlanCategory = "screening"
+	PlanCategoryVaccine      PlanCategory = "vaccine"
+	PlanCategoryVisit        PlanCategory = "visit"
 )
 
 // Valid indicates whether the value is a known member of the PlanCategory enum.
 func (e PlanCategory) Valid() bool {
 	switch e {
-	case Couple:
+	case PlanCategoryCouple:
 		return true
-	case Learning:
+	case PlanCategoryLearning:
 		return true
-	case Logistics:
+	case PlanCategoryLogistics:
 		return true
-	case MentalHealth:
+	case PlanCategoryMentalHealth:
 		return true
-	case Screening:
+	case PlanCategoryScreening:
 		return true
-	case Vaccine:
+	case PlanCategoryVaccine:
 		return true
-	case Visit:
+	case PlanCategoryVisit:
 		return true
 	default:
 		return false
@@ -736,6 +940,66 @@ func (e ProviderType) Valid() bool {
 	case ProviderTypeSleepConsultant:
 		return true
 	case ProviderTypeTutor:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ScreeningBand.
+const (
+	Amber ScreeningBand = "amber"
+	Green ScreeningBand = "green"
+	Red   ScreeningBand = "red"
+)
+
+// Valid indicates whether the value is a known member of the ScreeningBand enum.
+func (e ScreeningBand) Valid() bool {
+	switch e {
+	case Amber:
+		return true
+	case Green:
+		return true
+	case Red:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ScreeningInstrument.
+const (
+	Epds ScreeningInstrument = "epds"
+	Phq9 ScreeningInstrument = "phq9"
+)
+
+// Valid indicates whether the value is a known member of the ScreeningInstrument enum.
+func (e ScreeningInstrument) Valid() bool {
+	switch e {
+	case Epds:
+		return true
+	case Phq9:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ScreeningKind.
+const (
+	Gbs           ScreeningKind = "gbs"
+	GlucoseScreen ScreeningKind = "glucose_screen"
+	VisionScreen  ScreeningKind = "vision_screen"
+)
+
+// Valid indicates whether the value is a known member of the ScreeningKind enum.
+func (e ScreeningKind) Valid() bool {
+	switch e {
+	case Gbs:
+		return true
+	case GlucoseScreen:
+		return true
+	case VisionScreen:
 		return true
 	default:
 		return false
@@ -943,6 +1207,60 @@ func (e Tier) Valid() bool {
 	}
 }
 
+// Defines values for VaccineKey.
+const (
+	Covid19   VaccineKey = "covid19"
+	Dtap      VaccineKey = "dtap"
+	Flu       VaccineKey = "flu"
+	Hepa      VaccineKey = "hepa"
+	Hepb      VaccineKey = "hepb"
+	Hib       VaccineKey = "hib"
+	Ipv       VaccineKey = "ipv"
+	Mmr       VaccineKey = "mmr"
+	Pcv       VaccineKey = "pcv"
+	Rotavirus VaccineKey = "rotavirus"
+	Rsv       VaccineKey = "rsv"
+	Td        VaccineKey = "td"
+	Tdap      VaccineKey = "tdap"
+	Varicella VaccineKey = "varicella"
+)
+
+// Valid indicates whether the value is a known member of the VaccineKey enum.
+func (e VaccineKey) Valid() bool {
+	switch e {
+	case Covid19:
+		return true
+	case Dtap:
+		return true
+	case Flu:
+		return true
+	case Hepa:
+		return true
+	case Hepb:
+		return true
+	case Hib:
+		return true
+	case Ipv:
+		return true
+	case Mmr:
+		return true
+	case Pcv:
+		return true
+	case Rotavirus:
+		return true
+	case Rsv:
+		return true
+	case Td:
+		return true
+	case Tdap:
+		return true
+	case Varicella:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for VaccineStatus.
 const (
 	VaccineStatusDone     VaccineStatus = "done"
@@ -1055,8 +1373,11 @@ type AccessLogList struct {
 
 // AgendaTopic defines model for AgendaTopic.
 type AgendaTopic struct {
-	AddedAt time.Time          `json:"addedAt"`
-	Id      openapi_types.UUID `json:"id"`
+	AddedAt time.Time `json:"addedAt"`
+
+	// DiaryEntryId Set when the topic came from one of the parent's diary entries (DiaryEntry.agendaTopic).
+	DiaryEntryId *openapi_types.UUID `json:"diaryEntryId,omitempty"`
+	Id           openapi_types.UUID  `json:"id"`
 
 	// Text The topic the parent chose, never the entry text.
 	Text string `json:"text"`
@@ -1083,6 +1404,38 @@ type Allergy struct {
 
 // AllergyCertainty confirmed = diagnosed by a clinician; suspected = noticed at home, not yet tested.
 type AllergyCertainty string
+
+// Analytics defines model for Analytics.
+type Analytics struct {
+	From        openapi_types.Date `json:"from"`
+	GeneratedAt time.Time          `json:"generatedAt"`
+
+	// Series One per AnalyticsMetric, in enum order.
+	Series []AnalyticsSeries `json:"series"`
+
+	// Templates Demo families started in the window, per template.
+	Templates []TemplateCount    `json:"templates"`
+	To        openapi_types.Date `json:"to"`
+}
+
+// AnalyticsDay defines model for AnalyticsDay.
+type AnalyticsDay struct {
+	Count int                `json:"count"`
+	Date  openapi_types.Date `json:"date"`
+}
+
+// AnalyticsMetric Each is a count of events, never of health records.
+type AnalyticsMetric string
+
+// AnalyticsSeries defines model for AnalyticsSeries.
+type AnalyticsSeries struct {
+	// Days Oldest first, one per day in the window, zeros included.
+	Days []AnalyticsDay `json:"days"`
+
+	// Metric Each is a count of events, never of health records.
+	Metric AnalyticsMetric `json:"metric"`
+	Total  int             `json:"total"`
+}
 
 // AppointmentQuestion defines model for AppointmentQuestion.
 type AppointmentQuestion struct {
@@ -1238,6 +1591,28 @@ type CalendarEventList struct {
 	Items []CalendarEvent    `json:"items"`
 	To    openapi_types.Date `json:"to"`
 }
+
+// CalendarFeed defines model for CalendarFeed.
+type CalendarFeed struct {
+	Active        bool       `json:"active"`
+	CreatedAt     *time.Time `json:"createdAt,omitempty"`
+	LastFetchedAt *time.Time `json:"lastFetchedAt,omitempty"`
+
+	// Scope mine = the person's own events and shifts; family = what scope family shows them (parents only).
+	Scope *CalendarFeedScope `json:"scope,omitempty"`
+
+	// Url The secret subscription URL (https://.../api/calendar-feeds/<token>). Only in the createCalendarFeed response.
+	Url *string `json:"url,omitempty"`
+}
+
+// CalendarFeedInput defines model for CalendarFeedInput.
+type CalendarFeedInput struct {
+	// Scope mine = the person's own events and shifts; family = what scope family shows them (parents only).
+	Scope CalendarFeedScope `json:"scope"`
+}
+
+// CalendarFeedScope mine = the person's own events and shifts; family = what scope family shows them (parents only).
+type CalendarFeedScope string
 
 // CalendarScope Default family for parents; caregivers may only use mine.
 type CalendarScope string
@@ -1402,6 +1777,45 @@ type ChildPassport struct {
 	Vaccines *[]VaccineDose `json:"vaccines,omitempty"`
 }
 
+// ContentItem defines model for ContentItem.
+type ContentItem struct {
+	Body string `json:"body"`
+
+	// Edited True when this demo copy changed it.
+	Edited bool `json:"edited"`
+
+	// Id The catalog slug.
+	Id string `json:"id"`
+
+	// Kind pregnancy_week = a weekly pregnancy card (body: development);
+	// guide = a guide or birth prep module (body: summary);
+	// simulator_question = a practice question (body: the prompt);
+	// checklist_item = a paperwork or hospital bag catalog item (body:
+	// detail). Health content keeps its catalog Source.
+	Kind      ContentKind `json:"kind"`
+	Source    *Source     `json:"source,omitempty"`
+	Title     string      `json:"title"`
+	UpdatedAt *time.Time  `json:"updatedAt,omitempty"`
+}
+
+// ContentItemList defines model for ContentItemList.
+type ContentItemList struct {
+	Items []ContentItem `json:"items"`
+}
+
+// ContentItemUpdate defines model for ContentItemUpdate.
+type ContentItemUpdate struct {
+	Body  *string `json:"body,omitempty"`
+	Title *string `json:"title,omitempty"`
+}
+
+// ContentKind pregnancy_week = a weekly pregnancy card (body: development);
+// guide = a guide or birth prep module (body: summary);
+// simulator_question = a practice question (body: the prompt);
+// checklist_item = a paperwork or hospital bag catalog item (body:
+// detail). Health content keeps its catalog Source.
+type ContentKind string
+
 // CreateDemoSessionRequest defines model for CreateDemoSessionRequest.
 type CreateDemoSessionRequest struct {
 	// Template Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists. `custom` marks a family built from the visitor's own details (createCustomSession); createDemoSession rejects it with 400.
@@ -1444,6 +1858,50 @@ type DemoTemplate string
 // DiaperContent defines model for DiaperContent.
 type DiaperContent string
 
+// DiaryEntry defines model for DiaryEntry.
+type DiaryEntry struct {
+	// AgendaTopic Only on the author's own entries.
+	AgendaTopic *string            `json:"agendaTopic,omitempty"`
+	AuthorId    openapi_types.UUID `json:"authorId"`
+	Body        string             `json:"body"`
+	Id          openapi_types.UUID `json:"id"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+	WrittenAt  time.Time  `json:"writtenAt"`
+}
+
+// DiaryEntryInput defines model for DiaryEntryInput.
+type DiaryEntryInput struct {
+	// AgendaTopic A short topic for the author's next psychologist session, never the entry text.
+	AgendaTopic *string `json:"agendaTopic,omitempty"`
+	Body        string  `json:"body"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// DiaryEntryList defines model for DiaryEntryList.
+type DiaryEntryList struct {
+	// Items Newest first.
+	Items []DiaryEntry `json:"items"`
+}
+
+// DiaryEntryUpdate defines model for DiaryEntryUpdate.
+type DiaryEntryUpdate struct {
+	// AgendaTopic Set or change the agenda topic; an empty string removes it. Leave out to keep it.
+	AgendaTopic *string `json:"agendaTopic,omitempty"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
 // EmergencyContact defines model for EmergencyContact.
 type EmergencyContact struct {
 	Name  string `json:"name"`
@@ -1479,6 +1937,9 @@ type Family struct {
 	GestationalWeek *int               `json:"gestationalWeek,omitempty"`
 	Id              openapi_types.UUID `json:"id"`
 	Parents         []Parent           `json:"parents"`
+
+	// PregnancyLoss Set while the family is in pregnancy loss support.
+	PregnancyLoss *PregnancyLoss `json:"pregnancyLoss,omitempty"`
 
 	// Stage Where the family is on the journey from planning to age 9.
 	Stage Stage `json:"stage"`
@@ -1530,7 +1991,7 @@ type Guide struct {
 	// Example: birth-prep-breathing
 	Id string `json:"id"`
 
-	// Kind article = stage content; birth_prep = a birth preparation module.
+	// Kind article = stage content; birth_prep = a birth preparation module; loss_support = support after a pregnancy loss, returned only while Family.pregnancyLoss is set.
 	Kind GuideKind `json:"kind"`
 
 	// Locked True for birth prep before week 32.
@@ -1557,7 +2018,7 @@ type Guide struct {
 // GuideAudience defines model for GuideAudience.
 type GuideAudience string
 
-// GuideKind article = stage content; birth_prep = a birth preparation module.
+// GuideKind article = stage content; birth_prep = a birth preparation module; loss_support = support after a pregnancy loss, returned only while Family.pregnancyLoss is set.
 type GuideKind string
 
 // GuideList defines model for GuideList.
@@ -1577,6 +2038,7 @@ type Handoff struct {
 	ShiftId      *openapi_types.UUID `json:"shiftId,omitempty"`
 	Status       HandoffStatus       `json:"status"`
 	ToMemberId   openapi_types.UUID  `json:"toMemberId"`
+	VoiceNote    *VoiceNote          `json:"voiceNote,omitempty"`
 }
 
 // HandoffInput defines model for HandoffInput.
@@ -1587,6 +2049,9 @@ type HandoffInput struct {
 	// ShiftId The receiver's shift this handoff starts, when there is one.
 	ShiftId    *openapi_types.UUID `json:"shiftId,omitempty"`
 	ToMemberId openapi_types.UUID  `json:"toMemberId"`
+
+	// VoiceNoteId A voice note the acting person uploaded with createVoiceNote and has not attached yet.
+	VoiceNoteId *openapi_types.UUID `json:"voiceNoteId,omitempty"`
 }
 
 // HandoffList defines model for HandoffList.
@@ -1600,6 +2065,69 @@ type HandoffStatus string
 
 // HospitalBag Which of the three hospital bag lists an item is on.
 type HospitalBag string
+
+// ImmunizationInput defines model for ImmunizationInput.
+type ImmunizationInput struct {
+	// ChildId Set to log the dose for this child; leave out for the acting parent.
+	ChildId *openapi_types.UUID `json:"childId,omitempty"`
+
+	// Dose Example: Dose 1 of 5
+	Dose *string `json:"dose,omitempty"`
+
+	// GivenOn Not in the future (400).
+	GivenOn openapi_types.Date `json:"givenOn"`
+
+	// Vaccine The vaccine keys the rules read.
+	Vaccine VaccineKey `json:"vaccine"`
+}
+
+// InsuranceCall defines model for InsuranceCall.
+type InsuranceCall struct {
+	AuthorId        openapi_types.UUID  `json:"authorId"`
+	CalledAt        time.Time           `json:"calledAt"`
+	CreatedAt       time.Time           `json:"createdAt"`
+	FollowUpOn      *openapi_types.Date `json:"followUpOn,omitempty"`
+	Id              openapi_types.UUID  `json:"id"`
+	Insurer         string              `json:"insurer"`
+	ReferenceNumber *string             `json:"referenceNumber,omitempty"`
+	Representative  *string             `json:"representative,omitempty"`
+	Summary         string              `json:"summary"`
+	Topic           InsuranceCallTopic  `json:"topic"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// InsuranceCallInput defines model for InsuranceCallInput.
+type InsuranceCallInput struct {
+	CalledAt   time.Time           `json:"calledAt"`
+	FollowUpOn *openapi_types.Date `json:"followUpOn,omitempty"`
+	Insurer    string              `json:"insurer"`
+
+	// ReferenceNumber The call or claim reference the insurer gave.
+	ReferenceNumber *string `json:"referenceNumber,omitempty"`
+	Representative  *string `json:"representative,omitempty"`
+
+	// Summary What was said and promised.
+	Summary string             `json:"summary"`
+	Topic   InsuranceCallTopic `json:"topic"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// InsuranceCallList defines model for InsuranceCallList.
+type InsuranceCallList struct {
+	// Items Newest first.
+	Items []InsuranceCall `json:"items"`
+}
+
+// InsuranceCallTopic defines model for InsuranceCallTopic.
+type InsuranceCallTopic string
 
 // Invitation defines model for Invitation.
 type Invitation struct {
@@ -1790,6 +2318,104 @@ type LabResult struct {
 	Visibility Visibility `json:"visibility"`
 }
 
+// LabResultInput defines model for LabResultInput.
+type LabResultInput struct {
+	ChildId *openapi_types.UUID `json:"childId,omitempty"`
+
+	// Name Example: Ferritin
+	Name    string   `json:"name"`
+	RefHigh *float32 `json:"refHigh,omitempty"`
+	RefLow  *float32 `json:"refLow,omitempty"`
+
+	// TakenOn Not in the future (400).
+	TakenOn openapi_types.Date `json:"takenOn"`
+
+	// Unit Example: ng/mL
+	Unit  string  `json:"unit"`
+	Value float32 `json:"value"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// LeaveDeadline defines model for LeaveDeadline.
+type LeaveDeadline struct {
+	DueOn     openapi_types.Date `json:"dueOn"`
+	ProgramId *string            `json:"programId,omitempty"`
+	Source    Source             `json:"source"`
+
+	// TaskId The paperwork task for the same step, when the checklist has one.
+	TaskId *openapi_types.UUID `json:"taskId,omitempty"`
+
+	// Title Example: Give your employer written notice
+	Title string `json:"title"`
+}
+
+// LeaveEligibility unknown = the answers are not enough to tell; the reason says what to ask HR.
+type LeaveEligibility string
+
+// LeavePlan defines model for LeavePlan.
+type LeavePlan struct {
+	// Parents The acting parent first, then the other parent.
+	Parents []ParentLeave `json:"parents"`
+}
+
+// LeavePlanInput The wizard's answers for one parent. Nothing about health.
+type LeavePlanInput struct {
+	// EmployerEmployees People the employer has at or near the parent's worksite; 0 for self-employed.
+	EmployerEmployees int `json:"employerEmployees"`
+	HoursLast12Months int `json:"hoursLast12Months"`
+
+	// MonthsEmployed Months with the current employer.
+	MonthsEmployed int `json:"monthsEmployed"`
+
+	// StartsOn First day of leave. Leave out to start on the due date or birth date.
+	StartsOn *openapi_types.Date `json:"startsOn,omitempty"`
+
+	// State Two-letter US state code.
+	//
+	// Example: CA
+	State       UsState `json:"state"`
+	WeeksWanted *int    `json:"weeksWanted,omitempty"`
+}
+
+// LeaveProgram defines model for LeaveProgram.
+type LeaveProgram struct {
+	// Eligibility unknown = the answers are not enough to tell; the reason says what to ask HR.
+	Eligibility LeaveEligibility `json:"eligibility"`
+
+	// Id Catalog slug, for example fmla or ca_pfl.
+	Id string `json:"id"`
+
+	// Kind job_protection = your job is held but unpaid; paid_leave = wage replacement; both = the program does both.
+	Kind LeaveProgramKind `json:"kind"`
+	Name string           `json:"name"`
+
+	// Pay What it pays, in plain words, for paid programs.
+	Pay *string `json:"pay,omitempty"`
+
+	// Reason Which answers decided the eligibility.
+	Reason string `json:"reason"`
+	Source Source `json:"source"`
+
+	// Weeks Weeks this parent can take under the program, when eligible.
+	Weeks *int `json:"weeks,omitempty"`
+}
+
+// LeaveProgramKind job_protection = your job is held but unpaid; paid_leave = wage replacement; both = the program does both.
+type LeaveProgramKind string
+
+// LeaveSegment One stretch of the timeline where the same programs apply.
+type LeaveSegment struct {
+	EndsOn       openapi_types.Date `json:"endsOn"`
+	JobProtected bool               `json:"jobProtected"`
+	Paid         bool               `json:"paid"`
+	ProgramIds   []string           `json:"programIds"`
+	StartsOn     openapi_types.Date `json:"startsOn"`
+}
+
 // MedicalHistoryEntry defines model for MedicalHistoryEntry.
 type MedicalHistoryEntry struct {
 	Date   openapi_types.Date `json:"date"`
@@ -1870,6 +2496,120 @@ type MoodPatternList struct {
 	Items []MoodPattern `json:"items"`
 }
 
+// MoodScreeningInput defines model for MoodScreeningInput.
+type MoodScreeningInput struct {
+	// Answers One score per question, in order.
+	Answers []int `json:"answers"`
+
+	// Instrument epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
+	Instrument ScreeningInstrument `json:"instrument"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// MoodScreeningList defines model for MoodScreeningList.
+type MoodScreeningList struct {
+	// Items Newest first.
+	Items []MoodScreeningResult `json:"items"`
+}
+
+// MoodScreeningResult defines model for MoodScreeningResult.
+type MoodScreeningResult struct {
+	AuthorId openapi_types.UUID `json:"authorId"`
+
+	// Band green = below the instrument's cutoff; amber = near it, repeat in
+	// two weeks and mention it at the next visit; red = at or above it,
+	// talk to a doctor or midwife soon. Cutoffs come from the
+	// instrument's source and are never a diagnosis.
+	Band ScreeningBand      `json:"band"`
+	Id   openapi_types.UUID `json:"id"`
+
+	// Instrument epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
+	Instrument ScreeningInstrument `json:"instrument"`
+	MaxScore   int                 `json:"maxScore"`
+
+	// Message Fixed wording for the band, never generated. Only on the author's own results.
+	Message *string   `json:"message,omitempty"`
+	Score   int       `json:"score"`
+	Source  Source    `json:"source"`
+	TakenAt time.Time `json:"takenAt"`
+
+	// Urgent The self-harm question was answered above its lowest value. Open the fixed crisis screen. Always false for someone else's result.
+	Urgent bool `json:"urgent"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// Notification defines model for Notification.
+type Notification struct {
+	// ActorId Who caused it, when a person did.
+	ActorId   *openapi_types.UUID `json:"actorId,omitempty"`
+	CreatedAt time.Time           `json:"createdAt"`
+
+	// EntityId The record to open (a uuid, or a ruleId for plan_item_due).
+	EntityId *string            `json:"entityId,omitempty"`
+	Id       openapi_types.UUID `json:"id"`
+
+	// Kind What happened, and who receives it. The web maps a kind and
+	// entityId to a screen.
+	// task_offered = a task was offered to the recipient (entityId: task);
+	// task_offer_answered = the other person accepted or declined the
+	// recipient's offer (task); handoff_received = a handoff to the
+	// recipient is waiting (handoff); handoff_accepted = the recipient's
+	// handoff was taken (handoff); plan_item_due = one of the recipient's
+	// own plan items became due or overdue (entityId: ruleId);
+	// value_flagged = one of the recipient's own lab results (or their
+	// child's, for both parents) got a LabFlag (lab result id; never sent
+	// to caregivers or the other parent for a parent's own record); appointment_reminder = the recipient's
+	// appointment is tomorrow (calendar event); invitation_accepted = a
+	// caregiver the recipient invited joined (invitation);
+	// subscription_started = the family's paid plan started (both
+	// parents).
+	Kind   NotificationKind `json:"kind"`
+	ReadAt *time.Time       `json:"readAt,omitempty"`
+
+	// Title A fixed template filled with names and dates only, never health values or private text.
+	//
+	// Example: Jake offered you "Install the car seat"
+	Title string `json:"title"`
+}
+
+// NotificationKind What happened, and who receives it. The web maps a kind and
+// entityId to a screen.
+// task_offered = a task was offered to the recipient (entityId: task);
+// task_offer_answered = the other person accepted or declined the
+// recipient's offer (task); handoff_received = a handoff to the
+// recipient is waiting (handoff); handoff_accepted = the recipient's
+// handoff was taken (handoff); plan_item_due = one of the recipient's
+// own plan items became due or overdue (entityId: ruleId);
+// value_flagged = one of the recipient's own lab results (or their
+// child's, for both parents) got a LabFlag (lab result id; never sent
+// to caregivers or the other parent for a parent's own record); appointment_reminder = the recipient's
+// appointment is tomorrow (calendar event); invitation_accepted = a
+// caregiver the recipient invited joined (invitation);
+// subscription_started = the family's paid plan started (both
+// parents).
+type NotificationKind string
+
+// NotificationList defines model for NotificationList.
+type NotificationList struct {
+	// Items Newest first, last 30 days, at most 50.
+	Items       []Notification `json:"items"`
+	UnreadCount int            `json:"unreadCount"`
+}
+
+// NotificationReadInput defines model for NotificationReadInput.
+type NotificationReadInput struct {
+	// Ids Leave out to mark all as read.
+	Ids *[]openapi_types.UUID `json:"ids,omitempty"`
+}
+
 // OnDuty Who has the baby now.
 type OnDuty struct {
 	MemberId openapi_types.UUID `json:"memberId"`
@@ -1892,8 +2632,65 @@ type Parent struct {
 	Role        ParentRole         `json:"role"`
 }
 
+// ParentLeave defines model for ParentLeave.
+type ParentLeave struct {
+	// Deadlines Soonest first.
+	Deadlines []LeaveDeadline `json:"deadlines"`
+
+	// Input The wizard's answers for one parent. Nothing about health.
+	Input    *LeavePlanInput    `json:"input,omitempty"`
+	MemberId openapi_types.UUID `json:"memberId"`
+	Programs []LeaveProgram     `json:"programs"`
+	Role     ParentRole         `json:"role"`
+
+	// Segments Oldest first; together they make the parent's lane on the timeline.
+	Segments []LeaveSegment `json:"segments"`
+}
+
 // ParentRole defines model for ParentRole.
 type ParentRole string
+
+// PartnerOffer defines model for PartnerOffer.
+type PartnerOffer struct {
+	Active   bool         `json:"active"`
+	Audience []ParentRole `json:"audience"`
+
+	// Clicks Only in listAllPartnerOffers.
+	Clicks      *int               `json:"clicks,omitempty"`
+	Detail      string             `json:"detail"`
+	Id          openapi_types.UUID `json:"id"`
+	PartnerName string             `json:"partnerName"`
+	Stages      []Stage            `json:"stages"`
+	Title       string             `json:"title"`
+	Url         string             `json:"url"`
+}
+
+// PartnerOfferInput defines model for PartnerOfferInput.
+type PartnerOfferInput struct {
+	Active      bool         `json:"active"`
+	Audience    []ParentRole `json:"audience"`
+	Detail      string       `json:"detail"`
+	PartnerName string       `json:"partnerName"`
+	Stages      []Stage      `json:"stages"`
+	Title       string       `json:"title"`
+	Url         string       `json:"url"`
+}
+
+// PartnerOfferList defines model for PartnerOfferList.
+type PartnerOfferList struct {
+	Items []PartnerOffer `json:"items"`
+}
+
+// PartnerOfferUpdate defines model for PartnerOfferUpdate.
+type PartnerOfferUpdate struct {
+	Active      *bool         `json:"active,omitempty"`
+	Audience    *[]ParentRole `json:"audience,omitempty"`
+	Detail      *string       `json:"detail,omitempty"`
+	PartnerName *string       `json:"partnerName,omitempty"`
+	Stages      *[]Stage      `json:"stages,omitempty"`
+	Title       *string       `json:"title,omitempty"`
+	Url         *string       `json:"url,omitempty"`
+}
 
 // Passport defines model for Passport.
 type Passport struct {
@@ -1976,6 +2773,18 @@ type PlanItemProgressInput struct {
 
 // PlanItemStatus defines model for PlanItemStatus.
 type PlanItemStatus string
+
+// PregnancyLoss Set while the family is in pregnancy loss support.
+type PregnancyLoss struct {
+	OccurredOn *openapi_types.Date `json:"occurredOn,omitempty"`
+	RecordedAt time.Time           `json:"recordedAt"`
+}
+
+// PregnancyLossInput Everything is optional so the flow can ask as little as possible.
+type PregnancyLossInput struct {
+	// OccurredOn Today or earlier; a future date is 400.
+	OccurredOn *openapi_types.Date `json:"occurredOn,omitempty"`
+}
 
 // PregnancyWeek defines model for PregnancyWeek.
 type PregnancyWeek struct {
@@ -2094,6 +2903,86 @@ type PsychologistSlots struct {
 	// Items Earliest first.
 	Items    []Slot       `json:"items"`
 	Provider Psychologist `json:"provider"`
+}
+
+// Screening defines model for Screening.
+type Screening struct {
+	ChildId *openapi_types.UUID `json:"childId,omitempty"`
+	Id      openapi_types.UUID  `json:"id"`
+
+	// Kind glucose_screen = pregnancy glucose screening; gbs = group B strep
+	// test in pregnancy; vision_screen = a child's vision screening.
+	Kind    ScreeningKind      `json:"kind"`
+	TakenOn openapi_types.Date `json:"takenOn"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// ScreeningBand green = below the instrument's cutoff; amber = near it, repeat in
+// two weeks and mention it at the next visit; red = at or above it,
+// talk to a doctor or midwife soon. Cutoffs come from the
+// instrument's source and are never a diagnosis.
+type ScreeningBand string
+
+// ScreeningChoice defines model for ScreeningChoice.
+type ScreeningChoice struct {
+	Label string `json:"label"`
+	Value int    `json:"value"`
+}
+
+// ScreeningInput defines model for ScreeningInput.
+type ScreeningInput struct {
+	ChildId *openapi_types.UUID `json:"childId,omitempty"`
+
+	// Kind glucose_screen = pregnancy glucose screening; gbs = group B strep
+	// test in pregnancy; vision_screen = a child's vision screening.
+	Kind ScreeningKind `json:"kind"`
+
+	// TakenOn Not in the future (400).
+	TakenOn openapi_types.Date `json:"takenOn"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// ScreeningInstrument epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
+type ScreeningInstrument string
+
+// ScreeningKind glucose_screen = pregnancy glucose screening; gbs = group B strep
+// test in pregnancy; vision_screen = a child's vision screening.
+type ScreeningKind string
+
+// ScreeningQuestion defines model for ScreeningQuestion.
+type ScreeningQuestion struct {
+	// Choices In the order the instrument prints them; values are the instrument's scores.
+	Choices []ScreeningChoice `json:"choices"`
+	Number  int               `json:"number"`
+	Text    string            `json:"text"`
+}
+
+// ScreeningQuestionnaire defines model for ScreeningQuestionnaire.
+type ScreeningQuestionnaire struct {
+	// Instrument epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
+	Instrument ScreeningInstrument `json:"instrument"`
+
+	// Intro The instrument's own instruction, including the period it asks about.
+	Intro     string              `json:"intro"`
+	Questions []ScreeningQuestion `json:"questions"`
+	Source    Source              `json:"source"`
+
+	// Suggested True when this parent's plan asks for this questionnaire now.
+	Suggested bool   `json:"suggested"`
+	Title     string `json:"title"`
+}
+
+// ScreeningQuestionnaireList defines model for ScreeningQuestionnaireList.
+type ScreeningQuestionnaireList struct {
+	Items []ScreeningQuestionnaire `json:"items"`
 }
 
 // SessionNote defines model for SessionNote.
@@ -2400,6 +3289,14 @@ type TaskUpdate struct {
 	Done bool `json:"done"`
 }
 
+// TemplateCount defines model for TemplateCount.
+type TemplateCount struct {
+	Families int `json:"families"`
+
+	// Template Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists. `custom` marks a family built from the visitor's own details (createCustomSession); createDemoSession rejects it with 400.
+	Template DemoTemplate `json:"template"`
+}
+
 // Tier The plan the family is on, for both parents. Demo families start on
 // free; a completed Stripe test checkout sets it (see subscription).
 type Tier string
@@ -2472,6 +3369,9 @@ type VaccineDose struct {
 	Visibility Visibility `json:"visibility"`
 }
 
+// VaccineKey The vaccine keys the rules read.
+type VaccineKey string
+
 // VaccineStatus defines model for VaccineStatus.
 type VaccineStatus string
 
@@ -2479,6 +3379,16 @@ type VaccineStatus string
 // private = author only; partner = author and the other parent;
 // care_team = author and their professionals, not the partner; family = both parents.
 type Visibility string
+
+// VoiceNote defines model for VoiceNote.
+type VoiceNote struct {
+	// ContentType Example: audio/webm
+	ContentType     string             `json:"contentType"`
+	CreatedAt       time.Time          `json:"createdAt"`
+	DurationSeconds *int               `json:"durationSeconds,omitempty"`
+	Id              openapi_types.UUID `json:"id"`
+	SizeBytes       int                `json:"sizeBytes"`
+}
 
 // WebhookReceipt defines model for WebhookReceipt.
 type WebhookReceipt struct {
@@ -2521,6 +3431,9 @@ type WeeklyPlanSection struct {
 	Title string `json:"title"`
 }
 
+// FeedToken defines model for FeedToken.
+type FeedToken = string
+
 // InvitationId defines model for InvitationId.
 type InvitationId = openapi_types.UUID
 
@@ -2530,11 +3443,24 @@ type InvitationToken = string
 // MemberId defines model for MemberId.
 type MemberId = openapi_types.UUID
 
+// OfferId defines model for OfferId.
+type OfferId = openapi_types.UUID
+
 // RoundId defines model for RoundId.
 type RoundId = openapi_types.UUID
 
 // TaskId defines model for TaskId.
 type TaskId = openapi_types.UUID
+
+// GetAnalyticsParams defines parameters for GetAnalytics.
+type GetAnalyticsParams struct {
+	Days *int `form:"days,omitempty" json:"days,omitempty"`
+}
+
+// ListContentItemsParams defines parameters for ListContentItems.
+type ListContentItemsParams struct {
+	Kind ContentKind `form:"kind" json:"kind"`
+}
 
 // HandleStripeWebhookParams defines parameters for HandleStripeWebhook.
 type HandleStripeWebhookParams struct {
@@ -2575,6 +3501,12 @@ type ListTasksParams struct {
 	Kind *TaskKind `form:"kind,omitempty" json:"kind,omitempty"`
 }
 
+// CreateVoiceNoteParams defines parameters for CreateVoiceNote.
+type CreateVoiceNoteParams struct {
+	// DurationSeconds Length of the recording as the browser measured it, for the player.
+	DurationSeconds *int `form:"durationSeconds,omitempty" json:"durationSeconds,omitempty"`
+}
+
 // ListProvidersParams defines parameters for ListProviders.
 type ListProvidersParams struct {
 	// Type Only providers of this type.
@@ -2583,6 +3515,15 @@ type ListProvidersParams struct {
 	// State Only providers licensed in this US state (two-letter code).
 	State *UsState `form:"state,omitempty" json:"state,omitempty"`
 }
+
+// UpdateContentItemJSONRequestBody defines body for UpdateContentItem for application/json ContentType.
+type UpdateContentItemJSONRequestBody = ContentItemUpdate
+
+// CreatePartnerOfferJSONRequestBody defines body for CreatePartnerOffer for application/json ContentType.
+type CreatePartnerOfferJSONRequestBody = PartnerOfferInput
+
+// UpdatePartnerOfferJSONRequestBody defines body for UpdatePartnerOffer for application/json ContentType.
+type UpdatePartnerOfferJSONRequestBody = PartnerOfferUpdate
 
 // HandleStripeWebhookJSONRequestBody defines body for HandleStripeWebhook for application/json ContentType.
 type HandleStripeWebhookJSONRequestBody = StripeEvent
@@ -2611,11 +3552,20 @@ type CreateBookingRequestJSONRequestBody = BookingRequestInput
 // CreateCalendarEventJSONRequestBody defines body for CreateCalendarEvent for application/json ContentType.
 type CreateCalendarEventJSONRequestBody = CalendarEventInput
 
+// CreateCalendarFeedJSONRequestBody defines body for CreateCalendarFeed for application/json ContentType.
+type CreateCalendarFeedJSONRequestBody = CalendarFeedInput
+
 // CreateCareLogEntryJSONRequestBody defines body for CreateCareLogEntry for application/json ContentType.
 type CreateCareLogEntryJSONRequestBody = CareLogEntryInput
 
 // CreateCheckoutSessionJSONRequestBody defines body for CreateCheckoutSession for application/json ContentType.
 type CreateCheckoutSessionJSONRequestBody = CheckoutSessionInput
+
+// CreateDiaryEntryJSONRequestBody defines body for CreateDiaryEntry for application/json ContentType.
+type CreateDiaryEntryJSONRequestBody = DiaryEntryInput
+
+// UpdateDiaryEntryJSONRequestBody defines body for UpdateDiaryEntry for application/json ContentType.
+type UpdateDiaryEntryJSONRequestBody = DiaryEntryUpdate
 
 // UpdateFamilyJSONRequestBody defines body for UpdateFamily for application/json ContentType.
 type UpdateFamilyJSONRequestBody = FamilyUpdate
@@ -2623,20 +3573,44 @@ type UpdateFamilyJSONRequestBody = FamilyUpdate
 // CreateHandoffJSONRequestBody defines body for CreateHandoff for application/json ContentType.
 type CreateHandoffJSONRequestBody = HandoffInput
 
+// CreateImmunizationJSONRequestBody defines body for CreateImmunization for application/json ContentType.
+type CreateImmunizationJSONRequestBody = ImmunizationInput
+
+// CreateInsuranceCallJSONRequestBody defines body for CreateInsuranceCall for application/json ContentType.
+type CreateInsuranceCallJSONRequestBody = InsuranceCallInput
+
 // CreateInvitationJSONRequestBody defines body for CreateInvitation for application/json ContentType.
 type CreateInvitationJSONRequestBody = InvitationInput
+
+// CreateLabResultJSONRequestBody defines body for CreateLabResult for application/json ContentType.
+type CreateLabResultJSONRequestBody = LabResultInput
+
+// UpdateLeavePlanJSONRequestBody defines body for UpdateLeavePlan for application/json ContentType.
+type UpdateLeavePlanJSONRequestBody = LeavePlanInput
 
 // CreateMoodCheckinJSONRequestBody defines body for CreateMoodCheckin for application/json ContentType.
 type CreateMoodCheckinJSONRequestBody = MoodCheckinInput
 
+// CreateMoodScreeningJSONRequestBody defines body for CreateMoodScreening for application/json ContentType.
+type CreateMoodScreeningJSONRequestBody = MoodScreeningInput
+
+// MarkNotificationsReadJSONRequestBody defines body for MarkNotificationsRead for application/json ContentType.
+type MarkNotificationsReadJSONRequestBody = NotificationReadInput
+
 // SetPlanItemProgressJSONRequestBody defines body for SetPlanItemProgress for application/json ContentType.
 type SetPlanItemProgressJSONRequestBody = PlanItemProgressInput
+
+// CreatePregnancyLossJSONRequestBody defines body for CreatePregnancyLoss for application/json ContentType.
+type CreatePregnancyLossJSONRequestBody = PregnancyLossInput
 
 // UpdatePsychologistAgendaJSONRequestBody defines body for UpdatePsychologistAgenda for application/json ContentType.
 type UpdatePsychologistAgendaJSONRequestBody = PsychologistAgendaUpdate
 
 // CreatePsychologistBookingJSONRequestBody defines body for CreatePsychologistBooking for application/json ContentType.
 type CreatePsychologistBookingJSONRequestBody = PsychologistBookingInput
+
+// CreateScreeningJSONRequestBody defines body for CreateScreening for application/json ContentType.
+type CreateScreeningJSONRequestBody = ScreeningInput
 
 // CreateSessionNoteJSONRequestBody defines body for CreateSessionNote for application/json ContentType.
 type CreateSessionNoteJSONRequestBody = SessionNoteInput
@@ -2661,9 +3635,33 @@ type ProposeTaskReassignmentJSONRequestBody = TaskReassignmentInput
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// GetAnalytics Aggregate usage counts across all demo families
+	// (GET /admin/analytics)
+	GetAnalytics(w http.ResponseWriter, r *http.Request, params GetAnalyticsParams)
+	// ListContentItems Editable content: weekly cards, guides, practice questions, checklist items
+	// (GET /admin/content-items)
+	ListContentItems(w http.ResponseWriter, r *http.Request, params ListContentItemsParams)
+	// UpdateContentItem Edit the title or text of one content item in this demo copy
+	// (PATCH /admin/content-items/{kind}/{itemId})
+	UpdateContentItem(w http.ResponseWriter, r *http.Request, kind ContentKind, itemId string)
+	// ResetContentItem Undo this demo copy's edits to one content item
+	// (POST /admin/content-items/{kind}/{itemId}/reset)
+	ResetContentItem(w http.ResponseWriter, r *http.Request, kind ContentKind, itemId string)
+	// ListAllPartnerOffers Every partner offer in this demo copy, active or not
+	// (GET /admin/partner-offers)
+	ListAllPartnerOffers(w http.ResponseWriter, r *http.Request)
+	// CreatePartnerOffer Add a partner offer
+	// (POST /admin/partner-offers)
+	CreatePartnerOffer(w http.ResponseWriter, r *http.Request)
+	// UpdatePartnerOffer Change or switch off a partner offer
+	// (PATCH /admin/partner-offers/{offerId})
+	UpdatePartnerOffer(w http.ResponseWriter, r *http.Request, offerId OfferId)
 	// HandleStripeWebhook Stripe calls this when a checkout or subscription changes
 	// (POST /billing/stripe-webhook)
 	HandleStripeWebhook(w http.ResponseWriter, r *http.Request, params HandleStripeWebhookParams)
+	// GetCalendarFeedFile The iCalendar file a calendar app subscribes to
+	// (GET /calendar-feeds/{token})
+	GetCalendarFeedFile(w http.ResponseWriter, r *http.Request, token FeedToken)
 	// CreateCustomSession Start with a new family built from the visitor's own details
 	// (POST /demo/custom-sessions)
 	CreateCustomSession(w http.ResponseWriter, r *http.Request)
@@ -2715,6 +3713,15 @@ type ServerInterface interface {
 	// CreateCalendarEvent A parent adds an appointment, class or reminder
 	// (POST /members/{memberId}/calendar-events)
 	CreateCalendarEvent(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// DeleteCalendarFeed Revoke the acting person's calendar subscription link
+	// (DELETE /members/{memberId}/calendar-feed)
+	DeleteCalendarFeed(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// GetCalendarFeed Whether the acting person has a calendar subscription link
+	// (GET /members/{memberId}/calendar-feed)
+	GetCalendarFeed(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateCalendarFeed Create or replace the acting person's calendar subscription link
+	// (POST /members/{memberId}/calendar-feed)
+	CreateCalendarFeed(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// ListCareLogEntries The last 48 hours of the care log, with the latest of each kind
 	// (GET /members/{memberId}/care-log)
 	ListCareLogEntries(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListCareLogEntriesParams)
@@ -2730,6 +3737,15 @@ type ServerInterface interface {
 	// GetChildPassport The baby passport card, limited by role
 	// (GET /members/{memberId}/children/{childId}/passport)
 	GetChildPassport(w http.ResponseWriter, r *http.Request, memberId MemberId, childId openapi_types.UUID)
+	// ListDiaryEntries Diary entries from the last 30 days that the acting parent may see
+	// (GET /members/{memberId}/diary-entries)
+	ListDiaryEntries(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateDiaryEntry The acting parent writes a diary entry
+	// (POST /members/{memberId}/diary-entries)
+	CreateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// UpdateDiaryEntry The author changes who may read one of their entries
+	// (PATCH /members/{memberId}/diary-entries/{entryId})
+	UpdateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId, entryId openapi_types.UUID)
 	// UpdateFamily A parent sets the family's stage or due date
 	// (PATCH /members/{memberId}/family)
 	UpdateFamily(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -2745,6 +3761,15 @@ type ServerInterface interface {
 	// AcceptHandoff The receiver accepts and is now on duty
 	// (POST /members/{memberId}/handoffs/{handoffId}/accept)
 	AcceptHandoff(w http.ResponseWriter, r *http.Request, memberId MemberId, handoffId openapi_types.UUID)
+	// CreateImmunization The acting parent logs a vaccine dose given to them or to a child
+	// (POST /members/{memberId}/immunizations)
+	CreateImmunization(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListInsuranceCalls Insurance calls from the last 365 days the acting parent may see
+	// (GET /members/{memberId}/insurance-calls)
+	ListInsuranceCalls(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateInsuranceCall The acting parent logs a call with their health insurer
+	// (POST /members/{memberId}/insurance-calls)
+	CreateInsuranceCall(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// ListInvitations The family's invitations, newest first
 	// (GET /members/{memberId}/invitations)
 	ListInvitations(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -2757,6 +3782,15 @@ type ServerInterface interface {
 	// GetMemberJourney The family's path from planning to age 9, where they are now and what comes next
 	// (GET /members/{memberId}/journey)
 	GetMemberJourney(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateLabResult The acting parent logs one measured lab value for them or a child
+	// (POST /members/{memberId}/lab-results)
+	CreateLabResult(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// GetLeavePlan The family's parental leave plan: eligibility and a timeline for both parents
+	// (GET /members/{memberId}/leave-plan)
+	GetLeavePlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// UpdateLeavePlan The acting parent saves their leave wizard answers
+	// (PUT /members/{memberId}/leave-plan)
+	UpdateLeavePlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// GetLiveUpdates Server-sent events that tell the acting person's screens what changed
 	// (GET /members/{memberId}/live)
 	GetLiveUpdates(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -2769,6 +3803,24 @@ type ServerInterface interface {
 	// ListMoodPatterns Patterns detected in the acting parent's own recent check-ins
 	// (GET /members/{memberId}/mood-patterns)
 	ListMoodPatterns(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListMoodScreenings Questionnaire results from the last 365 days the acting parent may see
+	// (GET /members/{memberId}/mood-screenings)
+	ListMoodScreenings(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateMoodScreening The acting parent submits a completed questionnaire
+	// (POST /members/{memberId}/mood-screenings)
+	CreateMoodScreening(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListNotifications The acting person's notifications for the bell
+	// (GET /members/{memberId}/notifications)
+	ListNotifications(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// MarkNotificationsRead Mark the acting person's notifications as read
+	// (POST /members/{memberId}/notifications/read)
+	MarkNotificationsRead(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListPartnerOffers Up to three partner offers for this parent's stage
+	// (GET /members/{memberId}/partner-offers)
+	ListPartnerOffers(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreatePartnerOfferClick Count a click on a partner offer before the web opens its link
+	// (POST /members/{memberId}/partner-offers/{offerId}/clicks)
+	CreatePartnerOfferClick(w http.ResponseWriter, r *http.Request, memberId MemberId, offerId OfferId)
 	// GetPassport The health passport of the family as the acting parent may see it
 	// (GET /members/{memberId}/passport)
 	GetPassport(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -2778,6 +3830,12 @@ type ServerInterface interface {
 	// SetPlanItemProgress The acting parent marks a plan item as booked or done
 	// (PUT /members/{memberId}/plan/{ruleId}/status)
 	SetPlanItemProgress(w http.ResponseWriter, r *http.Request, memberId MemberId, ruleId string)
+	// DeletePregnancyLoss Turn pregnancy loss support off and restore the family as it was
+	// (DELETE /members/{memberId}/pregnancy-loss)
+	DeletePregnancyLoss(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreatePregnancyLoss A parent turns on pregnancy loss support for the family
+	// (POST /members/{memberId}/pregnancy-loss)
+	CreatePregnancyLoss(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// GetPregnancyWeek The weekly pregnancy card for one week
 	// (GET /members/{memberId}/pregnancy-weeks/{week})
 	GetPregnancyWeek(w http.ResponseWriter, r *http.Request, memberId MemberId, week int)
@@ -2793,6 +3851,12 @@ type ServerInterface interface {
 	// ListPsychologistSlots Open session times with the demo psychologist, next 14 days
 	// (GET /members/{memberId}/psychologist-slots)
 	ListPsychologistSlots(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// ListScreeningQuestionnaires The mood questionnaires a parent can take, with their questions
+	// (GET /members/{memberId}/screening-questionnaires)
+	ListScreeningQuestionnaires(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateScreening The acting parent logs a screening that was done for them or a child
+	// (POST /members/{memberId}/screenings)
+	CreateScreening(w http.ResponseWriter, r *http.Request, memberId MemberId)
 	// CreateSessionNote The acting parent writes a short note after a session
 	// (POST /members/{memberId}/session-notes)
 	CreateSessionNote(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -2835,6 +3899,12 @@ type ServerInterface interface {
 	// GetToday The acting person's Today screen in one call
 	// (GET /members/{memberId}/today)
 	GetToday(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateVoiceNote Upload a short voice note to attach to a handoff
+	// (POST /members/{memberId}/voice-notes)
+	CreateVoiceNote(w http.ResponseWriter, r *http.Request, memberId MemberId, params CreateVoiceNoteParams)
+	// GetVoiceNote Play a voice note
+	// (GET /members/{memberId}/voice-notes/{voiceNoteId})
+	GetVoiceNote(w http.ResponseWriter, r *http.Request, memberId MemberId, voiceNoteId openapi_types.UUID)
 	// GetMemberWeeklyPlan A short written plan for this parent's week
 	// (GET /members/{memberId}/weekly-plan)
 	GetMemberWeeklyPlan(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -2851,6 +3921,196 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetAnalytics operation middleware
+func (siw *ServerInterfaceWrapper) GetAnalytics(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetAnalyticsParams
+
+	// ------------- Optional query parameter "days" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "days", r.URL.Query(), &params.Days, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "days"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "days", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAnalytics(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListContentItems operation middleware
+func (siw *ServerInterfaceWrapper) ListContentItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListContentItemsParams
+
+	// ------------- Required query parameter "kind" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "kind", r.URL.Query(), &params.Kind, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "kind"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListContentItems(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateContentItem operation middleware
+func (siw *ServerInterfaceWrapper) UpdateContentItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "kind" -------------
+	var kind ContentKind
+
+	err = runtime.BindStyledParameterWithOptions("simple", "kind", r.PathValue("kind"), &kind, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateContentItem(w, r, kind, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResetContentItem operation middleware
+func (siw *ServerInterfaceWrapper) ResetContentItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "kind" -------------
+	var kind ContentKind
+
+	err = runtime.BindStyledParameterWithOptions("simple", "kind", r.PathValue("kind"), &kind, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "kind", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemId" -------------
+	var itemId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemId", r.PathValue("itemId"), &itemId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResetContentItem(w, r, kind, itemId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAllPartnerOffers operation middleware
+func (siw *ServerInterfaceWrapper) ListAllPartnerOffers(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAllPartnerOffers(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePartnerOffer operation middleware
+func (siw *ServerInterfaceWrapper) CreatePartnerOffer(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePartnerOffer(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdatePartnerOffer operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePartnerOffer(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "offerId" -------------
+	var offerId OfferId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "offerId", r.PathValue("offerId"), &offerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offerId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdatePartnerOffer(w, r, offerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // HandleStripeWebhook operation middleware
 func (siw *ServerInterfaceWrapper) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
@@ -2888,6 +4148,32 @@ func (siw *ServerInterfaceWrapper) HandleStripeWebhook(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleStripeWebhook(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCalendarFeedFile operation middleware
+func (siw *ServerInterfaceWrapper) GetCalendarFeedFile(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "token" -------------
+	var token FeedToken
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", r.PathValue("token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCalendarFeedFile(w, r, token)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3334,6 +4620,84 @@ func (siw *ServerInterfaceWrapper) CreateCalendarEvent(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// DeleteCalendarFeed operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCalendarFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteCalendarFeed(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCalendarFeed operation middleware
+func (siw *ServerInterfaceWrapper) GetCalendarFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCalendarFeed(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCalendarFeed operation middleware
+func (siw *ServerInterfaceWrapper) CreateCalendarFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCalendarFeed(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListCareLogEntries operation middleware
 func (siw *ServerInterfaceWrapper) ListCareLogEntries(w http.ResponseWriter, r *http.Request) {
 
@@ -3498,6 +4862,93 @@ func (siw *ServerInterfaceWrapper) GetChildPassport(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// ListDiaryEntries operation middleware
+func (siw *ServerInterfaceWrapper) ListDiaryEntries(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDiaryEntries(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDiaryEntry operation middleware
+func (siw *ServerInterfaceWrapper) CreateDiaryEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDiaryEntry(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDiaryEntry operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDiaryEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "entryId" -------------
+	var entryId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "entryId", r.PathValue("entryId"), &entryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "entryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDiaryEntry(w, r, memberId, entryId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // UpdateFamily operation middleware
 func (siw *ServerInterfaceWrapper) UpdateFamily(w http.ResponseWriter, r *http.Request) {
 
@@ -3653,6 +5104,84 @@ func (siw *ServerInterfaceWrapper) AcceptHandoff(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// CreateImmunization operation middleware
+func (siw *ServerInterfaceWrapper) CreateImmunization(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateImmunization(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListInsuranceCalls operation middleware
+func (siw *ServerInterfaceWrapper) ListInsuranceCalls(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListInsuranceCalls(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateInsuranceCall operation middleware
+func (siw *ServerInterfaceWrapper) CreateInsuranceCall(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateInsuranceCall(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListInvitations operation middleware
 func (siw *ServerInterfaceWrapper) ListInvitations(w http.ResponseWriter, r *http.Request) {
 
@@ -3766,6 +5295,84 @@ func (siw *ServerInterfaceWrapper) GetMemberJourney(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// CreateLabResult operation middleware
+func (siw *ServerInterfaceWrapper) CreateLabResult(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateLabResult(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLeavePlan operation middleware
+func (siw *ServerInterfaceWrapper) GetLeavePlan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLeavePlan(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateLeavePlan operation middleware
+func (siw *ServerInterfaceWrapper) UpdateLeavePlan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateLeavePlan(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetLiveUpdates operation middleware
 func (siw *ServerInterfaceWrapper) GetLiveUpdates(w http.ResponseWriter, r *http.Request) {
 
@@ -3870,6 +5477,171 @@ func (siw *ServerInterfaceWrapper) ListMoodPatterns(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
+// ListMoodScreenings operation middleware
+func (siw *ServerInterfaceWrapper) ListMoodScreenings(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMoodScreenings(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateMoodScreening operation middleware
+func (siw *ServerInterfaceWrapper) CreateMoodScreening(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateMoodScreening(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListNotifications operation middleware
+func (siw *ServerInterfaceWrapper) ListNotifications(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListNotifications(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkNotificationsRead operation middleware
+func (siw *ServerInterfaceWrapper) MarkNotificationsRead(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkNotificationsRead(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListPartnerOffers operation middleware
+func (siw *ServerInterfaceWrapper) ListPartnerOffers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListPartnerOffers(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePartnerOfferClick operation middleware
+func (siw *ServerInterfaceWrapper) CreatePartnerOfferClick(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "offerId" -------------
+	var offerId OfferId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "offerId", r.PathValue("offerId"), &offerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "offerId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePartnerOfferClick(w, r, memberId, offerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetPassport operation middleware
 func (siw *ServerInterfaceWrapper) GetPassport(w http.ResponseWriter, r *http.Request) {
 
@@ -3948,6 +5720,58 @@ func (siw *ServerInterfaceWrapper) SetPlanItemProgress(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SetPlanItemProgress(w, r, memberId, ruleId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeletePregnancyLoss operation middleware
+func (siw *ServerInterfaceWrapper) DeletePregnancyLoss(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeletePregnancyLoss(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePregnancyLoss operation middleware
+func (siw *ServerInterfaceWrapper) CreatePregnancyLoss(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePregnancyLoss(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4087,6 +5911,58 @@ func (siw *ServerInterfaceWrapper) ListPsychologistSlots(w http.ResponseWriter, 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListPsychologistSlots(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListScreeningQuestionnaires operation middleware
+func (siw *ServerInterfaceWrapper) ListScreeningQuestionnaires(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListScreeningQuestionnaires(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateScreening operation middleware
+func (siw *ServerInterfaceWrapper) CreateScreening(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateScreening(w, r, memberId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4530,6 +6406,83 @@ func (siw *ServerInterfaceWrapper) GetToday(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
+// CreateVoiceNote operation middleware
+func (siw *ServerInterfaceWrapper) CreateVoiceNote(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateVoiceNoteParams
+
+	// ------------- Optional query parameter "durationSeconds" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "durationSeconds", r.URL.Query(), &params.DurationSeconds, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "durationSeconds"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "durationSeconds", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateVoiceNote(w, r, memberId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetVoiceNote operation middleware
+func (siw *ServerInterfaceWrapper) GetVoiceNote(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "voiceNoteId" -------------
+	var voiceNoteId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "voiceNoteId", r.PathValue("voiceNoteId"), &voiceNoteId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "voiceNoteId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetVoiceNote(w, r, memberId, voiceNoteId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMemberWeeklyPlan operation middleware
 func (siw *ServerInterfaceWrapper) GetMemberWeeklyPlan(w http.ResponseWriter, r *http.Request) {
 
@@ -4735,6 +6688,9 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/members/{memberId}/plan/{ruleId}/status", wrapper.SetPlanItemProgress)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.ListMoodCheckins)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.CreateMoodCheckin)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/immunizations", wrapper.CreateImmunization)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/screenings", wrapper.CreateScreening)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/lab-results", wrapper.CreateLabResult)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/providers", wrapper.ListProviders)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/booking-requests", wrapper.ListBookingRequests)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/booking-requests", wrapper.CreateBookingRequest)
@@ -4782,8 +6738,502 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/checkout-sessions", wrapper.CreateCheckoutSession)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/checkout-sessions/{sessionId}", wrapper.GetCheckoutSession)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/billing/stripe-webhook", wrapper.HandleStripeWebhook)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/notifications", wrapper.ListNotifications)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/notifications/read", wrapper.MarkNotificationsRead)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/members/{memberId}/calendar-feed", wrapper.DeleteCalendarFeed)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/calendar-feed", wrapper.GetCalendarFeed)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/calendar-feed", wrapper.CreateCalendarFeed)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/calendar-feeds/{token}", wrapper.GetCalendarFeedFile)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/leave-plan", wrapper.GetLeavePlan)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/members/{memberId}/leave-plan", wrapper.UpdateLeavePlan)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/insurance-calls", wrapper.ListInsuranceCalls)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/insurance-calls", wrapper.CreateInsuranceCall)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/diary-entries", wrapper.ListDiaryEntries)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/diary-entries", wrapper.CreateDiaryEntry)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/members/{memberId}/diary-entries/{entryId}", wrapper.UpdateDiaryEntry)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/screening-questionnaires", wrapper.ListScreeningQuestionnaires)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-screenings", wrapper.ListMoodScreenings)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/mood-screenings", wrapper.CreateMoodScreening)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/members/{memberId}/pregnancy-loss", wrapper.DeletePregnancyLoss)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/pregnancy-loss", wrapper.CreatePregnancyLoss)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/partner-offers", wrapper.ListPartnerOffers)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/partner-offers/{offerId}/clicks", wrapper.CreatePartnerOfferClick)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/admin/content-items", wrapper.ListContentItems)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/admin/content-items/{kind}/{itemId}", wrapper.UpdateContentItem)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/admin/content-items/{kind}/{itemId}/reset", wrapper.ResetContentItem)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/admin/partner-offers", wrapper.ListAllPartnerOffers)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/admin/partner-offers", wrapper.CreatePartnerOffer)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/admin/partner-offers/{offerId}", wrapper.UpdatePartnerOffer)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/admin/analytics", wrapper.GetAnalytics)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/voice-notes", wrapper.CreateVoiceNote)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/voice-notes/{voiceNoteId}", wrapper.GetVoiceNote)
 
 	return m
+}
+
+type GetAnalyticsRequestObject struct {
+	Params GetAnalyticsParams
+}
+
+type GetAnalyticsResponseObject interface {
+	VisitGetAnalyticsResponse(w http.ResponseWriter) error
+}
+
+type GetAnalytics200JSONResponse Analytics
+
+func (response GetAnalytics200JSONResponse) VisitGetAnalyticsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalytics400JSONResponse Error
+
+func (response GetAnalytics400JSONResponse) VisitGetAnalyticsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalytics401JSONResponse Error
+
+func (response GetAnalytics401JSONResponse) VisitGetAnalyticsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAnalytics501JSONResponse Error
+
+func (response GetAnalytics501JSONResponse) VisitGetAnalyticsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContentItemsRequestObject struct {
+	Params ListContentItemsParams
+}
+
+type ListContentItemsResponseObject interface {
+	VisitListContentItemsResponse(w http.ResponseWriter) error
+}
+
+type ListContentItems200JSONResponse ContentItemList
+
+func (response ListContentItems200JSONResponse) VisitListContentItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContentItems400JSONResponse Error
+
+func (response ListContentItems400JSONResponse) VisitListContentItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContentItems401JSONResponse Error
+
+func (response ListContentItems401JSONResponse) VisitListContentItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContentItems501JSONResponse Error
+
+func (response ListContentItems501JSONResponse) VisitListContentItemsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContentItemRequestObject struct {
+	Kind   ContentKind `json:"kind"`
+	ItemId string      `json:"itemId"`
+	Body   *UpdateContentItemJSONRequestBody
+}
+
+type UpdateContentItemResponseObject interface {
+	VisitUpdateContentItemResponse(w http.ResponseWriter) error
+}
+
+type UpdateContentItem200JSONResponse ContentItem
+
+func (response UpdateContentItem200JSONResponse) VisitUpdateContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContentItem400JSONResponse Error
+
+func (response UpdateContentItem400JSONResponse) VisitUpdateContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContentItem401JSONResponse Error
+
+func (response UpdateContentItem401JSONResponse) VisitUpdateContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContentItem404JSONResponse Error
+
+func (response UpdateContentItem404JSONResponse) VisitUpdateContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContentItem501JSONResponse Error
+
+func (response UpdateContentItem501JSONResponse) VisitUpdateContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ResetContentItemRequestObject struct {
+	Kind   ContentKind `json:"kind"`
+	ItemId string      `json:"itemId"`
+}
+
+type ResetContentItemResponseObject interface {
+	VisitResetContentItemResponse(w http.ResponseWriter) error
+}
+
+type ResetContentItem200JSONResponse ContentItem
+
+func (response ResetContentItem200JSONResponse) VisitResetContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ResetContentItem401JSONResponse Error
+
+func (response ResetContentItem401JSONResponse) VisitResetContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ResetContentItem404JSONResponse Error
+
+func (response ResetContentItem404JSONResponse) VisitResetContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ResetContentItem501JSONResponse Error
+
+func (response ResetContentItem501JSONResponse) VisitResetContentItemResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAllPartnerOffersRequestObject struct {
+}
+
+type ListAllPartnerOffersResponseObject interface {
+	VisitListAllPartnerOffersResponse(w http.ResponseWriter) error
+}
+
+type ListAllPartnerOffers200JSONResponse PartnerOfferList
+
+func (response ListAllPartnerOffers200JSONResponse) VisitListAllPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAllPartnerOffers401JSONResponse Error
+
+func (response ListAllPartnerOffers401JSONResponse) VisitListAllPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAllPartnerOffers501JSONResponse Error
+
+func (response ListAllPartnerOffers501JSONResponse) VisitListAllPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOfferRequestObject struct {
+	Body *CreatePartnerOfferJSONRequestBody
+}
+
+type CreatePartnerOfferResponseObject interface {
+	VisitCreatePartnerOfferResponse(w http.ResponseWriter) error
+}
+
+type CreatePartnerOffer201JSONResponse PartnerOffer
+
+func (response CreatePartnerOffer201JSONResponse) VisitCreatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOffer400JSONResponse Error
+
+func (response CreatePartnerOffer400JSONResponse) VisitCreatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOffer401JSONResponse Error
+
+func (response CreatePartnerOffer401JSONResponse) VisitCreatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOffer501JSONResponse Error
+
+func (response CreatePartnerOffer501JSONResponse) VisitCreatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartnerOfferRequestObject struct {
+	OfferId OfferId `json:"offerId"`
+	Body    *UpdatePartnerOfferJSONRequestBody
+}
+
+type UpdatePartnerOfferResponseObject interface {
+	VisitUpdatePartnerOfferResponse(w http.ResponseWriter) error
+}
+
+type UpdatePartnerOffer200JSONResponse PartnerOffer
+
+func (response UpdatePartnerOffer200JSONResponse) VisitUpdatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartnerOffer400JSONResponse Error
+
+func (response UpdatePartnerOffer400JSONResponse) VisitUpdatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartnerOffer401JSONResponse Error
+
+func (response UpdatePartnerOffer401JSONResponse) VisitUpdatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartnerOffer404JSONResponse Error
+
+func (response UpdatePartnerOffer404JSONResponse) VisitUpdatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdatePartnerOffer501JSONResponse Error
+
+func (response UpdatePartnerOffer501JSONResponse) VisitUpdatePartnerOfferResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
 }
 
 type HandleStripeWebhookRequestObject struct {
@@ -4847,6 +7297,62 @@ func (response HandleStripeWebhook503JSONResponse) VisitHandleStripeWebhookRespo
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeedFileRequestObject struct {
+	Token FeedToken `json:"token"`
+}
+
+type GetCalendarFeedFileResponseObject interface {
+	VisitGetCalendarFeedFileResponse(w http.ResponseWriter) error
+}
+
+type GetCalendarFeedFile200TextcalendarResponse struct {
+	Body          io.Reader
+	ContentLength int64
+}
+
+func (response GetCalendarFeedFile200TextcalendarResponse) VisitGetCalendarFeedFileResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", "text/calendar")
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetCalendarFeedFile404JSONResponse Error
+
+func (response GetCalendarFeedFile404JSONResponse) VisitGetCalendarFeedFileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeedFile501JSONResponse Error
+
+func (response GetCalendarFeedFile501JSONResponse) VisitGetCalendarFeedFileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -6061,6 +8567,249 @@ func (response CreateCalendarEvent501JSONResponse) VisitCreateCalendarEventRespo
 	return err
 }
 
+type DeleteCalendarFeedRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type DeleteCalendarFeedResponseObject interface {
+	VisitDeleteCalendarFeedResponse(w http.ResponseWriter) error
+}
+
+type DeleteCalendarFeed204Response struct {
+}
+
+func (response DeleteCalendarFeed204Response) VisitDeleteCalendarFeedResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteCalendarFeed401JSONResponse Error
+
+func (response DeleteCalendarFeed401JSONResponse) VisitDeleteCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCalendarFeed403JSONResponse Error
+
+func (response DeleteCalendarFeed403JSONResponse) VisitDeleteCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCalendarFeed404JSONResponse Error
+
+func (response DeleteCalendarFeed404JSONResponse) VisitDeleteCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCalendarFeed501JSONResponse Error
+
+func (response DeleteCalendarFeed501JSONResponse) VisitDeleteCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeedRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type GetCalendarFeedResponseObject interface {
+	VisitGetCalendarFeedResponse(w http.ResponseWriter) error
+}
+
+type GetCalendarFeed200JSONResponse CalendarFeed
+
+func (response GetCalendarFeed200JSONResponse) VisitGetCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeed401JSONResponse Error
+
+func (response GetCalendarFeed401JSONResponse) VisitGetCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeed403JSONResponse Error
+
+func (response GetCalendarFeed403JSONResponse) VisitGetCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeed404JSONResponse Error
+
+func (response GetCalendarFeed404JSONResponse) VisitGetCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCalendarFeed501JSONResponse Error
+
+func (response GetCalendarFeed501JSONResponse) VisitGetCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarFeedRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateCalendarFeedJSONRequestBody
+}
+
+type CreateCalendarFeedResponseObject interface {
+	VisitCreateCalendarFeedResponse(w http.ResponseWriter) error
+}
+
+type CreateCalendarFeed201JSONResponse CalendarFeed
+
+func (response CreateCalendarFeed201JSONResponse) VisitCreateCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarFeed400JSONResponse Error
+
+func (response CreateCalendarFeed400JSONResponse) VisitCreateCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarFeed401JSONResponse Error
+
+func (response CreateCalendarFeed401JSONResponse) VisitCreateCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarFeed403JSONResponse Error
+
+func (response CreateCalendarFeed403JSONResponse) VisitCreateCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarFeed404JSONResponse Error
+
+func (response CreateCalendarFeed404JSONResponse) VisitCreateCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCalendarFeed501JSONResponse Error
+
+func (response CreateCalendarFeed501JSONResponse) VisitCreateCalendarFeedResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListCareLogEntriesRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 	Params   ListCareLogEntriesParams
@@ -6554,6 +9303,229 @@ func (response GetChildPassport501JSONResponse) VisitGetChildPassportResponse(w 
 	return err
 }
 
+type ListDiaryEntriesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListDiaryEntriesResponseObject interface {
+	VisitListDiaryEntriesResponse(w http.ResponseWriter) error
+}
+
+type ListDiaryEntries200JSONResponse DiaryEntryList
+
+func (response ListDiaryEntries200JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDiaryEntries401JSONResponse Error
+
+func (response ListDiaryEntries401JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDiaryEntries404JSONResponse Error
+
+func (response ListDiaryEntries404JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDiaryEntries501JSONResponse Error
+
+func (response ListDiaryEntries501JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntryRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateDiaryEntryJSONRequestBody
+}
+
+type CreateDiaryEntryResponseObject interface {
+	VisitCreateDiaryEntryResponse(w http.ResponseWriter) error
+}
+
+type CreateDiaryEntry201JSONResponse DiaryEntry
+
+func (response CreateDiaryEntry201JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry400JSONResponse Error
+
+func (response CreateDiaryEntry400JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry401JSONResponse Error
+
+func (response CreateDiaryEntry401JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry404JSONResponse Error
+
+func (response CreateDiaryEntry404JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry501JSONResponse Error
+
+func (response CreateDiaryEntry501JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntryRequestObject struct {
+	MemberId MemberId           `json:"memberId"`
+	EntryId  openapi_types.UUID `json:"entryId"`
+	Body     *UpdateDiaryEntryJSONRequestBody
+}
+
+type UpdateDiaryEntryResponseObject interface {
+	VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error
+}
+
+type UpdateDiaryEntry200JSONResponse DiaryEntry
+
+func (response UpdateDiaryEntry200JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry400JSONResponse Error
+
+func (response UpdateDiaryEntry400JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry401JSONResponse Error
+
+func (response UpdateDiaryEntry401JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry404JSONResponse Error
+
+func (response UpdateDiaryEntry404JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry501JSONResponse Error
+
+func (response UpdateDiaryEntry501JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type UpdateFamilyRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 	Body     *UpdateFamilyJSONRequestBody
@@ -7004,6 +9976,228 @@ func (response AcceptHandoff501JSONResponse) VisitAcceptHandoffResponse(w http.R
 	return err
 }
 
+type CreateImmunizationRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateImmunizationJSONRequestBody
+}
+
+type CreateImmunizationResponseObject interface {
+	VisitCreateImmunizationResponse(w http.ResponseWriter) error
+}
+
+type CreateImmunization201JSONResponse VaccineDose
+
+func (response CreateImmunization201JSONResponse) VisitCreateImmunizationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateImmunization400JSONResponse Error
+
+func (response CreateImmunization400JSONResponse) VisitCreateImmunizationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateImmunization401JSONResponse Error
+
+func (response CreateImmunization401JSONResponse) VisitCreateImmunizationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateImmunization404JSONResponse Error
+
+func (response CreateImmunization404JSONResponse) VisitCreateImmunizationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateImmunization501JSONResponse Error
+
+func (response CreateImmunization501JSONResponse) VisitCreateImmunizationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInsuranceCallsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListInsuranceCallsResponseObject interface {
+	VisitListInsuranceCallsResponse(w http.ResponseWriter) error
+}
+
+type ListInsuranceCalls200JSONResponse InsuranceCallList
+
+func (response ListInsuranceCalls200JSONResponse) VisitListInsuranceCallsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInsuranceCalls401JSONResponse Error
+
+func (response ListInsuranceCalls401JSONResponse) VisitListInsuranceCallsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInsuranceCalls404JSONResponse Error
+
+func (response ListInsuranceCalls404JSONResponse) VisitListInsuranceCallsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInsuranceCalls501JSONResponse Error
+
+func (response ListInsuranceCalls501JSONResponse) VisitListInsuranceCallsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInsuranceCallRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateInsuranceCallJSONRequestBody
+}
+
+type CreateInsuranceCallResponseObject interface {
+	VisitCreateInsuranceCallResponse(w http.ResponseWriter) error
+}
+
+type CreateInsuranceCall201JSONResponse InsuranceCall
+
+func (response CreateInsuranceCall201JSONResponse) VisitCreateInsuranceCallResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInsuranceCall400JSONResponse Error
+
+func (response CreateInsuranceCall400JSONResponse) VisitCreateInsuranceCallResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInsuranceCall401JSONResponse Error
+
+func (response CreateInsuranceCall401JSONResponse) VisitCreateInsuranceCallResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInsuranceCall404JSONResponse Error
+
+func (response CreateInsuranceCall404JSONResponse) VisitCreateInsuranceCallResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInsuranceCall501JSONResponse Error
+
+func (response CreateInsuranceCall501JSONResponse) VisitCreateInsuranceCallResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListInvitationsRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -7332,6 +10526,228 @@ func (response GetMemberJourney501JSONResponse) VisitGetMemberJourneyResponse(w 
 	return err
 }
 
+type CreateLabResultRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateLabResultJSONRequestBody
+}
+
+type CreateLabResultResponseObject interface {
+	VisitCreateLabResultResponse(w http.ResponseWriter) error
+}
+
+type CreateLabResult201JSONResponse LabResult
+
+func (response CreateLabResult201JSONResponse) VisitCreateLabResultResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateLabResult400JSONResponse Error
+
+func (response CreateLabResult400JSONResponse) VisitCreateLabResultResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateLabResult401JSONResponse Error
+
+func (response CreateLabResult401JSONResponse) VisitCreateLabResultResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateLabResult404JSONResponse Error
+
+func (response CreateLabResult404JSONResponse) VisitCreateLabResultResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateLabResult501JSONResponse Error
+
+func (response CreateLabResult501JSONResponse) VisitCreateLabResultResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeavePlanRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type GetLeavePlanResponseObject interface {
+	VisitGetLeavePlanResponse(w http.ResponseWriter) error
+}
+
+type GetLeavePlan200JSONResponse LeavePlan
+
+func (response GetLeavePlan200JSONResponse) VisitGetLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeavePlan401JSONResponse Error
+
+func (response GetLeavePlan401JSONResponse) VisitGetLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeavePlan404JSONResponse Error
+
+func (response GetLeavePlan404JSONResponse) VisitGetLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeavePlan501JSONResponse Error
+
+func (response GetLeavePlan501JSONResponse) VisitGetLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLeavePlanRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *UpdateLeavePlanJSONRequestBody
+}
+
+type UpdateLeavePlanResponseObject interface {
+	VisitUpdateLeavePlanResponse(w http.ResponseWriter) error
+}
+
+type UpdateLeavePlan200JSONResponse LeavePlan
+
+func (response UpdateLeavePlan200JSONResponse) VisitUpdateLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLeavePlan400JSONResponse Error
+
+func (response UpdateLeavePlan400JSONResponse) VisitUpdateLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLeavePlan401JSONResponse Error
+
+func (response UpdateLeavePlan401JSONResponse) VisitUpdateLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLeavePlan404JSONResponse Error
+
+func (response UpdateLeavePlan404JSONResponse) VisitUpdateLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateLeavePlan501JSONResponse Error
+
+func (response UpdateLeavePlan501JSONResponse) VisitUpdateLeavePlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetLiveUpdatesRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -7604,6 +11020,415 @@ func (response ListMoodPatterns501JSONResponse) VisitListMoodPatternsResponse(w 
 	return err
 }
 
+type ListMoodScreeningsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListMoodScreeningsResponseObject interface {
+	VisitListMoodScreeningsResponse(w http.ResponseWriter) error
+}
+
+type ListMoodScreenings200JSONResponse MoodScreeningList
+
+func (response ListMoodScreenings200JSONResponse) VisitListMoodScreeningsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMoodScreenings401JSONResponse Error
+
+func (response ListMoodScreenings401JSONResponse) VisitListMoodScreeningsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMoodScreenings404JSONResponse Error
+
+func (response ListMoodScreenings404JSONResponse) VisitListMoodScreeningsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListMoodScreenings501JSONResponse Error
+
+func (response ListMoodScreenings501JSONResponse) VisitListMoodScreeningsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateMoodScreeningRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateMoodScreeningJSONRequestBody
+}
+
+type CreateMoodScreeningResponseObject interface {
+	VisitCreateMoodScreeningResponse(w http.ResponseWriter) error
+}
+
+type CreateMoodScreening201JSONResponse MoodScreeningResult
+
+func (response CreateMoodScreening201JSONResponse) VisitCreateMoodScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateMoodScreening400JSONResponse Error
+
+func (response CreateMoodScreening400JSONResponse) VisitCreateMoodScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateMoodScreening401JSONResponse Error
+
+func (response CreateMoodScreening401JSONResponse) VisitCreateMoodScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateMoodScreening404JSONResponse Error
+
+func (response CreateMoodScreening404JSONResponse) VisitCreateMoodScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateMoodScreening501JSONResponse Error
+
+func (response CreateMoodScreening501JSONResponse) VisitCreateMoodScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListNotificationsRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListNotificationsResponseObject interface {
+	VisitListNotificationsResponse(w http.ResponseWriter) error
+}
+
+type ListNotifications200JSONResponse NotificationList
+
+func (response ListNotifications200JSONResponse) VisitListNotificationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListNotifications401JSONResponse Error
+
+func (response ListNotifications401JSONResponse) VisitListNotificationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListNotifications404JSONResponse Error
+
+func (response ListNotifications404JSONResponse) VisitListNotificationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListNotifications501JSONResponse Error
+
+func (response ListNotifications501JSONResponse) VisitListNotificationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkNotificationsReadRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *MarkNotificationsReadJSONRequestBody
+}
+
+type MarkNotificationsReadResponseObject interface {
+	VisitMarkNotificationsReadResponse(w http.ResponseWriter) error
+}
+
+type MarkNotificationsRead200JSONResponse NotificationList
+
+func (response MarkNotificationsRead200JSONResponse) VisitMarkNotificationsReadResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkNotificationsRead400JSONResponse Error
+
+func (response MarkNotificationsRead400JSONResponse) VisitMarkNotificationsReadResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkNotificationsRead401JSONResponse Error
+
+func (response MarkNotificationsRead401JSONResponse) VisitMarkNotificationsReadResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkNotificationsRead404JSONResponse Error
+
+func (response MarkNotificationsRead404JSONResponse) VisitMarkNotificationsReadResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type MarkNotificationsRead501JSONResponse Error
+
+func (response MarkNotificationsRead501JSONResponse) VisitMarkNotificationsReadResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartnerOffersRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListPartnerOffersResponseObject interface {
+	VisitListPartnerOffersResponse(w http.ResponseWriter) error
+}
+
+type ListPartnerOffers200JSONResponse PartnerOfferList
+
+func (response ListPartnerOffers200JSONResponse) VisitListPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartnerOffers401JSONResponse Error
+
+func (response ListPartnerOffers401JSONResponse) VisitListPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartnerOffers404JSONResponse Error
+
+func (response ListPartnerOffers404JSONResponse) VisitListPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListPartnerOffers501JSONResponse Error
+
+func (response ListPartnerOffers501JSONResponse) VisitListPartnerOffersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOfferClickRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	OfferId  OfferId  `json:"offerId"`
+}
+
+type CreatePartnerOfferClickResponseObject interface {
+	VisitCreatePartnerOfferClickResponse(w http.ResponseWriter) error
+}
+
+type CreatePartnerOfferClick204Response struct {
+}
+
+func (response CreatePartnerOfferClick204Response) VisitCreatePartnerOfferClickResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type CreatePartnerOfferClick401JSONResponse Error
+
+func (response CreatePartnerOfferClick401JSONResponse) VisitCreatePartnerOfferClickResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOfferClick404JSONResponse Error
+
+func (response CreatePartnerOfferClick404JSONResponse) VisitCreatePartnerOfferClickResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePartnerOfferClick501JSONResponse Error
+
+func (response CreatePartnerOfferClick501JSONResponse) VisitCreatePartnerOfferClickResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetPassportRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -7787,6 +11612,177 @@ func (response SetPlanItemProgress404JSONResponse) VisitSetPlanItemProgressRespo
 type SetPlanItemProgress501JSONResponse Error
 
 func (response SetPlanItemProgress501JSONResponse) VisitSetPlanItemProgressResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePregnancyLossRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type DeletePregnancyLossResponseObject interface {
+	VisitDeletePregnancyLossResponse(w http.ResponseWriter) error
+}
+
+type DeletePregnancyLoss200JSONResponse Family
+
+func (response DeletePregnancyLoss200JSONResponse) VisitDeletePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePregnancyLoss401JSONResponse Error
+
+func (response DeletePregnancyLoss401JSONResponse) VisitDeletePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePregnancyLoss404JSONResponse Error
+
+func (response DeletePregnancyLoss404JSONResponse) VisitDeletePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePregnancyLoss409JSONResponse Error
+
+func (response DeletePregnancyLoss409JSONResponse) VisitDeletePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeletePregnancyLoss501JSONResponse Error
+
+func (response DeletePregnancyLoss501JSONResponse) VisitDeletePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePregnancyLossRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreatePregnancyLossJSONRequestBody
+}
+
+type CreatePregnancyLossResponseObject interface {
+	VisitCreatePregnancyLossResponse(w http.ResponseWriter) error
+}
+
+type CreatePregnancyLoss201JSONResponse Family
+
+func (response CreatePregnancyLoss201JSONResponse) VisitCreatePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePregnancyLoss400JSONResponse Error
+
+func (response CreatePregnancyLoss400JSONResponse) VisitCreatePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePregnancyLoss401JSONResponse Error
+
+func (response CreatePregnancyLoss401JSONResponse) VisitCreatePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePregnancyLoss404JSONResponse Error
+
+func (response CreatePregnancyLoss404JSONResponse) VisitCreatePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePregnancyLoss409JSONResponse Error
+
+func (response CreatePregnancyLoss409JSONResponse) VisitCreatePregnancyLossResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreatePregnancyLoss501JSONResponse Error
+
+func (response CreatePregnancyLoss501JSONResponse) VisitCreatePregnancyLossResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -8194,6 +12190,149 @@ func (response ListPsychologistSlots404JSONResponse) VisitListPsychologistSlotsR
 type ListPsychologistSlots501JSONResponse Error
 
 func (response ListPsychologistSlots501JSONResponse) VisitListPsychologistSlotsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListScreeningQuestionnairesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListScreeningQuestionnairesResponseObject interface {
+	VisitListScreeningQuestionnairesResponse(w http.ResponseWriter) error
+}
+
+type ListScreeningQuestionnaires200JSONResponse ScreeningQuestionnaireList
+
+func (response ListScreeningQuestionnaires200JSONResponse) VisitListScreeningQuestionnairesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListScreeningQuestionnaires401JSONResponse Error
+
+func (response ListScreeningQuestionnaires401JSONResponse) VisitListScreeningQuestionnairesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListScreeningQuestionnaires404JSONResponse Error
+
+func (response ListScreeningQuestionnaires404JSONResponse) VisitListScreeningQuestionnairesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListScreeningQuestionnaires501JSONResponse Error
+
+func (response ListScreeningQuestionnaires501JSONResponse) VisitListScreeningQuestionnairesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateScreeningRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateScreeningJSONRequestBody
+}
+
+type CreateScreeningResponseObject interface {
+	VisitCreateScreeningResponse(w http.ResponseWriter) error
+}
+
+type CreateScreening201JSONResponse Screening
+
+func (response CreateScreening201JSONResponse) VisitCreateScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateScreening400JSONResponse Error
+
+func (response CreateScreening400JSONResponse) VisitCreateScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateScreening401JSONResponse Error
+
+func (response CreateScreening401JSONResponse) VisitCreateScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateScreening404JSONResponse Error
+
+func (response CreateScreening404JSONResponse) VisitCreateScreeningResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateScreening501JSONResponse Error
+
+func (response CreateScreening501JSONResponse) VisitCreateScreeningResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response); err != nil {
@@ -9381,6 +13520,201 @@ func (response GetToday501JSONResponse) VisitGetTodayResponse(w http.ResponseWri
 	return err
 }
 
+type CreateVoiceNoteRequestObject struct {
+	MemberId    MemberId `json:"memberId"`
+	Params      CreateVoiceNoteParams
+	ContentType string
+	Body        io.Reader
+}
+
+type CreateVoiceNoteResponseObject interface {
+	VisitCreateVoiceNoteResponse(w http.ResponseWriter) error
+}
+
+type CreateVoiceNote201JSONResponse VoiceNote
+
+func (response CreateVoiceNote201JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateVoiceNote400JSONResponse Error
+
+func (response CreateVoiceNote400JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateVoiceNote401JSONResponse Error
+
+func (response CreateVoiceNote401JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateVoiceNote403JSONResponse Error
+
+func (response CreateVoiceNote403JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateVoiceNote404JSONResponse Error
+
+func (response CreateVoiceNote404JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateVoiceNote413JSONResponse Error
+
+func (response CreateVoiceNote413JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(413)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateVoiceNote501JSONResponse Error
+
+func (response CreateVoiceNote501JSONResponse) VisitCreateVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetVoiceNoteRequestObject struct {
+	MemberId    MemberId           `json:"memberId"`
+	VoiceNoteId openapi_types.UUID `json:"voiceNoteId"`
+}
+
+type GetVoiceNoteResponseObject interface {
+	VisitGetVoiceNoteResponse(w http.ResponseWriter) error
+}
+
+type GetVoiceNote200AudioResponse struct {
+	Body          io.Reader
+	ContentType   string
+	ContentLength int64
+}
+
+func (response GetVoiceNote200AudioResponse) VisitGetVoiceNoteResponse(w http.ResponseWriter) error {
+
+	w.Header().Set("Content-Type", response.ContentType)
+	if response.ContentLength != 0 {
+		w.Header().Set("Content-Length", fmt.Sprint(response.ContentLength))
+	}
+	w.WriteHeader(200)
+
+	if closer, ok := response.Body.(io.ReadCloser); ok {
+		defer closer.Close()
+	}
+	_, err := io.Copy(w, response.Body)
+	return err
+}
+
+type GetVoiceNote401JSONResponse Error
+
+func (response GetVoiceNote401JSONResponse) VisitGetVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetVoiceNote403JSONResponse Error
+
+func (response GetVoiceNote403JSONResponse) VisitGetVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetVoiceNote404JSONResponse Error
+
+func (response GetVoiceNote404JSONResponse) VisitGetVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetVoiceNote501JSONResponse Error
+
+func (response GetVoiceNote501JSONResponse) VisitGetVoiceNoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(501)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMemberWeeklyPlanRequestObject struct {
 	MemberId MemberId `json:"memberId"`
 }
@@ -9511,9 +13845,33 @@ func (response ListProviders501JSONResponse) VisitListProvidersResponse(w http.R
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// GetAnalytics Aggregate usage counts across all demo families
+	// (GET /admin/analytics)
+	GetAnalytics(ctx context.Context, request GetAnalyticsRequestObject) (GetAnalyticsResponseObject, error)
+	// ListContentItems Editable content: weekly cards, guides, practice questions, checklist items
+	// (GET /admin/content-items)
+	ListContentItems(ctx context.Context, request ListContentItemsRequestObject) (ListContentItemsResponseObject, error)
+	// UpdateContentItem Edit the title or text of one content item in this demo copy
+	// (PATCH /admin/content-items/{kind}/{itemId})
+	UpdateContentItem(ctx context.Context, request UpdateContentItemRequestObject) (UpdateContentItemResponseObject, error)
+	// ResetContentItem Undo this demo copy's edits to one content item
+	// (POST /admin/content-items/{kind}/{itemId}/reset)
+	ResetContentItem(ctx context.Context, request ResetContentItemRequestObject) (ResetContentItemResponseObject, error)
+	// ListAllPartnerOffers Every partner offer in this demo copy, active or not
+	// (GET /admin/partner-offers)
+	ListAllPartnerOffers(ctx context.Context, request ListAllPartnerOffersRequestObject) (ListAllPartnerOffersResponseObject, error)
+	// CreatePartnerOffer Add a partner offer
+	// (POST /admin/partner-offers)
+	CreatePartnerOffer(ctx context.Context, request CreatePartnerOfferRequestObject) (CreatePartnerOfferResponseObject, error)
+	// UpdatePartnerOffer Change or switch off a partner offer
+	// (PATCH /admin/partner-offers/{offerId})
+	UpdatePartnerOffer(ctx context.Context, request UpdatePartnerOfferRequestObject) (UpdatePartnerOfferResponseObject, error)
 	// HandleStripeWebhook Stripe calls this when a checkout or subscription changes
 	// (POST /billing/stripe-webhook)
 	HandleStripeWebhook(ctx context.Context, request HandleStripeWebhookRequestObject) (HandleStripeWebhookResponseObject, error)
+	// GetCalendarFeedFile The iCalendar file a calendar app subscribes to
+	// (GET /calendar-feeds/{token})
+	GetCalendarFeedFile(ctx context.Context, request GetCalendarFeedFileRequestObject) (GetCalendarFeedFileResponseObject, error)
 	// CreateCustomSession Start with a new family built from the visitor's own details
 	// (POST /demo/custom-sessions)
 	CreateCustomSession(ctx context.Context, request CreateCustomSessionRequestObject) (CreateCustomSessionResponseObject, error)
@@ -9565,6 +13923,15 @@ type StrictServerInterface interface {
 	// CreateCalendarEvent A parent adds an appointment, class or reminder
 	// (POST /members/{memberId}/calendar-events)
 	CreateCalendarEvent(ctx context.Context, request CreateCalendarEventRequestObject) (CreateCalendarEventResponseObject, error)
+	// DeleteCalendarFeed Revoke the acting person's calendar subscription link
+	// (DELETE /members/{memberId}/calendar-feed)
+	DeleteCalendarFeed(ctx context.Context, request DeleteCalendarFeedRequestObject) (DeleteCalendarFeedResponseObject, error)
+	// GetCalendarFeed Whether the acting person has a calendar subscription link
+	// (GET /members/{memberId}/calendar-feed)
+	GetCalendarFeed(ctx context.Context, request GetCalendarFeedRequestObject) (GetCalendarFeedResponseObject, error)
+	// CreateCalendarFeed Create or replace the acting person's calendar subscription link
+	// (POST /members/{memberId}/calendar-feed)
+	CreateCalendarFeed(ctx context.Context, request CreateCalendarFeedRequestObject) (CreateCalendarFeedResponseObject, error)
 	// ListCareLogEntries The last 48 hours of the care log, with the latest of each kind
 	// (GET /members/{memberId}/care-log)
 	ListCareLogEntries(ctx context.Context, request ListCareLogEntriesRequestObject) (ListCareLogEntriesResponseObject, error)
@@ -9580,6 +13947,15 @@ type StrictServerInterface interface {
 	// GetChildPassport The baby passport card, limited by role
 	// (GET /members/{memberId}/children/{childId}/passport)
 	GetChildPassport(ctx context.Context, request GetChildPassportRequestObject) (GetChildPassportResponseObject, error)
+	// ListDiaryEntries Diary entries from the last 30 days that the acting parent may see
+	// (GET /members/{memberId}/diary-entries)
+	ListDiaryEntries(ctx context.Context, request ListDiaryEntriesRequestObject) (ListDiaryEntriesResponseObject, error)
+	// CreateDiaryEntry The acting parent writes a diary entry
+	// (POST /members/{memberId}/diary-entries)
+	CreateDiaryEntry(ctx context.Context, request CreateDiaryEntryRequestObject) (CreateDiaryEntryResponseObject, error)
+	// UpdateDiaryEntry The author changes who may read one of their entries
+	// (PATCH /members/{memberId}/diary-entries/{entryId})
+	UpdateDiaryEntry(ctx context.Context, request UpdateDiaryEntryRequestObject) (UpdateDiaryEntryResponseObject, error)
 	// UpdateFamily A parent sets the family's stage or due date
 	// (PATCH /members/{memberId}/family)
 	UpdateFamily(ctx context.Context, request UpdateFamilyRequestObject) (UpdateFamilyResponseObject, error)
@@ -9595,6 +13971,15 @@ type StrictServerInterface interface {
 	// AcceptHandoff The receiver accepts and is now on duty
 	// (POST /members/{memberId}/handoffs/{handoffId}/accept)
 	AcceptHandoff(ctx context.Context, request AcceptHandoffRequestObject) (AcceptHandoffResponseObject, error)
+	// CreateImmunization The acting parent logs a vaccine dose given to them or to a child
+	// (POST /members/{memberId}/immunizations)
+	CreateImmunization(ctx context.Context, request CreateImmunizationRequestObject) (CreateImmunizationResponseObject, error)
+	// ListInsuranceCalls Insurance calls from the last 365 days the acting parent may see
+	// (GET /members/{memberId}/insurance-calls)
+	ListInsuranceCalls(ctx context.Context, request ListInsuranceCallsRequestObject) (ListInsuranceCallsResponseObject, error)
+	// CreateInsuranceCall The acting parent logs a call with their health insurer
+	// (POST /members/{memberId}/insurance-calls)
+	CreateInsuranceCall(ctx context.Context, request CreateInsuranceCallRequestObject) (CreateInsuranceCallResponseObject, error)
 	// ListInvitations The family's invitations, newest first
 	// (GET /members/{memberId}/invitations)
 	ListInvitations(ctx context.Context, request ListInvitationsRequestObject) (ListInvitationsResponseObject, error)
@@ -9607,6 +13992,15 @@ type StrictServerInterface interface {
 	// GetMemberJourney The family's path from planning to age 9, where they are now and what comes next
 	// (GET /members/{memberId}/journey)
 	GetMemberJourney(ctx context.Context, request GetMemberJourneyRequestObject) (GetMemberJourneyResponseObject, error)
+	// CreateLabResult The acting parent logs one measured lab value for them or a child
+	// (POST /members/{memberId}/lab-results)
+	CreateLabResult(ctx context.Context, request CreateLabResultRequestObject) (CreateLabResultResponseObject, error)
+	// GetLeavePlan The family's parental leave plan: eligibility and a timeline for both parents
+	// (GET /members/{memberId}/leave-plan)
+	GetLeavePlan(ctx context.Context, request GetLeavePlanRequestObject) (GetLeavePlanResponseObject, error)
+	// UpdateLeavePlan The acting parent saves their leave wizard answers
+	// (PUT /members/{memberId}/leave-plan)
+	UpdateLeavePlan(ctx context.Context, request UpdateLeavePlanRequestObject) (UpdateLeavePlanResponseObject, error)
 	// GetLiveUpdates Server-sent events that tell the acting person's screens what changed
 	// (GET /members/{memberId}/live)
 	GetLiveUpdates(ctx context.Context, request GetLiveUpdatesRequestObject) (GetLiveUpdatesResponseObject, error)
@@ -9619,6 +14013,24 @@ type StrictServerInterface interface {
 	// ListMoodPatterns Patterns detected in the acting parent's own recent check-ins
 	// (GET /members/{memberId}/mood-patterns)
 	ListMoodPatterns(ctx context.Context, request ListMoodPatternsRequestObject) (ListMoodPatternsResponseObject, error)
+	// ListMoodScreenings Questionnaire results from the last 365 days the acting parent may see
+	// (GET /members/{memberId}/mood-screenings)
+	ListMoodScreenings(ctx context.Context, request ListMoodScreeningsRequestObject) (ListMoodScreeningsResponseObject, error)
+	// CreateMoodScreening The acting parent submits a completed questionnaire
+	// (POST /members/{memberId}/mood-screenings)
+	CreateMoodScreening(ctx context.Context, request CreateMoodScreeningRequestObject) (CreateMoodScreeningResponseObject, error)
+	// ListNotifications The acting person's notifications for the bell
+	// (GET /members/{memberId}/notifications)
+	ListNotifications(ctx context.Context, request ListNotificationsRequestObject) (ListNotificationsResponseObject, error)
+	// MarkNotificationsRead Mark the acting person's notifications as read
+	// (POST /members/{memberId}/notifications/read)
+	MarkNotificationsRead(ctx context.Context, request MarkNotificationsReadRequestObject) (MarkNotificationsReadResponseObject, error)
+	// ListPartnerOffers Up to three partner offers for this parent's stage
+	// (GET /members/{memberId}/partner-offers)
+	ListPartnerOffers(ctx context.Context, request ListPartnerOffersRequestObject) (ListPartnerOffersResponseObject, error)
+	// CreatePartnerOfferClick Count a click on a partner offer before the web opens its link
+	// (POST /members/{memberId}/partner-offers/{offerId}/clicks)
+	CreatePartnerOfferClick(ctx context.Context, request CreatePartnerOfferClickRequestObject) (CreatePartnerOfferClickResponseObject, error)
 	// GetPassport The health passport of the family as the acting parent may see it
 	// (GET /members/{memberId}/passport)
 	GetPassport(ctx context.Context, request GetPassportRequestObject) (GetPassportResponseObject, error)
@@ -9628,6 +14040,12 @@ type StrictServerInterface interface {
 	// SetPlanItemProgress The acting parent marks a plan item as booked or done
 	// (PUT /members/{memberId}/plan/{ruleId}/status)
 	SetPlanItemProgress(ctx context.Context, request SetPlanItemProgressRequestObject) (SetPlanItemProgressResponseObject, error)
+	// DeletePregnancyLoss Turn pregnancy loss support off and restore the family as it was
+	// (DELETE /members/{memberId}/pregnancy-loss)
+	DeletePregnancyLoss(ctx context.Context, request DeletePregnancyLossRequestObject) (DeletePregnancyLossResponseObject, error)
+	// CreatePregnancyLoss A parent turns on pregnancy loss support for the family
+	// (POST /members/{memberId}/pregnancy-loss)
+	CreatePregnancyLoss(ctx context.Context, request CreatePregnancyLossRequestObject) (CreatePregnancyLossResponseObject, error)
 	// GetPregnancyWeek The weekly pregnancy card for one week
 	// (GET /members/{memberId}/pregnancy-weeks/{week})
 	GetPregnancyWeek(ctx context.Context, request GetPregnancyWeekRequestObject) (GetPregnancyWeekResponseObject, error)
@@ -9643,6 +14061,12 @@ type StrictServerInterface interface {
 	// ListPsychologistSlots Open session times with the demo psychologist, next 14 days
 	// (GET /members/{memberId}/psychologist-slots)
 	ListPsychologistSlots(ctx context.Context, request ListPsychologistSlotsRequestObject) (ListPsychologistSlotsResponseObject, error)
+	// ListScreeningQuestionnaires The mood questionnaires a parent can take, with their questions
+	// (GET /members/{memberId}/screening-questionnaires)
+	ListScreeningQuestionnaires(ctx context.Context, request ListScreeningQuestionnairesRequestObject) (ListScreeningQuestionnairesResponseObject, error)
+	// CreateScreening The acting parent logs a screening that was done for them or a child
+	// (POST /members/{memberId}/screenings)
+	CreateScreening(ctx context.Context, request CreateScreeningRequestObject) (CreateScreeningResponseObject, error)
 	// CreateSessionNote The acting parent writes a short note after a session
 	// (POST /members/{memberId}/session-notes)
 	CreateSessionNote(ctx context.Context, request CreateSessionNoteRequestObject) (CreateSessionNoteResponseObject, error)
@@ -9685,6 +14109,12 @@ type StrictServerInterface interface {
 	// GetToday The acting person's Today screen in one call
 	// (GET /members/{memberId}/today)
 	GetToday(ctx context.Context, request GetTodayRequestObject) (GetTodayResponseObject, error)
+	// CreateVoiceNote Upload a short voice note to attach to a handoff
+	// (POST /members/{memberId}/voice-notes)
+	CreateVoiceNote(ctx context.Context, request CreateVoiceNoteRequestObject) (CreateVoiceNoteResponseObject, error)
+	// GetVoiceNote Play a voice note
+	// (GET /members/{memberId}/voice-notes/{voiceNoteId})
+	GetVoiceNote(ctx context.Context, request GetVoiceNoteRequestObject) (GetVoiceNoteResponseObject, error)
 	// GetMemberWeeklyPlan A short written plan for this parent's week
 	// (GET /members/{memberId}/weekly-plan)
 	GetMemberWeeklyPlan(ctx context.Context, request GetMemberWeeklyPlanRequestObject) (GetMemberWeeklyPlanResponseObject, error)
@@ -9732,6 +14162,207 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
+// GetAnalytics operation middleware
+func (sh *strictHandler) GetAnalytics(w http.ResponseWriter, r *http.Request, params GetAnalyticsParams) {
+	var request GetAnalyticsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAnalytics(ctx, request.(GetAnalyticsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAnalytics")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAnalyticsResponseObject); ok {
+		if err := validResponse.VisitGetAnalyticsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListContentItems operation middleware
+func (sh *strictHandler) ListContentItems(w http.ResponseWriter, r *http.Request, params ListContentItemsParams) {
+	var request ListContentItemsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListContentItems(ctx, request.(ListContentItemsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListContentItems")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListContentItemsResponseObject); ok {
+		if err := validResponse.VisitListContentItemsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateContentItem operation middleware
+func (sh *strictHandler) UpdateContentItem(w http.ResponseWriter, r *http.Request, kind ContentKind, itemId string) {
+	var request UpdateContentItemRequestObject
+
+	request.Kind = kind
+	request.ItemId = itemId
+
+	var body UpdateContentItemJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateContentItem(ctx, request.(UpdateContentItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateContentItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateContentItemResponseObject); ok {
+		if err := validResponse.VisitUpdateContentItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ResetContentItem operation middleware
+func (sh *strictHandler) ResetContentItem(w http.ResponseWriter, r *http.Request, kind ContentKind, itemId string) {
+	var request ResetContentItemRequestObject
+
+	request.Kind = kind
+	request.ItemId = itemId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ResetContentItem(ctx, request.(ResetContentItemRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ResetContentItem")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ResetContentItemResponseObject); ok {
+		if err := validResponse.VisitResetContentItemResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListAllPartnerOffers operation middleware
+func (sh *strictHandler) ListAllPartnerOffers(w http.ResponseWriter, r *http.Request) {
+	var request ListAllPartnerOffersRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListAllPartnerOffers(ctx, request.(ListAllPartnerOffersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListAllPartnerOffers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListAllPartnerOffersResponseObject); ok {
+		if err := validResponse.VisitListAllPartnerOffersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreatePartnerOffer operation middleware
+func (sh *strictHandler) CreatePartnerOffer(w http.ResponseWriter, r *http.Request) {
+	var request CreatePartnerOfferRequestObject
+
+	var body CreatePartnerOfferJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreatePartnerOffer(ctx, request.(CreatePartnerOfferRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreatePartnerOffer")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreatePartnerOfferResponseObject); ok {
+		if err := validResponse.VisitCreatePartnerOfferResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdatePartnerOffer operation middleware
+func (sh *strictHandler) UpdatePartnerOffer(w http.ResponseWriter, r *http.Request, offerId OfferId) {
+	var request UpdatePartnerOfferRequestObject
+
+	request.OfferId = offerId
+
+	var body UpdatePartnerOfferJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdatePartnerOffer(ctx, request.(UpdatePartnerOfferRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdatePartnerOffer")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdatePartnerOfferResponseObject); ok {
+		if err := validResponse.VisitUpdatePartnerOfferResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // HandleStripeWebhook operation middleware
 func (sh *strictHandler) HandleStripeWebhook(w http.ResponseWriter, r *http.Request, params HandleStripeWebhookParams) {
 	var request HandleStripeWebhookRequestObject
@@ -9758,6 +14389,32 @@ func (sh *strictHandler) HandleStripeWebhook(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(HandleStripeWebhookResponseObject); ok {
 		if err := validResponse.VisitHandleStripeWebhookResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCalendarFeedFile operation middleware
+func (sh *strictHandler) GetCalendarFeedFile(w http.ResponseWriter, r *http.Request, token FeedToken) {
+	var request GetCalendarFeedFileRequestObject
+
+	request.Token = token
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCalendarFeedFile(ctx, request.(GetCalendarFeedFileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCalendarFeedFile")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCalendarFeedFileResponseObject); ok {
+		if err := validResponse.VisitGetCalendarFeedFileResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10254,6 +14911,91 @@ func (sh *strictHandler) CreateCalendarEvent(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// DeleteCalendarFeed operation middleware
+func (sh *strictHandler) DeleteCalendarFeed(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request DeleteCalendarFeedRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCalendarFeed(ctx, request.(DeleteCalendarFeedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCalendarFeed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteCalendarFeedResponseObject); ok {
+		if err := validResponse.VisitDeleteCalendarFeedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCalendarFeed operation middleware
+func (sh *strictHandler) GetCalendarFeed(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request GetCalendarFeedRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCalendarFeed(ctx, request.(GetCalendarFeedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCalendarFeed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCalendarFeedResponseObject); ok {
+		if err := validResponse.VisitGetCalendarFeedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCalendarFeed operation middleware
+func (sh *strictHandler) CreateCalendarFeed(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateCalendarFeedRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateCalendarFeedJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCalendarFeed(ctx, request.(CreateCalendarFeedRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCalendarFeed")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCalendarFeedResponseObject); ok {
+		if err := validResponse.VisitCreateCalendarFeedResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListCareLogEntries operation middleware
 func (sh *strictHandler) ListCareLogEntries(w http.ResponseWriter, r *http.Request, memberId MemberId, params ListCareLogEntriesParams) {
 	var request ListCareLogEntriesRequestObject
@@ -10394,6 +15136,99 @@ func (sh *strictHandler) GetChildPassport(w http.ResponseWriter, r *http.Request
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetChildPassportResponseObject); ok {
 		if err := validResponse.VisitGetChildPassportResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListDiaryEntries operation middleware
+func (sh *strictHandler) ListDiaryEntries(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListDiaryEntriesRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListDiaryEntries(ctx, request.(ListDiaryEntriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListDiaryEntries")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListDiaryEntriesResponseObject); ok {
+		if err := validResponse.VisitListDiaryEntriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDiaryEntry operation middleware
+func (sh *strictHandler) CreateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateDiaryEntryRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateDiaryEntryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateDiaryEntry(ctx, request.(CreateDiaryEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateDiaryEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateDiaryEntryResponseObject); ok {
+		if err := validResponse.VisitCreateDiaryEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDiaryEntry operation middleware
+func (sh *strictHandler) UpdateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId, entryId openapi_types.UUID) {
+	var request UpdateDiaryEntryRequestObject
+
+	request.MemberId = memberId
+	request.EntryId = entryId
+
+	var body UpdateDiaryEntryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDiaryEntry(ctx, request.(UpdateDiaryEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDiaryEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateDiaryEntryResponseObject); ok {
+		if err := validResponse.VisitUpdateDiaryEntryResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10547,6 +15382,98 @@ func (sh *strictHandler) AcceptHandoff(w http.ResponseWriter, r *http.Request, m
 	}
 }
 
+// CreateImmunization operation middleware
+func (sh *strictHandler) CreateImmunization(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateImmunizationRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateImmunizationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateImmunization(ctx, request.(CreateImmunizationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateImmunization")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateImmunizationResponseObject); ok {
+		if err := validResponse.VisitCreateImmunizationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListInsuranceCalls operation middleware
+func (sh *strictHandler) ListInsuranceCalls(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListInsuranceCallsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListInsuranceCalls(ctx, request.(ListInsuranceCallsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListInsuranceCalls")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListInsuranceCallsResponseObject); ok {
+		if err := validResponse.VisitListInsuranceCallsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateInsuranceCall operation middleware
+func (sh *strictHandler) CreateInsuranceCall(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateInsuranceCallRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateInsuranceCallJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateInsuranceCall(ctx, request.(CreateInsuranceCallRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateInsuranceCall")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateInsuranceCallResponseObject); ok {
+		if err := validResponse.VisitCreateInsuranceCallResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListInvitations operation middleware
 func (sh *strictHandler) ListInvitations(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request ListInvitationsRequestObject
@@ -10652,6 +15579,98 @@ func (sh *strictHandler) GetMemberJourney(w http.ResponseWriter, r *http.Request
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetMemberJourneyResponseObject); ok {
 		if err := validResponse.VisitGetMemberJourneyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateLabResult operation middleware
+func (sh *strictHandler) CreateLabResult(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateLabResultRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateLabResultJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateLabResult(ctx, request.(CreateLabResultRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateLabResult")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateLabResultResponseObject); ok {
+		if err := validResponse.VisitCreateLabResultResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLeavePlan operation middleware
+func (sh *strictHandler) GetLeavePlan(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request GetLeavePlanRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLeavePlan(ctx, request.(GetLeavePlanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLeavePlan")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLeavePlanResponseObject); ok {
+		if err := validResponse.VisitGetLeavePlanResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateLeavePlan operation middleware
+func (sh *strictHandler) UpdateLeavePlan(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request UpdateLeavePlanRequestObject
+
+	request.MemberId = memberId
+
+	var body UpdateLeavePlanJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateLeavePlan(ctx, request.(UpdateLeavePlanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateLeavePlan")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateLeavePlanResponseObject); ok {
+		if err := validResponse.VisitUpdateLeavePlanResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10770,6 +15789,177 @@ func (sh *strictHandler) ListMoodPatterns(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// ListMoodScreenings operation middleware
+func (sh *strictHandler) ListMoodScreenings(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListMoodScreeningsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListMoodScreenings(ctx, request.(ListMoodScreeningsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListMoodScreenings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListMoodScreeningsResponseObject); ok {
+		if err := validResponse.VisitListMoodScreeningsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateMoodScreening operation middleware
+func (sh *strictHandler) CreateMoodScreening(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateMoodScreeningRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateMoodScreeningJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateMoodScreening(ctx, request.(CreateMoodScreeningRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateMoodScreening")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateMoodScreeningResponseObject); ok {
+		if err := validResponse.VisitCreateMoodScreeningResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListNotifications operation middleware
+func (sh *strictHandler) ListNotifications(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListNotificationsRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListNotifications(ctx, request.(ListNotificationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListNotifications")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListNotificationsResponseObject); ok {
+		if err := validResponse.VisitListNotificationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// MarkNotificationsRead operation middleware
+func (sh *strictHandler) MarkNotificationsRead(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request MarkNotificationsReadRequestObject
+
+	request.MemberId = memberId
+
+	var body MarkNotificationsReadJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.MarkNotificationsRead(ctx, request.(MarkNotificationsReadRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MarkNotificationsRead")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(MarkNotificationsReadResponseObject); ok {
+		if err := validResponse.VisitMarkNotificationsReadResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListPartnerOffers operation middleware
+func (sh *strictHandler) ListPartnerOffers(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListPartnerOffersRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListPartnerOffers(ctx, request.(ListPartnerOffersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListPartnerOffers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListPartnerOffersResponseObject); ok {
+		if err := validResponse.VisitListPartnerOffersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreatePartnerOfferClick operation middleware
+func (sh *strictHandler) CreatePartnerOfferClick(w http.ResponseWriter, r *http.Request, memberId MemberId, offerId OfferId) {
+	var request CreatePartnerOfferClickRequestObject
+
+	request.MemberId = memberId
+	request.OfferId = offerId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreatePartnerOfferClick(ctx, request.(CreatePartnerOfferClickRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreatePartnerOfferClick")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreatePartnerOfferClickResponseObject); ok {
+		if err := validResponse.VisitCreatePartnerOfferClickResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetPassport operation middleware
 func (sh *strictHandler) GetPassport(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request GetPassportRequestObject
@@ -10849,6 +16039,65 @@ func (sh *strictHandler) SetPlanItemProgress(w http.ResponseWriter, r *http.Requ
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(SetPlanItemProgressResponseObject); ok {
 		if err := validResponse.VisitSetPlanItemProgressResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeletePregnancyLoss operation middleware
+func (sh *strictHandler) DeletePregnancyLoss(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request DeletePregnancyLossRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeletePregnancyLoss(ctx, request.(DeletePregnancyLossRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeletePregnancyLoss")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeletePregnancyLossResponseObject); ok {
+		if err := validResponse.VisitDeletePregnancyLossResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreatePregnancyLoss operation middleware
+func (sh *strictHandler) CreatePregnancyLoss(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreatePregnancyLossRequestObject
+
+	request.MemberId = memberId
+
+	var body CreatePregnancyLossJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreatePregnancyLoss(ctx, request.(CreatePregnancyLossRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreatePregnancyLoss")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreatePregnancyLossResponseObject); ok {
+		if err := validResponse.VisitCreatePregnancyLossResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -10994,6 +16243,65 @@ func (sh *strictHandler) ListPsychologistSlots(w http.ResponseWriter, r *http.Re
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListPsychologistSlotsResponseObject); ok {
 		if err := validResponse.VisitListPsychologistSlotsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListScreeningQuestionnaires operation middleware
+func (sh *strictHandler) ListScreeningQuestionnaires(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListScreeningQuestionnairesRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListScreeningQuestionnaires(ctx, request.(ListScreeningQuestionnairesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListScreeningQuestionnaires")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListScreeningQuestionnairesResponseObject); ok {
+		if err := validResponse.VisitListScreeningQuestionnairesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateScreening operation middleware
+func (sh *strictHandler) CreateScreening(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateScreeningRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateScreeningJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateScreening(ctx, request.(CreateScreeningRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateScreening")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateScreeningResponseObject); ok {
+		if err := validResponse.VisitCreateScreeningResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -11421,6 +16729,63 @@ func (sh *strictHandler) GetToday(w http.ResponseWriter, r *http.Request, member
 	}
 }
 
+// CreateVoiceNote operation middleware
+func (sh *strictHandler) CreateVoiceNote(w http.ResponseWriter, r *http.Request, memberId MemberId, params CreateVoiceNoteParams) {
+	var request CreateVoiceNoteRequestObject
+
+	request.MemberId = memberId
+	request.Params = params
+	request.ContentType = r.Header.Get("Content-Type")
+
+	request.Body = r.Body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateVoiceNote(ctx, request.(CreateVoiceNoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateVoiceNote")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateVoiceNoteResponseObject); ok {
+		if err := validResponse.VisitCreateVoiceNoteResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetVoiceNote operation middleware
+func (sh *strictHandler) GetVoiceNote(w http.ResponseWriter, r *http.Request, memberId MemberId, voiceNoteId openapi_types.UUID) {
+	var request GetVoiceNoteRequestObject
+
+	request.MemberId = memberId
+	request.VoiceNoteId = voiceNoteId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVoiceNote(ctx, request.(GetVoiceNoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetVoiceNote")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetVoiceNoteResponseObject); ok {
+		if err := validResponse.VisitGetVoiceNoteResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMemberWeeklyPlan operation middleware
 func (sh *strictHandler) GetMemberWeeklyPlan(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request GetMemberWeeklyPlanRequestObject
@@ -11478,392 +16843,560 @@ func (sh *strictHandler) ListProviders(w http.ResponseWriter, r *http.Request, p
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
