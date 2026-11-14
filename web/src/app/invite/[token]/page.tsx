@@ -41,9 +41,12 @@ async function Invite({ params }: { params: Promise<{ token: string }> }) {
         <span className={cn("flex size-14 shrink-0 items-center justify-center rounded-full text-card", roleAccent[invite.role].bg)}>
           <Role aria-hidden className="size-7" />
         </span>
-        <h1 className="text-headline text-balance">
-          {invite.invitedByName} asks you to help as {roleLabel[invite.role].toLowerCase()}, {invite.displayName}.
-        </h1>
+        <div>
+          <h1 className="text-headline text-balance">{invite.invitedByName} invites you to help with the baby.</h1>
+          <p className="mt-1 text-label font-normal text-muted-foreground">
+            {invite.displayName}, as {roleLabel[invite.role].toLowerCase()}
+          </p>
+        </div>
       </div>
 
       {invite.status === "pending" ? (

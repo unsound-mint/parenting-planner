@@ -118,14 +118,14 @@ export function InviteForm({ memberId }: { memberId: string }) {
                   aria-checked={on}
                   onClick={() => pick(r)}
                   className={cn(
-                    "flex min-h-14 items-center gap-3 rounded-xl border px-3 text-left transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "flex min-h-14 min-w-0 items-center gap-2 rounded-xl border px-2.5 text-left md:gap-3 md:px-3 transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                     on ? "border-primary bg-secondary" : "border-border bg-background hover:bg-muted",
                   )}
                 >
                   <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-full text-card", roleAccent[r].bg)}>
                     <Icon aria-hidden className="size-4.5" />
                   </span>
-                  <span className="text-title font-semibold">{roleLabel[r]}</span>
+                  <span className="min-w-0 truncate text-label font-semibold md:text-title">{roleLabel[r]}</span>
                 </button>
               );
             })}

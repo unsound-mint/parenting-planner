@@ -107,7 +107,7 @@ export async function BabyHome({ memberId, family }: { memberId: string; family:
                 <WhenPicker />
               </div>
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="flex flex-col gap-3">
               <Tile kind="feed" entry={care.latest.lastFeed} now={now}>
                 <QuickAdd memberId={memberId} childId={child.id} actions={feedActions} />
               </Tile>
@@ -178,8 +178,8 @@ function Tile({ kind, entry, now, children }: { kind: CareLogKind; entry?: CareL
       ? `since ${formatClock(lastActivityAt(entry))}`
       : formatClock(entry.startedAt);
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-6">
+      <div className="flex items-center gap-3 md:w-44 md:shrink-0">
         <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", careLogTint[kind].soft)}>
           <Icon aria-hidden className="size-5" />
         </span>
@@ -189,7 +189,7 @@ function Tile({ kind, entry, now, children }: { kind: CareLogKind; entry?: CareL
           <p className="font-mono text-caption text-muted-foreground">{sub}</p>
         </div>
       </div>
-      {children}
+      <div className="min-w-0 md:flex-1">{children}</div>
     </div>
   );
 }
