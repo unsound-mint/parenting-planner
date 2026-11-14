@@ -25,6 +25,7 @@ tags:
   - name: invitations
   - name: bag
   - name: appointments
+  - name: paperwork
 paths:
   /healthz:
     get:
@@ -116,6 +117,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+    patch:
+      operationId: updateFamily
+      tags: [family]
+      summary: Change the due date; plan weeks and paperwork deadlines move with it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FamilyUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /family/upgrade-intents:
     post:
       operationId: createUpgradeIntent
@@ -518,6 +548,62 @@ paths:
                 $ref: "#/components/schemas/Error"
         "410":
           description: Expired, revoked or already used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/paperwork:
+    get:
+      operationId: listPaperwork
+      tags: [paperwork]
+      summary: US paperwork with deadlines computed from the due date, or the birth date once the baby is born
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperworkList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/paperwork/{key}:
+    parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/PaperworkKey"
+    patch:
+      operationId: updatePaperwork
+      tags: [paperwork]
+      summary: Mark an item done or change who handles it
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaperworkUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperworkItem"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
           content:
             application/json:
               schema:
@@ -1310,6 +1396,65 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Appointment"
+
+    FamilyUpdate:
+      type: object
+      required: [dueDate]
+      properties:
+        dueDate:
+          type: string
+          format: date
+
+    PaperworkKey:
+      type: string
+      enum: [leave-notice, baby-health-insurance, leave-bonding-window]
+
+    PaperworkItem:
+      type: object
+      required: [key, title, detail, done, status, source]
+      properties:
+        key:
+          $ref: "#/components/schemas/PaperworkKey"
+        title:
+          type: string
+        detail:
+          type: string
+        deadline:
+          type: string
+          format: date
+          description: Absent when the family has neither a due date nor a baby.
+        deadlineBasedOn:
+          type: string
+          enum: [due_date, birth_date]
+        ownerMemberId:
+          type: string
+          format: uuid
+        done:
+          type: boolean
+        status:
+          type: string
+          enum: [done, overdue, due, upcoming]
+          description: due means the deadline is within 14 days.
+        source:
+          $ref: "#/components/schemas/Source"
+
+    PaperworkUpdate:
+      type: object
+      properties:
+        done:
+          type: boolean
+        ownerMemberId:
+          type: string
+          format: uuid
+
+    PaperworkList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaperworkItem"
 
     BagList:
       type: string

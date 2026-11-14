@@ -136,6 +136,13 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type PaperworkItem struct {
+	FamilyID         uuid.UUID
+	Key              string
+	AssigneeMemberID uuid.NullUUID
+	Done             bool
+}
+
 type Session struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID

@@ -71,7 +71,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Change the due date; plan weeks and paperwork deadlines move with it */
+        patch: operations["updateFamily"];
         trace?: never;
     };
     "/family/upgrade-intents": {
@@ -289,6 +290,42 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/family/paperwork": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** US paperwork with deadlines computed from the due date, or the birth date once the baby is born */
+        get: operations["listPaperwork"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/family/paperwork/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: components["schemas"]["PaperworkKey"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark an item done or change who handles it */
+        patch: operations["updatePaperwork"];
         trace?: never;
     };
     "/family/bag-items": {
@@ -660,6 +697,41 @@ export interface components {
         };
         AppointmentList: {
             items: components["schemas"]["Appointment"][];
+        };
+        FamilyUpdate: {
+            /** Format: date */
+            dueDate: string;
+        };
+        /** @enum {string} */
+        PaperworkKey: "leave-notice" | "baby-health-insurance" | "leave-bonding-window";
+        PaperworkItem: {
+            key: components["schemas"]["PaperworkKey"];
+            title: string;
+            detail: string;
+            /**
+             * Format: date
+             * @description Absent when the family has neither a due date nor a baby.
+             */
+            deadline?: string;
+            /** @enum {string} */
+            deadlineBasedOn?: "due_date" | "birth_date";
+            /** Format: uuid */
+            ownerMemberId?: string;
+            done: boolean;
+            /**
+             * @description due means the deadline is within 14 days.
+             * @enum {string}
+             */
+            status: "done" | "overdue" | "due" | "upcoming";
+            source: components["schemas"]["Source"];
+        };
+        PaperworkUpdate: {
+            done?: boolean;
+            /** Format: uuid */
+            ownerMemberId?: string;
+        };
+        PaperworkList: {
+            items: components["schemas"]["PaperworkItem"][];
         };
         /** @enum {string} */
         BagList: "mother" | "baby" | "partner";
@@ -1215,6 +1287,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateFamily: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FamilyUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             /** @description Error */
@@ -1785,6 +1899,79 @@ export interface operations {
             };
             /** @description Expired, revoked or already used */
             410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listPaperwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperworkList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updatePaperwork: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: components["schemas"]["PaperworkKey"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaperworkUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaperworkItem"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
