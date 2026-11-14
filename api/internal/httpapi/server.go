@@ -95,10 +95,10 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 	})
 	// Middlewares run last-to-first: cap the body, limit new demos per
 	// address, check the Stripe webhook signature on the raw body, cap voice
-	// note uploads, validate, then resolve the session.
+	// note and portrait uploads, validate, then resolve the session.
 	return securityHeaders(recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, calendarFeedOrigin, validate, capVoiceNoteBody, s.verifyStripeSignature, s.limitNewSessions, capBody},
+		Middlewares: []MiddlewareFunc{s.session, calendarFeedOrigin, validate, capVoiceNoteBody, capPortraitBody, s.verifyStripeSignature, s.limitNewSessions, capBody},
 	}))), nil
 }
 

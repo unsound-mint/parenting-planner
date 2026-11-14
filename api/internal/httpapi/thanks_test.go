@@ -32,21 +32,29 @@ func TestThanksSuggestionsAreWordedFromDataAndSentOnce(t *testing.T) {
 		}
 	}
 	c.Get(thanksPath(jake.Id)+"/suggestions", http.StatusOK, &s)
-	if len(s.Items) != 1 || s.Items[0].Basis != httpapi.ThanksBasisBagItems || s.Items[0].ToMemberId != mom.Id ||
-		s.Items[0].Text != "Thank you for packing 3 bag items." {
+	// Missions Emily finished add a tasks_done suggestion; the bag one is the one this test sends.
+	var bag httpapi.ThanksSuggestion
+	for _, it := range s.Items {
+		if it.Basis == httpapi.ThanksBasisBagItems {
+			bag = it
+		}
+	}
+	if bag.ToMemberId != mom.Id || bag.Text != "Thank you for packing 3 bag items." {
 		t.Fatalf("Jake's suggestions = %+v", s.Items)
 	}
 
 	body := "Thank you for packing 3 bag items. It lifted a weight."
 	var sent httpapi.Thanks
-	c.Post(thanksPath(jake.Id), map[string]any{"toMemberId": mom.Id, "body": body, "suggestionKey": s.Items[0].Key}, http.StatusCreated, &sent)
+	c.Post(thanksPath(jake.Id), map[string]any{"toMemberId": mom.Id, "body": body, "suggestionKey": bag.Key}, http.StatusCreated, &sent)
 	if sent.FromMemberId != jake.Id || sent.ToMemberId != mom.Id || sent.Body != body {
 		t.Errorf("sent = %+v", sent)
 	}
-	c.Post(thanksPath(jake.Id), map[string]any{"toMemberId": mom.Id, "body": body, "suggestionKey": s.Items[0].Key}, http.StatusConflict, nil)
+	c.Post(thanksPath(jake.Id), map[string]any{"toMemberId": mom.Id, "body": body, "suggestionKey": bag.Key}, http.StatusConflict, nil)
 	c.Get(thanksPath(jake.Id)+"/suggestions", http.StatusOK, &s)
-	if len(s.Items) != 0 {
-		t.Errorf("a thanked suggestion is not offered again: %+v", s.Items)
+	for _, it := range s.Items {
+		if it.Key == bag.Key {
+			t.Errorf("a thanked suggestion is not offered again: %+v", s.Items)
+		}
 	}
 	c.Get(thanksPath(mom.Id), http.StatusOK, &l)
 	if len(l.Items) != 2 || l.Items[0].Id != sent.Id {

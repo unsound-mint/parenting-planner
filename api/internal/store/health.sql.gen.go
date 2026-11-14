@@ -114,8 +114,8 @@ func (q *Queries) CreateGivenDose(ctx context.Context, arg CreateGivenDoseParams
 }
 
 const createGrowthMeasurement = `-- name: CreateGrowthMeasurement :one
-INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm)
-VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, child_id, measured_on, weight_kg, height_cm
+INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm, head_cm)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, family_id, child_id, measured_on, weight_kg, height_cm, head_cm
 `
 
 type CreateGrowthMeasurementParams struct {
@@ -124,6 +124,7 @@ type CreateGrowthMeasurementParams struct {
 	MeasuredOn time.Time
 	WeightKg   float64
 	HeightCm   float64
+	HeadCm     *float64
 }
 
 func (q *Queries) CreateGrowthMeasurement(ctx context.Context, arg CreateGrowthMeasurementParams) (GrowthMeasurement, error) {
@@ -133,6 +134,7 @@ func (q *Queries) CreateGrowthMeasurement(ctx context.Context, arg CreateGrowthM
 		arg.MeasuredOn,
 		arg.WeightKg,
 		arg.HeightCm,
+		arg.HeadCm,
 	)
 	var i GrowthMeasurement
 	err := row.Scan(
@@ -142,6 +144,7 @@ func (q *Queries) CreateGrowthMeasurement(ctx context.Context, arg CreateGrowthM
 		&i.MeasuredOn,
 		&i.WeightKg,
 		&i.HeightCm,
+		&i.HeadCm,
 	)
 	return i, err
 }
@@ -349,6 +352,23 @@ func (q *Queries) DeleteAllergy(ctx context.Context, arg DeleteAllergyParams) (i
 	return result.RowsAffected(), nil
 }
 
+const deleteGrowthMeasurement = `-- name: DeleteGrowthMeasurement :execrows
+DELETE FROM growth_measurements WHERE id = $1 AND family_id = $2
+`
+
+type DeleteGrowthMeasurementParams struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+}
+
+func (q *Queries) DeleteGrowthMeasurement(ctx context.Context, arg DeleteGrowthMeasurementParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteGrowthMeasurement, arg.ID, arg.FamilyID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteImmunization = `-- name: DeleteImmunization :execrows
 DELETE FROM immunizations
 WHERE id = $1 AND family_id = $2
@@ -456,7 +476,7 @@ func (q *Queries) ListAllergiesVisibleToParent(ctx context.Context, arg ListAlle
 }
 
 const listGrowthMeasurements = `-- name: ListGrowthMeasurements :many
-SELECT id, family_id, child_id, measured_on, weight_kg, height_cm FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on
+SELECT id, family_id, child_id, measured_on, weight_kg, height_cm, head_cm FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on, id
 `
 
 func (q *Queries) ListGrowthMeasurements(ctx context.Context, familyID uuid.UUID) ([]GrowthMeasurement, error) {
@@ -475,6 +495,7 @@ func (q *Queries) ListGrowthMeasurements(ctx context.Context, familyID uuid.UUID
 			&i.MeasuredOn,
 			&i.WeightKg,
 			&i.HeightCm,
+			&i.HeadCm,
 		); err != nil {
 			return nil, err
 		}
@@ -784,6 +805,43 @@ func (q *Queries) UpdateAllergy(ctx context.Context, arg UpdateAllergyParams) (A
 		&i.Reaction,
 		&i.NotedOn,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateGrowthMeasurement = `-- name: UpdateGrowthMeasurement :one
+UPDATE growth_measurements
+SET measured_on = $1, weight_kg = $2, height_cm = $3, head_cm = $4
+WHERE id = $5 AND family_id = $6 RETURNING id, family_id, child_id, measured_on, weight_kg, height_cm, head_cm
+`
+
+type UpdateGrowthMeasurementParams struct {
+	MeasuredOn time.Time
+	WeightKg   float64
+	HeightCm   float64
+	HeadCm     *float64
+	ID         uuid.UUID
+	FamilyID   uuid.UUID
+}
+
+func (q *Queries) UpdateGrowthMeasurement(ctx context.Context, arg UpdateGrowthMeasurementParams) (GrowthMeasurement, error) {
+	row := q.db.QueryRow(ctx, updateGrowthMeasurement,
+		arg.MeasuredOn,
+		arg.WeightKg,
+		arg.HeightCm,
+		arg.HeadCm,
+		arg.ID,
+		arg.FamilyID,
+	)
+	var i GrowthMeasurement
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.ChildID,
+		&i.MeasuredOn,
+		&i.WeightKg,
+		&i.HeightCm,
+		&i.HeadCm,
 	)
 	return i, err
 }
