@@ -5,7 +5,7 @@ import { PAYWALL_LOCKS } from "@/lib/features";
 import { attachNote } from "@/lib/week";
 import { PlanBoard } from "./plan-board";
 
-type Props = { items: PlanItem[]; memberId: string; tier?: Tier; talkHref?: string };
+type Props = { items: PlanItem[]; memberId: string; tier?: Tier; talkHref?: string; quietWhenEmpty?: boolean };
 
 // The rule plan with the written weekly note folded into it. The plan renders
 // at once; the note (slower, and missing while its endpoint is 501 or failing)
@@ -13,13 +13,13 @@ type Props = { items: PlanItem[]; memberId: string; tier?: Tier; talkHref?: stri
 // (fallback: true) only echoes the rule plan, so it adds nothing.
 export function PlanWithNote(props: Props) {
   return (
-    <Suspense fallback={<PlanBoard items={props.items} memberId={props.memberId} talkHref={props.talkHref} />}>
+    <Suspense fallback={<PlanBoard items={props.items} memberId={props.memberId} talkHref={props.talkHref} quietWhenEmpty={props.quietWhenEmpty} />}>
       <NoteLoader {...props} />
     </Suspense>
   );
 }
 
-async function NoteLoader({ items, memberId, tier, talkHref }: Props) {
+async function NoteLoader({ items, memberId, tier, talkHref, quietWhenEmpty }: Props) {
   let plan: WeeklyPlan | undefined;
   try {
     const api = await serverApi();
@@ -30,5 +30,5 @@ async function NoteLoader({ items, memberId, tier, talkHref }: Props) {
   const note = attachNote(items, plan);
   // Free plan: one locked row, and only when there is a real note to unlock.
   const locked = PAYWALL_LOCKS && tier === "free" && !!note;
-  return <PlanBoard items={items} memberId={memberId} talkHref={talkHref} note={locked ? undefined : note} noteLocked={locked} />;
+  return <PlanBoard items={items} memberId={memberId} talkHref={talkHref} quietWhenEmpty={quietWhenEmpty} note={locked ? undefined : note} noteLocked={locked} />;
 }

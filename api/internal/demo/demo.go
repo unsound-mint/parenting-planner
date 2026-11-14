@@ -78,10 +78,24 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 const SkipDays = 7
 
 // SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
-// row changes; a new demo is a new family, which starts at real time.
-func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID) error {
-	_, err := store.New(pool).SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
-	return err
+// rows change; a new demo is a new family, which starts at real time.
+//
+// now is the family's clock before the skip. The check-ins of the last week are copied
+// forward by the skipped days, so the week the family lands in has the same mood and
+// sleep history: the seeded story (a low-mood pattern, the This week chart) survives the
+// skip instead of falling out of the 7 day window. Each skip copies the then-last week,
+// so the pattern carries on through further skips.
+func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) error {
+	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		if err := q.CopyMoodCheckinsForwardVisibleToParent(ctx, store.CopyMoodCheckinsForwardVisibleToParentParams{
+			Days: SkipDays, FamilyID: familyID, FromAt: now.AddDate(0, 0, -SkipDays), ToAt: now,
+		}); err != nil {
+			return err
+		}
+		_, err := q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+		return err
+	})
 }
 
 // HashToken is how session tokens are stored and looked up.

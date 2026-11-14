@@ -6,6 +6,7 @@ import { countWord, familyContext } from "@/lib/format";
 import { AccessLog } from "@/components/people/access-log";
 import { InvitationList } from "@/components/people/invitation-list";
 import { InviteForm } from "@/components/people/invite-form";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
 // revoke, and read what they did. Parents only; the API refuses caregivers too.
@@ -42,17 +43,19 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         : `${countWord(waiting)} ${waiting === 1 ? "invitation is" : "invitations are"} waiting to be opened.`;
 
   return (
-    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,32rem)_minmax(0,32rem)] xl:justify-start">
-      <div className="flex min-w-0 flex-col gap-6">
-        <header>
-          <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
-          <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
-        </header>
-        <InviteForm memberId={memberId} />
-      </div>
-      <div className="flex min-w-0 flex-col gap-6 xl:pt-1">
+    <PageFrame>
+      <header>
+        <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
+        <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
+      </header>
+      {/* Two columns: the form on the left, access and the log stacked on the right (the last row
+          is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
+      <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
+        <div className="min-w-0 @4xl:row-span-2 @7xl:row-span-1">
+          <InviteForm memberId={memberId} family={family} />
+        </div>
         {shown.length > 0 && (
-          <section aria-labelledby="people-title" className="rounded-2xl border border-border bg-card p-4 md:p-5">
+          <section aria-labelledby="people-title" className="min-w-0 rounded-2xl border border-border bg-card p-4 md:p-5">
             <h2 id="people-title" className="mb-3 text-title">
               Who has access
             </h2>
@@ -60,8 +63,8 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           </section>
         )}
         {log.data && <AccessLog items={log.data.items} now={new Date()} />}
-      </div>
-    </main>
+      </PageGrid>
+    </PageFrame>
   );
 }
 

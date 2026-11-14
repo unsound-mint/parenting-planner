@@ -109,3 +109,21 @@ func questionnaireOut(q screening.Questionnaire) ScreeningQuestionnaire {
 	}
 	return out
 }
+
+// Stubs: share a result with the partner, and save and resume a half-finished
+// questionnaire. Tracked in the [BE] issue for the mood questionnaires.
+func (s *Server) UpdateMoodScreening(_ context.Context, _ UpdateMoodScreeningRequestObject) (UpdateMoodScreeningResponseObject, error) {
+	return UpdateMoodScreening501JSONResponse(Error{Code: "not_implemented", Message: "sharing a questionnaire result is not available yet"}), nil
+}
+
+func (s *Server) ListMoodScreeningDrafts(_ context.Context, _ ListMoodScreeningDraftsRequestObject) (ListMoodScreeningDraftsResponseObject, error) {
+	return ListMoodScreeningDrafts501JSONResponse(Error{Code: "not_implemented", Message: "saving a questionnaire for later is not available yet"}), nil
+}
+
+func (s *Server) SaveMoodScreeningDraft(_ context.Context, _ SaveMoodScreeningDraftRequestObject) (SaveMoodScreeningDraftResponseObject, error) {
+	return SaveMoodScreeningDraft501JSONResponse(Error{Code: "not_implemented", Message: "saving a questionnaire for later is not available yet"}), nil
+}
+
+func (s *Server) DeleteMoodScreeningDraft(_ context.Context, _ DeleteMoodScreeningDraftRequestObject) (DeleteMoodScreeningDraftResponseObject, error) {
+	return DeleteMoodScreeningDraft501JSONResponse(Error{Code: "not_implemented", Message: "saving a questionnaire for later is not available yet"}), nil
+}

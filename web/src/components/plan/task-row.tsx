@@ -199,7 +199,7 @@ export function TaskRow({ task, ctx, showDue = true, compact = false }: { task: 
   const [open, setOpen] = useState(false);
   const detailId = `detail-${task.id}`;
   return (
-    <li className="flex items-start gap-3 py-3">
+    <li id={`task-${task.id}`} className="flex scroll-mt-24 items-start gap-3 py-3">
       <DoneToggle task={task} ctx={ctx} />
       <div className="min-w-0 flex-1">
         <TaskTitle task={task} open={open} onToggle={() => setOpen((o) => !o)} id={detailId} />
