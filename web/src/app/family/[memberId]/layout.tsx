@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/product";
-import { familyPeople, isCaregiver } from "@/lib/roles";
+import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
 import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
@@ -23,7 +23,13 @@ export default function FamilyLayout({ children, params }: LayoutProps<"/family/
 async function Shell({ children, params }: { children: React.ReactNode; params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
-  const { data: family, response } = await api.GET("/family");
+  const path = { params: { path: { memberId } } };
+  const [{ data: family, response }, calendar, simulator] = await Promise.all([
+    api.GET("/family"),
+    // Probes: a screen shows in the nav only once its endpoint works for this person.
+    api.GET("/members/{memberId}/calendar-events", { params: { ...path.params, query: { scope: "mine" } } }),
+    api.GET("/members/{memberId}/simulator", path),
+  ]);
   if (response.status === 401 || !family) redirect("/");
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
@@ -31,16 +37,20 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   // The Plan entry shows only once tasks work: the API answers 501 until then.
   const hasPlan = !isCaregiver(person.role) && (await api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } })).response.ok;
 
-  // Screens that wait on their endpoint appear only once it answers 200 (a 501 hides them).
-  const path = { params: { path: { memberId } } };
-  const child = family.children[0];
+  // Parents only: a caregiver's nav has neither entry, and probing the care log as a caregiver would be an extra audited read.
+  // Baby needs a child and a working care log; People needs the invitations endpoint.
   const [care, invitations] = isCaregiver(person.role)
     ? []
     : await Promise.all([
-        child ? api.GET("/members/{memberId}/care-log", path) : undefined,
+        family.children.length > 0 ? api.GET("/members/{memberId}/care-log", path) : undefined,
         api.GET("/members/{memberId}/invitations", path),
       ]);
-  const available = [care?.response.ok && "baby", invitations?.response.ok && "people"].filter((s): s is string => !!s);
+  const hidden = unavailableScreens({
+    calendar: calendar.response.status,
+    simulator: simulator.response.status,
+    ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
+    ...(invitations ? { people: invitations.response.status } : {}),
+  });
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col md:flex-row">
@@ -51,7 +61,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink />
           </div>
         </div>
-        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} available={available} />
+        <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} hidden={hidden} />
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>

@@ -2,6 +2,9 @@ import {
   Activity,
   Baby,
   Armchair,
+  BedDouble,
+  Bell,
+  CalendarDays,
   Backpack,
   Blocks,
   BookOpen,
@@ -19,7 +22,6 @@ import {
   Handshake,
   IdCard,
   Moon,
-  CalendarDays,
   Flower2,
   Footprints,
   GraduationCap,
@@ -32,6 +34,7 @@ import {
   MessagesSquare,
   MessageCircleHeart,
   Milk,
+  Music,
   NotebookPen,
   Ruler,
   ShieldAlert,
@@ -42,15 +45,17 @@ import {
   PenLine,
   Sparkles,
   Sprout,
+  SquareCheck,
   Stethoscope,
   Syringe,
   TestTube,
+  Thermometer,
   UserRound,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { AllergyCertainty, CareLogKind, CaregiverPermission, DiaperContent, FeedMethod, CareRole, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, Stage, Tier, Visibility } from "@/lib/api/types";
+import type { AllergyCertainty, CalendarEventKind, CareLogKind, CaregiverPermission, CareRole, DiaperContent, FeedMethod, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, SimulatorSkill, Stage, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -276,6 +281,54 @@ export const permissionLabel: Record<CaregiverPermission, { name: string; hint: 
 };
 
 export const handoffIcon = Handshake;
+
+/** Calendar event kinds (components/schedule/week-view.tsx). A shift is a baby; a task a tick. */
+export const calendarKindIcon: Record<CalendarEventKind, LucideIcon> = {
+  appointment: Stethoscope,
+  class: GraduationCap,
+  reminder: Bell,
+  other: CalendarDays,
+  shift: Baby,
+  task: SquareCheck,
+  psychologist_session: Brain,
+};
+
+export const calendarKindLabel: Record<CalendarEventKind, string> = {
+  appointment: "Appointment",
+  class: "Class",
+  reminder: "Reminder",
+  other: "Event",
+  shift: "Shift",
+  task: "Task due",
+  psychologist_session: "Session",
+};
+
+/** Simulator skills (components/simulator). */
+export const skillIcon: Record<SimulatorSkill, LucideIcon> = {
+  feeding: Milk,
+  soothing: Music,
+  safe_sleep: BedDouble,
+  diapering: Baby,
+  warning_signs: Thermometer,
+  teamwork: Users,
+};
+
+export const skillLabel: Record<SimulatorSkill, string> = {
+  feeding: "Feeding",
+  soothing: "Soothing",
+  safe_sleep: "Safe sleep",
+  diapering: "Diapering",
+  warning_signs: "Warning signs",
+  teamwork: "Teamwork",
+};
+
+/** Event card by owner: a left edge and a soft wash in the owner's accent (never colour alone: the name is written too). */
+export const roleTint: Record<Role, string> = {
+  mother: "border-l-mom bg-mom/10",
+  partner: "border-l-partner bg-partner/10",
+  grandparent: "border-l-grandparent bg-grandparent/10",
+  nanny: "border-l-nanny bg-nanny/10",
+};
 
 /** The Plan screen: its nav entry, the paperwork timeline and the three hospital bags. */
 export const planIcon: LucideIcon = ClipboardList;

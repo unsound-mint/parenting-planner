@@ -9,6 +9,8 @@ import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
 import { BabyHome } from "@/components/baby/baby-home";
 import { SleepChart } from "@/components/week/sleep-chart";
+import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
+import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
 import { ComingUpSlot, GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
 
 // Own check-ins needed before the sleep chart earns space in the right rail.
@@ -43,11 +45,13 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       ? optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week } } }))
       : undefined;
   if (family && caregiver) return <BabyHome memberId={memberId} family={family} slots={{ today, guides, card }} />;
-  const [{ data: plan }, { data: checkins }, { data: patterns }] = await Promise.all([
+  const [{ data: plan }, { data: checkins }, { data: patterns }, { data: shifts }] = await Promise.all([
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
     // No pattern means no card.
     api.GET("/members/{memberId}/mood-patterns", path),
+    // Answers 501 until the API lands; then the "Baby is home" switch stays hidden.
+    api.GET("/members/{memberId}/shifts", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent || !plan) notFound();
@@ -84,6 +88,9 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       </section>
 
       <aside className="flex flex-col gap-6 xl:pt-1">
+        {family.stage === "pregnancy" && (family.gestationalWeek ?? 0) >= LATE_PREGNANCY_WEEK && shifts && (
+          <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />
+        )}
         <WeekCardSlot card={card} />
         <GuidesSlot guides={guides} />
         <Suspense fallback={null}>
