@@ -31,7 +31,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: api/go.mod
-          cache-dependency-path: api/go.sum
+          # The laptop runner keeps Go's module and build caches between runs; the GitHub cache can hang.
+          cache: false
       - name: Generated code is up to date
         run: |
           go generate ./...
@@ -60,8 +61,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-          cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: Generated API client is up to date
         run: |
