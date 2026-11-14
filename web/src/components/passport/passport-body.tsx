@@ -66,7 +66,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
       )}
 
       {form && canLog && (
-        <div className="mt-6 max-w-2xl">
+        <div className="mt-6">
           <LogRecord key={`${person.id}-${form.nonce}`} memberId={memberId} person={person} prefill={form} onLogged={add} onClose={() => setForm(null)} />
         </div>
       )}

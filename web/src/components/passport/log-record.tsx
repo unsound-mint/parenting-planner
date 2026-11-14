@@ -129,7 +129,7 @@ export function LogRecord({
         ))}
       </div>
 
-      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-2">
+      <form onSubmit={submit} className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {kind === "vaccine" && (
           <>
             <Field label="Vaccine">
@@ -190,7 +190,7 @@ export function LogRecord({
             </select>
           </Field>
         )}
-        <div className="flex items-end sm:col-span-2">
+        <div className="flex items-end sm:col-span-2 xl:col-span-4">
           <Button type="submit" disabled={pending} className="h-11 w-full px-5 text-label md:h-9 md:w-auto">
             <Plus aria-hidden />
             {pending ? "Saving..." : "Log it"}
