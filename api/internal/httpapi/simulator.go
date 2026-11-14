@@ -4,20 +4,51 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/unsound-mint/parenting-planner/api/internal/content"
 	"github.com/unsound-mint/parenting-planner/api/internal/simulator"
+	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
+// The rounds rehearse the first nights with a newborn, so they are offered
+// only while the family is expecting: once the baby is home (or before a
+// pregnancy, or in loss support) every simulator call answers 404, which also
+// hides the preview mocks, the nav entry and the Practice section on Learn.
+var errPracticeNotForStage = Error{Code: "not_found", Message: "practice rounds are for the months before the baby comes"}
+
+// practiceMember resolves the acting member like actingMember and also answers
+// errNotFound (with errPracticeNotForStage) when the family is not expecting.
+func (s *Server) practiceMember(ctx context.Context, memberID uuid.UUID) (uuid.UUID, store.Member, errKind, Error, error) {
+	familyID, member, kind, err := s.actingMember(ctx, memberID)
+	switch {
+	case err != nil:
+		return uuid.Nil, store.Member{}, kind, Error{}, err
+	case kind == errUnauthorized:
+		return uuid.Nil, store.Member{}, kind, errNoSession, nil
+	case kind == errNotFound:
+		return uuid.Nil, store.Member{}, kind, errNoMember, nil
+	}
+	fam, err := s.q.GetFamily(ctx, familyID)
+	if err != nil {
+		return uuid.Nil, store.Member{}, kind, Error{}, err
+	}
+	// Loss support moves the family to planning, so it is covered too.
+	if fam.Stage != "pregnancy" {
+		return uuid.Nil, store.Member{}, errNotFound, errPracticeNotForStage, nil
+	}
+	return familyID, member, kind, Error{}, nil
+}
+
 func (s *Server) GetSimulatorProgress(ctx context.Context, req GetSimulatorProgressRequestObject) (GetSimulatorProgressResponseObject, error) {
-	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, member, kind, e, err := s.practiceMember(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
 	case kind == errUnauthorized:
-		return GetSimulatorProgress401JSONResponse(errNoSession), nil
+		return GetSimulatorProgress401JSONResponse(e), nil
 	case kind == errNotFound:
-		return GetSimulatorProgress404JSONResponse(errNoMember), nil
+		return GetSimulatorProgress404JSONResponse(e), nil
 	}
 	progress, err := simulator.GetProgress(ctx, s.pool, familyID, member.ID)
 	if err != nil {
@@ -42,14 +73,14 @@ func (s *Server) GetSimulatorProgress(ctx context.Context, req GetSimulatorProgr
 }
 
 func (s *Server) CreateSimulatorRound(ctx context.Context, req CreateSimulatorRoundRequestObject) (CreateSimulatorRoundResponseObject, error) {
-	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, member, kind, e, err := s.practiceMember(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
 	case kind == errUnauthorized:
-		return CreateSimulatorRound401JSONResponse(errNoSession), nil
+		return CreateSimulatorRound401JSONResponse(e), nil
 	case kind == errNotFound:
-		return CreateSimulatorRound404JSONResponse(errNoMember), nil
+		return CreateSimulatorRound404JSONResponse(e), nil
 	}
 	round, err := simulator.CreateRound(ctx, s.pool, familyID, member.ID, string(req.Body.Mode), req.Body.ScenarioId, s.now(ctx))
 	switch {
@@ -66,14 +97,14 @@ func (s *Server) CreateSimulatorRound(ctx context.Context, req CreateSimulatorRo
 }
 
 func (s *Server) GetSimulatorRound(ctx context.Context, req GetSimulatorRoundRequestObject) (GetSimulatorRoundResponseObject, error) {
-	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, member, kind, e, err := s.practiceMember(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
 	case kind == errUnauthorized:
-		return GetSimulatorRound401JSONResponse(errNoSession), nil
+		return GetSimulatorRound401JSONResponse(e), nil
 	case kind == errNotFound:
-		return GetSimulatorRound404JSONResponse(errNoMember), nil
+		return GetSimulatorRound404JSONResponse(e), nil
 	}
 	round, err := simulator.GetRound(ctx, s.pool, familyID, member.ID, req.RoundId)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -88,14 +119,14 @@ func (s *Server) GetSimulatorRound(ctx context.Context, req GetSimulatorRoundReq
 var trainingRoundNotFound = Error{Code: "not_found", Message: "No such round for this member."}
 
 func (s *Server) CreateSimulatorAnswer(ctx context.Context, req CreateSimulatorAnswerRequestObject) (CreateSimulatorAnswerResponseObject, error) {
-	familyID, member, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, member, kind, e, err := s.practiceMember(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
 	case kind == errUnauthorized:
-		return CreateSimulatorAnswer401JSONResponse(errNoSession), nil
+		return CreateSimulatorAnswer401JSONResponse(e), nil
 	case kind == errNotFound:
-		return CreateSimulatorAnswer404JSONResponse(errNoMember), nil
+		return CreateSimulatorAnswer404JSONResponse(e), nil
 	}
 	question, completed, err := simulator.Answer(ctx, s.pool, familyID, member.ID, req.RoundId, req.Body.QuestionId, req.Body.ChoiceId, s.now(ctx))
 	switch {

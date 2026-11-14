@@ -1,6 +1,6 @@
 -- name: CreateLabResult :one
-INSERT INTO lab_results (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
+INSERT INTO lab_results (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, name)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;
 
 -- Mirrors access.CanParentReadHealthRecord: records about the child, own
 -- records, plus records shared with the partner or the family.
@@ -59,11 +59,19 @@ VALUES (@family_id, @subject_member_id, @subject_child_id, @vaccine, @dose, @due
 SELECT * FROM vaccine_schedule WHERE family_id = $1 ORDER BY due_on;
 
 -- name: CreateGrowthMeasurement :one
-INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm)
-VALUES (@family_id, @child_id, @measured_on, @weight_kg, @height_cm) RETURNING *;
+INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm, head_cm)
+VALUES (@family_id, @child_id, @measured_on, @weight_kg, @height_cm, sqlc.narg(head_cm)) RETURNING *;
+
+-- name: UpdateGrowthMeasurement :one
+UPDATE growth_measurements
+SET measured_on = @measured_on, weight_kg = @weight_kg, height_cm = @height_cm, head_cm = sqlc.narg(head_cm)
+WHERE id = @id AND family_id = @family_id RETURNING *;
+
+-- name: DeleteGrowthMeasurement :execrows
+DELETE FROM growth_measurements WHERE id = @id AND family_id = @family_id;
 
 -- name: ListGrowthMeasurements :many
-SELECT * FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on;
+SELECT * FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on, id;
 
 -- Logging health records (POST /members/{memberId}/immunizations, ...).
 
@@ -85,3 +93,67 @@ WHERE vs.family_id = @family_id
       AND i.subject_child_id IS NOT DISTINCT FROM vs.subject_child_id)
 ORDER BY vs.due_on
 LIMIT 1;
+
+-- Mirrors access.CanParentReadHealthRecord: records about the child, own records,
+-- plus records shared with the partner or the family. Screenings are the lab
+-- records without a single value.
+-- name: ListPassportScreeningsVisibleToParent :many
+SELECT * FROM lab_results
+WHERE family_id = @family_id
+  AND value IS NULL
+  AND (subject_child_id IS NOT NULL OR owner_member_id = @viewer_id OR visibility IN ('partner', 'family'))
+ORDER BY taken_on DESC, created_at DESC;
+
+-- Editing health records (PUT and DELETE under /members/{memberId}/...).
+-- The write rule: the record is about the acting parent or about a child of
+-- the family. Another parent's own records are never written, and a row that
+-- does not match is indistinguishable from a missing one (404).
+
+-- name: UpdateLabValue :one
+UPDATE lab_results
+SET kind = @kind, name = @name, value = @value, unit = @unit, ref_low = @ref_low, ref_high = @ref_high,
+    taken_on = @taken_on, visibility = @visibility
+WHERE id = @id AND family_id = @family_id AND value IS NOT NULL
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL)
+RETURNING *;
+
+-- name: DeleteLabValue :execrows
+DELETE FROM lab_results
+WHERE id = @id AND family_id = @family_id AND value IS NOT NULL
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL);
+
+-- name: UpdateScreening :one
+UPDATE lab_results
+SET kind = @kind, name = @name, taken_on = @taken_on, visibility = @visibility
+WHERE id = @id AND family_id = @family_id AND value IS NULL
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL)
+RETURNING *;
+
+-- name: DeleteScreening :execrows
+DELETE FROM lab_results
+WHERE id = @id AND family_id = @family_id AND value IS NULL
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL);
+
+-- name: UpdateAllergy :one
+UPDATE allergies
+SET substance = @substance, certainty = @certainty, reaction = @reaction, visibility = @visibility
+WHERE id = @id AND family_id = @family_id
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL)
+RETURNING *;
+
+-- name: DeleteAllergy :execrows
+DELETE FROM allergies
+WHERE id = @id AND family_id = @family_id
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL);
+
+-- name: UpdateImmunization :one
+UPDATE immunizations
+SET vaccine = @vaccine, dose = @dose, given_on = @given_on
+WHERE id = @id AND family_id = @family_id
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL)
+RETURNING *;
+
+-- name: DeleteImmunization :execrows
+DELETE FROM immunizations
+WHERE id = @id AND family_id = @family_id
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL);
