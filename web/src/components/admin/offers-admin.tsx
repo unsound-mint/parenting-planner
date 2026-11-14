@@ -41,9 +41,9 @@ export function OffersAdmin({ initial }: { initial: PartnerOffer[] }) {
         </Button>
       </div>
 
-      <ul className="mt-4 flex flex-col gap-2">
+      <ul className="mt-4 grid items-start gap-2 xl:grid-cols-2 2xl:grid-cols-3">
         {editing === "new" && (
-          <li className="rounded-2xl border border-primary/60 bg-card p-4">
+          <li className="rounded-2xl border border-primary/60 bg-card p-4 xl:col-span-2 2xl:col-span-3">
             <OfferForm
               start={blank}
               submitLabel="Create offer"

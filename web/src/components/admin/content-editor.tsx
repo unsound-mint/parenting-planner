@@ -21,7 +21,7 @@ export function ContentEditor({ initial }: { initial: ContentItem[] }) {
 
   if (items.length === 0) return <p className="mt-6 text-label text-muted-foreground">Nothing to edit here yet.</p>;
   return (
-    <ul className="mt-4 flex flex-col gap-2">
+    <ul className="mt-4 grid items-start gap-2 xl:grid-cols-2 2xl:grid-cols-3">
       {items.map((item) => (
         <Row key={item.id} item={item} open={open === item.id} onToggle={() => setOpen(open === item.id ? null : item.id)} onChange={replace} />
       ))}

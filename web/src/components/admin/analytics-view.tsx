@@ -57,12 +57,13 @@ export function AnalyticsView({ data, days }: { data: Analytics; days: number })
         ))}
       </ul>
 
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <section aria-labelledby="chart-days" className="rounded-2xl border border-border bg-card p-4 md:p-6">
         <h2 id="chart-days" className="text-title">
           Demos started per day
         </h2>
         <div className="hidden md:block">
-          <DailyBars points={demos.days} label="demos started" W={640} />
+          <DailyBars points={demos.days} label="demos started" W={900} />
         </div>
         <div className="md:hidden">
           <DailyBars points={demos.days} label="demos started" W={340} />
@@ -86,6 +87,7 @@ export function AnalyticsView({ data, days }: { data: Analytics; days: number })
           ))}
         </ul>
       </section>
+      </div>
 
       <TableView
         caption="Everything counted"
@@ -105,7 +107,7 @@ function TableView({ caption, head, rows, label = "Table view", standalone }: { 
         <Table2 className="size-4" aria-hidden />
         {label}
       </summary>
-      <table className="mt-2 w-full max-w-md text-label">
+      <table className="mt-2 w-full text-label md:max-w-xl">
         <caption className="sr-only">{caption}</caption>
         <thead>
           <tr className="text-left text-caption text-muted-foreground">
