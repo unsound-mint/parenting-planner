@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
 const (
 	apiURL           = "https://api.anthropic.com"
 	apiVersion       = "2023-06-01"
+	fallbackBeta     = "server-side-fallback-2026-07-01"
 	maxResponseBytes = 1 << 20
 )
 
@@ -28,6 +30,10 @@ type Request struct {
 	Effort string
 	// Timeout bounds the call when the Config sets none.
 	Timeout time.Duration
+	// Fallbacks lets the API rerun a request its safety classifiers decline
+	// on the model it picks for that category (server-side fallbacks beta).
+	// Only the Claude API itself accepts it.
+	Fallbacks bool
 }
 
 // ErrOff means no key is set; the caller uses its fallback.
@@ -39,6 +45,7 @@ type wireRequest struct {
 	System       string        `json:"system"`
 	Messages     []wireMessage `json:"messages"`
 	OutputConfig *wireOutput   `json:"output_config,omitempty"`
+	Fallbacks    string        `json:"fallbacks,omitempty"`
 }
 
 type wireMessage struct {
@@ -80,6 +87,9 @@ func (c Config) Text(ctx context.Context, client *http.Client, r Request) (strin
 	if r.Effort != "" {
 		wr.OutputConfig = &wireOutput{Effort: r.Effort}
 	}
+	if r.Fallbacks {
+		wr.Fallbacks = "default"
+	}
 	body, err := json.Marshal(wr)
 	if err != nil {
 		return "", err
@@ -95,6 +105,9 @@ func (c Config) Text(ctx context.Context, client *http.Client, r Request) (strin
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("anthropic-version", apiVersion)
 	req.Header.Set("x-api-key", c.APIKey.Reveal())
+	if r.Fallbacks {
+		req.Header.Set("anthropic-beta", fallbackBeta)
+	}
 	res, err := client.Do(req)
 	if err != nil {
 		return "", errors.New("claude request failed")
@@ -111,10 +124,20 @@ func (c Config) Text(ctx context.Context, client *http.Client, r Request) (strin
 	if out.StopReason != "" && out.StopReason != "end_turn" {
 		return "", fmt.Errorf("claude stopped with %s", out.StopReason)
 	}
+	// Thinking blocks come before the text. After a fallback, text written
+	// before the "fallback" block belongs to the model that declined, so only
+	// the text after the last one is the answer.
+	var text strings.Builder
 	for _, b := range out.Content {
-		if b.Type == "text" {
-			return b.Text, nil
+		switch b.Type {
+		case "fallback":
+			text.Reset()
+		case "text":
+			text.WriteString(b.Text)
 		}
 	}
-	return "", errors.New("no text in the answer")
+	if text.Len() == 0 {
+		return "", errors.New("no text in the answer")
+	}
+	return text.String(), nil
 }

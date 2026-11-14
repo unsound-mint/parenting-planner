@@ -176,8 +176,12 @@ func TestStoryIsWrittenByClaudeFromOnlyTheChosenFacts(t *testing.T) {
 	if len(f.requests) != 1 {
 		t.Fatalf("%d requests", len(f.requests))
 	}
+	if got := f.headers[0].Get("anthropic-beta"); got != "server-side-fallback-2026-07-01" {
+		t.Errorf("fallbacks need their beta header, got %q", got)
+	}
 	var sent struct {
 		Model        string `json:"model"`
+		Fallbacks    string `json:"fallbacks"`
 		OutputConfig struct {
 			Effort string `json:"effort"`
 		} `json:"output_config"`
@@ -188,7 +192,7 @@ func TestStoryIsWrittenByClaudeFromOnlyTheChosenFacts(t *testing.T) {
 	if err := json.Unmarshal([]byte(f.requests[0]), &sent); err != nil {
 		t.Fatal(err)
 	}
-	if sent.Model != "claude-haiku-5-5" || sent.OutputConfig.Effort != "low" || len(sent.Messages) != 1 {
+	if sent.Model != "claude-opus-5-5" || sent.OutputConfig.Effort != "low" || sent.Fallbacks != "default" || len(sent.Messages) != 1 {
 		t.Errorf("request = %s", f.requests[0])
 	}
 	body := sent.Messages[0].Content

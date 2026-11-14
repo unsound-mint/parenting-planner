@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -24,8 +25,15 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/aiplan"
 )
 
-// Model is a small fast model: a picture book is short and the parent waits for it.
-const Model = "claude-haiku-5-5"
+// Model writes the stories. It is fixed rather than read from ANTHROPIC_MODEL
+// (that one tunes the weekly plan) because the request relies on server-side
+// fallbacks, which not every model accepts. Effort is low: a picture book is
+// short and the parent waits for it.
+const Model = "claude-opus-5-5"
+
+// timeout stays under the 30 s proxy timeout of the Next rewrite in dev, so a
+// slow answer gives the template story instead of a failed request.
+const timeout = 25 * time.Second
 
 const (
 	MinPages     = 6
@@ -190,8 +198,9 @@ func (w *Writer) generate(ctx context.Context, f Facts) (Book, error) {
 	if err != nil {
 		return Book{}, err
 	}
+	// max_tokens covers thinking too, which this model cannot turn off.
 	text, err := w.cfg.Text(ctx, w.http, ai.Request{
-		Model: Model, System: systemPrompt, MaxTokens: 4000, Effort: "low",
+		Model: Model, System: systemPrompt, MaxTokens: 8000, Effort: "low", Timeout: timeout, Fallbacks: true,
 		User: "Facts for the story:\n" + string(facts),
 	})
 	if err != nil {
