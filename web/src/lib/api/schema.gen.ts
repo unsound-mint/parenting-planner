@@ -103,6 +103,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/diary-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Diary entries from the last 30 days that the acting parent may see
+         * @description Their own entries plus the other parent's entries shared with them.
+         */
+        get: operations["listDiaryEntries"];
+        put?: never;
+        /**
+         * The acting parent writes a diary entry
+         * @description Visibility is required: the author decides who may read the entry.
+         *     The UI defaults it to private; the server never widens it.
+         */
+        post: operations["createDiaryEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/diary-entries/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * The author changes who may read one of their entries
+         * @description Only the author can share or unshare an entry. Any other entry id,
+         *     including the other parent's entry, is 404.
+         */
+        patch: operations["updateDiaryEntry"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -223,6 +282,27 @@ export interface components {
         MoodCheckinList: {
             /** @description Newest first. */
             items: components["schemas"]["MoodCheckin"][];
+        };
+        DiaryEntryInput: {
+            body: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        DiaryEntryUpdate: {
+            visibility: components["schemas"]["Visibility"];
+        };
+        DiaryEntry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            authorId: string;
+            /** Format: date-time */
+            writtenAt: string;
+            body: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        DiaryEntryList: {
+            /** @description Newest first. */
+            items: components["schemas"]["DiaryEntry"][];
         };
     };
     responses: never;
@@ -439,6 +519,165 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MoodCheckin"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listDiaryEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiaryEntryList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createDiaryEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiaryEntryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiaryEntry"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateDiaryEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiaryEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiaryEntry"];
                 };
             };
             /** @description Error */

@@ -187,6 +187,43 @@ type CreateDemoSessionRequest struct {
 // DemoTemplate Which synthetic family to copy. Add a value here when its seed exists.
 type DemoTemplate string
 
+// DiaryEntry defines model for DiaryEntry.
+type DiaryEntry struct {
+	AuthorId openapi_types.UUID `json:"authorId"`
+	Body     string             `json:"body"`
+	Id       openapi_types.UUID `json:"id"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+	WrittenAt  time.Time  `json:"writtenAt"`
+}
+
+// DiaryEntryInput defines model for DiaryEntryInput.
+type DiaryEntryInput struct {
+	Body string `json:"body"`
+
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
+// DiaryEntryList defines model for DiaryEntryList.
+type DiaryEntryList struct {
+	// Items Newest first.
+	Items []DiaryEntry `json:"items"`
+}
+
+// DiaryEntryUpdate defines model for DiaryEntryUpdate.
+type DiaryEntryUpdate struct {
+	// Visibility Who besides the author may see a sensitive record.
+	// private = author only; partner = author and the other parent;
+	// care_team = author and their professionals, not the partner; family = both parents.
+	Visibility Visibility `json:"visibility"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	// Code Example: not_found
@@ -317,6 +354,12 @@ type MemberId = openapi_types.UUID
 // CreateDemoSessionJSONRequestBody defines body for CreateDemoSession for application/json ContentType.
 type CreateDemoSessionJSONRequestBody = CreateDemoSessionRequest
 
+// CreateDiaryEntryJSONRequestBody defines body for CreateDiaryEntry for application/json ContentType.
+type CreateDiaryEntryJSONRequestBody = DiaryEntryInput
+
+// UpdateDiaryEntryJSONRequestBody defines body for UpdateDiaryEntry for application/json ContentType.
+type UpdateDiaryEntryJSONRequestBody = DiaryEntryUpdate
+
 // CreateMoodCheckinJSONRequestBody defines body for CreateMoodCheckin for application/json ContentType.
 type CreateMoodCheckinJSONRequestBody = MoodCheckinInput
 
@@ -331,6 +374,15 @@ type ServerInterface interface {
 
 	// (GET /healthz)
 	Healthz(w http.ResponseWriter, r *http.Request)
+	// ListDiaryEntries Diary entries from the last 30 days that the acting parent may see
+	// (GET /members/{memberId}/diary-entries)
+	ListDiaryEntries(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// CreateDiaryEntry The acting parent writes a diary entry
+	// (POST /members/{memberId}/diary-entries)
+	CreateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId)
+	// UpdateDiaryEntry The author changes who may read one of their entries
+	// (PATCH /members/{memberId}/diary-entries/{entryId})
+	UpdateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId, entryId openapi_types.UUID)
 	// ListMoodCheckins Check-ins from the last 30 days that the acting parent may see
 	// (GET /members/{memberId}/mood-checkins)
 	ListMoodCheckins(w http.ResponseWriter, r *http.Request, memberId MemberId)
@@ -384,6 +436,93 @@ func (siw *ServerInterfaceWrapper) Healthz(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Healthz(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListDiaryEntries operation middleware
+func (siw *ServerInterfaceWrapper) ListDiaryEntries(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDiaryEntries(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDiaryEntry operation middleware
+func (siw *ServerInterfaceWrapper) CreateDiaryEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDiaryEntry(w, r, memberId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateDiaryEntry operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDiaryEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "memberId" -------------
+	var memberId MemberId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "memberId", r.PathValue("memberId"), &memberId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "memberId", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "entryId" -------------
+	var entryId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "entryId", r.PathValue("entryId"), &entryId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "entryId", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateDiaryEntry(w, r, memberId, entryId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -597,6 +736,9 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/plan", wrapper.GetMemberPlan)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.ListMoodCheckins)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/mood-checkins", wrapper.CreateMoodCheckin)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/members/{memberId}/diary-entries", wrapper.ListDiaryEntries)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/members/{memberId}/diary-entries", wrapper.CreateDiaryEntry)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/members/{memberId}/diary-entries/{entryId}", wrapper.UpdateDiaryEntry)
 
 	return m
 }
@@ -702,6 +844,187 @@ func (response Healthz200JSONResponse) VisitHealthzResponse(w http.ResponseWrite
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDiaryEntriesRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+}
+
+type ListDiaryEntriesResponseObject interface {
+	VisitListDiaryEntriesResponse(w http.ResponseWriter) error
+}
+
+type ListDiaryEntries200JSONResponse DiaryEntryList
+
+func (response ListDiaryEntries200JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDiaryEntries401JSONResponse Error
+
+func (response ListDiaryEntries401JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDiaryEntries404JSONResponse Error
+
+func (response ListDiaryEntries404JSONResponse) VisitListDiaryEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntryRequestObject struct {
+	MemberId MemberId `json:"memberId"`
+	Body     *CreateDiaryEntryJSONRequestBody
+}
+
+type CreateDiaryEntryResponseObject interface {
+	VisitCreateDiaryEntryResponse(w http.ResponseWriter) error
+}
+
+type CreateDiaryEntry201JSONResponse DiaryEntry
+
+func (response CreateDiaryEntry201JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry400JSONResponse Error
+
+func (response CreateDiaryEntry400JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry401JSONResponse Error
+
+func (response CreateDiaryEntry401JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDiaryEntry404JSONResponse Error
+
+func (response CreateDiaryEntry404JSONResponse) VisitCreateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntryRequestObject struct {
+	MemberId MemberId           `json:"memberId"`
+	EntryId  openapi_types.UUID `json:"entryId"`
+	Body     *UpdateDiaryEntryJSONRequestBody
+}
+
+type UpdateDiaryEntryResponseObject interface {
+	VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error
+}
+
+type UpdateDiaryEntry200JSONResponse DiaryEntry
+
+func (response UpdateDiaryEntry200JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry400JSONResponse Error
+
+func (response UpdateDiaryEntry400JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry401JSONResponse Error
+
+func (response UpdateDiaryEntry401JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDiaryEntry404JSONResponse Error
+
+func (response UpdateDiaryEntry404JSONResponse) VisitUpdateDiaryEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -882,6 +1205,15 @@ type StrictServerInterface interface {
 
 	// (GET /healthz)
 	Healthz(ctx context.Context, request HealthzRequestObject) (HealthzResponseObject, error)
+	// ListDiaryEntries Diary entries from the last 30 days that the acting parent may see
+	// (GET /members/{memberId}/diary-entries)
+	ListDiaryEntries(ctx context.Context, request ListDiaryEntriesRequestObject) (ListDiaryEntriesResponseObject, error)
+	// CreateDiaryEntry The acting parent writes a diary entry
+	// (POST /members/{memberId}/diary-entries)
+	CreateDiaryEntry(ctx context.Context, request CreateDiaryEntryRequestObject) (CreateDiaryEntryResponseObject, error)
+	// UpdateDiaryEntry The author changes who may read one of their entries
+	// (PATCH /members/{memberId}/diary-entries/{entryId})
+	UpdateDiaryEntry(ctx context.Context, request UpdateDiaryEntryRequestObject) (UpdateDiaryEntryResponseObject, error)
 	// ListMoodCheckins Check-ins from the last 30 days that the acting parent may see
 	// (GET /members/{memberId}/mood-checkins)
 	ListMoodCheckins(ctx context.Context, request ListMoodCheckinsRequestObject) (ListMoodCheckinsResponseObject, error)
@@ -1011,6 +1343,99 @@ func (sh *strictHandler) Healthz(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListDiaryEntries operation middleware
+func (sh *strictHandler) ListDiaryEntries(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request ListDiaryEntriesRequestObject
+
+	request.MemberId = memberId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListDiaryEntries(ctx, request.(ListDiaryEntriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListDiaryEntries")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListDiaryEntriesResponseObject); ok {
+		if err := validResponse.VisitListDiaryEntriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDiaryEntry operation middleware
+func (sh *strictHandler) CreateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId) {
+	var request CreateDiaryEntryRequestObject
+
+	request.MemberId = memberId
+
+	var body CreateDiaryEntryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateDiaryEntry(ctx, request.(CreateDiaryEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateDiaryEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateDiaryEntryResponseObject); ok {
+		if err := validResponse.VisitCreateDiaryEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDiaryEntry operation middleware
+func (sh *strictHandler) UpdateDiaryEntry(w http.ResponseWriter, r *http.Request, memberId MemberId, entryId openapi_types.UUID) {
+	var request UpdateDiaryEntryRequestObject
+
+	request.MemberId = memberId
+	request.EntryId = entryId
+
+	var body UpdateDiaryEntryJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDiaryEntry(ctx, request.(UpdateDiaryEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDiaryEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateDiaryEntryResponseObject); ok {
+		if err := validResponse.VisitUpdateDiaryEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListMoodCheckins operation middleware
 func (sh *strictHandler) ListMoodCheckins(w http.ResponseWriter, r *http.Request, memberId MemberId) {
 	var request ListMoodCheckinsRequestObject
@@ -1101,45 +1526,51 @@ func (sh *strictHandler) GetMemberPlan(w http.ResponseWriter, r *http.Request, m
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"Kwzi/7EZN3ji7xz83/vS7mL3vwAAAP//",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

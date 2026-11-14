@@ -84,6 +84,11 @@ func (c *Client) Post(path string, body any, wantStatus int, out any) {
 	c.do(http.MethodPost, path, body, wantStatus, out)
 }
 
+func (c *Client) Patch(path string, body any, wantStatus int, out any) {
+	c.t.Helper()
+	c.do(http.MethodPatch, path, body, wantStatus, out)
+}
+
 func (c *Client) do(method, path string, body any, wantStatus int, out any) {
 	c.t.Helper()
 	var r io.Reader

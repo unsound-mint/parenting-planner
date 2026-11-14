@@ -1,4 +1,4 @@
-// Package wellbeing owns mood check-ins (and later the diary).
+// Package wellbeing owns mood check-ins and the diary.
 //
 // REFERENCE MODULE: this is the pattern every sensitive-data module copies.
 // See api/AGENTS.md, "Recipe: add a module". The parts to copy:
@@ -11,6 +11,7 @@ package wellbeing
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -63,6 +64,71 @@ func ListMoodCheckins(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 		}
 		out = rows
 		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityMoodCheckin, "")
+	})
+	return out, err
+}
+
+const entityDiaryEntry = "diary_entry"
+
+type NewDiaryEntry struct {
+	Body       string
+	Visibility access.Visibility
+	WrittenAt  time.Time
+}
+
+func CreateDiaryEntry(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, in NewDiaryEntry) (store.DiaryEntry, error) {
+	var out store.DiaryEntry
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		e, err := q.CreateDiaryEntry(ctx, store.CreateDiaryEntryParams{
+			FamilyID: familyID, OwnerMemberID: actor, Visibility: string(in.Visibility),
+			WrittenAt: in.WrittenAt, Body: in.Body,
+		})
+		if err != nil {
+			return err
+		}
+		out = e
+		return access.Audit(ctx, q, familyID, actor, access.ActionCreate, entityDiaryEntry, e.ID.String())
+	})
+	return out, err
+}
+
+func ListDiaryEntries(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, now time.Time) ([]store.DiaryEntry, error) {
+	var out []store.DiaryEntry
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		rows, err := q.ListDiaryEntriesVisibleToParent(ctx, store.ListDiaryEntriesVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer, Since: now.Add(-ListWindow),
+		})
+		if err != nil {
+			return err
+		}
+		out = rows
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityDiaryEntry, "")
+	})
+	return out, err
+}
+
+// ErrNotAuthor means the entry does not exist in this family or belongs to
+// someone else; callers answer 404 so the two cases look the same.
+var ErrNotAuthor = errors.New("diary entry not found for this author")
+
+// ShareDiaryEntry sets who may read one entry. Only its author can do this.
+func ShareDiaryEntry(ctx context.Context, pool *pgxpool.Pool, familyID, actor, entryID uuid.UUID, v access.Visibility) (store.DiaryEntry, error) {
+	var out store.DiaryEntry
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		e, err := q.UpdateDiaryEntryVisibility(ctx, store.UpdateDiaryEntryVisibilityParams{
+			Visibility: string(v), ID: entryID, FamilyID: familyID, OwnerMemberID: actor,
+		})
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotAuthor
+		}
+		if err != nil {
+			return err
+		}
+		out = e
+		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityDiaryEntry, e.ID.String())
 	})
 	return out, err
 }

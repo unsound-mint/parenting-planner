@@ -100,8 +100,9 @@ func (s *Server) session(next http.Handler) http.Handler {
 
 // Standard error bodies. Use these instead of writing new messages per handler.
 var (
-	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
-	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
+	errNoSession    = Error{Code: "no_session", Message: "start a demo first"}
+	errNoMember     = Error{Code: "not_found", Message: "no such parent in this family"}
+	errNoDiaryEntry = Error{Code: "not_found", Message: "no such diary entry of yours"}
 )
 
 // errKind tells a handler which typed error response to return.

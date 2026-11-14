@@ -36,6 +36,15 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type DiaryEntry struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	WrittenAt     time.Time
+	Body          string
+}
+
 type Family struct {
 	ID        uuid.UUID
 	Template  string

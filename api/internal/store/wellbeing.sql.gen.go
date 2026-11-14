@@ -12,6 +12,40 @@ import (
 	"github.com/google/uuid"
 )
 
+const createDiaryEntry = `-- name: CreateDiaryEntry :one
+INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, family_id, owner_member_id, visibility, written_at, body
+`
+
+type CreateDiaryEntryParams struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	WrittenAt     time.Time
+	Body          string
+}
+
+func (q *Queries) CreateDiaryEntry(ctx context.Context, arg CreateDiaryEntryParams) (DiaryEntry, error) {
+	row := q.db.QueryRow(ctx, createDiaryEntry,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+		arg.Visibility,
+		arg.WrittenAt,
+		arg.Body,
+	)
+	var i DiaryEntry
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.WrittenAt,
+		&i.Body,
+	)
+	return i, err
+}
+
 const createMoodCheckin = `-- name: CreateMoodCheckin :one
 INSERT INTO mood_checkins (family_id, owner_member_id, visibility, recorded_at, mood, energy, sleep_hours, note)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -53,6 +87,48 @@ func (q *Queries) CreateMoodCheckin(ctx context.Context, arg CreateMoodCheckinPa
 		&i.Note,
 	)
 	return i, err
+}
+
+const listDiaryEntriesVisibleToParent = `-- name: ListDiaryEntriesVisibleToParent :many
+SELECT id, family_id, owner_member_id, visibility, written_at, body FROM diary_entries
+WHERE family_id = $1
+  AND written_at >= $2
+  AND (owner_member_id = $3 OR visibility IN ('partner', 'family'))
+ORDER BY written_at DESC
+`
+
+type ListDiaryEntriesVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	Since    time.Time
+	ViewerID uuid.UUID
+}
+
+// Mirrors access.CanParentRead: own entries, plus ones shared with the partner or the family.
+func (q *Queries) ListDiaryEntriesVisibleToParent(ctx context.Context, arg ListDiaryEntriesVisibleToParentParams) ([]DiaryEntry, error) {
+	rows, err := q.db.Query(ctx, listDiaryEntriesVisibleToParent, arg.FamilyID, arg.Since, arg.ViewerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DiaryEntry{}
+	for rows.Next() {
+		var i DiaryEntry
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.WrittenAt,
+			&i.Body,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listMoodCheckinsVisibleToParent = `-- name: ListMoodCheckinsVisibleToParent :many
@@ -98,4 +174,37 @@ func (q *Queries) ListMoodCheckinsVisibleToParent(ctx context.Context, arg ListM
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateDiaryEntryVisibility = `-- name: UpdateDiaryEntryVisibility :one
+UPDATE diary_entries SET visibility = $1
+WHERE id = $2 AND family_id = $3 AND owner_member_id = $4
+RETURNING id, family_id, owner_member_id, visibility, written_at, body
+`
+
+type UpdateDiaryEntryVisibilityParams struct {
+	Visibility    string
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+}
+
+// Only the author may change who sees an entry; anyone else matches no row.
+func (q *Queries) UpdateDiaryEntryVisibility(ctx context.Context, arg UpdateDiaryEntryVisibilityParams) (DiaryEntry, error) {
+	row := q.db.QueryRow(ctx, updateDiaryEntryVisibility,
+		arg.Visibility,
+		arg.ID,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+	)
+	var i DiaryEntry
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.WrittenAt,
+		&i.Body,
+	)
+	return i, err
 }

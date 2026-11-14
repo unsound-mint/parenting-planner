@@ -84,7 +84,8 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err != nil {
 		return uuid.Nil, err
 	}
-	if _, err := q.CreateMember(ctx, store.CreateMemberParams{FamilyID: fam.ID, Role: "partner", DisplayName: "Jake", BirthDate: ptr(time.Date(1991, 9, 3, 0, 0, 0, 0, time.UTC))}); err != nil {
+	jake, err := q.CreateMember(ctx, store.CreateMemberParams{FamilyID: fam.ID, Role: "partner", DisplayName: "Jake", BirthDate: ptr(time.Date(1991, 9, 3, 0, 0, 0, 0, time.UTC))})
+	if err != nil {
 		return uuid.Nil, err
 	}
 	for _, c := range []store.CreateCareTeamMemberParams{
@@ -102,6 +103,20 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		Result: []byte(`{"hemoglobin_g_dl": 12.4, "blood_type": "O+", "rubella": "immune"}`),
 	}); err != nil {
 		return uuid.Nil, err
+	}
+	// Diary: each parent has a private entry; Emily shared one with Jake.
+	for _, d := range []store.CreateDiaryEntryParams{
+		{OwnerMemberID: mom.ID, Visibility: "private", WrittenAt: today.AddDate(0, 0, -3).Add(21 * time.Hour),
+			Body: "Couldn't sleep again. Worried about the glucose test and about going back to work after the baby."},
+		{OwnerMemberID: mom.ID, Visibility: "partner", WrittenAt: today.AddDate(0, 0, -1).Add(20 * time.Hour),
+			Body: "Felt the baby kick for a long time tonight. I'd like us to pick a pediatrician together this month."},
+		{OwnerMemberID: jake.ID, Visibility: "private", WrittenAt: today.AddDate(0, 0, -2).Add(22 * time.Hour),
+			Body: "Work is heavy and I feel behind on everything for the baby. Not sure how to bring it up with Emily."},
+	} {
+		d.FamilyID = fam.ID
+		if _, err := q.CreateDiaryEntry(ctx, d); err != nil {
+			return uuid.Nil, err
+		}
 	}
 	return fam.ID, nil
 }
