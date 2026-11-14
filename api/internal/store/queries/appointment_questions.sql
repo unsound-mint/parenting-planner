@@ -1,6 +1,6 @@
 -- name: CreateAppointmentQuestion :one
-INSERT INTO appointment_questions (family_id, owner_member_id, visibility, asked_for_event_id, body)
-VALUES ($1, $2, $3, $4, $5) RETURNING *;
+INSERT INTO appointment_questions (family_id, owner_member_id, visibility, asked_for_event_id, body, created_at)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
 
 -- Mirrors access.CanParentRead: the viewer's own questions, plus the other parent's
 -- questions shared with the partner or the family. Answered ones only for the last 30 days.
