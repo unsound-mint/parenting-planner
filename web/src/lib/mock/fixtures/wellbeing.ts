@@ -1,7 +1,6 @@
 import type { MoodScreeningDraft, MoodScreeningResult, ScreeningBand, ScreeningChoice, ScreeningQuestionnaire } from "@/lib/api/types";
 import { mock } from "../registry";
 import { CHECKED, isoAt, uid } from "./dates";
-import { couple, isNewborn, olderStage } from "../timeline";
 
 // Mood screening. Nothing is stored: a reload shows the seed again, and the
 // screens keep what you just saved in their own state. The diary is served by
