@@ -28,6 +28,7 @@ tags:
   - name: content
   - name: today
   - name: tasks
+  - name: thanks
   - name: calendar
   - name: simulator
   - name: learn
@@ -37,6 +38,7 @@ tags:
   - name: live
   - name: billing
   - name: notifications
+  - name: postcard
   - name: leave
   - name: insurance
   - name: screening
@@ -44,6 +46,7 @@ tags:
   - name: admin
   - name: account
   - name: portraits
+  - name: childcare
 paths:
   /healthz:
     get:
@@ -91,6 +94,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "429":
+          description: Error. Too many new demos from one address (rate_limited); Retry-After is set.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /demo/custom-sessions:
     post:
@@ -133,6 +142,12 @@ paths:
                 $ref: "#/components/schemas/Family"
         "400":
           description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Error. Too many new demos from one address (rate_limited); Retry-After is set.
           content:
             application/json:
               schema:
@@ -270,6 +285,208 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/childcare-options:
+    get:
+      operationId: listChildcareOptions
+      tags: [childcare]
+      summary: The childcare options the family is tracking, newest first
+      description: |
+        Daycares, nannies and family care the parents are looking at, with
+        where each one stands (researching to accepted or declined), waitlist
+        position and dates. Family-wide: both parents see and edit the same
+        list. A caregiver's session gets 403. An offered option with a
+        decideBy date puts "Decide on a childcare offer" on both parents' plans.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOptionList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createChildcareOption
+      tags: [childcare]
+      summary: Start tracking a childcare option
+      description: Either parent may add one. A caregiver's session gets 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildcareOptionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/childcare-options/{optionId}:
+    parameters:
+      - $ref: "#/components/parameters/ChildcareOptionId"
+    get:
+      operationId: getChildcareOption
+      tags: [childcare]
+      summary: One childcare option
+      description: A caregiver's session gets 403.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updateChildcareOption
+      tags: [childcare]
+      summary: Replace a childcare option with the values sent
+      description: |
+        A full replace: optional fields left out are cleared. Send the whole
+        option, for example with a new status and waitlist position.
+        A caregiver's session gets 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildcareOptionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteChildcareOption
+      tags: [childcare]
+      summary: Stop tracking a childcare option
+      description: A caregiver's session gets 403.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Error
           content:
             application/json:
@@ -2086,6 +2303,212 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/load-map:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getLoadMap
+      tags: [tasks]
+      summary: Who carries what, by area, over the last two weeks
+      description: |
+        Parents only (403 for a grandparent or nanny). Everything is counted
+        from stored data, never entered by hand, over the last 14 days of the
+        family's clock.
+
+        Areas come from the family's tasks and care data. Task areas count
+        tasks that are still open or were done in the window: appointments,
+        shopping, learning and planning are told apart from the task title
+        by a fixed keyword list, paperwork and hospital_bag by task kind.
+        Care areas count care log entries by author: feeding, diapers and
+        nights (any entry between 22:00 and 06:00 UTC). care_shifts counts
+        weekly shift hours of active shifts per person. Areas with nothing in
+        them are left out, busiest first.
+
+        owned says who carries the area now (the task assignee, the log
+        author, the shift owner). started says who created the tasks, the
+        remembering; it is only present for task areas. Caregivers appear in
+        both lists with their own member id, so a screen can give them a
+        third colour.
+
+        The area is handed over with the existing reassignment flow: the
+        screen offers each id in handoverTaskIds to the other parent with
+        proposeTaskReassignment, and the task moves only when they accept.
+        offeredToMeTaskIds are offers waiting for the acting parent.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoadMap"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/thanks:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listThanks
+      tags: [thanks]
+      summary: Thank-you notes of the last 30 days, newest first
+      description: |
+        A parent sees every note in the family, sent or received. A
+        grandparent or nanny sees only the notes addressed to them. Notes are
+        never built from diary or mood data.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThanksList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createThanks
+      tags: [thanks]
+      summary: The acting parent sends a thank-you note
+      description: |
+        Parents only (403 for a caregiver). The note goes to the other parent
+        or to a grandparent or nanny of the family. The text is whatever the
+        parent made of a suggestion; the server stores it as sent. Sending
+        a suggestionKey that already has a note answers 409, so the same
+        thanks is not sent twice. 409 also when the note is to oneself.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThanksInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Thanks"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/thanks/suggestions:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: listThanksSuggestions
+      tags: [thanks]
+      summary: Specific thanks the acting parent could send, written from the data
+      description: |
+        Parents only (403 for a caregiver). Each suggestion names one
+        specific thing the other parent or a caregiver did for the acting
+        parent in the last week and is already worded ("Thank you for the 3
+        night feeds on Tuesday"), for the parent to edit and send. Built only
+        from the care log, tasks and shifts both parents already see. Never
+        from diary or mood. Suggestions that already have a note are left
+        out. May be empty; the screen then offers its own starters.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThanksSuggestionList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Error
           content:
             application/json:
@@ -4070,6 +4493,176 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/postcard:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    get:
+      operationId: getPostcard
+      tags: [postcard]
+      summary: This week's postcard for the acting person
+      description: |
+        One card for the family circle: the baby's size this week (pregnancy)
+        or what babies do about now (after birth), one line the parents chose
+        to share, and the love already sent. Built from the same reference
+        content as getPregnancyWeek and getStageNow, never from a diary, mood
+        check-in, lab or session note.
+
+        - Mother and partner: the card as a grandparent sees it, plus every
+          love received in the last 7 days.
+        - Grandparent: pregnancy needs the pregnancy_updates permission and
+          the baby stage needs baby_passport, otherwise 403. loves holds only
+          what this grandparent sent.
+        - Nanny: always 403. The postcard is for family.
+
+        409 not_available when there is nothing to show yet: planning
+        families, and a baby stage with no child on record.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Postcard"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/postcard/line:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    put:
+      operationId: setPostcardLine
+      tags: [postcard]
+      summary: Write or clear this week's line on the postcard
+      description: |
+        Mother or partner (a caregiver gets 403). One line per family and
+        week: the second parent to save replaces the first, and a new week
+        starts empty. An empty text clears the line. The line is shown to
+        every grandparent with access to the postcard, so the screen says
+        so next to the field. Returns the postcard as the parent sees it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostcardLineInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Postcard"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/postcard/love:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: sendPostcardLove
+      tags: [postcard]
+      summary: Send a heart, with an optional short message, to the parents
+      description: |
+        A grandparent who may read the postcard (see getPostcard). Parents
+        and nannies get 403. Both parents get a love_sent notification,
+        at most one per grandparent and day so a tapping hand does not fill
+        the bell; every heart is still kept and shown in loves. The
+        notification title never carries the message. Returns the postcard
+        as this grandparent sees it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostcardLoveInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Postcard"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
           description: Error
           content:
             application/json:
@@ -6374,6 +6967,14 @@ components:
         type: string
         format: uuid
 
+    ChildcareOptionId:
+      name: optionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     InvitationId:
       name: invitationId
       in: path
@@ -6511,6 +7112,94 @@ components:
     PaidTier:
       type: string
       enum: [plus, concierge]
+
+    ChildcareKind:
+      type: string
+      description: daycare = a center; nanny = care at home; family = a relative or a home-based family daycare.
+      enum: [daycare, nanny, family]
+
+    ChildcareStatus:
+      type: string
+      description: Where the family stands with this option, in the order it usually goes.
+      enum: [researching, toured, applied, waitlisted, offered, accepted, declined]
+
+    ChildcareOptionInput:
+      type: object
+      required: [name, kind, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Little Harbor Early Learning
+        kind:
+          $ref: "#/components/schemas/ChildcareKind"
+        contact:
+          type: string
+          maxLength: 300
+          description: Free text, such as a person, phone number or email.
+        monthlyCost:
+          type: integer
+          minimum: 0
+          maximum: 100000
+          description: Cost per month in whole US dollars.
+        status:
+          $ref: "#/components/schemas/ChildcareStatus"
+        waitlistPosition:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        appliedOn:
+          type: string
+          format: date
+        decideBy:
+          type: string
+          format: date
+          description: The date the family must answer by, such as the deadline to accept an offered place.
+        notes:
+          type: string
+          maxLength: 2000
+
+    ChildcareOption:
+      type: object
+      required: [id, name, kind, status, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          $ref: "#/components/schemas/ChildcareKind"
+        contact:
+          type: string
+        monthlyCost:
+          type: integer
+          description: Cost per month in whole US dollars.
+        status:
+          $ref: "#/components/schemas/ChildcareStatus"
+        waitlistPosition:
+          type: integer
+        appliedOn:
+          type: string
+          format: date
+        decideBy:
+          type: string
+          format: date
+        notes:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChildcareOptionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChildcareOption"
 
     UpgradeIntentInput:
       type: object
@@ -7504,6 +8193,35 @@ components:
           allOf:
             - $ref: "#/components/schemas/PsychologistBooking"
           description: The latest session that has started and has no note yet.
+        suggestions:
+          type: array
+          description: |
+            Topics the parent might add, from themes that come up in two or
+            more of their own diary entries of the last 7 days (sleep, the
+            birth, work...). Computed from the acting parent's own entries
+            only, whatever their visibility, and returned only to them.
+            Wording names the theme, never quotes an entry. At most one,
+            absent or empty when there is none. Adding one is
+            updateDiaryEntry on diaryEntryId with agendaTopic = text.
+          maxItems: 1
+          items:
+            $ref: "#/components/schemas/AgendaSuggestion"
+
+    AgendaSuggestion:
+      type: object
+      required: [text, reason, diaryEntryId]
+      properties:
+        text:
+          type: string
+          example: Sleep lately
+        reason:
+          type: string
+          description: Why it is suggested, counting entries only.
+          example: You wrote about sleep in 2 entries this week.
+        diaryEntryId:
+          type: string
+          format: uuid
+          description: The newest of the parent's matching entries that has no agenda topic yet; the topic goes on this entry.
 
     PsychologistAgendaUpdate:
       type: object
@@ -8144,6 +8862,168 @@ components:
           description: Soonest due first, undated last.
           items:
             $ref: "#/components/schemas/Task"
+
+    LoadMapAreaKey:
+      type: string
+      enum: [appointments, shopping, paperwork, hospital_bag, learning, planning, feeding, diapers, nights, care_shifts]
+
+    LoadMapUnit:
+      type: string
+      description: What the counts of an area count. Hours are weekly shift hours.
+      enum: [items, feeds, changes, entries, hours]
+
+    LoadMapShare:
+      type: object
+      required: [memberId, count]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        count:
+          type: integer
+          minimum: 0
+        recentCount:
+          type: integer
+          minimum: 0
+          description: Of count, how many fall in the last 7 days. Only on care log areas, so a screen can say who has picked up more this week.
+
+    LoadMapArea:
+      type: object
+      required: [key, label, unit, owned, handoverTaskIds, offeredToMeTaskIds, offeredByMeTaskIds]
+      properties:
+        key:
+          $ref: "#/components/schemas/LoadMapAreaKey"
+        label:
+          type: string
+          example: Appointments
+        unit:
+          $ref: "#/components/schemas/LoadMapUnit"
+        owned:
+          type: array
+          description: Who carries it now, one entry per person with a count above 0.
+          items:
+            $ref: "#/components/schemas/LoadMapShare"
+        started:
+          type: array
+          description: Who created the items (the remembering). Only for task areas.
+          items:
+            $ref: "#/components/schemas/LoadMapShare"
+        handoverTaskIds:
+          type: array
+          description: Open tasks of this area the acting parent owns that are not offered yet. Empty for care areas.
+          items:
+            type: string
+            format: uuid
+        offeredToMeTaskIds:
+          type: array
+          description: Tasks of this area offered to the acting parent and waiting for their answer.
+          items:
+            type: string
+            format: uuid
+        offeredByMeTaskIds:
+          type: array
+          description: Tasks of this area the acting parent has offered and nobody has answered yet.
+          items:
+            type: string
+            format: uuid
+
+    LoadMap:
+      type: object
+      required: [windowDays, areas]
+      properties:
+        windowDays:
+          type: integer
+          example: 14
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/LoadMapArea"
+
+    ThanksBasis:
+      type: string
+      description: What a suggested thanks is built from.
+      enum: [night_feeds, feeds, diaper_changes, bag_items, tasks_done, caregiver_care, caregiver_shift]
+
+    ThanksSuggestion:
+      type: object
+      required: [key, toMemberId, basis, text]
+      properties:
+        key:
+          type: string
+          description: Stable id of the thing being thanked. Send it back as suggestionKey so it is thanked once.
+          example: night_feeds:0b8f5c2e:2026-11-10
+        toMemberId:
+          type: string
+          format: uuid
+        basis:
+          $ref: "#/components/schemas/ThanksBasis"
+        count:
+          type: integer
+          minimum: 1
+          description: How many things the text counts.
+        on:
+          type: string
+          format: date
+          description: The day the thing happened, when it is one day.
+        text:
+          type: string
+          example: Thank you for the 3 night feeds on Tuesday.
+
+    ThanksSuggestionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThanksSuggestion"
+
+    ThanksInput:
+      type: object
+      required: [toMemberId, body]
+      properties:
+        toMemberId:
+          type: string
+          format: uuid
+          description: The other parent, or a grandparent or nanny of the family.
+        body:
+          type: string
+          minLength: 1
+          maxLength: 400
+        suggestionKey:
+          type: string
+          maxLength: 120
+
+    Thanks:
+      type: object
+      required: [id, fromMemberId, toMemberId, body, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromMemberId:
+          type: string
+          format: uuid
+        toMemberId:
+          type: string
+          format: uuid
+        body:
+          type: string
+        suggestionKey:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ThanksList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/Thanks"
 
     CalendarScope:
       type: string
@@ -9528,8 +10408,10 @@ components:
         caregiver the recipient invited joined (invitation);
         subscription_started = the family's paid plan started (both
         parents); labour_started = the other parent tapped "Going to the
-        hospital" (entityId: the sender, createLabourAlert).
-      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started, labour_started]
+        hospital" (entityId: the sender, createLabourAlert);
+        love_sent = a grandparent sent love from the postcard (both parents;
+        entityId and actorId: the grandparent).
+      enum: [task_offered, task_offer_answered, handoff_received, handoff_accepted, plan_item_due, value_flagged, appointment_reminder, invitation_accepted, subscription_started, labour_started, love_sent]
 
     Notification:
       type: object
@@ -9581,6 +10463,88 @@ components:
           items:
             type: string
             format: uuid
+
+    Postcard:
+      type: object
+      required: [kind, stage, period, headline, source, loves, loveSentToday]
+      properties:
+        kind:
+          type: string
+          enum: [pregnancy, baby]
+        stage:
+          $ref: "#/components/schemas/Stage"
+        period:
+          type: string
+          description: '"Week 25" or "Week 8 of life", "4 years".'
+          example: Week 25
+        headline:
+          type: string
+          description: The size line in pregnancy ("About the size of a zucchini") or the stage headline after birth.
+          example: About the size of a zucchini
+        comparison:
+          type: string
+          description: Pregnancy only. The size comparison, for the illustration.
+          example: a zucchini
+        detail:
+          type: string
+          description: One plain sentence on what is happening now. Pregnancy uses the development line of the weekly card.
+        source:
+          $ref: "#/components/schemas/Source"
+        line:
+          $ref: "#/components/schemas/PostcardLine"
+        loves:
+          type: array
+          description: Newest first, last 7 days, at most 20. Parents see every heart received, a grandparent only their own.
+          items:
+            $ref: "#/components/schemas/PostcardLove"
+        loveSentToday:
+          type: boolean
+          description: True when the acting grandparent already sent a heart on the family's today. Always false for parents.
+
+    PostcardLine:
+      type: object
+      required: [text, authorName, updatedAt]
+      properties:
+        text:
+          type: string
+          maxLength: 140
+        authorName:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    PostcardLove:
+      type: object
+      required: [id, fromName, sentAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fromName:
+          type: string
+        message:
+          type: string
+          maxLength: 140
+        sentAt:
+          type: string
+          format: date-time
+
+    PostcardLineInput:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          maxLength: 140
+          description: Empty clears this week's line.
+
+    PostcardLoveInput:
+      type: object
+      properties:
+        message:
+          type: string
+          maxLength: 140
 
     CalendarFeedScope:
       type: string
@@ -9843,6 +10807,26 @@ components:
           type: string
           maxLength: 120
           description: A short topic for the author's next psychologist session, never the entry text.
+        mood:
+          $ref: "#/components/schemas/DiaryMood"
+        first:
+          type: boolean
+          description: |
+            The author marks the entry as one of the baby's or the family's
+            firsts (first kick, first smile). A label on the entry with the
+            entry's visibility; a shared first is what a family story can show.
+            Default false.
+
+    DiaryMood:
+      type: integer
+      minimum: 1
+      maximum: 5
+      description: |
+        How the author felt when writing, on the MoodCheckin.mood scale (1 =
+        very low, 5 = very good). Optional, set once when the entry is written.
+        It is part of the entry, so it has the entry's visibility: whoever may
+        read the entry sees it. It is not a mood check-in and does not feed
+        mood patterns, agenda topics or the plan.
 
     DiaryEntryUpdate:
       type: object
@@ -9854,10 +10838,13 @@ components:
           type: string
           maxLength: 120
           description: Set or change the agenda topic; an empty string removes it. Leave out to keep it.
+        first:
+          type: boolean
+          description: Mark or unmark the entry as a first. Leave out to keep it.
 
     DiaryEntry:
       type: object
-      required: [id, authorId, writtenAt, body, visibility]
+      required: [id, authorId, writtenAt, body, visibility, first]
       properties:
         id:
           type: string
@@ -9875,6 +10862,11 @@ components:
         agendaTopic:
           type: string
           description: Only on the author's own entries.
+        mood:
+          $ref: "#/components/schemas/DiaryMood"
+        first:
+          type: boolean
+          description: True when the author marked the entry as a first.
 
     DiaryEntryList:
       type: object

@@ -15,6 +15,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
+	"github.com/unsound-mint/parenting-planner/api/internal/thanks"
 )
 
 const (
@@ -229,13 +230,54 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	if err != nil {
 		return uuid.Nil, err
 	}
+	if err := tasks.SeedBabyTasks(ctx, q, fam, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedCareHistory(ctx, q, fam, leo, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := seedRecovery(ctx, q, fam, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
+	if err := seedChildcare(ctx, q, fam, today); err != nil {
+		return uuid.Nil, err
+	}
 	return fam, nil
+}
+
+// seedChildcare gives the newborn family three childcare options in different
+// states: a daycare place offered for when Leo is 4 months, with an answer due
+// in 10 days (an upcoming "Decide on a childcare offer" plan item); a daycare
+// waitlist; and a nanny share they are still researching. All invented.
+func seedChildcare(ctx context.Context, q *store.Queries, fam uuid.UUID, today time.Time) error {
+	cost := func(v int32) pgtype.Int4 { return pgtype.Int4{Int32: v, Valid: true} }
+	day := func(n int) *time.Time { d := today.AddDate(0, 0, n); return &d }
+	at := func(n, h int) time.Time { return today.AddDate(0, 0, n).Add(time.Duration(h) * time.Hour) }
+	for _, o := range []store.CreateChildcareOptionParams{
+		{
+			Name: "Little Harbor Early Learning", Kind: "daycare", Contact: ptr("Ms. Rivera, (617) 555-0142"), MonthlyCost: cost(2450),
+			Status: "offered", AppliedOn: day(-75), DecideBy: day(10),
+			Notes: ptr("Infant room place from when Leo is 4 months. A $500 deposit holds it."), Now: at(-3, 16),
+		},
+		{
+			Name: "Brightwater Children's Center", Kind: "daycare", Contact: ptr("admissions@brightwater.example"), MonthlyCost: cost(2700),
+			Status: "waitlisted", WaitlistPosition: cost(6), AppliedOn: day(-90),
+			Notes: ptr("Toured before Leo was born. They call when an infant spot opens, likely in spring."), Now: at(-20, 15),
+		},
+		{
+			Name: "Nanny share with the Delgados", Kind: "nanny", Contact: ptr("Priya Delgado, (617) 555-0187"), MonthlyCost: cost(1900),
+			Status: "researching", Notes: ptr("Two families, three days a week at our place. Interviewing nannies next week."), Now: at(-2, 19),
+		},
+	} {
+		o.FamilyID = fam
+		if _, err := q.CreateChildcareOption(ctx, o); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // handoffTone is three seconds of a generated 440 Hz tone (Ogg Opus), standing
@@ -309,6 +351,53 @@ func seedBabyCare(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus
 		HandoffID: uuid.NullUUID{UUID: h.ID, Valid: true}, VoiceNoteID: vn.ID, FamilyID: fam, UploaderID: aisha,
 	})
 	return err
+}
+
+// seedCareHistory gives the two weeks before yesterday a realistic split: Aisha
+// does most of the days, and Marcus has picked up the nights since last week
+// (two night feeds a night this week, one the week before). The seeded thank-you
+// note from Aisha names one of those nights. Nothing is later than now.
+func seedCareHistory(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus uuid.UUID, today time.Time) error {
+	method := func(v string) *string { return &v }
+	add := func(daysAgo, h, m int, kind string, author uuid.UUID) error {
+		e := store.CreateCareLogEntryParams{
+			FamilyID: fam, ChildID: leo, AuthorMemberID: author, Kind: kind,
+			StartedAt: today.AddDate(0, 0, -daysAgo).Add(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute),
+		}
+		switch kind {
+		case "feed":
+			e.FeedMethod = method("breast_left")
+		case "diaper":
+			e.Diaper = method("wet")
+		}
+		_, err := q.CreateCareLogEntry(ctx, e)
+		return err
+	}
+	type row struct {
+		h, m   int
+		kind   string
+		author uuid.UUID
+	}
+	for d := 2; d <= 13; d++ {
+		rows := []row{
+			{8, 0, "feed", aisha}, {13, 0, "feed", aisha}, {18, 30, "feed", marcus},
+			{8, 30, "diaper", aisha}, {14, 0, "diaper", aisha}, {19, 0, "diaper", marcus},
+		}
+		if d <= 6 {
+			rows = append(rows, row{23, 30, "feed", aisha}, row{1, 30, "feed", marcus}, row{4, 30, "feed", marcus})
+		} else {
+			rows = append(rows, row{23, 30, "feed", aisha}, row{2, 0, "feed", aisha}, row{4, 30, "feed", marcus})
+		}
+		for _, r := range rows {
+			if err := add(d, r.h, r.m, r.kind, r.author); err != nil {
+				return err
+			}
+		}
+	}
+	// The night that started three days ago: Marcus did the 01:30 and 04:30 feeds.
+	night := today.AddDate(0, 0, -3)
+	return thanks.Seed(ctx, q, fam, aisha, marcus, "Thank you for the 2 night feeds on "+night.Weekday().String()+". I slept five hours in a row.",
+		thanks.Key("night_feeds", marcus, night), today.AddDate(0, 0, -2).Add(8*time.Hour))
 }
 
 // careHelpers maps a caregiver's role to their member id.

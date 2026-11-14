@@ -230,3 +230,135 @@ func TestDiaryLeavesOutEntriesSealedWithAnotherKey(t *testing.T) {
 		t.Errorf("Mom's diary after a key change: %v", keys(got))
 	}
 }
+
+func TestDiaryMoodTravelsWithTheEntry(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	for _, m := range []int{0, 6} {
+		bad := entry("x", "private")
+		bad["mood"] = m
+		c.Post(diaryPath(mom), bad, http.StatusBadRequest, nil)
+	}
+	shared := entry("Jake talked to the bump.", "partner")
+	shared["mood"] = 4
+	private := entry("Heavy day, kept it to myself.", "private")
+	private["mood"] = 1
+	var made httpapi.DiaryEntry
+	c.Post(diaryPath(mom), shared, http.StatusCreated, &made)
+	c.Post(diaryPath(mom), private, http.StatusCreated, nil)
+	c.Post(diaryPath(mom), entry("No face today.", "private"), http.StatusCreated, nil)
+	if made.Mood == nil || *made.Mood != 4 {
+		t.Errorf("created mood = %v", made.Mood)
+	}
+	moms := diaryBodies(c, mom)
+	if m := moms["Heavy day, kept it to myself."].Mood; m == nil || *m != 1 {
+		t.Errorf("Mom reads her own mood: %v", m)
+	}
+	if m := moms["No face today."].Mood; m != nil {
+		t.Errorf("no mood stays absent: %v", *m)
+	}
+	jakes := diaryBodies(c, jake)
+	if m := jakes["Jake talked to the bump."].Mood; m == nil || *m != 4 {
+		t.Errorf("Jake reads the mood of the entry shared with him: %v", m)
+	}
+	if _, ok := jakes["Heavy day, kept it to myself."]; ok {
+		t.Error("a private entry and its mood never reach the partner")
+	}
+	// A diary mood is not a check-in: it adds no low-days topic.
+	var a httpapi.PsychologistAgenda
+	c.Get(agendaPath(mom), http.StatusOK, &a)
+	before := len(a.Topics)
+	for range 3 {
+		low := entry("Low.", "private")
+		low["mood"] = 1
+		c.Post(diaryPath(mom), low, http.StatusCreated, nil)
+	}
+	c.Get(agendaPath(mom), http.StatusOK, &a)
+	if len(a.Topics) != before {
+		t.Errorf("diary moods must not change the agenda: %d -> %d", before, len(a.Topics))
+	}
+}
+
+func TestAgendaLinksTopicsToTheirEntryAndSuggestsFromOwnEntriesOnly(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	agenda := func(m httpapi.Parent) httpapi.PsychologistAgenda {
+		var a httpapi.PsychologistAgenda
+		c.Get(agendaPath(m), http.StatusOK, &a)
+		return a
+	}
+	withTopic := entry("Nervous about not knowing when it starts.", "private")
+	withTopic["agendaTopic"] = "Not knowing when labour will start"
+	var e httpapi.DiaryEntry
+	c.Post(diaryPath(mom), withTopic, http.StatusCreated, &e)
+	found := false
+	for _, tp := range agenda(mom).Topics {
+		if tp.Text == "Not knowing when labour will start" {
+			found = tp.DiaryEntryId != nil && *tp.DiaryEntryId == e.Id
+		} else if tp.DiaryEntryId != nil {
+			t.Errorf("a check-in topic has no entry: %+v", tp)
+		}
+	}
+	if !found {
+		t.Error("a topic from the journal links back to its entry")
+	}
+
+	// Two entries about sleep, both shared with Jake: a suggestion for Mom only.
+	var older, newer httpapi.DiaryEntry
+	c.Post(diaryPath(mom), entry("Could not get back to sleep after the kicks.", "partner"), http.StatusCreated, &older)
+	c.Post(diaryPath(mom), entry("Woke at 3 again and ran through the drive in my head.", "family"), http.StatusCreated, &newer)
+	a := agenda(mom)
+	if a.Suggestions == nil || len(*a.Suggestions) != 1 {
+		t.Fatalf("Mom gets one suggestion: %+v", a.Suggestions)
+	}
+	s := (*a.Suggestions)[0]
+	if s.Text != "Sleep lately" || s.DiaryEntryId != newer.Id || strings.Contains(s.Reason, "Woke") || strings.Contains(s.Text, "Woke") {
+		t.Errorf("suggestion = %+v", s)
+	}
+	if ja := agenda(jake); ja.Suggestions != nil && len(*ja.Suggestions) > 0 {
+		t.Errorf("entries Mom shared with Jake never suggest topics to him: %+v", *ja.Suggestions)
+	}
+	// Taking it is a diary update; then it is a topic and no longer suggested.
+	c.Patch(diaryPath(mom)+"/"+s.DiaryEntryId.String(), map[string]any{"visibility": "family", "agendaTopic": s.Text}, http.StatusOK, nil)
+	a = agenda(mom)
+	if a.Suggestions != nil && len(*a.Suggestions) > 0 {
+		t.Errorf("a taken suggestion is gone: %+v", *a.Suggestions)
+	}
+	// The agenda reads the diary, so the read is audited.
+	if c.AuditCount(fam.Id, "read", "diary_entry") == 0 {
+		t.Error("agenda reads of the diary are audited")
+	}
+}
+
+func TestDiaryFirstsAreMarkedByTheAuthorAndFollowTheEntry(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	kick := entry("First kick Jake could feel.", "partner")
+	kick["first"] = true
+	var e httpapi.DiaryEntry
+	c.Post(diaryPath(mom), kick, http.StatusCreated, &e)
+	if !e.First {
+		t.Error("created as a first")
+	}
+	var plain httpapi.DiaryEntry
+	c.Post(diaryPath(mom), entry("Ordinary day.", "private"), http.StatusCreated, &plain)
+	if plain.First {
+		t.Error("not a first unless marked")
+	}
+	if !diaryBodies(c, jake)["First kick Jake could feel."].First {
+		t.Error("the partner sees the mark on a shared entry")
+	}
+	// A visibility change keeps the mark; sending first changes it; only the author can.
+	c.Patch(diaryPath(mom)+"/"+e.Id.String(), map[string]any{"visibility": "private"}, http.StatusOK, &e)
+	if !e.First {
+		t.Error("leaving first out keeps it")
+	}
+	c.Patch(diaryPath(mom)+"/"+e.Id.String(), map[string]any{"visibility": "private", "first": false}, http.StatusOK, &e)
+	if e.First {
+		t.Error("first: false unmarks it")
+	}
+	c.Patch(diaryPath(jake)+"/"+e.Id.String(), map[string]any{"visibility": "partner", "first": true}, http.StatusNotFound, nil)
+}

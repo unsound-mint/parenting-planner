@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { contentKinds } from "./labels";
+import { SourceLink, shortSource } from "@/components/joy/source-line";
 
 // One list per content kind. Saving and resetting only touch this visitor's
 // demo copy; the catalog and its sources stay as they are.
@@ -94,8 +95,8 @@ function Row({ item, open, onToggle, onChange }: { item: ContentItem; open: bool
             <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
           </label>
           {item.source && (
-            <p className="font-mono text-caption text-muted-foreground">
-              Source stays: {item.source.title}, checked {formatLongDate(item.source.checkedAt)}
+            <p className="text-caption text-muted-foreground">
+              The source link stays: <SourceLink source={item.source}>{shortSource(item.source.title)}</SourceLink>
             </p>
           )}
           <div className="flex flex-wrap items-center gap-3">

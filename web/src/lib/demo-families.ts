@@ -48,7 +48,7 @@ export const demoFamilies: DemoFamilyCard[] = [
       { name: "Aisha", role: "mother" },
       { name: "Marcus", role: "partner" },
     ],
-    firstUp: "2-month vaccines, the postpartum visit, and Marcus's low sleep.",
+    firstUp: "2-month vaccines, the postpartum visit, and a partner's low sleep.",
   },
   {
     template: "preschool",

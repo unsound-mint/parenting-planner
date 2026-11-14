@@ -41,7 +41,9 @@ func TestBirthPlanHasTheHospitalContactsAndDocuments(t *testing.T) {
 		t.Errorf("documents and the preferences note: %+v", p)
 	}
 	for _, d := range p.Documents {
-		if d.Title == "" || d.Ready {
+		// Ready follows the linked task (the demo mother has packed her ID);
+		// an item with no task is never ready.
+		if d.Title == "" || (d.TaskId == nil && d.Ready) {
 			t.Errorf("an item with no paperwork task is not ready: %+v", d)
 		}
 	}

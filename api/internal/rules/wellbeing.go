@@ -44,7 +44,7 @@ func lowMoodRule(f Facts) (Result, bool) {
 	if n < lowMoodDays {
 		return Result{}, false
 	}
-	return Result{Status: Due, Reason: fmt.Sprintf("You logged a low mood %d times in the last %d days.", n, lowMoodWindow)}, true
+	return Result{Status: Due, Reason: fmt.Sprintf("Because you logged a low mood %d times in the last %d days, and several low days in a row are worth sharing. Your OB, midwife or doctor can help.", n, lowMoodWindow)}, true
 }
 
 // sessionFollowUpDays is how long after a session note the plan suggests
@@ -61,7 +61,7 @@ func nextSessionRule(f Facts) (Result, bool) {
 	if f.LastSessionNoteAt.Before(f.Today.AddDate(0, 0, -sessionFollowUpDays)) {
 		return Result{}, false
 	}
-	return Result{Status: Due, Reason: fmt.Sprintf("You wrote a note after your session on %s and have no next session booked.", f.LastSessionNoteAt.Format("Jan 2"))}, true
+	return Result{Status: Due, Reason: fmt.Sprintf("Because counseling usually runs over several sessions, and you wrote a note after your session on %s with no next one booked. Your psychologist can help find a time.", f.LastSessionNoteAt.Format("Jan 2"))}, true
 }
 
 // These rules only read the viewer's own check-ins, so they never reveal
@@ -71,7 +71,7 @@ var wellbeingRules = []Rule{
 	{
 		ID:       "low-mood-mother",
 		Title:    "Talk to someone about how you have been feeling",
-		Detail:   "Several low days in a row are worth sharing with your OB, midwife or a counselor. Counseling helps prevent perinatal depression. Postpartum Support International HelpLine: call or text 1-800-944-4773.",
+		Detail:   "Several low days in a row are worth sharing with your OB, midwife or a counselor. Guidelines suggest counseling for people at risk of perinatal depression. Postpartum Support International HelpLine: call or text 1-800-944-4773.",
 		Category: MentalHealth,
 		Audience: ForMother,
 		Source:   srcUSPSTFPerinatalDepression,
@@ -89,7 +89,7 @@ var wellbeingRules = []Rule{
 	{
 		ID:       "psychologist-next-session",
 		Title:    "Book your next session with your psychologist",
-		Detail:   "Counseling usually helps over several meetings, not one. Picking the next time now keeps it going; bring what you noted.",
+		Detail:   "Counseling is usually described as a series of meetings rather than one. Picking the next time now keeps it going; bring what you noted.",
 		Category: MentalHealth,
 		Audience: ForBoth,
 		Source:   srcUSPSTFPerinatalDepression,

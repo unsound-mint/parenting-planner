@@ -3,7 +3,7 @@
 import { animate } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Stage } from "@/lib/api/types";
-import { MASCOT_SHAPES, type MascotShape } from "./mascots";
+import { MASCOT_SHAPES, STAGE_SHAPE } from "./mascots";
 import { resolveSize } from "./size-map";
 import { SHAPES } from "./sizes";
 import styles from "./styles";
@@ -128,17 +128,6 @@ export function SizeIllustration({ comparison, week, label, heart = true, seed, 
     </Frame>
   );
 }
-
-const STAGE_SHAPE: Record<Stage, MascotShape> = {
-  planning: "hearts",
-  trying: "seedling",
-  pregnancy: "hearts",
-  postpartum: "newborn",
-  infant: "sitting",
-  toddler: "toddler",
-  preschool: "ball",
-  school_age: "backpack",
-};
 
 export function StageMascot({ stage, label, heart = false, seed, ...rest }: FrameProps & { stage: Stage }) {
   const Shape = MASCOT_SHAPES[STAGE_SHAPE[stage]];
