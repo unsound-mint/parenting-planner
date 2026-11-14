@@ -83,7 +83,7 @@ func GetAgenda(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UU
 	var out Agenda
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
-		bookings, err := ownBookings(ctx, q, familyID, viewer)
+		bookings, err := OwnBookings(ctx, q, familyID, viewer)
 		if err != nil {
 			return err
 		}
@@ -205,7 +205,7 @@ func Book(ctx context.Context, pool *pgxpool.Pool, familyID, actor, slotID uuid.
 		if err := access.Audit(ctx, q, familyID, actor, access.ActionCreate, entityBooking, b.ID.String()); err != nil {
 			return err
 		}
-		bookings, err := ownBookings(ctx, q, familyID, actor)
+		bookings, err := OwnBookings(ctx, q, familyID, actor)
 		if err != nil {
 			return err
 		}
@@ -226,7 +226,7 @@ func WriteNote(ctx context.Context, pool *pgxpool.Pool, familyID, actor, booking
 	var out store.SessionNote
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
-		bookings, err := ownBookings(ctx, q, familyID, actor)
+		bookings, err := OwnBookings(ctx, q, familyID, actor)
 		if err != nil {
 			return err
 		}
@@ -257,9 +257,9 @@ func WriteNote(ctx context.Context, pool *pgxpool.Pool, familyID, actor, booking
 	return out, err
 }
 
-// ownBookings lists the parent's own bookings, newest first, with providers.
+// OwnBookings lists the parent's own bookings, newest first, with providers.
 // Callers audit the read.
-func ownBookings(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID) ([]Booking, error) {
+func OwnBookings(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID) ([]Booking, error) {
 	rows, err := q.ListPsychologistBookingsVisibleToParent(ctx, store.ListPsychologistBookingsVisibleToParentParams{
 		FamilyID: familyID, ViewerID: viewer,
 	})

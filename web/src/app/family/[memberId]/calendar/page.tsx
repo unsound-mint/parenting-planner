@@ -8,6 +8,7 @@ import { countThings, daysUntilInstant, formatClock, formatShortDate, whenWords 
 import { familyPeople, isCaregiver, type Role } from "@/lib/roles";
 import { roleAccent } from "@/lib/visuals";
 import { addDays, todayKey } from "@/lib/schedule";
+import { CalendarSubscribe } from "@/components/schedule/calendar-subscribe";
 import { ScopeTabs } from "@/components/schedule/scope-tabs";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { WeekView, type Owner } from "@/components/schedule/week-view";
@@ -49,11 +50,12 @@ async function Calendar({
 
   const caregiver = isCaregiver(me.role);
   const scope: CalendarScope = caregiver ? "mine" : scopes.find((s) => s === rawScope) ?? "family";
-  const [events, shifts] = await Promise.all([
+  const [events, shifts, feed] = await Promise.all([
     api.GET("/members/{memberId}/calendar-events", {
       params: { ...path.params, query: { scope, from, to: addDays(from, 6) } },
     }),
     api.GET("/members/{memberId}/shifts", path),
+    api.GET("/members/{memberId}/calendar-feed", path),
   ]);
 
   // Not built yet, or not shared with this person: the nav hides it, so a direct visit gets the same.
@@ -123,6 +125,8 @@ async function Calendar({
           </ul>
         </section>
       )}
+
+      {feed.data && <CalendarSubscribe memberId={memberId} initial={feed.data} canChooseScope={!caregiver} />}
     </main>
   );
 }
