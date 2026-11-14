@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { CloudOff } from "lucide-react";
+import { CloudOff, Lock } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import type { PsychologistAgenda, PsychologistSlots } from "@/lib/api/types";
-import { daysUntilInstant, familyContext, whenWords } from "@/lib/format";
+import { daysUntilInstant, whenWords } from "@/lib/format";
 import { AgendaCard } from "@/components/care/agenda-card";
 import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
@@ -35,7 +35,6 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     <CareView
       memberId={memberId}
       name={parent.displayName}
-      context={familyContext(family)}
       agenda={agenda}
       slots={slots}
     />
@@ -45,12 +44,11 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
 type ViewProps = {
   memberId: string;
   name: string;
-  context: string;
   agenda?: PsychologistAgenda;
   slots?: PsychologistSlots;
 };
 
-function CareView({ memberId, name, context, agenda, slots }: ViewProps) {
+function CareView({ memberId, name, agenda, slots }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
@@ -67,19 +65,22 @@ function CareView({ memberId, name, context, agenda, slots }: ViewProps) {
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
           </h1>
-          <p className="mt-2 text-label font-normal text-muted-foreground">{context} · private to you</p>
+          <p className="mt-2 flex items-center gap-1.5 text-label font-normal text-muted-foreground">
+            <Lock className="size-3.5 shrink-0" aria-hidden />
+            Private to you. Your partner sees none of this.
+          </p>
         </div>
 
         {!agenda ? (
           <Unavailable />
         ) : (
-          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)]">
+          <div className="flex max-w-2xl flex-col gap-3">
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
-              <NextSessionTile booking={next} topicCount={topics.length} />
+              <NextSessionTile booking={next} />
             ) : slots ? (
-              <SlotPicker memberId={memberId} slots={slots} topicCount={topics.length} />
+              <SlotPicker memberId={memberId} slots={slots} />
             ) : null}
             <AgendaCard topics={topics} />
           </div>
