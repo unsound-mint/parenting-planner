@@ -11,6 +11,7 @@ import { DirectoryFilters } from "@/components/directory/directory-filters";
 import { PartnerOffers } from "@/components/offers/partner-offers";
 import { ProviderCard, whenLabel } from "@/components/directory/provider-card";
 import { recommend, type Recommendation } from "@/components/directory/recommend";
+import { PageFrame } from "@/components/shell/page";
 import { familyNow } from "@/lib/clock";
 
 // Provider directory: synthetic providers by type and state, with a booking
@@ -75,8 +76,8 @@ async function Directory({
   for (const p of everyone) if (!state || p.state === state) counts[p.type] = (counts[p.type] ?? 0) + 1;
 
   return (
-    <main className="grid flex-1 content-start gap-8 px-4 pt-6 pb-16 md:px-8">
-      <section aria-labelledby="directory-headline" className="min-w-0 max-w-5xl">
+    <PageFrame>
+      <section aria-labelledby="directory-headline" className="min-w-0">
         <h1 id="directory-headline" className="max-w-2xl text-headline text-balance">
           {headline(picks, pattern !== undefined, failed, now)}
         </h1>
@@ -125,7 +126,7 @@ async function Directory({
                   </Link>
                 </Empty>
               ) : (
-                <ul className="mt-4 flex flex-col gap-3">
+                <ul className="mt-4 grid items-start gap-3 @4xl:grid-cols-2 @7xl:grid-cols-3">
                   {items.map((p) => (
                     <ProviderCard key={p.id} provider={p} memberId={memberId} requested={requested.has(p.id)} now={now} />
                   ))}
@@ -137,7 +138,7 @@ async function Directory({
         {/* Shown only when the endpoint answers; offers never touch the provider picks above. */}
         {offers.data && <PartnerOffers memberId={memberId} offers={offers.data.items.slice(0, 3)} />}
       </section>
-    </main>
+    </PageFrame>
   );
 }
 

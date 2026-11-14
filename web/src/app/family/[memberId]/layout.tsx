@@ -80,7 +80,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      {/* One width cap for the header and the page, so their edges line up, and the container
+          that PageGrid's columns query (docs/design.md, Layout). */}
+      <div className="@container flex w-full min-w-0 max-w-page flex-1 flex-col">
         <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
           <RoleSwitch people={people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
