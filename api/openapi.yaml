@@ -745,8 +745,8 @@ components:
 
     DemoTemplate:
       type: string
-      description: Which synthetic family to copy. Add a value here when its seed exists.
-      enum: [pregnancy]
+      description: "Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists."
+      enum: [planning, pregnancy, newborn, preschool]
 
     CreateDemoSessionRequest:
       type: object

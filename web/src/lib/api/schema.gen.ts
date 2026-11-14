@@ -377,10 +377,10 @@ export interface components {
             message: string;
         };
         /**
-         * @description Which synthetic family to copy. Add a value here when its seed exists.
+         * @description Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists.
          * @enum {string}
          */
-        DemoTemplate: "pregnancy";
+        DemoTemplate: "planning" | "pregnancy" | "newborn" | "preschool";
         CreateDemoSessionRequest: {
             template: components["schemas"]["DemoTemplate"];
         };
