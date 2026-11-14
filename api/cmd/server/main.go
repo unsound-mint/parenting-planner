@@ -32,9 +32,13 @@ func run() error {
 	}
 	defer pool.Close()
 
+	handler, err := httpapi.New(pool, httpapi.Config{SecureCookies: os.Getenv("COOKIE_SECURE") != "false"})
+	if err != nil {
+		return err
+	}
 	srv := &http.Server{
 		Addr:              env("ADDR", ":8080"),
-		Handler:           httpapi.New(pool, httpapi.Config{SecureCookies: os.Getenv("COOKIE_SECURE") != "false"}),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	go func() {

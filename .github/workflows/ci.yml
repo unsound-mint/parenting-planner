@@ -23,6 +23,12 @@ jobs:
         options: --health-cmd "pg_isready -U parenting" --health-interval 2s --health-retries 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Applied migrations are unchanged
+        if: github.event_name == 'pull_request'
+        working-directory: .
+        run: scripts/check-migrations.sh origin/${{ github.base_ref }}
       - uses: actions/setup-go@v5
         with:
           go-version-file: api/go.mod
@@ -32,6 +38,8 @@ jobs:
           go generate ./...
           go tool sqlc generate
           git diff --exit-code -- . || (echo "::error::Run 'make gen' and commit the result" && exit 1)
+      - name: Go code is formatted
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && echo "::error::Run 'gofmt -w .' in api/" && exit 1)
       - run: go vet ./...
       - run: go test ./...
         env:

@@ -27,7 +27,7 @@ Open Claude Code in this repo and describe what you want in plain words, in any 
 - "We decided the name is X and the price is $12/month. Update docs/product.md and src/lib/product.ts."
 - "Go through the demo script on the live site and tell me which steps fail."
 
-Claude creates issues with `gh issue create` using the template, and can open small PRs for doc or wording changes. Engineers pick up issues by assigning themselves.
+Claude creates issues with `gh issue create` using a template (Backend task for anything in `api/`, Task otherwise), and can open small PRs for doc or wording changes. Engineers pick up issues by assigning themselves.
 
 ## Timeline (local time)
 

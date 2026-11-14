@@ -105,3 +105,65 @@ func TestEveryRuleIsSourced(t *testing.T) {
 		}
 	}
 }
+
+func TestLowMoodStreak(t *testing.T) {
+	f := pregnantAt(25, Partner)
+	low := func(daysAgo int) MoodSample { return MoodSample{At: today.AddDate(0, 0, -daysAgo), Mood: 2} }
+
+	f.RecentMoods = []MoodSample{low(1), low(2)}
+	if find(Plan(All(), f), "low-mood-partner") != nil {
+		t.Fatal("two low days must not trigger")
+	}
+	f.RecentMoods = append(f.RecentMoods, low(3))
+	if it := find(Plan(All(), f), "low-mood-partner"); it == nil || it.Category != MentalHealth {
+		t.Fatalf("three low days in a week must trigger, got %+v", it)
+	}
+	f.RecentMoods = []MoodSample{low(1), low(2), low(10)}
+	if find(Plan(All(), f), "low-mood-partner") != nil {
+		t.Fatal("check-ins older than the window must not count")
+	}
+}
+
+func TestGBSScreen(t *testing.T) {
+	cases := []struct {
+		week int
+		done bool
+		want Status
+	}{
+		{33, false, ""},
+		{34, false, Upcoming},
+		{36, false, Due},
+		{37, false, Due},
+		{38, false, Overdue},
+		{36, true, ""},
+	}
+	for _, c := range cases {
+		f := pregnantAt(c.week, Mother)
+		if c.done {
+			f.PregnancyLabs["gbs"] = today
+		}
+		it := find(Plan(All(), f), "gbs-screen")
+		if c.want == "" {
+			if it != nil {
+				t.Errorf("week %d done=%v: rule applied, want none", c.week, c.done)
+			}
+			continue
+		}
+		if it == nil || it.Status != c.want {
+			t.Errorf("week %d done=%v: got %+v, want %s", c.week, c.done, it, c.want)
+		}
+	}
+	if find(Plan(All(), pregnantAt(36, Partner)), "gbs-screen") != nil {
+		t.Error("GBS is for the mother only")
+	}
+}
+
+func TestLowMoodGoesToTheRightParent(t *testing.T) {
+	low := []MoodSample{{today.AddDate(0, 0, -1), 1}, {today.AddDate(0, 0, -2), 2}, {today.AddDate(0, 0, -3), 2}}
+	mom := pregnantAt(25, Mother)
+	mom.RecentMoods = low
+	items := Plan(All(), mom)
+	if find(items, "low-mood-mother") == nil || find(items, "low-mood-partner") != nil {
+		t.Fatalf("mother's low mood must produce low-mood-mother only, got %+v", items)
+	}
+}

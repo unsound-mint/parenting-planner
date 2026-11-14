@@ -17,6 +17,7 @@ tags:
   - name: demo
   - name: family
   - name: plan
+  - name: wellbeing
 paths:
   /healthz:
     get:
@@ -59,7 +60,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Family"
         "400":
-          $ref: "#/components/responses/Error"
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /family:
     get:
@@ -74,7 +79,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Family"
         "401":
-          $ref: "#/components/responses/Error"
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/plan:
     get:
@@ -86,12 +95,7 @@ paths:
         data this parent is allowed to see. Each item says why it applies and
         cites its source.
       parameters:
-        - name: memberId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: "#/components/parameters/MemberId"
       responses:
         "200":
           description: OK
@@ -100,24 +104,100 @@ paths:
               schema:
                 $ref: "#/components/schemas/Plan"
         "401":
-          $ref: "#/components/responses/Error"
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
-          $ref: "#/components/responses/Error"
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/mood-checkins:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createMoodCheckin
+      tags: [wellbeing]
+      summary: The acting parent records how they feel today
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoodCheckinInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodCheckin"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listMoodCheckins
+      tags: [wellbeing]
+      summary: Check-ins from the last 30 days that the acting parent may see
+      description: Their own check-ins plus the other parent's check-ins shared with them.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoodCheckinList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
+  parameters:
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      description: |
+        The acting parent. There is no login, so the UI says which parent is
+        using the app; the API checks that this parent belongs to the session's family.
+      schema:
+        type: string
+        format: uuid
+
   securitySchemes:
     session:
       type: apiKey
       in: cookie
       name: pp_session
 
-  responses:
-    Error:
-      description: Error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
 
   schemas:
     Error:
@@ -266,3 +346,69 @@ components:
           type: string
           format: date
           description: When someone last confirmed the guideline still says this.
+
+    Visibility:
+      type: string
+      description: |
+        Who besides the author may see a sensitive record.
+        private = author only; partner = author and the other parent;
+        care_team = author and their professionals, not the partner; family = both parents.
+      enum: [private, partner, care_team, family]
+
+    MoodCheckinInput:
+      type: object
+      required: [mood, energy, sleepHours, visibility]
+      properties:
+        mood:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: 1 = very low, 5 = very good.
+        energy:
+          type: integer
+          minimum: 1
+          maximum: 5
+        sleepHours:
+          type: number
+          minimum: 0
+          maximum: 24
+          description: Hours slept in the last 24 hours.
+        note:
+          type: string
+          maxLength: 500
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    MoodCheckin:
+      type: object
+      required: [id, authorId, recordedAt, mood, energy, sleepHours, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        recordedAt:
+          type: string
+          format: date-time
+        mood:
+          type: integer
+        energy:
+          type: integer
+        sleepHours:
+          type: number
+        note:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    MoodCheckinList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/MoodCheckin"

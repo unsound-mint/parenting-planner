@@ -1,0 +1,9 @@
+# Changes here get an automatic review request.
+/api/openapi.yaml                  @unsound-mint
+/api/internal/store/migrations/    @unsound-mint
+/api/internal/access/              @unsound-mint
+/api/AGENTS.md                     @unsound-mint
+**/conventions_test.go             @unsound-mint
+/scripts/                          @unsound-mint
+/.github/                          @unsound-mint
+/deploy/                           @unsound-mint

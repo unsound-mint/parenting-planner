@@ -12,17 +12,17 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
-// ForMember returns the plan for one parent. today is passed in so callers
-// and tests control the clock.
-func ForMember(ctx context.Context, q *store.Queries, familyID, memberID uuid.UUID, today time.Time) ([]rules.Item, error) {
-	f, err := LoadFacts(ctx, q, familyID, memberID, today)
+// ForMember returns the plan for one parent. The clock is passed in so callers
+// and tests control it.
+func ForMember(ctx context.Context, q *store.Queries, familyID, memberID uuid.UUID, today, now time.Time) ([]rules.Item, error) {
+	f, err := LoadFacts(ctx, q, familyID, memberID, today, now)
 	if err != nil {
 		return nil, err
 	}
 	return rules.Plan(rules.All(), f), nil
 }
 
-func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UUID, today time.Time) (rules.Facts, error) {
+func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UUID, today, now time.Time) (rules.Facts, error) {
 	fam, err := q.GetFamily(ctx, familyID)
 	if err != nil {
 		return rules.Facts{}, fmt.Errorf("family: %w", err)
@@ -86,6 +86,19 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 	}
 	for _, c := range team {
 		f.CareTeam[c.Role] = true
+	}
+
+	// Only the viewer's own check-ins feed their plan.
+	moods, err := q.ListMoodCheckinsVisibleToParent(ctx, store.ListMoodCheckinsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID, Since: now.Add(-14 * 24 * time.Hour),
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, m := range moods {
+		if m.OwnerMemberID == memberID {
+			f.RecentMoods = append(f.RecentMoods, rules.MoodSample{At: m.RecordedAt, Mood: int(m.Mood)})
+		}
 	}
 	return f, nil
 }

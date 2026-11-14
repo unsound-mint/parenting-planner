@@ -112,7 +112,8 @@ func Plan(rs []Rule, f Facts) []Item {
 
 // All is every rule the engine knows, across stages.
 func All() []Rule {
-	return append([]Rule{}, pregnancyRules...)
+	rs := append([]Rule{}, pregnancyRules...)
+	return append(rs, wellbeingRules...)
 }
 
 func day(y int, m time.Month, d int) time.Time { return time.Date(y, m, d, 0, 0, 0, 0, time.UTC) }

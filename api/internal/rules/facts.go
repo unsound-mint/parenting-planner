@@ -16,6 +16,8 @@ type Facts struct {
 	Immunizations map[Role]map[string]time.Time
 	// Care team roles the family has filled (obgyn, pediatrician, ...).
 	CareTeam map[string]bool
+	// The viewing parent's own mood check-ins from the last 14 days, newest first.
+	RecentMoods []MoodSample
 }
 
 const pregnancyDays = 280
@@ -47,4 +49,10 @@ func (f Facts) vaccinatedSince(r Role, vaccine string, since time.Time) bool {
 func (f Facts) everVaccinated(r Role, vaccine string) bool {
 	_, ok := f.Immunizations[r][vaccine]
 	return ok
+}
+
+// MoodSample is one of the viewing parent's own mood check-ins.
+type MoodSample struct {
+	At   time.Time
+	Mood int // 1 = very low, 5 = very good
 }

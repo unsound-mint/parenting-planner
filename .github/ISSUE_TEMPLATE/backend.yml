@@ -1,0 +1,45 @@
+name: Backend task
+description: An API change for Sofia. Fill in what the frontend needs; leave the how to the playbook.
+labels: [backend]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What the user does and sees
+      placeholder: "Emily writes a diary entry and chooses whether Jake can read it."
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data
+      description: What is stored, who owns it, and who may see it (private, partner, care_team, family).
+      placeholder: |
+        Diary entry: text up to 5000 characters, a date, a visibility. Owned by the author.
+        Default visibility private.
+    validations:
+      required: true
+  - type: textarea
+    id: endpoints
+    attributes:
+      label: Endpoints the frontend needs
+      description: Rough is fine; the contract is finalized in the PR.
+      placeholder: |
+        POST /members/{memberId}/diary-entries
+        GET  /members/{memberId}/diary-entries
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Effect on the plan
+      description: Should this data change what a parent sees in their plan? Which rule, which source?
+      placeholder: None
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - [ ] 
+    validations:
+      required: true

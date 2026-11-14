@@ -75,6 +75,18 @@ type Member struct {
 	BirthDate   *time.Time
 }
 
+type MoodCheckin struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	RecordedAt    time.Time
+	Mood          int16
+	Energy        int16
+	SleepHours    float64
+	Note          *string
+}
+
 type Session struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID

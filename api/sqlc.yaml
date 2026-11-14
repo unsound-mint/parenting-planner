@@ -29,6 +29,10 @@ sql:
               type: "*time.Time"
           - db_type: timestamptz
             go_type: time.Time
+          - db_type: pg_catalog.numeric
+            go_type: float64
+          - db_type: pg_catalog.int2
+            go_type: int16
           - db_type: text
             nullable: true
             go_type:

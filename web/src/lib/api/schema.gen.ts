@@ -76,6 +76,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/mood-checkins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Check-ins from the last 30 days that the acting parent may see
+         * @description Their own check-ins plus the other parent's check-ins shared with them.
+         */
+        get: operations["listMoodCheckins"];
+        put?: never;
+        /** The acting parent records how they feel today */
+        post: operations["createMoodCheckin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -164,19 +191,48 @@ export interface components {
              */
             checkedAt: string;
         };
-    };
-    responses: {
-        /** @description Error */
-        Error: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Error"];
-            };
+        /**
+         * @description Who besides the author may see a sensitive record.
+         *     private = author only; partner = author and the other parent;
+         *     care_team = author and their professionals, not the partner; family = both parents.
+         * @enum {string}
+         */
+        Visibility: "private" | "partner" | "care_team" | "family";
+        MoodCheckinInput: {
+            /** @description 1 = very low, 5 = very good. */
+            mood: number;
+            energy: number;
+            /** @description Hours slept in the last 24 hours. */
+            sleepHours: number;
+            note?: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        MoodCheckin: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            authorId: string;
+            /** Format: date-time */
+            recordedAt: string;
+            mood: number;
+            energy: number;
+            sleepHours: number;
+            note?: string;
+            visibility: components["schemas"]["Visibility"];
+        };
+        MoodCheckinList: {
+            /** @description Newest first. */
+            items: components["schemas"]["MoodCheckin"][];
         };
     };
-    parameters: never;
+    responses: never;
+    parameters: {
+        /**
+         * @description The acting parent. There is no login, so the UI says which parent is
+         *     using the app; the API checks that this parent belongs to the session's family.
+         */
+        MemberId: string;
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;
@@ -229,7 +285,15 @@ export interface operations {
                     "application/json": components["schemas"]["Family"];
                 };
             };
-            400: components["responses"]["Error"];
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     getFamily: {
@@ -250,7 +314,15 @@ export interface operations {
                     "application/json": components["schemas"]["Family"];
                 };
             };
-            401: components["responses"]["Error"];
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     getMemberPlan: {
@@ -258,7 +330,11 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                memberId: string;
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
             };
             cookie?: never;
         };
@@ -273,8 +349,125 @@ export interface operations {
                     "application/json": components["schemas"]["Plan"];
                 };
             };
-            401: components["responses"]["Error"];
-            404: components["responses"]["Error"];
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listMoodCheckins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodCheckinList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createMoodCheckin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoodCheckinInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoodCheckin"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
 }

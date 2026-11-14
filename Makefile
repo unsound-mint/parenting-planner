@@ -25,6 +25,8 @@ test: db
 
 ## Everything CI checks.
 check: gen test
+	cd api && gofmt -l . | (! grep .) || (echo "run gofmt -w . in api/" && exit 1)
 	cd api && go vet ./...
+	scripts/check-migrations.sh
 	cd web && pnpm typecheck && pnpm lint && pnpm build
 	git diff --exit-code -- 'api/**/*.gen.go' web/src/lib/api || (echo "generated code is out of date: run make gen and commit" && exit 1)
