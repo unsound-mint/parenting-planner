@@ -76,8 +76,9 @@ func (s *Server) GetPregnancyWeek(ctx context.Context, req GetPregnancyWeekReque
 	out := PregnancyWeek{
 		Week: card.Week, IsCurrentWeek: card.Week == state.Week, WhyItMatters: card.WhyItMatters,
 		Tasks: card.Tasks, Questions: card.Questions, BirthPrep: make([]Guide, 0, len(card.BirthPrep)),
-		Source: sourceOut(card.Source),
+		Source: sourceOut(card.Source), Development: &card.Development,
 	}
+	out.Size = sizeOut(card.Size)
 	for _, e := range card.BirthPrep {
 		out.BirthPrep = append(out.BirthPrep, guideOut(e))
 	}
@@ -162,4 +163,21 @@ func guideActionOut(a *content.Action) *GuideAction {
 		out.Shift = &ShiftSuggestion{Title: a.Shift.Title, Days: days, StartTime: a.Shift.StartTime, EndTime: a.Shift.EndTime}
 	}
 	return &out
+}
+
+// sizeOut maps the catalog size to the contract. Weight is left out where no source gives one.
+func sizeOut(sz content.Size) *BabySize {
+	out := &BabySize{
+		Comparison: sz.Comparison, LengthCm: float32(sz.LengthCm), LengthMeasure: BabySizeLengthMeasure(sz.LengthMeasure),
+		Sources: make([]Source, 0, len(sz.Sources)),
+	}
+	if sz.HasWeight() {
+		w := float32(sz.WeightG)
+		r := []float32{float32(sz.WeightRangeG[0]), float32(sz.WeightRangeG[1])}
+		out.WeightG, out.WeightRangeG = &w, &r
+	}
+	for _, s := range sz.Sources {
+		out.Sources = append(out.Sources, sourceOut(s))
+	}
+	return out
 }

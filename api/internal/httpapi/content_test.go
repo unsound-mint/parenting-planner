@@ -122,6 +122,14 @@ func TestPregnancyWeekCard(t *testing.T) {
 	if mw.Tasks[0] == pw.Tasks[0] {
 		t.Errorf("mother and partner share the task %q", mw.Tasks[0])
 	}
+	if mw.Size == nil || mw.Size.WeightG == nil || mw.Size.WeightRangeG == nil || len(mw.Size.Sources) < 2 || mw.Development == nil || *mw.Development == "" {
+		t.Errorf("week 25 size: %+v", mw.Size)
+	}
+	var early httpapi.PregnancyWeek
+	c.Get("/api/members/"+mom.Id.String()+"/pregnancy-weeks/8", http.StatusOK, &early)
+	if early.Size == nil || early.Size.WeightG != nil || early.Size.WeightRangeG != nil || len(early.Size.Sources) == 0 {
+		t.Errorf("week 8 size: %+v", early.Size)
+	}
 	for _, wk := range []string{"4", "40"} {
 		c.Get("/api/members/"+mom.Id.String()+"/pregnancy-weeks/"+wk, http.StatusOK, nil)
 	}

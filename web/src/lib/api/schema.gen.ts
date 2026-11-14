@@ -3673,17 +3673,39 @@ export interface components {
             /** @description Most relevant first. */
             items: components["schemas"]["Guide"][];
         };
+        /**
+         * @description Baby size for one week, with the sources for the length, the weight and
+         *     the week's `development` text. Not a diagnosis; babies vary.
+         */
         BabySize: {
-            /** @example a pineapple */
+            /**
+             * @description A friendly size picture, not a measurement.
+             * @example a pineapple
+             */
             comparison: string;
             lengthCm: number;
-            weightG: number;
+            /**
+             * @description How lengthCm is measured. It changes at week 20, so do not chart the jump as growth.
+             *     embryo = length of the embryo (weeks 4 to 6, the source does not say how),
+             *     crown-rump = head to bottom, crown-heel = head to heel.
+             * @enum {string}
+             */
+            lengthMeasure: "embryo" | "crown-rump" | "crown-heel";
+            /** @description Median estimated fetal weight. Absent before week 14, where no source gives one. */
+            weightG?: number;
+            /** @description 10th and 90th percentile of the weight, in grams. Present with weightG. */
+            weightRangeG?: number[];
+            /**
+             * @description Sources for the size and for the week's `development` text:
+             *     the NHS week page, plus the WHO fetal growth charts when weightG is present.
+             */
+            sources: components["schemas"]["Source"][];
         };
         PregnancyWeek: {
             week: number;
             isCurrentWeek: boolean;
             size?: components["schemas"]["BabySize"];
-            /** @description What is developing this week, in plain words. Present only when sourced. */
+            /** @description What is developing this week, in plain words. Cited by the sources in size.sources. */
             development?: string;
             /** @description Why this week matters for the parents, never a diagnosis. */
             whyItMatters: string;
