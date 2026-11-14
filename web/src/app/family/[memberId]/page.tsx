@@ -37,7 +37,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/family"),
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
-    // Answers 501 until the API lands; no data means no card.
+    // No pattern means no card.
     api.GET("/members/{memberId}/mood-patterns", path),
     // Answers 501 until the API lands; then the "Baby is home" switch stays hidden.
     api.GET("/members/{memberId}/shifts", path),
