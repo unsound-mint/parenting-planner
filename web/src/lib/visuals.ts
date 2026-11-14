@@ -1,4 +1,5 @@
 import {
+  Activity,
   Baby,
   Backpack,
   Blocks,
@@ -11,6 +12,7 @@ import {
   HeartPulse,
   Leaf,
   Lock,
+  MessageCircleHeart,
   Milk,
   Sparkles,
   Sprout,
@@ -77,6 +79,11 @@ export const statusTint: Record<PlanItemStatus, string> = {
   upcoming: "bg-status-up-soft text-status-up",
 };
 
+/** A detected pattern in the parent's own check-ins. */
+export const patternIcon = Activity;
+
+/** "Talk to someone": the link from a pattern to the provider directory. */
+export const talkIcon = MessageCircleHeart;
 /** Solid bar colour by plan status: Journey lanes and the focus card's countdown. */
 export const statusBar: Record<PlanItemStatus, string> = {
   overdue: "bg-status-late",
