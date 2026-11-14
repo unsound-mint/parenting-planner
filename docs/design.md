@@ -107,7 +107,7 @@ The vocabulary, shared by CSS (`globals.css`) and Motion (`components/joy/motion
 | `spring.gentle` | spring, bounce 0, 0.45 s | A bigger move, like a topic landing in the agenda |
 | `spring.playful` | spring, bounce 0.3, 0.6 s | Only the baby, mascots and small celebrations |
 
-Utilities: `press` (scale 0.97 while pressed, on every tappable thing), `lift` (3 px hover lift with a soft shadow, pointer devices only), `rise` through `<Rise i={n}>` (staggered entrance), and `animate-bob`, `animate-wiggle`, `animate-beat` for the baby and mascots.
+Utilities: `press` (scale 0.97 while pressed, on every tappable thing), `lift` (3 px hover lift with a soft shadow, pointer devices only), and `rise` through `<Rise i={n}>` (staggered entrance). The baby and mascots bob, blink, beat and wiggle on tap inside `components/illustrations/` (`SizeIllustration`, `StageMascot`); reuse them rather than writing new loops.
 
 1. Every screen enters with a 70 ms stagger: wrap its sections in `Rise`, numbered in reading order.
 2. Every tap answers: `press` on buttons, chips and cards that open something. Mood faces tilt on hover and grow when picked.
@@ -115,7 +115,7 @@ Utilities: `press` (scale 0.97 while pressed, on every tappable thing), `lift` (
 4. Small celebrations at real milestones only (a lesson finished, both parents answered): `spring.playful`, once.
 5. UI eases out and never bounces. Only the baby and mascots bob, wiggle and beat.
 6. Animate only `transform` and `opacity`. UI durations stay between 150 and 400 ms. Use transitions, not keyframes, for anything a user can trigger twice in a second.
-7. Reduced motion: `MotionConfig reducedMotion="user"` covers Motion; `globals.css` drops `rise`, the baby loops and the press scale, and shortens every other transition. Do not opt out.
+7. Reduced motion: `MotionConfig reducedMotion="user"` covers Motion; `globals.css` drops `rise` and the press scale, `illustrations.css` stops the baby's loops, and shortens every other transition. Do not opt out.
 8. Never animate Urgent help, the crisis and urgent-symptom screens, error states, or anything on a keyboard shortcut.
 9. Verify motion live: record a short Playwright video or frame sequence of the key interactions and look at it, once with reduced motion on.
 
