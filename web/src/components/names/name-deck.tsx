@@ -115,14 +115,14 @@ export function NameDeck({
                     <motion.span
                       aria-hidden
                       style={{ opacity: loveStamp }}
-                      className="pointer-events-none absolute top-6 left-6 inline-flex -rotate-12 items-center gap-1.5 rounded-xl border-2 border-leaf bg-card px-3 py-1 text-label font-semibold tracking-wide text-leaf uppercase"
+                      className="pointer-events-none absolute top-20 left-6 inline-flex -rotate-12 items-center gap-1.5 rounded-xl border-2 border-leaf bg-card px-3 py-1 text-label font-semibold tracking-wide text-leaf uppercase"
                     >
                       <Heart className="size-4 fill-current" /> Love
                     </motion.span>
                     <motion.span
                       aria-hidden
                       style={{ opacity: noStamp }}
-                      className="pointer-events-none absolute top-6 right-6 inline-flex rotate-12 items-center gap-1.5 rounded-xl border-2 border-ink-2 bg-card px-3 py-1 text-label font-semibold tracking-wide text-ink-2 uppercase"
+                      className="pointer-events-none absolute top-20 right-6 inline-flex rotate-12 items-center gap-1.5 rounded-xl border-2 border-ink-2 bg-card px-3 py-1 text-label font-semibold tracking-wide text-ink-2 uppercase"
                     >
                       <X className="size-4" /> Not for us
                     </motion.span>

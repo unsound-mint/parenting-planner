@@ -11,7 +11,7 @@ import { SourceLine } from "@/components/joy/source-line";
 import { Burst } from "@/components/learn/celebrate";
 import { ease, spring } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
-import { CardFace, NameDeck } from "./name-deck";
+import { NameDeck } from "./name-deck";
 import { NameTrend } from "./name-trend";
 import { fmt, listTitles, popularity, rankWords, stageInfo, verdictLabel, type Popularity } from "./model";
 
@@ -122,9 +122,7 @@ export function NamesQuestBoard({ memberId, couple, initialQuest, initialDeck }:
         <QuestProgress quest={quest} couple={couple} mine={mine?.swiped ?? 0} theirs={theirs?.swiped} />
 
         <div className="grid min-w-0 items-start gap-6 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] @7xl:grid-cols-[18rem_minmax(0,1fr)_minmax(0,26rem)]">
-          <ListsPanel quest={quest} onToggle={toggleList} sex={sex} pop={pop} onFilter={filter} />
-
-          <section aria-labelledby="deck-title" className="flex min-w-0 flex-col gap-4 @4xl:row-span-2 @7xl:row-span-1">
+          <section aria-labelledby="deck-title" className="flex min-w-0 flex-col gap-4 @4xl:col-start-1 @4xl:row-start-1 @7xl:col-start-2">
             <div className="flex items-baseline justify-between gap-3">
               <h2 id="deck-title" className="text-title">
                 Your deck
@@ -160,7 +158,7 @@ export function NamesQuestBoard({ memberId, couple, initialQuest, initialDeck }:
             </div>
           </section>
 
-          <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6 @4xl:col-start-2 @4xl:row-span-2 @4xl:row-start-1 @7xl:col-start-3 @7xl:row-span-1">
             <Shortlist quest={quest} partner={couple.them} onAdd={addName} />
             {unlocked ? (
               <FinalRound quest={quest} mine={mine?.judged ?? 0} theirs={theirs?.judged} couple={couple} onJudge={judge} />
@@ -169,6 +167,8 @@ export function NamesQuestBoard({ memberId, couple, initialQuest, initialDeck }:
             )}
             {quest.talkAbout.length > 0 && <TalkAbout quest={quest} couple={couple} />}
           </div>
+
+          <ListsPanel quest={quest} onToggle={toggleList} sex={sex} pop={pop} onFilter={filter} />
         </div>
 
         <SourceLine sources={quest.sources} />
@@ -245,7 +245,7 @@ function ListsPanel({
   onFilter: (s: NameSex | "any", p: Popularity) => void;
 }) {
   return (
-    <section aria-labelledby="lists-title" className="flex min-w-0 flex-col gap-5 @4xl:col-start-2 @7xl:col-start-1">
+    <section aria-labelledby="lists-title" className="flex min-w-0 flex-col gap-5 @4xl:col-start-1 @4xl:row-start-2 @7xl:col-start-1 @7xl:row-start-1">
       <div>
         <h2 id="lists-title" className="text-title">
           Lists in your deck
@@ -392,6 +392,7 @@ function Shortlist({ quest, partner, onAdd }: { quest: NamesQuest; partner?: Par
         </span>
       </div>
       <ul className="flex flex-col gap-2">
+        <AnimatePresence initial={false}>
         {Array.from({ length: slots }, (_, i) => {
           const m = quest.matches[i];
           if (!m)
@@ -420,6 +421,7 @@ function Shortlist({ quest, partner, onAdd }: { quest: NamesQuest; partner?: Par
             </motion.li>
           );
         })}
+        </AnimatePresence>
       </ul>
       <form
         className="flex gap-2"
