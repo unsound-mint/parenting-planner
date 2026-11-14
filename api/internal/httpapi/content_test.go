@@ -199,3 +199,40 @@ func TestGuidesCarryTheirRuleAndTheirAction(t *testing.T) {
 		t.Errorf("night shift action = %+v", shift)
 	}
 }
+
+func TestStageNowForEveryDemoStage(t *testing.T) {
+	cases := []struct {
+		template, stage, period, sourceHost string
+	}{
+		{"newborn", "newborn", "Week 8 of life", "https://www.cdc.gov/act-early/milestones/2-months.html"},
+		{"preschool", "preschool", "4 years", "https://www.cdc.gov/act-early/milestones/4-years.html"},
+		{"planning", "planning", "Planning", "https://www.cdc.gov/pregnancy/about/index.html"},
+	}
+	for _, tc := range cases {
+		c := testutil.New(t)
+		fam := c.StartDemo(tc.template)
+		// Both parents and the caregivers read the same reference line.
+		mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+		var got httpapi.StageNow
+		c.Get("/api/members/"+mom.Id.String()+"/now", http.StatusOK, &got)
+		if string(got.Stage) != tc.stage || got.Period != tc.period {
+			t.Errorf("%s: stage %s period %q", tc.template, got.Stage, got.Period)
+		}
+		if got.Headline == "" || got.Detail == "" || got.PlayIdea == "" || got.Note == "" {
+			t.Errorf("%s: incomplete %+v", tc.template, got)
+		}
+		if len(got.Sources) == 0 || got.Sources[0].Url != tc.sourceHost || got.Sources[0].CheckedAt.String() != "2026-11-14" {
+			t.Errorf("%s: sources %+v", tc.template, got.Sources)
+		}
+	}
+}
+
+func TestStageNowIsNotServedInPregnancy(t *testing.T) {
+	c := testutil.New(t)
+	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
+	var e httpapi.Error
+	c.Get("/api/members/"+mom.Id.String()+"/now", http.StatusConflict, &e)
+	if e.Code != "pregnant" {
+		t.Errorf("code = %q", e.Code)
+	}
+}
