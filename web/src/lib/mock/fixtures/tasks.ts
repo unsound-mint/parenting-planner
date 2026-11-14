@@ -1,5 +1,6 @@
 import { mockNow } from "@/lib/clock";
 import type { Family, Task } from "@/lib/api/types";
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { dayOf, events, taskId as familyTaskId, taskPlan } from "../timeline";
 
@@ -10,6 +11,10 @@ import { dayOf, events, taskId as familyTaskId, taskPlan } from "../timeline";
 // reload; the real backend replaces all of it.
 
 const store = new Map<string, Task[]>();
+// Every seeded task is baby prep. In pregnancy loss support they stay stored but
+// hidden, like the server keeps hospital bag and paperwork tasks; tasks the
+// family adds afterwards still show.
+const seeded = new Set<string>();
 
 // Server render and browser seed separately, so ids must match: derive them from
 // the family id (still a valid UUID, which the real API checks before it answers 501).
@@ -64,7 +69,11 @@ function seed(family: Family): Task[] {
 
 async function tasksOf(family: () => Promise<Family>): Promise<Task[]> {
   const f = await family();
-  if (!store.has(f.id)) store.set(f.id, seed(f));
+  if (!store.has(f.id)) {
+    const tasks = seed(f);
+    tasks.forEach((t) => seeded.add(t.id));
+    store.set(f.id, tasks);
+  }
   return store.get(f.id)!;
 }
 
@@ -78,7 +87,8 @@ const find = (all: Task[], id: string) => {
 export const taskMocks = {
   ...mock("/members/{memberId}/tasks", "get", async (ctx) => {
     const kind = ctx.query.kind;
-    return { items: (await tasksOf(ctx.family)).filter((x) => !kind || x.kind === kind).sort(byDue) };
+    const loss = inLossSupport(await ctx.family());
+    return { items: (await tasksOf(ctx.family)).filter((x) => (!kind || x.kind === kind) && !(loss && seeded.has(x.id))).sort(byDue) };
   }),
   ...mock("/members/{memberId}/tasks", "post", async (ctx) => {
     const all = await tasksOf(ctx.family);

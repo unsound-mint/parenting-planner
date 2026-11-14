@@ -72,8 +72,9 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
 
   const needs = plan.items.filter((i) => i.status !== "upcoming").length;
   // Status only: the focus card right below names the first thing.
-  const headline =
-    needs === 0
+  const headline = family.pregnancyLoss
+    ? `We are so sorry, ${parent.displayName}. Take the time you need.`
+    : needs === 0
       ? `Nothing needs you this week, ${parent.displayName}.`
       : `${countWord(needs)} ${needs === 1 ? "thing needs" : "things need"} you this week, ${parent.displayName}.`;
   // The switch is a one-time step near the birth: last on the page, under everything that needs doing now.
@@ -86,7 +87,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
           {headline}
         </h1>
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
-        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         <div className="mt-3 empty:hidden">
           <StageSlot guides={guides} memberId={memberId} family={family} />
         </div>
@@ -99,7 +100,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
           <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
         </Suspense>
         <WeekCardSlot card={card} babyOnly />
-        <GuidesSlot guides={guides} plan={plan.items} />
+        {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
+        {!family.pregnancyLoss && <GuidesSlot guides={guides} plan={plan.items} />}
         {late && <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />}
       </aside>
     </main>

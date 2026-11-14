@@ -92,6 +92,7 @@ export type SimulatorAnswerResult = S["SimulatorAnswerResult"];
 export type SimulatorRoundResult = S["SimulatorRoundResult"];
 export type TaskKind = S["TaskKind"];
 export type HospitalBag = S["HospitalBag"];
+export type VoiceNote = S["VoiceNote"];
 export type Notification = S["Notification"];
 export type NotificationKind = S["NotificationKind"];
 export type NotificationList = S["NotificationList"];

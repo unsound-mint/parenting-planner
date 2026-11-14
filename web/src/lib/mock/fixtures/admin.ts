@@ -1,3 +1,4 @@
+import { inLossSupport } from "@/lib/loss";
 import type { components } from "@/lib/api/schema.gen";
 import { mock } from "../registry";
 import { CHECKED, isoAt, isoDate, uid } from "./dates";
@@ -66,6 +67,8 @@ export const adminMocks = {
   }),
   ...mock("/members/{memberId}/partner-offers", "get", async (ctx) => {
     const family = await ctx.family();
+    // None in pregnancy loss support.
+    if (inLossSupport(family)) return { items: [] };
     const stage = stageOf(family.stage);
     const role = family.parents.find((p) => p.id === ctx.path.memberId)?.role;
     return { items: offers.filter((o) => o.active && o.stages.includes(stage) && (!role || o.audience.includes(role))).slice(0, 3).map(({ clicks, ...o }) => (void clicks, o)) };
