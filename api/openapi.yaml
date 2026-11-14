@@ -6691,15 +6691,41 @@ components:
 
     BabySize:
       type: object
-      required: [comparison, lengthCm, weightG]
+      description: |
+        Baby size for one week, with the sources for the length, the weight and
+        the week's `development` text. Not a diagnosis; babies vary.
+      required: [comparison, lengthCm, lengthMeasure, sources]
       properties:
         comparison:
           type: string
+          description: A friendly size picture, not a measurement.
           example: a pineapple
         lengthCm:
           type: number
+        lengthMeasure:
+          type: string
+          description: |
+            How lengthCm is measured. It changes at week 20, so do not chart the jump as growth.
+            embryo = length of the embryo (weeks 4 to 6, the source does not say how),
+            crown-rump = head to bottom, crown-heel = head to heel.
+          enum: [embryo, crown-rump, crown-heel]
         weightG:
           type: number
+          description: Median estimated fetal weight. Absent before week 14, where no source gives one.
+        weightRangeG:
+          type: array
+          description: 10th and 90th percentile of the weight, in grams. Present with weightG.
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+        sources:
+          type: array
+          description: |
+            Sources for the size and for the week's `development` text:
+            the NHS week page, plus the WHO fetal growth charts when weightG is present.
+          items:
+            $ref: "#/components/schemas/Source"
 
     PregnancyWeek:
       type: object
@@ -6714,7 +6740,7 @@ components:
           $ref: "#/components/schemas/BabySize"
         development:
           type: string
-          description: What is developing this week, in plain words. Present only when sourced.
+          description: What is developing this week, in plain words. Cited by the sources in size.sources.
         whyItMatters:
           type: string
           description: Why this week matters for the parents, never a diagnosis.

@@ -1,5 +1,5 @@
 import "server-only";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
 
@@ -14,6 +14,7 @@ export async function requireParent(memberId: string): Promise<void> {
   const { data: family, response } = await api.GET("/family");
   if (response.status === 401) redirect("/");
   const person = family && familyPeople(family).find((p) => p.id === memberId);
-  if (!person) notFound();
+  // A member of another family (an old tab after a new session): open the current one.
+  if (!person) redirect("/family");
   if (isCaregiver(person.role)) redirect(`/family/${memberId}`);
 }

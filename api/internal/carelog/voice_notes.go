@@ -71,19 +71,24 @@ func CreateVoiceNote(ctx context.Context, pool *pgxpool.Pool, familyID, actor uu
 	return out, err
 }
 
-// GetVoiceNote returns a note the viewer may play, or pgx.ErrNoRows.
-func GetVoiceNote(ctx context.Context, pool *pgxpool.Pool, familyID, viewer, id uuid.UUID) (store.VoiceNote, error) {
+// GetVoiceNote returns a note the viewer may play, or pgx.ErrNoRows: the
+// uploader, or whoever may see the handoff the note is attached to. A caregiver
+// without care_log may play nothing.
+func GetVoiceNote(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, viewer Person, id uuid.UUID) (store.VoiceNote, error) {
+	if !viewer.CanUse() {
+		return store.VoiceNote{}, pgx.ErrNoRows
+	}
 	var out store.VoiceNote
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		n, err := q.GetVoiceNoteVisibleToMember(ctx, store.GetVoiceNoteVisibleToMemberParams{
-			ID: id, FamilyID: familyID, ViewerID: viewer,
+			ID: id, FamilyID: familyID, ViewerID: viewer.ID, SeesAllHandoffs: viewer.isParent(),
 		})
 		if err != nil {
 			return err
 		}
 		out = n
-		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entityVoiceNote, n.ID.String())
+		return access.Audit(ctx, q, familyID, viewer.ID, access.ActionRead, entityVoiceNote, n.ID.String())
 	})
 	return out, err
 }

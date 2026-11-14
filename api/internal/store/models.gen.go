@@ -236,6 +236,15 @@ type MoodScreening struct {
 	Urgent        bool
 }
 
+type MoodScreeningDraft struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Instrument    string
+	Answers       []int16
+	UpdatedAt     time.Time
+}
+
 type Notification struct {
 	ID                uuid.UUID
 	FamilyID          uuid.UUID
@@ -333,6 +342,24 @@ type Shift struct {
 	StartsOn  *time.Time
 	RoundID   uuid.NullUUID
 	CreatedAt time.Time
+}
+
+type StripeEvent struct {
+	ID         string
+	Type       string
+	ReceivedAt time.Time
+}
+
+type Subscription struct {
+	FamilyID             uuid.UUID
+	Tier                 string
+	Status               string
+	StripeCustomerID     *string
+	StripeSubscriptionID *string
+	CheckoutSessionID    string
+	StartedAt            time.Time
+	CurrentPeriodEnd     pgtype.Timestamptz
+	UpdatedAt            time.Time
 }
 
 type UpgradeIntent struct {

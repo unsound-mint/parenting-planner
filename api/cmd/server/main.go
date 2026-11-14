@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/unsound-mint/parenting-planner/api/internal/ai"
+	"github.com/unsound-mint/parenting-planner/api/internal/billing"
 	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
@@ -50,7 +52,14 @@ func run() error {
 	}
 	slog.Info("diary encryption", "ephemeral_key", ephemeral)
 
-	handler, err := httpapi.New(pool, httpapi.Config{SecureCookies: os.Getenv("COOKIE_SECURE") != "false", Diary: diaryKey})
+	aiCfg := ai.FromEnv()
+	billingCfg := billing.FromEnv()
+	handler, err := httpapi.New(pool, httpapi.Config{
+		SecureCookies: os.Getenv("COOKIE_SECURE") != "false",
+		AI:            aiCfg,
+		Billing:       billingCfg,
+		Diary:         diaryKey,
+	})
 	if err != nil {
 		return err
 	}
@@ -65,7 +74,8 @@ func run() error {
 		defer cancel()
 		_ = srv.Shutdown(shutdownCtx)
 	}()
-	slog.Info("api listening", "addr", srv.Addr)
+	// Log only whether the keys are set, never the keys.
+	slog.Info("api listening", "addr", srv.Addr, "ai_plan", aiCfg.Enabled(), "payments", billingCfg.Enabled())
 	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

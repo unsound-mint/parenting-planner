@@ -18,6 +18,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/ai"
+	"github.com/unsound-mint/parenting-planner/api/internal/billing"
 	"github.com/unsound-mint/parenting-planner/api/internal/crypt"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/monitor"
@@ -30,6 +32,11 @@ type Config struct {
 	SecureCookies bool
 	// Now is the clock; tests override it.
 	Now func() time.Time
+	// Billing holds the Stripe keys; empty means payments answer 503.
+	Billing billing.Config
+	// AI is the optional Claude API setup. Without a key the AI plan is off
+	// and the rule plan is shown. Never put any of it in a response or a log.
+	AI ai.Config
 	// Diary encrypts diary text at rest; see internal/crypt. The zero key works for tests.
 	Diary crypt.Key
 }
@@ -74,11 +81,11 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
 	})
-	// Middlewares run last-to-first: cap voice note uploads, validate, then
-	// resolve the session.
+	// Middlewares run last-to-first: check the Stripe webhook signature on the
+	// raw body, cap voice note uploads, validate, then resolve the session.
 	return recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody},
+		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, s.verifyStripeSignature},
 	})), nil
 }
 
@@ -186,6 +193,10 @@ var (
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
 	// errForbidden is for a person who is in the family but may not do this.
 	errForbidden = Error{Code: "forbidden", Message: "this person may not do that"}
+	// Payments (billing.go).
+	errPaymentsUnavailable = Error{Code: "payments_unavailable", Message: "payments are not set up on this server"}
+	errAlreadySubscribed   = Error{Code: "already_subscribed", Message: "the family already has this plan"}
+	errNoCheckout          = Error{Code: "not_found", Message: "no such checkout for this family"}
 
 	errNoBooking         = Error{Code: "not_found", Message: "no such session for this parent"}
 	errSlotTaken         = Error{Code: "slot_taken", Message: "this time is no longer open"}
