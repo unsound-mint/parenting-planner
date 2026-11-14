@@ -13,6 +13,7 @@ api/                    Go service (Sofia)
   internal/access/      who may read which sensitive record, and the audit log
   internal/wellbeing/   mood check-ins: the reference module new modules copy
   internal/demo/        synthetic demo families and sessions
+  internal/monitor/     error reports to Sentry with personal data scrubbed
   internal/testutil/    HTTP + Postgres test client used by integration tests
   AGENTS.md             backend playbook: decisions and recipes
 scripts/                CI checks that also run in `make check`
@@ -43,7 +44,23 @@ The generated router validates every request against `openapi.yaml` (400 `invali
 
 Each module is a Go package that owns its tables and its endpoints in the contract. Built: family and members, plan, wellbeing (mood check-ins). Planned: diary, health records (passport, labs, vaccines, growth), care team and providers, bookings, planner (AI), billing. `api/AGENTS.md` has the recipe for adding one.
 
+Tables, owners, visibility, and which screen uses each table: `docs/data-model.md` (ER diagram of main plus the tables in open PRs).
+
 Convention tests (`*/conventions_test.go`) check the rules a reviewer would otherwise check by hand: sensitive tables have visibility, sensitive reads mirror `internal/access`, every rule and endpoint has a test. `scripts/check-migrations.sh` fails if an applied migration changes.
+
+## Error monitoring
+
+The API reports unexpected 500s and recovered panics to Sentry, only when the `SENTRY_DSN` environment variable is set. Without it (tests, CI, local dev) nothing is sent; the server still logs the error locally.
+
+`internal/monitor.Scrub` runs on every event before it leaves the process (Sentry's `BeforeSend`). An event keeps only the HTTP method, the path with every UUID replaced by `{id}`, the `User-Agent` header, the error text with UUIDs and email addresses masked, the stack trace and the Go runtime context. It drops request bodies, cookies (including `pp_session`), query strings, all other headers, user, IP, tags and attachments. Breadcrumbs are off, so no payload is recorded on the way to an error. `TestScrubRemovesPersonalData` and `TestReportSendsOnlyScrubbedData` check this with a diary-like note, an email, a member id and a session cookie.
+
+### SDK allow-list
+
+These are the only third-party services the API may send data to. Adding one needs Denis's approval and an entry here saying what is sent.
+
+| SDK | Service | What is sent | Enabled by |
+| --- | --- | --- | --- |
+| `github.com/getsentry/sentry-go` | Sentry | Scrubbed error events (above) | `SENTRY_DSN` |
 
 ## Local development
 
@@ -60,4 +77,4 @@ Go tools (oapi-codegen, sqlc) are pinned in `api/go.mod` and run with `go tool`;
 
 ## Production
 
-Server `musicroombot`, Docker Compose (`deploy/compose.yml`): Postgres, the API on `127.0.0.1:8792`, Next.js on `127.0.0.1:8790`. Caddy on the host serves `parenting.unsoundmint.com` (`deploy/Caddyfile.snippet`). `deploy/.env` on the server holds `POSTGRES_PASSWORD`. Pushes to `main` run `.github/workflows/deploy.yml`, which calls `deploy/deploy.sh` on the server once the repo variable `DEPLOY_ENABLED` is `true`.
+Server `musicroombot`, Docker Compose (`deploy/compose.yml`): Postgres, the API on `127.0.0.1:8792`, Next.js on `127.0.0.1:8790`. Caddy on the host serves `parenting.unsoundmint.com` (`deploy/Caddyfile.snippet`). `deploy/.env` on the server holds `POSTGRES_PASSWORD` and, optionally, `SENTRY_DSN`; compose passes it to the API and leaves it empty when unset. Pushes to `main` run `.github/workflows/deploy.yml`, which calls `deploy/deploy.sh` on the server once the repo variable `DEPLOY_ENABLED` is `true`.

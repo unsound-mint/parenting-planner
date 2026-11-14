@@ -5,6 +5,7 @@ import (
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/plan"
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 )
 
 func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObject) (GetMemberPlanResponseObject, error) {
@@ -23,17 +24,23 @@ func (s *Server) GetMemberPlan(ctx context.Context, req GetMemberPlanRequestObje
 	}
 	out := Plan{MemberId: req.MemberId, GeneratedAt: s.cfg.Now().UTC(), Items: make([]PlanItem, 0, len(items))}
 	for _, it := range items {
-		pi := PlanItem{
-			RuleId: it.RuleID, Title: it.Title, Detail: it.Detail, Reason: it.Reason,
-			Status: PlanItemStatus(it.Status), Category: PlanCategory(it.Category),
-			Source: Source{Title: it.Source.Title, Url: it.Source.URL, CheckedAt: openapi_types.Date{Time: it.Source.CheckedAt}},
-		}
-		if it.DueBy != nil {
-			pi.DueBy = &openapi_types.Date{Time: *it.DueBy}
-		}
-		out.Items = append(out.Items, pi)
+		out.Items = append(out.Items, planItemOut(it))
 	}
 	return GetMemberPlan200JSONResponse(out), nil
+}
+
+// planItemOut is shared with the journey timeline, which shows the head of
+// the same plan.
+func planItemOut(it rules.Item) PlanItem {
+	pi := PlanItem{
+		RuleId: it.RuleID, Title: it.Title, Detail: it.Detail, Reason: it.Reason,
+		Status: PlanItemStatus(it.Status), Category: PlanCategory(it.Category),
+		Source: Source{Title: it.Source.Title, Url: it.Source.URL, CheckedAt: openapi_types.Date{Time: it.Source.CheckedAt}},
+	}
+	if it.DueBy != nil {
+		pi.DueBy = &openapi_types.Date{Time: *it.DueBy}
+	}
+	return pi
 }
 
 // GetMemberWeeklyPlan is a stub until the AI weekly plan lands (#171). The web

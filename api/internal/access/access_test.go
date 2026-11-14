@@ -26,3 +26,15 @@ func TestCanParentRead(t *testing.T) {
 		}
 	}
 }
+
+func TestCanParentReadHealthRecord(t *testing.T) {
+	mom, partner := uuid.New(), uuid.New()
+	for _, v := range []Visibility{Private, Partner, CareTeam, Family} {
+		if !CanParentReadHealthRecord(partner, mom, v, true) {
+			t.Errorf("both parents must read the child's %s record", v)
+		}
+		if got, want := CanParentReadHealthRecord(partner, mom, v, false), CanParentRead(partner, mom, v); got != want {
+			t.Errorf("parent's %s record: got %v, want %v (CanParentRead)", v, got, want)
+		}
+	}
+}

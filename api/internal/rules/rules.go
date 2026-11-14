@@ -114,6 +114,7 @@ func Plan(rs []Rule, f Facts) []Item {
 func All() []Rule {
 	rs := append([]Rule{}, planningRules...)
 	rs = append(rs, pregnancyRules...)
+	rs = append(rs, postpartumRules...)
 	rs = append(rs, childRules...)
 	return append(rs, wellbeingRules...)
 }

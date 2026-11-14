@@ -12,9 +12,125 @@ import (
 	"github.com/google/uuid"
 )
 
+const createAllergy = `-- name: CreateAllergy :one
+INSERT INTO allergies (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, substance, certainty, reaction, noted_on)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, substance, certainty, reaction, noted_on, created_at
+`
+
+type CreateAllergyParams struct {
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	Substance       string
+	Certainty       string
+	Reaction        *string
+	NotedOn         *time.Time
+}
+
+func (q *Queries) CreateAllergy(ctx context.Context, arg CreateAllergyParams) (Allergy, error) {
+	row := q.db.QueryRow(ctx, createAllergy,
+		arg.FamilyID,
+		arg.SubjectMemberID,
+		arg.SubjectChildID,
+		arg.OwnerMemberID,
+		arg.Visibility,
+		arg.Substance,
+		arg.Certainty,
+		arg.Reaction,
+		arg.NotedOn,
+	)
+	var i Allergy
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Substance,
+		&i.Certainty,
+		&i.Reaction,
+		&i.NotedOn,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createGivenDose = `-- name: CreateGivenDose :one
+INSERT INTO immunizations (family_id, subject_member_id, subject_child_id, vaccine, dose, given_on)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, family_id, subject_member_id, subject_child_id, vaccine, given_on, dose
+`
+
+type CreateGivenDoseParams struct {
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	Vaccine         string
+	Dose            *string
+	GivenOn         time.Time
+}
+
+func (q *Queries) CreateGivenDose(ctx context.Context, arg CreateGivenDoseParams) (Immunization, error) {
+	row := q.db.QueryRow(ctx, createGivenDose,
+		arg.FamilyID,
+		arg.SubjectMemberID,
+		arg.SubjectChildID,
+		arg.Vaccine,
+		arg.Dose,
+		arg.GivenOn,
+	)
+	var i Immunization
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.Vaccine,
+		&i.GivenOn,
+		&i.Dose,
+	)
+	return i, err
+}
+
+const createGrowthMeasurement = `-- name: CreateGrowthMeasurement :one
+INSERT INTO growth_measurements (family_id, child_id, measured_on, weight_kg, height_cm)
+VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, child_id, measured_on, weight_kg, height_cm
+`
+
+type CreateGrowthMeasurementParams struct {
+	FamilyID   uuid.UUID
+	ChildID    uuid.UUID
+	MeasuredOn time.Time
+	WeightKg   float64
+	HeightCm   float64
+}
+
+func (q *Queries) CreateGrowthMeasurement(ctx context.Context, arg CreateGrowthMeasurementParams) (GrowthMeasurement, error) {
+	row := q.db.QueryRow(ctx, createGrowthMeasurement,
+		arg.FamilyID,
+		arg.ChildID,
+		arg.MeasuredOn,
+		arg.WeightKg,
+		arg.HeightCm,
+	)
+	var i GrowthMeasurement
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.ChildID,
+		&i.MeasuredOn,
+		&i.WeightKg,
+		&i.HeightCm,
+	)
+	return i, err
+}
+
 const createImmunization = `-- name: CreateImmunization :one
 INSERT INTO immunizations (family_id, subject_member_id, subject_child_id, vaccine, given_on)
-VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, subject_member_id, subject_child_id, vaccine, given_on
+VALUES ($1, $2, $3, $4, $5) RETURNING id, family_id, subject_member_id, subject_child_id, vaccine, given_on, dose
 `
 
 type CreateImmunizationParams struct {
@@ -41,13 +157,14 @@ func (q *Queries) CreateImmunization(ctx context.Context, arg CreateImmunization
 		&i.SubjectChildID,
 		&i.Vaccine,
 		&i.GivenOn,
+		&i.Dose,
 	)
 	return i, err
 }
 
 const createLabResult = `-- name: CreateLabResult :one
 INSERT INTO lab_results (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high
 `
 
 type CreateLabResultParams struct {
@@ -87,12 +204,190 @@ func (q *Queries) CreateLabResult(ctx context.Context, arg CreateLabResultParams
 		&i.Result,
 		&i.Note,
 		&i.CreatedAt,
+		&i.Name,
+		&i.Value,
+		&i.Unit,
+		&i.RefLow,
+		&i.RefHigh,
 	)
 	return i, err
 }
 
+const createLabValue = `-- name: CreateLabValue :one
+
+INSERT INTO lab_results (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, name, value, unit, ref_low, ref_high)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+RETURNING id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high
+`
+
+type CreateLabValueParams struct {
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	OwnerMemberID   uuid.UUID
+	Visibility      string
+	Kind            string
+	TakenOn         time.Time
+	Name            *string
+	Value           *float64
+	Unit            *string
+	RefLow          *float64
+	RefHigh         *float64
+}
+
+// Health passport (GET /members/{memberId}/passport).
+func (q *Queries) CreateLabValue(ctx context.Context, arg CreateLabValueParams) (LabResult, error) {
+	row := q.db.QueryRow(ctx, createLabValue,
+		arg.FamilyID,
+		arg.SubjectMemberID,
+		arg.SubjectChildID,
+		arg.OwnerMemberID,
+		arg.Visibility,
+		arg.Kind,
+		arg.TakenOn,
+		arg.Name,
+		arg.Value,
+		arg.Unit,
+		arg.RefLow,
+		arg.RefHigh,
+	)
+	var i LabResult
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Kind,
+		&i.TakenOn,
+		&i.Result,
+		&i.Note,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Value,
+		&i.Unit,
+		&i.RefLow,
+		&i.RefHigh,
+	)
+	return i, err
+}
+
+const createScheduledDose = `-- name: CreateScheduledDose :one
+INSERT INTO vaccine_schedule (family_id, subject_member_id, subject_child_id, vaccine, dose, due_on)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, family_id, subject_member_id, subject_child_id, vaccine, dose, due_on
+`
+
+type CreateScheduledDoseParams struct {
+	FamilyID        uuid.UUID
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+	Vaccine         string
+	Dose            string
+	DueOn           time.Time
+}
+
+func (q *Queries) CreateScheduledDose(ctx context.Context, arg CreateScheduledDoseParams) (VaccineSchedule, error) {
+	row := q.db.QueryRow(ctx, createScheduledDose,
+		arg.FamilyID,
+		arg.SubjectMemberID,
+		arg.SubjectChildID,
+		arg.Vaccine,
+		arg.Dose,
+		arg.DueOn,
+	)
+	var i VaccineSchedule
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.SubjectMemberID,
+		&i.SubjectChildID,
+		&i.Vaccine,
+		&i.Dose,
+		&i.DueOn,
+	)
+	return i, err
+}
+
+const listAllergiesVisibleToParent = `-- name: ListAllergiesVisibleToParent :many
+SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, substance, certainty, reaction, noted_on, created_at FROM allergies
+WHERE family_id = $1
+  AND (subject_child_id IS NOT NULL OR owner_member_id = $2 OR visibility IN ('partner', 'family'))
+ORDER BY created_at DESC
+`
+
+type ListAllergiesVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+}
+
+// Mirrors access.CanParentReadHealthRecord: records about the child, own records,
+// plus records shared with the partner or the family.
+func (q *Queries) ListAllergiesVisibleToParent(ctx context.Context, arg ListAllergiesVisibleToParentParams) ([]Allergy, error) {
+	rows, err := q.db.Query(ctx, listAllergiesVisibleToParent, arg.FamilyID, arg.ViewerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Allergy{}
+	for rows.Next() {
+		var i Allergy
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.SubjectMemberID,
+			&i.SubjectChildID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.Substance,
+			&i.Certainty,
+			&i.Reaction,
+			&i.NotedOn,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listGrowthMeasurements = `-- name: ListGrowthMeasurements :many
+SELECT id, family_id, child_id, measured_on, weight_kg, height_cm FROM growth_measurements WHERE family_id = $1 ORDER BY measured_on
+`
+
+func (q *Queries) ListGrowthMeasurements(ctx context.Context, familyID uuid.UUID) ([]GrowthMeasurement, error) {
+	rows, err := q.db.Query(ctx, listGrowthMeasurements, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GrowthMeasurement{}
+	for rows.Next() {
+		var i GrowthMeasurement
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.ChildID,
+			&i.MeasuredOn,
+			&i.WeightKg,
+			&i.HeightCm,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listImmunizations = `-- name: ListImmunizations :many
-SELECT id, family_id, subject_member_id, subject_child_id, vaccine, given_on FROM immunizations WHERE family_id = $1 ORDER BY given_on DESC
+SELECT id, family_id, subject_member_id, subject_child_id, vaccine, given_on, dose FROM immunizations WHERE family_id = $1 ORDER BY given_on DESC
 `
 
 func (q *Queries) ListImmunizations(ctx context.Context, familyID uuid.UUID) ([]Immunization, error) {
@@ -111,6 +406,7 @@ func (q *Queries) ListImmunizations(ctx context.Context, familyID uuid.UUID) ([]
 			&i.SubjectChildID,
 			&i.Vaccine,
 			&i.GivenOn,
+			&i.Dose,
 		); err != nil {
 			return nil, err
 		}
@@ -123,7 +419,7 @@ func (q *Queries) ListImmunizations(ctx context.Context, familyID uuid.UUID) ([]
 }
 
 const listLabResultsVisibleToParent = `-- name: ListLabResultsVisibleToParent :many
-SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at FROM lab_results
+SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high FROM lab_results
 WHERE family_id = $1
   AND (owner_member_id = $2 OR visibility IN ('partner', 'family'))
 ORDER BY taken_on DESC
@@ -156,6 +452,96 @@ func (q *Queries) ListLabResultsVisibleToParent(ctx context.Context, arg ListLab
 			&i.Result,
 			&i.Note,
 			&i.CreatedAt,
+			&i.Name,
+			&i.Value,
+			&i.Unit,
+			&i.RefLow,
+			&i.RefHigh,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPassportLabsVisibleToParent = `-- name: ListPassportLabsVisibleToParent :many
+SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high FROM lab_results
+WHERE family_id = $1
+  AND value IS NOT NULL
+  AND (subject_child_id IS NOT NULL OR owner_member_id = $2 OR visibility IN ('partner', 'family'))
+ORDER BY taken_on DESC, created_at DESC
+`
+
+type ListPassportLabsVisibleToParentParams struct {
+	FamilyID uuid.UUID
+	ViewerID uuid.UUID
+}
+
+// Mirrors access.CanParentReadHealthRecord: records about the child, own records,
+// plus records shared with the partner or the family. Panels without a single
+// value are left out.
+func (q *Queries) ListPassportLabsVisibleToParent(ctx context.Context, arg ListPassportLabsVisibleToParentParams) ([]LabResult, error) {
+	rows, err := q.db.Query(ctx, listPassportLabsVisibleToParent, arg.FamilyID, arg.ViewerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LabResult{}
+	for rows.Next() {
+		var i LabResult
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.SubjectMemberID,
+			&i.SubjectChildID,
+			&i.OwnerMemberID,
+			&i.Visibility,
+			&i.Kind,
+			&i.TakenOn,
+			&i.Result,
+			&i.Note,
+			&i.CreatedAt,
+			&i.Name,
+			&i.Value,
+			&i.Unit,
+			&i.RefLow,
+			&i.RefHigh,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listScheduledDoses = `-- name: ListScheduledDoses :many
+SELECT id, family_id, subject_member_id, subject_child_id, vaccine, dose, due_on FROM vaccine_schedule WHERE family_id = $1 ORDER BY due_on
+`
+
+func (q *Queries) ListScheduledDoses(ctx context.Context, familyID uuid.UUID) ([]VaccineSchedule, error) {
+	rows, err := q.db.Query(ctx, listScheduledDoses, familyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VaccineSchedule{}
+	for rows.Next() {
+		var i VaccineSchedule
+		if err := rows.Scan(
+			&i.ID,
+			&i.FamilyID,
+			&i.SubjectMemberID,
+			&i.SubjectChildID,
+			&i.Vaccine,
+			&i.Dose,
+			&i.DueOn,
 		); err != nil {
 			return nil, err
 		}
