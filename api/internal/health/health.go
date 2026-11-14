@@ -37,6 +37,10 @@ var (
 	ErrBadRange = errors.New("reference range is inverted")
 	// ErrBlank: the lab name or unit is only spaces.
 	ErrBlank = errors.New("name or unit is blank")
+	// ErrBadScreening: the kind is not in the catalog, or kind other has no name.
+	ErrBadScreening = errors.New("unknown screening kind or missing name")
+	// ErrNotFound: no record the acting parent may change has this id.
+	ErrNotFound = errors.New("no such record")
 )
 
 // Subject is who the record is about: the acting parent, or ChildID when set.
@@ -119,8 +123,10 @@ func LogDose(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID,
 }
 
 type NewScreening struct {
-	Subject    Subject
-	Kind       string
+	Subject Subject
+	Kind    string
+	// Name is the free text for kind other; ignored for catalog kinds.
+	Name       *string
 	TakenOn    time.Time
 	Visibility access.Visibility
 }
@@ -131,8 +137,12 @@ func LogScreening(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.
 	if err := checkDate(in.TakenOn, today); err != nil {
 		return store.LabResult{}, err
 	}
+	name, err := screeningName(in.Kind, in.Name)
+	if err != nil {
+		return store.LabResult{}, err
+	}
 	var out store.LabResult
-	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+	err = pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		if err := checkSubject(ctx, q, familyID, in.Subject); err != nil {
 			return err
@@ -141,6 +151,7 @@ func LogScreening(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.
 		l, err := q.CreateLabResult(ctx, store.CreateLabResultParams{
 			FamilyID: familyID, SubjectMemberID: member, SubjectChildID: child, OwnerMemberID: actor,
 			Visibility: string(in.Visibility), Kind: in.Kind, TakenOn: in.TakenOn, Result: []byte("{}"),
+			Name: name,
 		})
 		if err != nil {
 			return err

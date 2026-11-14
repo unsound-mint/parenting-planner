@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/unsound-mint/parenting-planner/api/internal/demo"
 	"github.com/unsound-mint/parenting-planner/api/internal/invitations"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
@@ -188,3 +189,25 @@ func (s *Server) ListAccessLogEntries(ctx context.Context, req ListAccessLogEntr
 }
 
 func itoa(n int64) string { return strconv.FormatInt(n, 10) }
+
+func (s *Server) UpdateCaregiverPermissions(ctx context.Context, req UpdateCaregiverPermissionsRequestObject) (UpdateCaregiverPermissionsResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return UpdateCaregiverPermissions401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return UpdateCaregiverPermissions404JSONResponse(errNoMember), nil
+	case !isParentRole(m.Role):
+		return UpdateCaregiverPermissions403JSONResponse(errForbidden), nil
+	}
+	cg, err := invitations.UpdatePermissions(ctx, s.pool, familyID, req.MemberId, req.CaregiverId, permissionStrings(req.Body.Permissions), s.now(ctx))
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return UpdateCaregiverPermissions404JSONResponse(errNoMember), nil
+	case err != nil:
+		return nil, err
+	}
+	return UpdateCaregiverPermissions200JSONResponse(Caregiver{Id: cg.ID, Role: CaregiverRole(cg.Role), DisplayName: cg.DisplayName, Permissions: permissionsOut(cg.Permissions)}), nil
+}

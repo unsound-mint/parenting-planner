@@ -36,9 +36,11 @@ type weekSize struct {
 	Development string
 }
 
-var sizeByWeek = loadSizeWeeks()
+// sizeSources are the sources in size_weeks.json by id (nhs-week-4 to nhs-week-40
+// and the WHO chart), shared with growth_weeks.json so each page is listed once.
+var sizeByWeek, sizeSources = loadSizeWeeks()
 
-func loadSizeWeeks() map[int]weekSize {
+func loadSizeWeeks() (map[int]weekSize, map[string]Source) {
 	var f struct {
 		Sources map[string]struct {
 			Title     string `json:"title"`
@@ -63,16 +65,20 @@ func loadSizeWeeks() map[int]weekSize {
 	if err := json.Unmarshal(sizeWeeksJSON, &f); err != nil {
 		panic(fmt.Sprintf("size_weeks.json: %v", err))
 	}
-	source := func(id string) Source {
-		s, ok := f.Sources[id]
-		if !ok {
-			panic("size_weeks.json: unknown source " + id)
-		}
+	byID := make(map[string]Source, len(f.Sources))
+	for id, s := range f.Sources {
 		at, err := time.Parse("2006-01-02", s.CheckedAt)
 		if err != nil {
 			panic("size_weeks.json: bad date for " + id)
 		}
-		return Source{Title: s.Title, URL: s.URL, CheckedAt: at}
+		byID[id] = Source{Title: s.Title, URL: s.URL, CheckedAt: at}
+	}
+	source := func(id string) Source {
+		s, ok := byID[id]
+		if !ok {
+			panic("size_weeks.json: unknown source " + id)
+		}
+		return s
 	}
 	out := make(map[int]weekSize, len(f.Weeks))
 	for _, w := range f.Weeks {
@@ -91,7 +97,7 @@ func loadSizeWeeks() map[int]weekSize {
 			Development: w.Development,
 		}
 	}
-	return out
+	return out, byID
 }
 
 func withArticle(name string) string {
