@@ -1,6 +1,7 @@
 package httpapi_test
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"testing"
@@ -68,6 +69,31 @@ func TestCaregiversAreListedButCannotActAsParents(t *testing.T) {
 	other := c.StartDemo("pregnancy")
 	if other.Caregivers[0].Id == fam.Caregivers[0].Id {
 		t.Error("caregivers must be per family")
+	}
+}
+
+func TestResetReplacesTheFamilyWithAFreshCopy(t *testing.T) {
+	c := testutil.New(t)
+	c.Post("/api/demo/reset", nil, http.StatusUnauthorized, nil)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	c.Post("/api/members/"+mom.Id.String()+"/mood-checkins", checkin(1, httpapi.VisibilityPrivate), http.StatusCreated, nil)
+
+	var fresh httpapi.Family
+	c.Post("/api/demo/reset", nil, http.StatusCreated, &fresh)
+	if fresh.Id == fam.Id || len(fresh.Parents) != 2 || len(fresh.Caregivers) != 2 {
+		t.Fatalf("want a new seeded family, got %+v", fresh)
+	}
+	// The session now points at the new family; the old one is gone.
+	var cur httpapi.Family
+	c.Get("/api/family", http.StatusOK, &cur)
+	if cur.Id != fresh.Id {
+		t.Errorf("session family = %s, want %s", cur.Id, fresh.Id)
+	}
+	c.Get("/api/members/"+mom.Id.String()+"/mood-checkins", http.StatusNotFound, nil)
+	var n int
+	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM mood_checkins WHERE family_id = $1`, fam.Id).Scan(&n); err != nil || n != 0 {
+		t.Errorf("old family's check-ins left: %d, %v", n, err)
 	}
 }
 

@@ -37,6 +37,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/demo/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replace the session's family with a fresh seeded copy
+         * @description Seeds a new copy from the same template, switches the session cookie to it and deletes the old copy. Invitations, tasks and check-ins made so far are gone.
+         */
+        post: operations["resetDemo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/family": {
         parameters: {
             query?: never;
@@ -985,6 +1005,36 @@ export interface operations {
             };
             /** @description Error */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    resetDemo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Fresh family; the session cookie is replaced. */
+            201: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Family"];
+                };
+            };
+            /** @description Error */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -30,3 +30,6 @@ INSERT INTO caregivers (family_id, role, display_name) VALUES ($1, $2, $3) RETUR
 
 -- name: ListCaregivers :many
 SELECT * FROM caregivers WHERE family_id = $1 ORDER BY role;
+
+-- name: DeleteFamily :exec
+DELETE FROM families WHERE id = $1;

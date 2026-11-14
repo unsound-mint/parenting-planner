@@ -71,6 +71,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /demo/reset:
+    post:
+      operationId: resetDemo
+      tags: [demo]
+      summary: Replace the session's family with a fresh seeded copy
+      description: Seeds a new copy from the same template, switches the session cookie to it and deletes the old copy. Invitations, tasks and check-ins made so far are gone.
+      responses:
+        "201":
+          description: Fresh family; the session cookie is replaced.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /family:
     get:
       operationId: getFamily

@@ -54,6 +54,36 @@ func Start(ctx context.Context, pool *pgxpool.Pool, t Template, today time.Time)
 	return familyID, token, err
 }
 
+// Reset seeds a fresh copy of the family's template, opens a session for it
+// and deletes the old family. It returns the new family id and the raw token.
+func Reset(ctx context.Context, pool *pgxpool.Pool, oldFamily uuid.UUID, today time.Time) (uuid.UUID, string, error) {
+	token, hash, err := NewToken()
+	if err != nil {
+		return uuid.Nil, "", err
+	}
+	var familyID uuid.UUID
+	err = pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		old, err := q.GetFamily(ctx, oldFamily)
+		if err != nil {
+			return err
+		}
+		seed, ok := seeds[Template(old.Template)]
+		if !ok {
+			return ErrUnknownTemplate
+		}
+		if familyID, err = seed(ctx, q, today); err != nil {
+			return err
+		}
+		if err := q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: familyID, ExpiresAt: time.Now().Add(SessionTTL)}); err != nil {
+			return err
+		}
+		// Sessions, members and every family-scoped row go with it (ON DELETE CASCADE).
+		return q.DeleteFamily(ctx, oldFamily)
+	})
+	return familyID, token, err
+}
+
 // HashToken is how session tokens are stored and looked up.
 func HashToken(token string) []byte {
 	h := sha256.Sum256([]byte(token))
