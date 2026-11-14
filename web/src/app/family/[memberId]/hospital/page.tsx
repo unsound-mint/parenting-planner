@@ -57,20 +57,17 @@ async function Hospital({ params }: { params: Promise<{ memberId: string }> }) {
         <p className="mt-1 text-label font-normal text-muted-foreground">A guide for both of you. Your care team&apos;s instructions always come first.</p>
       </Rise>
 
+      {/* One grid, so at two columns the call card and "Real or practice" pair up (dense
+          packing) instead of each leaving half a row empty. DOM order is the phone order. */}
       <Rise i={1}>
-        <PageGrid cols={3}>
+        <PageGrid cols={3} className="grid-flow-row-dense">
           <ContractionTimer familyId={family.id} memberId={memberId} week={week} call={desk && { name: desk.label, phone: desk.phone }} />
-        </PageGrid>
-      </Rise>
-
-      <Rise i={2}>
-        <PageGrid cols={3}>
           <BreathingGuide birthParent={birthParent.displayName} isBirthParent={self.id === birthParent.id} week={week} />
           <RealOrPractice />
         </PageGrid>
       </Rise>
 
-      <Rise i={3} as="section" aria-labelledby="hospital-title" id="hospital" className="scroll-mt-24">
+      <Rise i={2} as="section" aria-labelledby="hospital-title" id="hospital" className="scroll-mt-24">
         <h2 id="hospital-title" className="text-headline">
           Before the day, and going in
         </h2>

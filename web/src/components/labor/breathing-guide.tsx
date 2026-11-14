@@ -167,7 +167,7 @@ export function BreathingGuide({ birthParent, isBirthParent, week }: { birthPare
           <p className={cn("mt-2 text-headline transition-opacity duration-(--duration-base)", !current && "text-muted-foreground")} aria-live="polite">
             {current ? current.label : "Ready when you are"}
           </p>
-          <p className={cn("h-9 font-mono tabular-nums", reduce ? "text-headline text-me" : "text-title text-muted-foreground")} aria-hidden>
+          <p className="h-9 font-mono text-title text-muted-foreground tabular-nums motion-reduce:text-headline motion-reduce:text-me" aria-hidden>
             {phase ? phase.left : ""}
           </p>
           <button
