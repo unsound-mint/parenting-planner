@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/shifts"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -86,7 +87,7 @@ func tsOf(t *time.Time) pgtype.Timestamptz {
 }
 
 // CreateEntry logs a feed, sleep or diaper for the family's child.
-func CreateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, in NewEntry) (store.CareLogEntry, error) {
+func CreateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p Person, in NewEntry, now time.Time) (store.CareLogEntry, error) {
 	switch {
 	case in.Kind == "feed" && in.FeedMethod == nil, in.Kind == "diaper" && in.Diaper == nil:
 		return store.CareLogEntry{}, ErrMissingDetail
@@ -118,7 +119,10 @@ func CreateEntry(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, p 
 		if err != nil {
 			return err
 		}
-		return audit(ctx, q, familyID, p, access.ActionCreate, entityEntry, out.ID.String())
+		if err := audit(ctx, q, familyID, p, access.ActionCreate, entityEntry, out.ID.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.CareLog, EntityID: out.ID.String(), Actor: p.ID, NeedsPermission: "care_log"}, now)
 	})
 	return out, err
 }
@@ -272,7 +276,10 @@ func CreateHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 			return err
 		}
 		out = hs[0]
-		return audit(ctx, q, familyID, from, access.ActionCreate, entityHandoff, h.ID.String())
+		if err := audit(ctx, q, familyID, from, access.ActionCreate, entityHandoff, h.ID.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Handoff, EntityID: h.ID.String(), Actor: from.ID, NeedsPermission: "care_log"}, now)
 	})
 	return out, err
 }
@@ -333,7 +340,10 @@ func AcceptHandoff(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, 
 		if sum, err = summary(ctx, q, familyID, now); err != nil {
 			return err
 		}
-		return audit(ctx, q, familyID, p, access.ActionUpdate, entityHandoff, id.String())
+		if err := audit(ctx, q, familyID, p, access.ActionUpdate, entityHandoff, id.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Handoff, EntityID: id.String(), Actor: p.ID, NeedsPermission: "care_log"}, now)
 	})
 	return out, sum, err
 }

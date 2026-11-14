@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -23,7 +24,7 @@ var (
 // transaction. The due date stays stored; the gestational week is simply no
 // longer returned. Everything that depends on the stage (pregnancy card,
 // birth prep, pregnancy plan rules) is computed on read, so it follows.
-func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, name string, born, today time.Time) (store.Family, error) {
+func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, name string, born, today, now time.Time) (store.Family, error) {
 	if born.After(today) || born.Before(today.AddDate(0, 0, -30)) {
 		return store.Family{}, ErrBadBirthDate
 	}
@@ -48,7 +49,10 @@ func BabyIsHome(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UU
 		if err != nil {
 			return err
 		}
-		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityFamily, familyID.String())
+		if err := access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityFamily, familyID.String()); err != nil {
+			return err
+		}
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Family, Actor: actor}, now)
 	})
 	return out, err
 }

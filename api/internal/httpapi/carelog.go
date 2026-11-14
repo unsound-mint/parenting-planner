@@ -110,7 +110,7 @@ func (s *Server) CreateCareLogEntry(ctx context.Context, req CreateCareLogEntryR
 		v := int16(*b.AmountMl)
 		in.AmountMl = &v
 	}
-	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in)
+	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in, s.now(ctx))
 	switch {
 	case errors.Is(err, carelog.ErrNoChild):
 		return CreateCareLogEntry409JSONResponse(errBabyNotHome), nil
@@ -183,7 +183,7 @@ func (s *Server) CreateHandoff(ctx context.Context, req CreateHandoffRequestObje
 
 // careSummary is read after a write so the response shows the latest feed, sleep and diaper.
 func (s *Server) careSummary(ctx context.Context, familyID uuid.UUID) (carelog.Summary, error) {
-	return carelog.LatestSummary(ctx, s.pool, familyID, s.cfg.Now())
+	return carelog.LatestSummary(ctx, s.pool, familyID, s.now(ctx))
 }
 
 func (s *Server) ListHandoffs(ctx context.Context, req ListHandoffsRequestObject) (ListHandoffsResponseObject, error) {

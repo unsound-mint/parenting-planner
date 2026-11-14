@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/live"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -43,7 +44,7 @@ func afterBirth(stage string) bool {
 }
 
 // Update applies c and audits it in one transaction. today is a UTC date.
-func Update(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, c Change, today time.Time) (store.Family, error) {
+func Update(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, c Change, today, now time.Time) (store.Family, error) {
 	var out store.Family
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
@@ -85,7 +86,11 @@ func Update(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, 
 		if err != nil {
 			return err
 		}
-		return access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityFamily, familyID.String())
+		if err := access.Audit(ctx, q, familyID, actor, access.ActionUpdate, entityFamily, familyID.String()); err != nil {
+			return err
+		}
+		// Every open screen refreshes: the stage or the due date changed.
+		return live.Publish(ctx, q, familyID, live.Event{Kind: live.Family, Actor: actor}, now)
 	})
 	return out, err
 }
