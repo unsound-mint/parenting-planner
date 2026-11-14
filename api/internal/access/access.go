@@ -32,3 +32,11 @@ func CanParentRead(viewer, owner uuid.UUID, v Visibility) bool {
 	}
 	return v == Partner || v == Family
 }
+
+// CanParentReadHealthRecord reports whether a parent may read a health record
+// (lab value, allergy) in the passport. Records about the child are open to
+// both parents whatever their visibility; records about a parent follow
+// CanParentRead.
+func CanParentReadHealthRecord(viewer, owner uuid.UUID, v Visibility, aboutChild bool) bool {
+	return aboutChild || CanParentRead(viewer, owner, v)
+}

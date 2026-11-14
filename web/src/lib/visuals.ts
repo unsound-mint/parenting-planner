@@ -12,6 +12,8 @@ import {
   HandHeart,
   ConciergeBell,
   ClipboardCheck,
+  ClipboardList,
+  FileText,
   Droplet,
   Flower2,
   Footprints,
@@ -43,7 +45,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "@/lib/roles";
-import type { AllergyCertainty, CareRole, PlanCategory, PlanItemStatus, ProviderType, Tier, Visibility } from "@/lib/api/types";
+import type { AllergyCertainty, CareRole, HospitalBag, PlanCategory, PlanItemStatus, ProviderType, Stage, Tier, Visibility } from "@/lib/api/types";
 
 // One icon per concept, used the same way on every screen
 // (docs/design.md, "Hierarchy and visuals", rule 6).
@@ -78,6 +80,18 @@ export const stageIcon: Record<string, LucideIcon> = {
   toddler: Footprints,
   preschool: Blocks,
   "school-age": Backpack,
+};
+
+/** The family's stage (API value) to icon; same pictures as the journey nodes. */
+export const stageValueIcon: Record<Stage, LucideIcon> = {
+  planning: Sprout,
+  trying: Sprout,
+  pregnancy: HeartPulse,
+  postpartum: Baby,
+  infant: Milk,
+  toddler: Footprints,
+  preschool: Blocks,
+  school_age: Backpack,
 };
 
 export const visibilityIcon: Record<Visibility, LucideIcon> = {
@@ -208,4 +222,18 @@ export const statusBar: Record<PlanItemStatus, string> = {
   overdue: "bg-status-late",
   due: "bg-status-due",
   upcoming: "bg-status-up",
+};
+
+/** The Plan screen: its nav entry, the paperwork timeline and the three hospital bags. */
+export const planIcon: LucideIcon = ClipboardList;
+export const paperworkIcon: LucideIcon = FileText;
+export const bagIcon: Record<HospitalBag, LucideIcon> = {
+  mother: Heart,
+  partner: HeartHandshake,
+  baby: Baby,
+};
+export const bagLabel: Record<HospitalBag, string> = {
+  mother: "Mom's bag",
+  partner: "Partner's bag",
+  baby: "Baby's bag",
 };

@@ -1,6 +1,7 @@
 # Production on musicroombot. Caddy on the host terminates TLS and routes
 # /api/* to the Go API (127.0.0.1:8792) and everything else to Next (127.0.0.1:8790).
-# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD.
+# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD, and optionally
+# SENTRY_DSN (API error reports; unset means no reports are sent).
 name: parenting
 services:
   postgres:
@@ -23,6 +24,7 @@ services:
       postgres: { condition: service_healthy }
     environment:
       DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
+      SENTRY_DSN: ${SENTRY_DSN:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:
