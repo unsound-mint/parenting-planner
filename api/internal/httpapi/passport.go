@@ -6,6 +6,7 @@ import (
 
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/passport"
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -84,6 +85,10 @@ func labOut(l store.LabResult) LabResult {
 	}
 	if l.Unit != nil {
 		out.Unit = *l.Unit
+	}
+	// Computed from the row the viewer may read, so it follows the same visibility.
+	if dir, ok := rules.LabOutOfRange(*l.Value, l.RefLow, l.RefHigh); ok {
+		out.Flag = &LabFlag{Direction: LabFlagDirection(dir), Message: rules.LabFlagMessage, Basis: rules.LabFlagBasis}
 	}
 	return out
 }
