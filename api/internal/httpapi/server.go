@@ -102,6 +102,9 @@ func (s *Server) session(next http.Handler) http.Handler {
 var (
 	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
+
+	errUnknownProvider  = Error{Code: "unknown_provider", Message: "no such provider in the directory"}
+	errAlreadyRequested = Error{Code: "already_requested", Message: "you already asked this provider for an appointment"}
 )
 
 // errKind tells a handler which typed error response to return.

@@ -20,6 +20,17 @@ type AuditLog struct {
 	At            time.Time
 }
 
+type BookingRequest struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ProviderID    uuid.UUID
+	Status        string
+	Note          *string
+	CreatedAt     time.Time
+}
+
 type CareTeam struct {
 	ID       uuid.UUID
 	FamilyID uuid.UUID
@@ -85,6 +96,18 @@ type MoodCheckin struct {
 	Energy        int16
 	SleepHours    float64
 	Note          *string
+}
+
+type Provider struct {
+	ID              uuid.UUID
+	Name            string
+	Type            string
+	City            string
+	State           string
+	Languages       []string
+	AvailableInDays int16
+	PriceUsd        int32
+	Summary         string
 }
 
 type Session struct {
