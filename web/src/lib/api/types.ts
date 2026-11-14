@@ -13,3 +13,6 @@ export type Visibility = S["Visibility"];
 export type MoodCheckin = S["MoodCheckin"];
 export type MoodCheckinInput = S["MoodCheckinInput"];
 export type PlanCategory = S["PlanCategory"];
+export type Provider = S["Provider"];
+export type ProviderType = S["ProviderType"];
+export type BookingRequest = S["BookingRequest"];

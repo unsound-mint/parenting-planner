@@ -18,6 +18,7 @@ tags:
   - name: family
   - name: plan
   - name: wellbeing
+  - name: directory
 paths:
   /healthz:
     get:
@@ -166,6 +167,121 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MoodCheckinList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /providers:
+    get:
+      operationId: listProviders
+      tags: [directory]
+      summary: Providers in the ecosystem directory, optionally filtered
+      description: |
+        Every provider is synthetic demo data. The directory is the same for
+        every family and holds no personal records, so any parent in the session
+        may read it. Sorted by next available date, soonest first.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Only providers of this type.
+          schema:
+            $ref: "#/components/schemas/ProviderType"
+        - name: state
+          in: query
+          required: false
+          description: Only providers licensed in this US state (two-letter code).
+          schema:
+            $ref: "#/components/schemas/UsState"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderList"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/booking-requests:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createBookingRequest
+      tags: [directory]
+      summary: The acting parent asks a provider for an appointment
+      description: |
+        Saves a request with status requested; nothing is sent to a real
+        provider. A request is sensitive: it can reveal that a parent is seeking
+        care, so only the parent who made it can see it, never the partner.
+        Asking the same provider twice returns 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingRequestInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingRequest"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      operationId: listBookingRequests
+      tags: [directory]
+      summary: The acting parent's own booking requests
+      description: Only requests made by this parent, newest first. The partner's requests are never included.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingRequestList"
         "401":
           description: Error
           content:
@@ -412,3 +528,102 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/MoodCheckin"
+
+    ProviderType:
+      type: string
+      description: What kind of care the provider offers.
+      enum: [perinatal_therapist, psychologist, doula, lactation_consultant, sleep_consultant, child_therapist, tutor]
+
+    UsState:
+      type: string
+      description: Two-letter US state code.
+      pattern: "^[A-Z]{2}$"
+      example: CA
+
+    Provider:
+      type: object
+      required: [id, name, type, city, state, languages, nextAvailable, priceUsd, summary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/ProviderType"
+        city:
+          type: string
+        state:
+          $ref: "#/components/schemas/UsState"
+        languages:
+          type: array
+          items:
+            type: string
+          example: [English, Spanish]
+        nextAvailable:
+          type: string
+          format: date
+        priceUsd:
+          type: integer
+          description: Price of one session in US dollars.
+        summary:
+          type: string
+          description: One plain sentence on what this provider helps with.
+
+    ProviderList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Provider"
+
+    BookingRequestInput:
+      type: object
+      required: [providerId]
+      properties:
+        providerId:
+          type: string
+          format: uuid
+        note:
+          type: string
+          maxLength: 500
+          description: Optional message for the provider.
+
+    BookingRequestStatus:
+      type: string
+      description: Only requested exists for now; the demo never confirms a booking.
+      enum: [requested]
+
+    BookingRequest:
+      type: object
+      required: [id, memberId, providerId, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        memberId:
+          type: string
+          format: uuid
+          description: The parent who made the request.
+        providerId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/BookingRequestStatus"
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    BookingRequestList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          description: Newest first.
+          items:
+            $ref: "#/components/schemas/BookingRequest"

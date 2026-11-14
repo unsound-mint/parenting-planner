@@ -103,6 +103,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Providers in the ecosystem directory, optionally filtered
+         * @description Every provider is synthetic demo data. The directory is the same for
+         *     every family and holds no personal records, so any parent in the session
+         *     may read it. Sorted by next available date, soonest first.
+         */
+        get: operations["listProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/booking-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The acting parent's own booking requests
+         * @description Only requests made by this parent, newest first. The partner's requests are never included.
+         */
+        get: operations["listBookingRequests"];
+        put?: never;
+        /**
+         * The acting parent asks a provider for an appointment
+         * @description Saves a request with status requested; nothing is sent to a real
+         *     provider. A request is sensitive: it can reveal that a parent is seeking
+         *     care, so only the parent who made it can see it, never the partner.
+         *     Asking the same provider twice returns 409.
+         */
+        post: operations["createBookingRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -223,6 +278,70 @@ export interface components {
         MoodCheckinList: {
             /** @description Newest first. */
             items: components["schemas"]["MoodCheckin"][];
+        };
+        /**
+         * @description What kind of care the provider offers.
+         * @enum {string}
+         */
+        ProviderType: "perinatal_therapist" | "psychologist" | "doula" | "lactation_consultant" | "sleep_consultant" | "child_therapist" | "tutor";
+        /**
+         * @description Two-letter US state code.
+         * @example CA
+         */
+        UsState: string;
+        Provider: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ProviderType"];
+            city: string;
+            state: components["schemas"]["UsState"];
+            /**
+             * @example [
+             *       "English",
+             *       "Spanish"
+             *     ]
+             */
+            languages: string[];
+            /** Format: date */
+            nextAvailable: string;
+            /** @description Price of one session in US dollars. */
+            priceUsd: number;
+            /** @description One plain sentence on what this provider helps with. */
+            summary: string;
+        };
+        ProviderList: {
+            items: components["schemas"]["Provider"][];
+        };
+        BookingRequestInput: {
+            /** Format: uuid */
+            providerId: string;
+            /** @description Optional message for the provider. */
+            note?: string;
+        };
+        /**
+         * @description Only requested exists for now; the demo never confirms a booking.
+         * @enum {string}
+         */
+        BookingRequestStatus: "requested";
+        BookingRequest: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The parent who made the request.
+             */
+            memberId: string;
+            /** Format: uuid */
+            providerId: string;
+            status: components["schemas"]["BookingRequestStatus"];
+            note?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        BookingRequestList: {
+            /** @description Newest first. */
+            items: components["schemas"]["BookingRequest"][];
         };
     };
     responses: never;
@@ -461,6 +580,159 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listProviders: {
+        parameters: {
+            query?: {
+                /** @description Only providers of this type. */
+                type?: components["schemas"]["ProviderType"];
+                /** @description Only providers licensed in this US state (two-letter code). */
+                state?: components["schemas"]["UsState"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderList"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listBookingRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRequestList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createBookingRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting parent. There is no login, so the UI says which parent is
+                 *     using the app; the API checks that this parent belongs to the session's family.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingRequest"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
