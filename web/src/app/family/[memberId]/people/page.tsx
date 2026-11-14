@@ -52,7 +52,7 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
       <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
         <div className="min-w-0 @4xl:row-span-2 @7xl:row-span-1">
-          <InviteForm memberId={memberId} />
+          <InviteForm memberId={memberId} family={family} />
         </div>
         {shown.length > 0 && (
           <section aria-labelledby="people-title" className="min-w-0 rounded-2xl border border-border bg-card p-4 md:p-5">
