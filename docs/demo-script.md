@@ -1,11 +1,12 @@
-# 90-second demo
+# Demo script (draft, Dayana to finalize)
 
-This is the acceptance test for the MVP. Every step must work on the production link with a fresh demo family.
+The acceptance test for the hackathon scope in `product.md`. Every step must work on the production link with a fresh demo family. Target length: 2 minutes.
 
-1. Open the site, press "Try the demo family". Mom (Emily) and Partner (Jake) appear side by side, stage "Pregnancy", baby Maya due in three weeks.
-2. On Jake's side, open "First night at home", answer the four situations, see feedback, and take the evening shift (21:00 to 02:00).
-3. The shift appears in Jake's plan and in the family plan; Emily sees it on her screen without reloading.
-4. Press "Baby is home". Emily's night shift (02:00 to 07:00) and Jake's evening shift move into today's schedule.
-5. Jake logs a feeding and hands off to Emily with a note.
-6. Emily accepts and sees the last feeding time, Jake's note, her next task and Maya's card.
-7. Open the pricing page.
+1. Open the site and pick the "2nd trimester" family. Mom's screen shows her week, what is due (glucose screen at 24 to 28 weeks, with its source), and an AI plan that mentions her sleep and mood from the last few days.
+2. Switch to the Partner. His plan is different: Tdap timing for him, a partner class, and a note that he has not done a mood check-in in two weeks.
+3. Mom writes a diary entry about birth anxiety, shares only the topic with her psychologist, and sees it added to the next session agenda. The partner does not see it.
+4. Mom logs a mood check-in that completes a three-day low pattern. The plan updates and suggests a perinatal therapist from the directory, with a booking request.
+5. Switch to the "newborn at home" family. The same engine now shows a completely different plan: postpartum visit, the baby's 2-month vaccines, the father's depression screen, night shifts and a handoff.
+6. Open the health passport: labs, vaccines, care team and clinic in one place.
+7. Open pricing: Free, Plus, Concierge.
+8. Show the crisis button: fixed hotlines, no AI.

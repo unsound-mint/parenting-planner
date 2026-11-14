@@ -2,7 +2,7 @@
 
 Working name; the final product name is still open.
 
-A web app for couples expecting or raising a newborn in the US. Each parent has their own "Today" screen, and a shared family plan connects them. The partner rehearses the first night at home in a short simulator and commits to a real evening shift. When the baby comes home, the shifts agreed during pregnancy are already in the schedule, and handing the baby over shows the other parent the last feeding, what is done and what is next.
+A personal guide for affluent, busy US couples raising a healthy child, from planning a pregnancy to age 9. It keeps the family's health data, mood and diaries in one place, turns them into a weekly plan for each parent using current guidelines and AI, and connects the family to doctors, psychologists and other providers when the data says they are needed.
 
 Live: https://parenting.unsoundmint.com (no sign-up, each visitor gets their own synthetic family)
 

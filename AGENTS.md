@@ -4,7 +4,7 @@ Read this before any work in this repo. It is loaded in every session, so keep i
 
 ## Context
 
-Hackathon project for Business Cup 2.0 (Zimran). Deadline 12:00, Nov 15 2026. Rules and scoring: `docs/requirements.md`. What we build and what we do not: `docs/product.md`. The demo script in `docs/demo-script.md` is the acceptance test for the MVP.
+Hackathon project for Business Cup 2.0 (Zimran). Deadline 12:00, Nov 15 2026. Rules and scoring: `docs/requirements.md`. What we build and what we do not: `docs/product.md`. Evidence and guideline sources: `docs/research.md`. The demo script in `docs/demo-script.md` is the acceptance test for the MVP.
 
 Before starting an issue, read `docs/product.md`. If the issue conflicts with it, say so instead of building it.
 
@@ -21,7 +21,8 @@ Touching another owner's area is fine for small changes; mention it in the PR so
 ## Rules that judges check
 
 - The live site must work with no sign-up or login. Visitors press "Try the demo family" and get their own seeded family (cookie `family_id`). Do not add auth.
-- Core value must be real: stage switch, shifts, care logs and handoffs are database state changes, never hardcoded UI.
+- Core value must be real: plans, rule results, check-ins, diary sharing and bookings are computed from database state, never hardcoded UI.
+- Health guidance: every rule carries a source and a checked date; the AI never diagnoses; crisis and urgent-symptom paths are fixed screens, never generated text. Diaries are private to their author unless shared per entry.
 - The repo is public. Never commit secrets, `.env*`, `private/` or real personal data. Demo data is synthetic.
 
 ## Code conventions
