@@ -71,7 +71,7 @@ func TestDiaryEntriesFollowTheSharingRulesAndAreEncrypted(t *testing.T) {
 	}
 	// Encrypted at rest: the text is not in the database.
 	var plain int
-	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM diary_entries WHERE family_id = $1 AND position('cried' in convert_from(body_sealed, 'LATIN1')) > 0`, fam.Id).Scan(&plain); err != nil || plain != 0 {
+	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM diary_entries WHERE family_id = $1 AND position(convert_to('cried', 'UTF8') in body_sealed) > 0`, fam.Id).Scan(&plain); err != nil || plain != 0 {
 		t.Errorf("the entry text must not be stored in the clear: %d %v", plain, err)
 	}
 	// Only the last 30 days.
