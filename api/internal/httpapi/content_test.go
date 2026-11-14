@@ -251,7 +251,7 @@ func TestSafetyReferenceIsSourcedForEveryRole(t *testing.T) {
 			if len(e.Sources) == 0 || e.Sources[0].CheckedAt.String() != "2026-11-14" {
 				t.Errorf("%s: sources %+v", e.Id, e.Sources)
 			}
-			if (e.Category == httpapi.Medicine) != (e.Ask != nil && *e.Ask == "Ask your pharmacist or clinician before you take it.") {
+			if (e.Category == httpapi.Medicine) != (e.Ask != nil && *e.Ask == "Ask your pharmacist, OB or midwife, or other clinician before you take it.") {
 				t.Errorf("%s: ask line %v", e.Id, e.Ask)
 			}
 		}

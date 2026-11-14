@@ -6364,7 +6364,7 @@ components:
         ask:
           type: string
           description: Present on every medicine entry; the screen ends the entry with it.
-          example: Ask your pharmacist or clinician before you take it.
+          example: Ask your pharmacist, OB or midwife, or other clinician before you take it.
         learn:
           $ref: "#/components/schemas/SafetyLearnLink"
         sources:
@@ -6379,7 +6379,7 @@ components:
       properties:
         status:
           type: string
-          description: ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your clinician or pharmacist.
+          description: ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your OB, midwife or pharmacist.
           enum: [ok, limit, avoid, ask]
         why:
           type: string

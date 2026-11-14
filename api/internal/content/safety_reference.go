@@ -29,7 +29,7 @@ const (
 )
 
 // MedicineAsk ends every medicine entry.
-const MedicineAsk = "Ask your pharmacist or clinician before you take it."
+const MedicineAsk = "Ask your pharmacist, OB or midwife, or other clinician before you take it."
 
 // SafetyAdvice is the status and the one line why for pregnancy or breastfeeding.
 type SafetyAdvice struct {

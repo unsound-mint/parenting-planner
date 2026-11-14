@@ -3427,7 +3427,7 @@ export interface components {
             breastfeeding?: components["schemas"]["SafetyAdvice"];
             /**
              * @description Present on every medicine entry; the screen ends the entry with it.
-             * @example Ask your pharmacist or clinician before you take it.
+             * @example Ask your pharmacist, OB or midwife, or other clinician before you take it.
              */
             ask?: string;
             learn?: components["schemas"]["SafetyLearnLink"];
@@ -3435,7 +3435,7 @@ export interface components {
         };
         SafetyAdvice: {
             /**
-             * @description ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your clinician or pharmacist.
+             * @description ok = generally considered OK, limit = limit it or take care, avoid = generally advised against, ask = ask your OB, midwife or pharmacist.
              * @enum {string}
              */
             status: "ok" | "limit" | "avoid" | "ask";

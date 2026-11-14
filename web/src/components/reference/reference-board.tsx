@@ -155,7 +155,7 @@ export function ReferenceBoard({ memberId, entries, asked, initialMode, helpHref
         {shown.length === 0 && (
           <div className="rounded-3xl border border-dashed border-line-2 bg-card p-6">
             <p className="text-title">No match for that one.</p>
-            <p className="mt-1 text-body text-ink-2">It may still have an answer. Your pharmacist or clinician can check any food, medicine or supplement for you. Or try one of these.</p>
+            <p className="mt-1 text-body text-ink-2">It may still have an answer. Your pharmacist, OB or midwife can check any food, medicine or supplement for you. Or try one of these.</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {starters.map((s) => (
                 <button
@@ -177,7 +177,7 @@ export function ReferenceBoard({ memberId, entries, asked, initialMode, helpHref
 
       <Rise i={2}>
         <p className="max-w-prose text-label text-muted-foreground">
-          General information from the pages linked on each card, not medical advice and not a check of your own situation. Feeling unwell or worried about something you took? Call your clinician now, or open{" "}
+          General information from the pages linked on each card, not medical advice and not a check of your own situation. Feeling unwell or worried about something you took? Call your OB or midwife now, or open{" "}
           <a href={helpHref} className="underline underline-offset-4 hover:text-foreground">
             Urgent help
           </a>

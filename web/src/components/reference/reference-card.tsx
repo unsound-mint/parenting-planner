@@ -61,7 +61,7 @@ export function ReferenceCard({ entry, mode, memberId, saved, onSaved }: { entry
       </div>
 
       <p className="text-body text-ink-2">
-        {advice?.why ?? "We have not opened a breastfeeding source for this one yet, so it is a question for your clinician or pharmacist."}
+        {advice?.why ?? "We have not opened a breastfeeding source for this one yet, so it is a question for your OB, midwife or pharmacist."}
       </p>
 
       {entry.ask && <p className="rounded-2xl bg-status-up-soft px-4 py-2.5 text-label font-medium text-status-up">{entry.ask}</p>}
