@@ -116,6 +116,16 @@ type DiaryEntry struct {
 	CreatedAt     time.Time
 }
 
+type EmergencyContact struct {
+	ID        uuid.UUID
+	Seq       pgtype.Int8
+	FamilyID  uuid.UUID
+	Name      string
+	Relation  string
+	Phone     string
+	CreatedAt time.Time
+}
+
 type Family struct {
 	ID             uuid.UUID
 	Template       string
