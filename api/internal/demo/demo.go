@@ -21,6 +21,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
+	"github.com/unsound-mint/parenting-planner/api/internal/virtualbaby"
 )
 
 const SessionTTL = 30 * 24 * time.Hour
@@ -215,6 +216,19 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedPlanTasks(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	// One finished Virtual Baby evening, played together three days ago, so
+	// the screen opens on "what you practised" and a few stickers. Jake's
+	// sofa answer shows a gentle "another way" in the summary.
+	if err := virtualbaby.Seed(ctx, q, fam.ID, virtualbaby.Evening, partner.ID, today.AddDate(0, 0, -3).Add(20*time.Hour), []virtualbaby.Seeded{
+		{Choice: "feed", HandledBy: partner.ID},
+		{Choice: "change", HandledBy: mom.ID},
+		{Choice: "hold", HandledBy: partner.ID},
+		{Choice: "back", HandledBy: mom.ID},
+		{Choice: "pause", HandledBy: mom.ID},
+		{Choice: "stay", HandledBy: partner.ID},
+	}); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil
