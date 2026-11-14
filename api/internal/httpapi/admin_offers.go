@@ -11,9 +11,12 @@ import (
 // session's own family copy, so a visitor never changes what another sees.
 
 func (s *Server) ListAllPartnerOffers(ctx context.Context, _ ListAllPartnerOffersRequestObject) (ListAllPartnerOffersResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return ListAllPartnerOffers401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return ListAllPartnerOffers403JSONResponse(errForbidden), nil
 	}
 	rows, err := offers.All(ctx, s.pool, familyID)
 	if err != nil {
@@ -27,9 +30,12 @@ func (s *Server) ListAllPartnerOffers(ctx context.Context, _ ListAllPartnerOffer
 }
 
 func (s *Server) CreatePartnerOffer(ctx context.Context, req CreatePartnerOfferRequestObject) (CreatePartnerOfferResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return CreatePartnerOffer401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return CreatePartnerOffer403JSONResponse(errForbidden), nil
 	}
 	b := req.Body
 	o, err := offers.Create(ctx, s.pool, familyID, offers.NewOffer{
@@ -43,9 +49,12 @@ func (s *Server) CreatePartnerOffer(ctx context.Context, req CreatePartnerOfferR
 }
 
 func (s *Server) UpdatePartnerOffer(ctx context.Context, req UpdatePartnerOfferRequestObject) (UpdatePartnerOfferResponseObject, error) {
-	familyID, ok := familyFrom(ctx)
-	if !ok {
+	familyID, kind := managingFamily(ctx)
+	switch kind {
+	case errUnauthorized:
 		return UpdatePartnerOffer401JSONResponse(errNoSession), nil
+	case errNotParent:
+		return UpdatePartnerOffer403JSONResponse(errForbidden), nil
 	}
 	b := req.Body
 	c := offers.Change{PartnerName: b.PartnerName, Title: b.Title, Detail: b.Detail, URL: b.Url, Active: b.Active}

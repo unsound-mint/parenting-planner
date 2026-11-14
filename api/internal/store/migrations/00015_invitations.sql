@@ -31,7 +31,13 @@ CREATE TABLE invitations (
 );
 CREATE INDEX invitations_family_created_idx ON invitations (family_id, created_at DESC);
 
+-- The person a session belongs to. NULL for demo sessions, which act as either
+-- parent of their family; an accepted invitation opens a session bound to the
+-- caregiver, who may then act only as themselves (access.CanSessionActAs).
+ALTER TABLE sessions ADD COLUMN member_id uuid REFERENCES members(id) ON DELETE CASCADE;
+
 -- +goose Down
+ALTER TABLE sessions DROP COLUMN member_id;
 DROP TABLE invitations;
 ALTER TABLE members DROP COLUMN revoked_at;
 ALTER TABLE members DROP COLUMN permissions;

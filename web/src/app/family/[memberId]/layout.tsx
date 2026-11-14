@@ -39,6 +39,10 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     api.GET("/members/{memberId}/notifications", path),
   ]);
   if (response.status === 401 || !family) redirect("/");
+  // An invited caregiver's session acts only as that caregiver and cannot manage the family
+  // (the API answers 404 for other people and 403 for demo time, upgrades and admin).
+  const boundTo = family.sessionMemberId;
+  if (boundTo && boundTo !== memberId) redirect(`/family/${boundTo}`);
   const people = familyPeople(family);
   const person = people.find((p) => p.id === memberId);
   if (!person) notFound();
@@ -77,9 +81,11 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <div className="mt-auto hidden rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground md:block">
           <p className="font-medium text-foreground">Demo family</p>
           <p>Synthetic data, your own copy. Changes stay in this browser session.</p>
-          <Link href="/admin" className="mt-1.5 inline-block underline underline-offset-2 hover:text-foreground">
-            Demo admin
-          </Link>
+          {!boundTo && (
+            <Link href="/admin" className="mt-1.5 inline-block underline underline-offset-2 hover:text-foreground">
+              Demo admin
+            </Link>
+          )}
         </div>
       </aside>
 
@@ -87,22 +93,26 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
           that PageGrid's columns query (docs/design.md, Layout). */}
       <div className="@container flex w-full min-w-0 max-w-page flex-1 flex-col">
         <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
-          <RoleSwitch people={people} memberId={memberId} />
+          <RoleSwitch people={boundTo ? people.filter((p) => p.id === boundTo) : people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
           <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due max-md:hidden">
             Demo data
           </span>
-          <ResetDemo className="max-md:hidden" />
-          <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} className="max-md:hidden" />
-          <DemoMenu
-            memberId={memberId}
-            daysAhead={family.demoDaysAhead ?? 0}
-            upgrade={family.tier === "free"}
-            planLabel={`${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
-          />
-          <Link href="/pricing" className="order-4 text-label max-[1399px]:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
-            {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
-          </Link>
+          {!boundTo && (
+            <>
+              <ResetDemo className="max-md:hidden" />
+              <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} className="max-md:hidden" />
+              <DemoMenu
+                memberId={memberId}
+                daysAhead={family.demoDaysAhead ?? 0}
+                upgrade={family.tier === "free"}
+                planLabel={`${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+              />
+              <Link href="/pricing" className="order-4 text-label max-[1399px]:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
+                {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+              </Link>
+            </>
+          )}
           <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
           {notifications.data && (
             <div className="order-5">
