@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { CalendarCheck, ChevronDown, Lock } from "lucide-react";
+import { CalendarCheck, ChevronDown } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PsychologistSlots, Slot } from "@/lib/api/types";
 import { dayKey, formatClock, formatDayNumber, formatMonth, formatWeekday } from "@/lib/format";
@@ -14,7 +14,7 @@ import { SessionCountdown } from "./session-countdown";
 
 // Pick a day and a time, then confirm. Slots come from the API (a synthetic
 // provider); nothing here is hardcoded.
-export function SlotPicker({ memberId, slots, topicCount }: { memberId: string; slots: PsychologistSlots; topicCount: number }) {
+export function SlotPicker({ memberId, slots }: { memberId: string; slots: PsychologistSlots }) {
   const router = useRouter();
   const [picked, setPicked] = useState<Slot>();
   const [pending, startTransition] = useTransition();
@@ -117,10 +117,6 @@ export function SlotPicker({ memberId, slots, topicCount }: { memberId: string; 
           )}
         </>
       )}
-      <p className="mt-4 flex items-center gap-2 text-caption text-muted-foreground">
-        <Lock className="size-3.5 shrink-0" aria-hidden />
-        {topicCount} {topicCount === 1 ? "topic goes" : "topics go"} with you. Private, demo provider.
-      </p>
     </section>
   );
 }

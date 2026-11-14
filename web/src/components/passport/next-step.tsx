@@ -1,7 +1,7 @@
 import { daysUntil } from "@/lib/format";
 import { passportIcon } from "@/lib/visuals";
 import type { PassportPerson } from "@/lib/api/types";
-import type { Focus } from "./summary";
+import type { FollowUp } from "./summary";
 
 function inDays(n: number): string {
   if (n === 0) return "today";
@@ -10,12 +10,37 @@ function inDays(n: number): string {
   return n > 0 ? `in ${span}` : `${span} ago`;
 }
 
-// The one focus of the screen, and the only place that says "due": what to do
-// next for the selected person. The vaccine and lab cards below show the same
-// item as a mark, not as words.
-export function NextStep({ person, focus }: { person: PassportPerson; focus: Focus }) {
+function describe(item: FollowUp, who: string): { title: string; line: string; late: boolean } {
+  if (item.kind === "vaccine") {
+    const late = item.vaccine.status === "overdue";
+    return {
+      title: `${item.vaccine.name}, ${item.vaccine.dose.toLowerCase()}`,
+      line: `${late ? "Was due" : "Due"} ${inDays(daysUntil(item.vaccine.dueOn ?? ""))}. Book it at the next visit.`,
+      late,
+    };
+  }
+  if (item.kind === "lab") {
+    return {
+      title: `${item.lab.name} is ${item.lab.value > (item.lab.refHigh ?? Infinity) ? "above" : "below"} range`,
+      line: `Bring it up at ${who} next visit.`,
+      late: false,
+    };
+  }
+  return {
+    title: `${item.substance} is a suspected allergy`,
+    line: `Ask about testing to confirm it at ${who} next visit.`,
+    late: false,
+  };
+}
+
+const icons = { vaccine: passportIcon.vaccines, lab: passportIcon.labs, allergy: passportIcon.allergies };
+
+// Every open follow-up for the selected person, each with its one action. The
+// only place that says "due"; the vaccine and lab cards below show the same
+// items as marks, not words. The headline count is items.length.
+export function NextStep({ person, items }: { person: PassportPerson; items: FollowUp[] }) {
   const who = person.isActingParent ? "your" : `${person.name}'s`;
-  if (focus.kind === "none") {
+  if (items.length === 0) {
     return (
       <section aria-labelledby="next-step" className="flex items-center gap-4 rounded-2xl bg-status-ok-soft p-5 text-status-ok">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card">
@@ -25,36 +50,32 @@ export function NextStep({ person, focus }: { person: PassportPerson; focus: Foc
       </section>
     );
   }
-  const Icon = focus.kind === "vaccine" ? passportIcon.vaccines : focus.kind === "lab" ? passportIcon.labs : passportIcon.allergies;
-  const text =
-    focus.kind === "vaccine"
-      ? {
-          title: `${focus.vaccine.name}, ${focus.vaccine.dose.toLowerCase()}`,
-          line: `${focus.vaccine.status === "overdue" ? "Was due" : "Due"} ${inDays(daysUntil(focus.vaccine.dueOn ?? ""))}. Book it at the next visit.`,
-        }
-      : focus.kind === "lab"
-        ? {
-            title: `${focus.lab.name} is ${focus.lab.value > (focus.lab.refHigh ?? Infinity) ? "above" : "below"} range`,
-            line: `Bring it up at ${who} next visit.`,
-          }
-        : {
-            title: `${focus.substance} is a suspected allergy`,
-            line: `Ask about testing to confirm it at ${who} next visit.`,
-          };
-  const late = focus.kind === "vaccine" && focus.vaccine.status === "overdue";
+  const rows = items.map((item) => ({ item, ...describe(item, who) }));
+  const anyLate = rows.some((r) => r.late);
   return (
     <section
       aria-labelledby="next-step"
-      className={`flex items-center gap-4 rounded-2xl p-5 ${late ? "bg-status-late-soft text-status-late" : "bg-status-due-soft text-status-due"}`}
+      className={`rounded-2xl p-5 ${anyLate ? "bg-status-late-soft text-status-late" : "bg-status-due-soft text-status-due"}`}
     >
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card">
-        <Icon className="size-5" aria-hidden />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-caption font-semibold tracking-wide uppercase">Next step</p>
-        <h2 id="next-step" className="text-title">{text.title}</h2>
-        <p className="text-label font-normal">{text.line}</p>
-      </div>
+      <h2 id="next-step" className="text-caption font-semibold tracking-wide uppercase">
+        {rows.length === 1 ? "Next step" : `Next steps · ${rows.length}`}
+      </h2>
+      <ul className="mt-3 flex flex-col gap-3">
+        {rows.map((r, i) => {
+          const Icon = icons[r.item.kind];
+          return (
+            <li key={i} className="flex items-center gap-4">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-card">
+                <Icon className="size-5" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-title">{r.title}</p>
+                <p className="text-label font-normal">{r.line}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

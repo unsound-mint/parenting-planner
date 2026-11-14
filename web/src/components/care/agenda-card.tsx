@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Reorder, useDragControls } from "motion/react";
-import { GripVertical, Lock, X } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 import type { AgendaTopic } from "@/lib/api/types";
 import { careIcon } from "@/lib/visuals";
 
@@ -35,11 +35,6 @@ export function AgendaCard({ topics }: { topics: AgendaTopic[] }) {
           ))}
         </Reorder.Group>
       )}
-
-      <p className="mt-4 flex items-center gap-2 text-caption text-muted-foreground">
-        <Lock className="size-3.5 shrink-0" aria-hidden />
-        Topics only. Your partner cannot see this.
-      </p>
     </section>
   );
 }

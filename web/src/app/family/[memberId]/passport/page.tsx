@@ -9,7 +9,7 @@ import { LabsCard } from "@/components/passport/labs-card";
 import { NextStep } from "@/components/passport/next-step";
 import { PersonTabs } from "@/components/passport/person-tabs";
 import { ProfileCard } from "@/components/passport/profile-card";
-import { attentionCount, summarize, tally } from "@/components/passport/summary";
+import { attentionCount, followUps, tally } from "@/components/passport/summary";
 import { SummaryCard } from "@/components/passport/summary-card";
 import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
 
@@ -41,8 +41,8 @@ async function Passport({
 
   const wanted = Array.isArray(personParam) ? personParam[0] : personParam;
   const person = data.people.find((p) => p.id === wanted) ?? data.people[0];
-  const summary = summarize(person);
-  const attention = attentionCount(person);
+  const items = followUps(person);
+  const attention = items.length;
   const attentionById = Object.fromEntries(data.people.map((p) => [p.id, attentionCount(p)]));
   const owner = person.isActingParent ? "your" : `${person.name}'s`;
   const headline =
@@ -66,7 +66,7 @@ async function Passport({
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:gap-6">
         <SummaryCard tally={tally(person)} />
-        <NextStep person={person} focus={summary.focus} />
+        <NextStep person={person} items={items} />
       </div>
       <div className="mt-4 lg:mt-6">
         <ProfileCard allergies={person.allergies} careTeam={person.careTeam} />
