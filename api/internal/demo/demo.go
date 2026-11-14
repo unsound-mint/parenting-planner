@@ -21,6 +21,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
+	"github.com/unsound-mint/parenting-planner/api/internal/thanks"
 )
 
 const SessionTTL = 30 * 24 * time.Hour
@@ -205,13 +206,19 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {
 		return uuid.Nil, err
 	}
-	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID); err != nil {
+	if err := tasks.SeedHospitalBag(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := seedAppointments(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedPlanTasks(ctx, q, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	// Emily has already thanked Jake for the crib he ordered.
+	crib := today.AddDate(0, 0, -tasks.CribDoneDaysAgo)
+	if err := thanks.Seed(ctx, q, fam.ID, mom.ID, partner.ID, "Thank you for ordering the crib, I did not have to think about it once.",
+		thanks.Key("tasks_done", partner.ID, crib), crib.Add(20*time.Hour)); err != nil {
 		return uuid.Nil, err
 	}
 	return fam.ID, nil

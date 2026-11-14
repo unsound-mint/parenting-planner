@@ -15,6 +15,7 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
+	"github.com/unsound-mint/parenting-planner/api/internal/thanks"
 )
 
 const (
@@ -221,6 +222,12 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	if err != nil {
 		return uuid.Nil, err
 	}
+	if err := tasks.SeedBabyTasks(ctx, q, fam, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedCareHistory(ctx, q, fam, leo, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedBabyCare(ctx, q, fam, leo, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
@@ -298,6 +305,53 @@ func seedBabyCare(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus
 		HandoffID: uuid.NullUUID{UUID: h.ID, Valid: true}, VoiceNoteID: vn.ID, FamilyID: fam, UploaderID: aisha,
 	})
 	return err
+}
+
+// seedCareHistory gives the two weeks before yesterday a realistic split: Aisha
+// does most of the days, and Marcus has picked up the nights since last week
+// (two night feeds a night this week, one the week before). The seeded thank-you
+// note from Aisha names one of those nights. Nothing is later than now.
+func seedCareHistory(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus uuid.UUID, today time.Time) error {
+	method := func(v string) *string { return &v }
+	add := func(daysAgo, h, m int, kind string, author uuid.UUID) error {
+		e := store.CreateCareLogEntryParams{
+			FamilyID: fam, ChildID: leo, AuthorMemberID: author, Kind: kind,
+			StartedAt: today.AddDate(0, 0, -daysAgo).Add(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute),
+		}
+		switch kind {
+		case "feed":
+			e.FeedMethod = method("breast_left")
+		case "diaper":
+			e.Diaper = method("wet")
+		}
+		_, err := q.CreateCareLogEntry(ctx, e)
+		return err
+	}
+	type row struct {
+		h, m   int
+		kind   string
+		author uuid.UUID
+	}
+	for d := 2; d <= 13; d++ {
+		rows := []row{
+			{8, 0, "feed", aisha}, {13, 0, "feed", aisha}, {18, 30, "feed", marcus},
+			{8, 30, "diaper", aisha}, {14, 0, "diaper", aisha}, {19, 0, "diaper", marcus},
+		}
+		if d <= 6 {
+			rows = append(rows, row{23, 30, "feed", aisha}, row{1, 30, "feed", marcus}, row{4, 30, "feed", marcus})
+		} else {
+			rows = append(rows, row{23, 30, "feed", aisha}, row{2, 0, "feed", aisha}, row{4, 30, "feed", marcus})
+		}
+		for _, r := range rows {
+			if err := add(d, r.h, r.m, r.kind, r.author); err != nil {
+				return err
+			}
+		}
+	}
+	// The night that started three days ago: Marcus did the 01:30 and 04:30 feeds.
+	night := today.AddDate(0, 0, -3)
+	return thanks.Seed(ctx, q, fam, aisha, marcus, "Thank you for the 2 night feeds on "+night.Weekday().String()+". I slept five hours in a row.",
+		thanks.Key("night_feeds", marcus, night), today.AddDate(0, 0, -2).Add(8*time.Hour))
 }
 
 // careHelpers maps a caregiver's role to their member id.

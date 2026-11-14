@@ -154,3 +154,13 @@ export type Together = S["Together"];
 export type CoupleTalk = S["CoupleTalk"];
 export type BabyName = S["BabyName"];
 export type BabyNameList = S["BabyNameList"];
+
+export type LoadMap = S["LoadMap"];
+export type LoadMapArea = S["LoadMapArea"];
+export type LoadMapAreaKey = S["LoadMapAreaKey"];
+export type LoadMapShare = S["LoadMapShare"];
+export type LoadMapUnit = S["LoadMapUnit"];
+export type Thanks = S["Thanks"];
+export type ThanksInput = S["ThanksInput"];
+export type ThanksSuggestion = S["ThanksSuggestion"];
+export type ThanksBasis = S["ThanksBasis"];
