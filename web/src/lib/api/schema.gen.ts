@@ -2035,9 +2035,9 @@ export interface components {
         PregnancyWeek: {
             week: number;
             isCurrentWeek: boolean;
-            size: components["schemas"]["BabySize"];
-            /** @description What is developing this week, in plain words. */
-            development: string;
+            size?: components["schemas"]["BabySize"];
+            /** @description What is developing this week, in plain words. Present only when sourced. */
+            development?: string;
             /** @description Why this week matters for the parents, never a diagnosis. */
             whyItMatters: string;
             /** @description For the acting person's role. */
