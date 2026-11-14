@@ -135,6 +135,23 @@ func (q *Queries) GetFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	return i, err
 }
 
+const getFamilyForUpdate = `-- name: GetFamilyForUpdate :one
+SELECT id, template, stage, due_date, created_at FROM families WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetFamilyForUpdate(ctx context.Context, id uuid.UUID) (Family, error) {
+	row := q.db.QueryRow(ctx, getFamilyForUpdate, id)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getMember = `-- name: GetMember :one
 SELECT id, family_id, role, display_name, birth_date FROM members WHERE id = $1 AND family_id = $2
 `
@@ -245,4 +262,27 @@ func (q *Queries) ListMembers(ctx context.Context, familyID uuid.UUID) ([]Member
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateFamilyStage = `-- name: UpdateFamilyStage :one
+UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING id, template, stage, due_date, created_at
+`
+
+type UpdateFamilyStageParams struct {
+	ID      uuid.UUID
+	Stage   string
+	DueDate *time.Time
+}
+
+func (q *Queries) UpdateFamilyStage(ctx context.Context, arg UpdateFamilyStageParams) (Family, error) {
+	row := q.db.QueryRow(ctx, updateFamilyStage, arg.ID, arg.Stage, arg.DueDate)
+	var i Family
+	err := row.Scan(
+		&i.ID,
+		&i.Template,
+		&i.Stage,
+		&i.DueDate,
+		&i.CreatedAt,
+	)
+	return i, err
 }

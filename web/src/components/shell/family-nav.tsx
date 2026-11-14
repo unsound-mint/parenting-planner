@@ -2,22 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, CalendarCheck, Route, UsersRound, type LucideIcon } from "lucide-react";
+import { Baby, Brain, CalendarCheck, IdCard, Route, Users, UsersRound, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
-// Only screens that work are listed (organizer rule: hide what does not work).
-// Add an entry here when its route lands.
-// Each role sees only the screens canOpen() allows (lib/roles.ts).
+// Ordered by how often a parent needs them: this week first, then the weekly
+// care session, the records they pull up at a visit, the directory, and the
+// long view last. Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck },
+  { href: "/care", screen: "care", label: "Care", icon: Brain },
+  { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Users },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
   { href: "/baby", screen: "baby", label: "Baby", icon: Baby },
   { href: "/people", screen: "people", label: "People", icon: UsersRound },
-  // Enable when the API lands (#174; also import Brain from lucide-react). The route /family/[memberId]/care exists.
-  // { href: "/care", label: "Care", icon: Brain },
-  // Enable when the API lands (#172): { href: "/passport", label: "Passport", icon: IdCard },
-  // enable when the API lands (#175): { href: "/directory", label: "Find help", icon: Users },
 ];
 
 // Screens whose endpoint may still answer 501: listed only when the layout saw it work.
@@ -37,7 +36,7 @@ export function FamilyNav({ memberId, role, available = [] }: { memberId: string
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex shrink-0 items-center gap-2.5 rounded-lg px-2.5 py-2 text-label whitespace-nowrap transition-colors duration-150",
+              "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-caption transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
               active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

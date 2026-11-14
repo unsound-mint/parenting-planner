@@ -9,6 +9,7 @@ import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
 import { BabyHome } from "@/components/baby/baby-home";
 import { SleepChart } from "@/components/week/sleep-chart";
+import { ComingUpSlot, GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
 
 // Own check-ins needed before the sleep chart earns space in the right rail.
 const MIN_SLEEP_CHECKINS = 3;
@@ -27,15 +28,25 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
+  // Newer endpoints start now and render in their own slots; None of them gates the page.
+  const today = optional(api.GET("/members/{memberId}/today", path));
+  const guides = optional(api.GET("/members/{memberId}/guides", { params: { path: { memberId }, query: { kind: "article" } } }));
   // Caregivers get the baby's care and never a parent's plan or check-ins, so
   // decide who is acting before asking for any of them.
   const { data: family, response } = await api.GET("/family");
   if (response.status === 401) redirect("/");
-  if (family?.caregivers?.some((c) => c.id === memberId)) return <BabyHome memberId={memberId} family={family} />;
+  const caregiver = family?.caregivers?.find((c) => c.id === memberId);
+  const week = family?.stage === "pregnancy" ? family.gestationalWeek : undefined;
+  // Weeks 4 to 40 only; a nanny never gets the card (the API answers 403).
+  const card =
+    family && week != null && week >= 4 && week <= 40 && caregiver?.role !== "nanny"
+      ? optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week } } }))
+      : undefined;
+  if (family && caregiver) return <BabyHome memberId={memberId} family={family} slots={{ today, guides, card }} />;
   const [{ data: plan }, { data: checkins }, { data: patterns }] = await Promise.all([
     api.GET("/members/{memberId}/plan", path),
     api.GET("/members/{memberId}/mood-checkins", path),
-    // Answers 501 until the API lands; no data means no card.
+    // No pattern means no card.
     api.GET("/members/{memberId}/mood-patterns", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
@@ -62,11 +73,19 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         </h1>
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
         <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <div className="mt-3 empty:hidden">
+          <StageSlot guides={guides} memberId={memberId} family={family} />
+        </div>
         <PlanBoard items={plan.items} memberId={memberId} />
+        <div className="mt-8 empty:hidden">
+          <ComingUpSlot today={today} />
+        </div>
         <AiPlan memberId={memberId} tier={family.tier} />
       </section>
 
       <aside className="flex flex-col gap-6 xl:pt-1">
+        <WeekCardSlot card={card} />
+        <GuidesSlot guides={guides} />
         <Suspense fallback={null}>
           <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
         </Suspense>

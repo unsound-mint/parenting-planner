@@ -63,7 +63,7 @@ export function mockMiddleware(table: MockTable): Middleware {
       }
       const data = entry.build({
         path: (params.path ?? {}) as Record<string, string>,
-        query: Object.fromEntries(Object.entries(params.query ?? {}).map(([k, v]) => [k, String(v)])),
+        query: Object.fromEntries(Object.entries(params.query ?? {}).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])),
         body: body as never,
       });
       if (entry.status === 204) return new Response(null, { status: 204 });

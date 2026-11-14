@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Handshake, Hourglass } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
-import type { CareLogEntry, CareLogKind, CareSummary, Family, Handoff } from "@/lib/api/types";
+import type { CareLogEntry, CareLogKind, CareSummary, Family, Guide, Handoff, PregnancyWeek, Today } from "@/lib/api/types";
 import { agoWords, isAsleep, lastActivityAt } from "@/lib/care";
 import { familyContext, formatClock } from "@/lib/format";
 import { allows, familyPeople, isCaregiver, type Person } from "@/lib/roles";
@@ -12,6 +12,7 @@ import { QuickAdd, WhenPicker, WhenProvider, type QuickAction } from "@/componen
 import { DayTimeline } from "@/components/baby/day-timeline";
 import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
 import { CaregiverHome } from "@/components/week/caregiver-home";
+import { CaregiverTodaySlot, GuidesSlot, WeekCardSlot, type Pending } from "@/components/today/slots";
 
 const feedActions: QuickAction[] = [
   { kind: "feed", label: "Left", feedMethod: "breast_left" },
@@ -37,7 +38,13 @@ const diaperActions: QuickAction[] = [
  * Parents open it as "Baby"; a grandparent or nanny gets it as their home.
  * Each part draws only what its endpoint returned and what the permissions allow.
  */
-export async function BabyHome({ memberId, family }: { memberId: string; family: Family }) {
+export type CaregiverSlots = {
+  today?: Pending<Today>;
+  guides?: Pending<{ items: Guide[] }>;
+  card?: Pending<PregnancyWeek>;
+};
+
+export async function BabyHome({ memberId, family, slots }: { memberId: string; family: Family; slots?: CaregiverSlots }) {
   const people = familyPeople(family);
   const me = people.find((p) => p.id === memberId);
   if (!me) notFound();
@@ -45,7 +52,7 @@ export async function BabyHome({ memberId, family }: { memberId: string; family:
   const child = family.children[0];
   const canLog = allows({ role: me.role, permissions: caregiver?.permissions }, "care_log");
   const canCard = allows({ role: me.role, permissions: caregiver?.permissions }, "baby_passport");
-  const fallback = () => (caregiver ? <CaregiverHome family={family} caregiver={caregiver} /> : notFound());
+  const fallback = () => (caregiver ? <CaregiverHome family={family} caregiver={caregiver} {...slots} /> : notFound());
   if (!child) return fallback();
 
   const api = await serverApi();
@@ -127,6 +134,14 @@ export async function BabyHome({ memberId, family }: { memberId: string; family:
           </h2>
           <DayTimeline entries={care.items} now={now} />
         </section>
+
+        {caregiver && slots && (
+          <>
+            <CaregiverTodaySlot shiftOnly today={slots.today} names={Object.fromEntries(people.map((p) => [p.id, p.displayName]))} />
+            <WeekCardSlot card={slots.card} />
+            <GuidesSlot guides={slots.guides} />
+          </>
+        )}
       </div>
 
       <aside className="flex min-w-0 flex-col gap-6 xl:pt-1">
