@@ -85,3 +85,18 @@ func TestTalkPromptsHaveUniqueIDs(t *testing.T) {
 		t.Errorf("week 25 prompts not latest-opening first: %+v", got)
 	}
 }
+
+func TestLessonsFitTheirStage(t *testing.T) {
+	for stage, want := range map[string]int{"pregnancy": 32, "planning": 9, "postpartum": 19, "preschool": 3} {
+		n := 0
+		for _, p := range LearnPathsFor(State{Stage: stage}) {
+			n += len(p.Lessons)
+		}
+		if n != want {
+			t.Errorf("%s: %d lessons, want %d", stage, n, want)
+		}
+	}
+	if _, ok := LessonFor(State{Stage: "preschool"}, "sharing-nights"); ok {
+		t.Error("a night plan for after the birth is not for preschool parents")
+	}
+}

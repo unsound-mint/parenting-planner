@@ -42,7 +42,11 @@ type Lesson struct {
 	// WeekFrom and WeekTo are the best-read window in gestational weeks.
 	WeekFrom, WeekTo int
 	// Audience is "mother" and "partner", or "partner" alone.
-	Audience       []string
+	Audience []string
+	// Stages the lesson is offered in: the path's, or fewer when the text
+	// only fits some of them (a night plan "to review after the birth" is
+	// not for parents of a four-year-old).
+	Stages         []string
 	Source         Source
 	ExtraSources   []Source
 	TalkPrompt     string
@@ -149,6 +153,7 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 				Weeks          [2]int   `json:"weeks"`
 				Audience       string   `json:"audience"`
 				Minutes        int      `json:"readingMinutes"`
+				Stages         []string `json:"stages"`
 				Source         string   `json:"source"`
 				ExtraSources   []string `json:"extraSources"`
 				Body           string   `json:"body"`
@@ -188,7 +193,10 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 			lesson := Lesson{
 				ID: l.ID, PathID: p.ID, Title: l.Title, Body: []string{l.Body}, Minutes: max(1, l.Minutes),
 				WeekFrom: l.Weeks[0], WeekTo: l.Weeks[1], Audience: audience, Source: source(l.Source),
-				ExtraSources: []Source{}, TalkPrompt: l.TalkTonight, UrgentHelpLink: l.UrgentHelpLink,
+				ExtraSources: []Source{}, TalkPrompt: l.TalkTonight, UrgentHelpLink: l.UrgentHelpLink, Stages: p.Stages,
+			}
+			if len(l.Stages) > 0 {
+				lesson.Stages = l.Stages
 			}
 			for _, id := range l.ExtraSources {
 				lesson.ExtraSources = append(lesson.ExtraSources, source(id))
@@ -233,11 +241,16 @@ func loadLearn() ([]LearnPath, []TalkPrompt) {
 	return paths, prompts
 }
 
-// LearnPathsFor returns the paths offered in the family's stage, in catalog order.
+// LearnPathsFor returns the paths offered in the family's stage, in catalog
+// order, each with only the lessons offered in that stage.
 func LearnPathsFor(s State) []LearnPath {
 	out := []LearnPath{}
 	for _, p := range learnPaths {
-		if slices.Contains(p.Stages, s.Stage) {
+		if !slices.Contains(p.Stages, s.Stage) {
+			continue
+		}
+		p.Lessons = slices.DeleteFunc(slices.Clone(p.Lessons), func(l Lesson) bool { return !slices.Contains(l.Stages, s.Stage) })
+		if len(p.Lessons) > 0 {
 			out = append(out, p)
 		}
 	}
@@ -247,7 +260,7 @@ func LearnPathsFor(s State) []LearnPath {
 // LessonFor finds a lesson among the paths offered in the family's stage.
 func LessonFor(s State, id string) (Lesson, bool) {
 	l, ok := lessonsByID[id]
-	if !ok || !pathOffered(s, l.PathID) {
+	if !ok || !slices.Contains(l.Stages, s.Stage) {
 		return Lesson{}, false
 	}
 	return l, true
@@ -267,15 +280,6 @@ func QuestionFor(s State, id string) (Question, Lesson, bool) {
 func LessonByID(id string) (Lesson, bool) {
 	l, ok := lessonsByID[id]
 	return l, ok
-}
-
-func pathOffered(s State, pathID string) bool {
-	for _, p := range learnPaths {
-		if p.ID == pathID {
-			return slices.Contains(p.Stages, s.Stage)
-		}
-	}
-	return false
 }
 
 // LessonPromptPrefix marks a talk prompt that comes from a lesson.

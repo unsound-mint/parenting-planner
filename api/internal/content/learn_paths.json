@@ -830,7 +830,14 @@
        "why": "It is an average across many couples, not a verdict on yours."
       }
      ],
-     "talkTonight": "What is one small ritual of ours we want to protect after the baby comes?"
+     "talkTonight": "What is one small ritual of ours we want to protect after the baby comes?",
+     "stages": [
+      "planning",
+      "trying",
+      "pregnancy",
+      "postpartum",
+      "infant"
+     ]
     },
     {
      "id": "sharing-nights",
@@ -864,7 +871,10 @@
        "why": "A clear plan beats a perfectly even one you renegotiate nightly."
       }
      ],
-     "talkTonight": "Shifts or tasks? Sketch a first version of our night plan, and pick a day to review it after the birth."
+     "talkTonight": "Shifts or tasks? Sketch a first version of our night plan, and pick a day to review it after the birth.",
+     "stages": [
+      "pregnancy"
+     ]
     },
     {
      "id": "feelings-both-ways",
@@ -898,7 +908,14 @@
        "why": "PSI says no diagnosis is needed to ask for help."
       }
      ],
-     "talkTonight": "How are you really feeling about becoming a parent? Answer it for yourself first, then for each other."
+     "talkTonight": "How are you really feeling about becoming a parent? Answer it for yourself first, then for each other.",
+     "stages": [
+      "planning",
+      "trying",
+      "pregnancy",
+      "postpartum",
+      "infant"
+     ]
     },
     {
      "id": "us-time",
@@ -1142,7 +1159,13 @@
        "why": "DOL asks for 30 days' notice when possible."
       }
      ],
-     "talkTonight": "What does each of our employers offer? Let's both ask HR this week and compare."
+     "talkTonight": "What does each of our employers offer? Let's both ask HR this week and compare.",
+     "stages": [
+      "planning",
+      "trying",
+      "pregnancy",
+      "postpartum"
+     ]
     },
     {
      "id": "plan-leave",
@@ -1185,7 +1208,13 @@
        "why": "Intermittent bonding leave needs agreement, except for a serious health condition."
       }
      ],
-     "talkTonight": "Draw our first year as a calendar: who is home when?"
+     "talkTonight": "Draw our first year as a calendar: who is home when?",
+     "stages": [
+      "planning",
+      "trying",
+      "pregnancy",
+      "postpartum"
+     ]
     },
     {
      "id": "insurance-newborn",
@@ -1229,7 +1258,11 @@
        "why": "The Newborns' Act sets 48 hours, or 96 after a cesarean."
       }
      ],
-     "talkTonight": "Whose plan will the baby join? Set a reminder for the week after the due date."
+     "talkTonight": "Whose plan will the baby join? Set a reminder for the week after the due date.",
+     "stages": [
+      "pregnancy",
+      "postpartum"
+     ]
     },
     {
      "id": "paperwork-list",
@@ -1266,6 +1299,10 @@
      "talkTonight": "Let's split the paperwork list and put a name next to every task.",
      "extraSources": [
       "dol-newborns"
+     ],
+     "stages": [
+      "pregnancy",
+      "postpartum"
      ]
     }
    ],
@@ -1314,7 +1351,14 @@
        "why": "PSI says symptoms can start any time in the perinatal period."
       }
      ],
-     "talkTonight": "Is there anything in our own histories we should tell the provider about now?"
+     "talkTonight": "Is there anything in our own histories we should tell the provider about now?",
+     "stages": [
+      "planning",
+      "trying",
+      "pregnancy",
+      "postpartum",
+      "infant"
+     ]
     },
     {
      "id": "treatment-works",
@@ -1349,7 +1393,14 @@
        "why": "NIMH gives 4 to 8 weeks."
       }
      ],
-     "talkTonight": "If one of us needed help, who would we call first? Write the name down together."
+     "talkTonight": "If one of us needed help, who would we call first? Write the name down together.",
+     "stages": [
+      "planning",
+      "trying",
+      "pregnancy",
+      "postpartum",
+      "infant"
+     ]
     },
     {
      "id": "where-to-call",

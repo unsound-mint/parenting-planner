@@ -112,7 +112,7 @@ var learnStories = map[Template]learnStory{
 			{mother, "safe-sleep", -8, -8},
 			{mother, "baby-blues", -3, -3},
 			{partner, "safe-sleep", -9, -9},
-			{partner, "sharing-nights", -5, -5},
+			{partner, "feelings-both-ways", -5, -5},
 			{partner, "insurance-newborn", -6, -6},
 			{partner, "crying", -2, -2},
 			{partner, "formula-basics", -1, 0},

@@ -163,7 +163,7 @@ func questionLesson(questionID string) (string, bool) {
 }
 
 // relativeDay words a time against the family's date: today, yesterday, or
-// the weekday within the last week. Dates are UTC like the rest of the plan.
+// the weekday within the last week, then "a week ago". Dates are UTC like the rest of the plan.
 func relativeDay(t, today time.Time) string {
 	y, m, d := t.UTC().Date()
 	day := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
@@ -172,6 +172,8 @@ func relativeDay(t, today time.Time) string {
 		return "today"
 	case days == 1:
 		return "yesterday"
+	case days >= 7:
+		return "a week ago"
 	default:
 		return "on " + day.Weekday().String()
 	}
