@@ -237,6 +237,7 @@ type GrowthMeasurement struct {
 	MeasuredOn time.Time
 	WeightKg   float64
 	HeightCm   float64
+	HeadCm     *float64
 }
 
 type Handoff struct {
@@ -342,14 +343,15 @@ type LiveEvent struct {
 }
 
 type Member struct {
-	ID          uuid.UUID
-	FamilyID    uuid.UUID
-	Role        string
-	DisplayName string
-	BirthDate   *time.Time
-	Permissions []string
-	RevokedAt   pgtype.Timestamptz
-	Phone       *string
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	Role           string
+	DisplayName    string
+	BirthDate      *time.Time
+	Permissions    []string
+	RevokedAt      pgtype.Timestamptz
+	Phone          *string
+	EssentialsOnly bool
 }
 
 type MoodCheckin struct {
@@ -429,6 +431,20 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
+type Portrait struct {
+	ID               uuid.UUID
+	FamilyID         uuid.UUID
+	ChildID          uuid.NullUUID
+	Month            pgtype.Int2
+	Week             pgtype.Int2
+	Kind             string
+	UploaderMemberID uuid.NullUUID
+	Width            pgtype.Int4
+	Height           pgtype.Int4
+	Image            []byte
+	CreatedAt        time.Time
+}
+
 type PostcardLine struct {
 	ID             uuid.UUID
 	FamilyID       uuid.UUID
@@ -491,6 +507,24 @@ type QuizAnswer struct {
 	AnsweredAt time.Time
 }
 
+type RecoveryCheckin struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	RecordedAt    time.Time
+	Bleeding      string
+	Pain          int16
+	Wound         string
+	Breasts       string
+	PelvicFloor   string
+	SleepHours    float32
+	Mood          pgtype.Int2
+	WarningSigns  []string
+	Note          *string
+	CreatedAt     time.Time
+}
+
 type Session struct {
 	TokenHash []byte
 	FamilyID  uuid.UUID
@@ -523,6 +557,18 @@ type Shift struct {
 	CreatedAt time.Time
 }
 
+type ShoppingItem struct {
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	Name            string
+	SupplyItemID    uuid.NullUUID
+	RestockQuantity pgtype.Int4
+	AddedByMemberID uuid.UUID
+	DoneByMemberID  uuid.NullUUID
+	DoneAt          pgtype.Timestamptz
+	CreatedAt       time.Time
+}
+
 type StripeEvent struct {
 	ID         string
 	Type       string
@@ -539,6 +585,20 @@ type Subscription struct {
 	StartedAt            time.Time
 	CurrentPeriodEnd     pgtype.Timestamptz
 	UpdatedAt            time.Time
+}
+
+type SupplyItem struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	Name      string
+	Category  string
+	Quantity  int32
+	Unit      string
+	LowAt     int32
+	PerUse    int16
+	Size      *string
+	ExpiresOn *time.Time
+	CreatedAt time.Time
 }
 
 type Task struct {
