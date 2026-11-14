@@ -72,7 +72,7 @@ export const babyMocks = {
   ...mock("/members/{memberId}/children/{childId}/passport", "get", (ctx) => ({
     child: { id: ctx.path.childId, name: "Leo", birthDate: "2026-09-26", ageMonths: 1 },
     limitedView: false,
-    pediatrician: { id: "00000000-0000-4000-8000-0000000000d1", name: "Dr. Priya Nair", role: "pediatrician" as const, clinic: "Riverside Pediatrics", phone: "(555) 010-2244" },
+    pediatrician: { id: "00000000-0000-4000-8000-0000000000d1", name: "Dr. Owen Park", role: "pediatrician" as const, clinic: "Riverside Pediatrics", phone: "(555) 010-2244" },
     allergies: [
       { id: "00000000-0000-4000-8000-0000000000a1", substance: "Egg", certainty: "suspected" as const, reaction: "Rash after the first taste", visibility: "family" as const },
       { id: "00000000-0000-4000-8000-0000000000a2", substance: "Penicillin", certainty: "confirmed" as const, visibility: "family" as const },
