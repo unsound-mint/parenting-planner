@@ -14,7 +14,7 @@ import (
 // The body must be valid for the contract: the validator runs first and
 // would answer 400 instead.
 type stubCall struct {
-	method string // GET, POST, PUT, PATCH, DELETE, WEBHOOK (POST with a Stripe-Signature header) or AUDIO (POST of raw audio/webm)
+	method string // GET, POST, PUT, PATCH, DELETE, WEBHOOK (POST with a Stripe-Signature header) AUDIO (POST of raw audio/webm) or IMAGE (POST of raw image/jpeg)
 	path   string
 	body   any
 }
@@ -31,10 +31,13 @@ func (s stubCall) expectNotImplemented(t *testing.T, c *testutil.Client) {
 		c.Put(s.path, s.body, http.StatusNotImplemented, &e)
 	case "PATCH":
 		c.Patch(s.path, s.body, http.StatusNotImplemented, &e)
-	case "DELETE", "AUDIO":
+	case "DELETE", "AUDIO", "IMAGE":
 		method, ct, body := http.MethodDelete, "", ""
-		if s.method == "AUDIO" {
+		switch s.method {
+		case "AUDIO":
 			method, ct, body = http.MethodPost, "audio/webm", "fake opus frames"
+		case "IMAGE":
+			method, ct, body = http.MethodPost, "image/jpeg", "fake jpeg bytes"
 		}
 		code, raw := c.Raw(method, s.path, ct, strings.NewReader(body))
 		if code != http.StatusNotImplemented {

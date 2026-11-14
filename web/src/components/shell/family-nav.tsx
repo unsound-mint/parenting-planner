@@ -3,11 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, Route, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
+import { Baby, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, Route, Settings, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
-type Group = "main" | "more";
+type Group = "main" | "more" | "account";
 type Item = {
   href: string;
   screen: string;
@@ -18,24 +18,26 @@ type Item = {
   short?: string;
   /** Shown only when this screen is not in the nav: the screen that normally links to it is missing. */
   fallbackFor?: string;
+  /** Other routes that live inside this screen and keep it highlighted. */
+  includes?: string[];
 };
 
-// Three daily screens, then the records. Plan, Journey, Practice, Find help and
-// Privacy are reached from inside a screen (This week, Learn, Journal and care,
-// People), so they appear here only as a fallback when that screen is missing:
+// Three daily screens, then the records, then Privacy and Settings. Plan, Journey, Practice and Find
+// help are reached from inside a screen (This week, Learn, Journal and care, People), so they appear here only as a fallback when that screen is missing:
 // caregivers cannot open Learn or People, and Learn is hidden in loss support.
 // Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: Item[] = [
   { href: "", screen: "", label: "This week", icon: Sprout, group: "main" },
   { href: "/learn", screen: "learn", label: "Learn", icon: BookOpen, group: "main" },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "main", fallbackFor: "learn" },
-  { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main" },
+  { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main", includes: ["/directory"] },
   { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "more" },
   { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "more" },
   { href: "/passport", screen: "passport", label: "Baby passport", short: "Passport", icon: IdCard, group: "more" },
   { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more", fallbackFor: "learn" },
-  { href: "/settings", screen: "settings", label: "Privacy", icon: ShieldCheck, group: "more", fallbackFor: "people" },
+  { href: "/privacy", screen: "privacy", label: "Privacy", icon: ShieldCheck, group: "account" },
+  { href: "/settings", screen: "settings", label: "Settings", icon: Settings, group: "account" },
 ];
 
 // The phone bar holds four tabs at 390 px: the daily screens and More.
@@ -49,7 +51,8 @@ function useNav({ memberId, role, hidden = [], childName }: NavProps) {
   const base = `/family/${memberId}`;
   const allowed = (item: Item) => canOpen(role, item.screen) && !hidden.includes(item.screen);
   const visible = items.filter((item) => allowed(item) && (!item.fallbackFor || !items.some((i) => i.screen === item.fallbackFor && allowed(i))));
-  const isActive = (item: Item) => (item.href === "" ? pathname === base : pathname.startsWith(base + item.href));
+  const isActive = (item: Item) =>
+    item.href === "" ? pathname === base : [item.href, ...(item.includes ?? [])].some((h) => pathname.startsWith(base + h));
   // Past toddler age the Baby screen is the child's own: it carries their name.
   const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.screen === "baby" && childName ? childName : item.label);
   return { pathname, base, visible, isActive, label };
@@ -60,7 +63,7 @@ export function FamilyNav(props: NavProps) {
   const { base, visible, isActive, label } = useNav(props);
   return (
     <nav aria-label="Family" className="flex flex-col">
-      {(["main", "more"] as const).map((g) => {
+      {(["main", "more", "account"] as const).map((g) => {
         const group = visible.filter((i) => i.group === g);
         return group.length ? (
           <div key={g} className="flex flex-col gap-1 border-line not-first:mt-2.5 not-first:border-t not-first:pt-2.5">

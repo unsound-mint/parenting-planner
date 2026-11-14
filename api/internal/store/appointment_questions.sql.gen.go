@@ -55,8 +55,8 @@ func (q *Queries) AnswerAppointmentQuestionVisibleToParent(ctx context.Context, 
 }
 
 const createAppointmentQuestion = `-- name: CreateAppointmentQuestion :one
-INSERT INTO appointment_questions (family_id, owner_member_id, visibility, asked_for_event_id, body)
-VALUES ($1, $2, $3, $4, $5) RETURNING id, seq, family_id, owner_member_id, visibility, asked_for_event_id, body, answered, answer, answered_at, created_at
+INSERT INTO appointment_questions (family_id, owner_member_id, visibility, asked_for_event_id, body, created_at)
+VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, seq, family_id, owner_member_id, visibility, asked_for_event_id, body, answered, answer, answered_at, created_at
 `
 
 type CreateAppointmentQuestionParams struct {
@@ -65,6 +65,7 @@ type CreateAppointmentQuestionParams struct {
 	Visibility      string
 	AskedForEventID uuid.UUID
 	Body            string
+	CreatedAt       time.Time
 }
 
 func (q *Queries) CreateAppointmentQuestion(ctx context.Context, arg CreateAppointmentQuestionParams) (AppointmentQuestion, error) {
@@ -74,6 +75,7 @@ func (q *Queries) CreateAppointmentQuestion(ctx context.Context, arg CreateAppoi
 		arg.Visibility,
 		arg.AskedForEventID,
 		arg.Body,
+		arg.CreatedAt,
 	)
 	var i AppointmentQuestion
 	err := row.Scan(
@@ -126,7 +128,7 @@ func (q *Queries) GetOwnAppointmentQuestionVisibleToParent(ctx context.Context, 
 }
 
 const listAppointmentEventsVisibleToParent = `-- name: ListAppointmentEventsVisibleToParent :many
-SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at,
+SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at, e.neutral_title,
        COALESCE((SELECT array_agg(a.member_id) FROM calendar_event_attendees a WHERE a.event_id = e.id), '{}')::uuid[] AS attendee_ids
 FROM calendar_events e
 WHERE e.family_id = $1 AND e.kind = 'appointment'
@@ -151,6 +153,7 @@ type ListAppointmentEventsVisibleToParentRow struct {
 	AllDay        bool
 	Location      *string
 	CreatedAt     time.Time
+	NeutralTitle  bool
 	AttendeeIds   []uuid.UUID
 }
 
@@ -177,6 +180,7 @@ func (q *Queries) ListAppointmentEventsVisibleToParent(ctx context.Context, arg 
 			&i.AllDay,
 			&i.Location,
 			&i.CreatedAt,
+			&i.NeutralTitle,
 			&i.AttendeeIds,
 		); err != nil {
 			return nil, err

@@ -1,6 +1,6 @@
 -- name: CreateDiaryEntry :one
-INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic)
-VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
+INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, mood, is_first)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- Mirrors access.CanParentRead: own entries, plus entries shared with the partner or the family.
 -- name: ListDiaryEntriesVisibleToParent :many
@@ -16,7 +16,7 @@ SELECT * FROM diary_entries WHERE id = @id AND family_id = @family_id AND owner_
 
 -- Mirrors access.CanParentRead for a change: only the author.
 -- name: UpdateOwnDiaryEntryVisibleToParent :one
-UPDATE diary_entries SET visibility = @visibility, agenda_topic = @agenda_topic
+UPDATE diary_entries SET visibility = @visibility, agenda_topic = @agenda_topic, is_first = @is_first
 WHERE id = @id AND family_id = @family_id AND owner_member_id = @viewer_id RETURNING *;
 
 -- Mirrors access.CanParentRead: the agenda topics belong to their author alone, so

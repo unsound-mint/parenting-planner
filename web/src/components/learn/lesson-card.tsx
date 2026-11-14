@@ -7,11 +7,11 @@ import { toast } from "sonner";
 import { BookOpen, Check, ChevronDown } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { Guide } from "@/lib/api/types";
-import { formatLongDate } from "@/lib/format";
 import type { LessonAction } from "@/lib/learn";
 import { lessonActionIcon } from "@/lib/visuals";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SourceLink } from "@/components/joy/source-line";
 
 type Props = {
   memberId: string;
@@ -73,9 +73,9 @@ export function LessonCard({ memberId, guide, action, done: alreadyDone, audienc
   }
 
   return (
-    <li className="flex flex-col rounded-2xl border border-border bg-card p-5">
+    <li className="flex flex-col rounded-3xl border border-line bg-card p-5.5 md:p-6">
       <div className="flex items-start gap-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-status-up-soft text-status-up">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-ink-2">
           <BookOpen className="size-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
@@ -104,32 +104,28 @@ export function LessonCard({ memberId, guide, action, done: alreadyDone, audienc
               <li key={s}>{s}</li>
             ))}
           </ol>
-          <p className="pb-2 font-mono text-caption text-muted-foreground">
-            Demo content, not medical advice.{" "}
-            <a href={guide.source.url} target="_blank" rel="noreferrer" className="underline underline-offset-4 hover:text-foreground">
-              {guide.source.title}
-            </a>
-            , checked {formatLongDate(guide.source.checkedAt)}
+          <p className="pb-2 text-caption">
+            <SourceLink source={guide.source} />
           </p>
         </div>
       </div>
 
       <div className="mt-auto pt-3">
         {action.kind === "practice" ? (
-          <Link href={`${base}/simulator`} className={cn(buttonVariants({ variant: "secondary" }), "h-11 w-full gap-2 px-4 text-label sm:w-auto md:h-10")}>
+          <Link href={`${base}/simulator`} className={cn(buttonVariants({ variant: "secondary" }), "press h-11 w-full gap-2 rounded-full px-4.5 text-label sm:w-auto")}>
             <Icon className="size-4" aria-hidden />
             {action.label ?? text.idle}
           </Link>
         ) : done ? (
           <Link
             href={`${base}${text.doneHref ? `/${text.doneHref}` : ""}`}
-            className={cn(buttonVariants({ variant: "ghost" }), "h-11 w-full gap-2 px-4 text-label text-status-ok sm:w-auto md:h-10")}
+            className={cn(buttonVariants({ variant: "ghost" }), "h-11 w-full gap-2 rounded-full px-4.5 text-label text-leaf sm:w-auto")}
           >
             <Check className="size-4" aria-hidden />
             {text.done}
           </Link>
         ) : (
-          <Button type="button" onClick={run} disabled={pending} className="h-11 w-full gap-2 px-4 text-label sm:w-auto md:h-10">
+          <Button type="button" onClick={run} disabled={pending} className="press h-11 w-full gap-2 rounded-full px-4.5 text-label sm:w-auto">
             <Icon className="size-4" aria-hidden />
             {pending ? "Saving..." : (action.label ?? text.idle)}
           </Button>

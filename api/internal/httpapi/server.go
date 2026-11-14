@@ -10,6 +10,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -39,12 +40,19 @@ type Config struct {
 	AI ai.Config
 	// Diary encrypts diary text at rest; see internal/crypt. The zero key works for tests.
 	Diary crypt.Key
+	// SessionLimit caps new demo families per client address (limits.go);
+	// AIPlanLimit caps Claude calls per family. Zero means the default, N < 0 off.
+	SessionLimit Limit
+	AIPlanLimit  Limit
 }
 
 type Server struct {
 	pool *pgxpool.Pool
 	q    *store.Queries
 	cfg  Config
+
+	sessionLimiter *rateLimiter
+	aiLimiter      *rateLimiter
 }
 
 var _ StrictServerInterface = (*Server)(nil)
@@ -70,23 +78,28 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 		},
 	})
 
-	s := &Server{pool: pool, q: store.New(pool), cfg: cfg}
+	s := &Server{
+		pool: pool, q: store.New(pool), cfg: cfg,
+		sessionLimiter: newRateLimiter(cfg.SessionLimit.or(defaultSessionLimit), cfg.Now),
+		aiLimiter:      newRateLimiter(cfg.AIPlanLimit.or(defaultAIPlanLimit), cfg.Now),
+	}
 	strict := NewStrictHandlerWithOptions(s, nil, StrictHTTPServerOptions{
 		RequestErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
 			writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
 		},
 		ResponseErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-			slog.Error("handler failed", "method", r.Method, "path", r.URL.Path, "err", err)
+			slog.Error("handler failed", "method", r.Method, "path", loggedPath(r.URL.Path), "err", err)
 			monitor.Report(r, err)
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
 	})
-	// Middlewares run last-to-first: check the Stripe webhook signature on the
-	// raw body, cap voice note uploads, validate, then resolve the session.
-	return recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
+	// Middlewares run last-to-first: cap the body, limit new demos per
+	// address, check the Stripe webhook signature on the raw body, cap voice
+	// note uploads, validate, then resolve the session.
+	return securityHeaders(recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, s.verifyStripeSignature},
-	})), nil
+		Middlewares: []MiddlewareFunc{s.session, calendarFeedOrigin, validate, capVoiceNoteBody, s.verifyStripeSignature, s.limitNewSessions, capBody},
+	}))), nil
 }
 
 // recoverPanics turns a panic in a handler into a logged and reported 500
@@ -101,7 +114,7 @@ func recoverPanics(next http.Handler) http.Handler {
 			if rec == http.ErrAbortHandler {
 				panic(rec)
 			}
-			slog.Error("handler panicked", "method", r.Method, "path", r.URL.Path, "panic", rec)
+			slog.Error("handler panicked", "method", r.Method, "path", loggedPath(r.URL.Path), "panic", rec)
 			monitor.ReportPanic(r, rec)
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		}()
@@ -204,6 +217,7 @@ var (
 	errNoteExists        = Error{Code: "note_exists", Message: "you already wrote a note for this session"}
 	errEmptyNote         = Error{Code: "invalid_request", Message: "the note is empty"}
 	errNoPlanItem        = Error{Code: "not_found", Message: "this item is not on this parent's plan"}
+	errNoChildcareOption = Error{Code: "not_found", Message: "no such childcare option in this family"}
 
 	errNoVoiceNote       = Error{Code: "not_found", Message: "no such voice note"}
 	errVoiceNoteType     = Error{Code: "invalid_request", Message: "record as audio/webm, audio/mp4 or audio/ogg"}
@@ -284,4 +298,11 @@ func (s *Server) Healthz(ctx context.Context, _ HealthzRequestObject) (HealthzRe
 		return nil, err
 	}
 	return Healthz200JSONResponse{Status: "ok"}, nil
+}
+
+func loggedPath(path string) string {
+	if strings.HasPrefix(path, calendarFeedPath) {
+		return calendarFeedPath + "{token}"
+	}
+	return path
 }

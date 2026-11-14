@@ -45,29 +45,31 @@ const (
 
 // Event is one line of the feed.
 type Event struct {
-	ID          string
-	Kind        string
-	Title       string
-	StartsAt    time.Time
-	EndsAt      *time.Time
-	AllDay      bool
-	Location    *string
-	OwnerID     *uuid.UUID
-	AttendeeIDs []uuid.UUID
-	Visibility  string
-	ShiftID     *uuid.UUID
-	TaskID      *uuid.UUID
+	NeutralTitle bool
+	ID           string
+	Kind         string
+	Title        string
+	StartsAt     time.Time
+	EndsAt       *time.Time
+	AllDay       bool
+	Location     *string
+	OwnerID      *uuid.UUID
+	AttendeeIDs  []uuid.UUID
+	Visibility   string
+	ShiftID      *uuid.UUID
+	TaskID       *uuid.UUID
 }
 
 type NewEvent struct {
-	Kind       string
-	Title      string
-	StartsAt   time.Time
-	EndsAt     *time.Time
-	AllDay     bool
-	Location   *string
-	Attendees  []uuid.UUID
-	Visibility string
+	NeutralTitle bool
+	Kind         string
+	Title        string
+	StartsAt     time.Time
+	EndsAt       *time.Time
+	AllDay       bool
+	Location     *string
+	Attendees    []uuid.UUID
+	Visibility   string
 }
 
 // Create stores an event owned by a parent. Attendees must be people of the family.
@@ -87,7 +89,7 @@ func Create(ctx context.Context, pool *pgxpool.Pool, familyID, ownerID uuid.UUID
 		}
 		e, err := q.CreateCalendarEvent(ctx, store.CreateCalendarEventParams{
 			FamilyID: familyID, OwnerMemberID: ownerID, Visibility: in.Visibility, Kind: in.Kind, Title: in.Title,
-			StartsAt: in.StartsAt, EndsAt: toTS(in.EndsAt), AllDay: in.AllDay, Location: in.Location,
+			StartsAt: in.StartsAt, EndsAt: toTS(in.EndsAt), AllDay: in.AllDay, Location: in.Location, NeutralTitle: in.NeutralTitle,
 		})
 		if err != nil {
 			return err
@@ -120,7 +122,7 @@ func fromRow(e store.CalendarEvent, attendees []uuid.UUID) Event {
 	}
 	return Event{
 		ID: e.ID.String(), Kind: e.Kind, Title: e.Title, StartsAt: e.StartsAt, EndsAt: fromTS(e.EndsAt), AllDay: e.AllDay,
-		Location: e.Location, OwnerID: &owner, AttendeeIDs: attendees, Visibility: e.Visibility,
+		Location: e.Location, NeutralTitle: e.NeutralTitle, OwnerID: &owner, AttendeeIDs: attendees, Visibility: e.Visibility,
 	}
 }
 
@@ -165,7 +167,7 @@ func ListForParent(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uui
 		for _, r := range rows {
 			ev := fromRow(store.CalendarEvent{
 				ID: r.ID, OwnerMemberID: r.OwnerMemberID, Visibility: r.Visibility, Kind: r.Kind, Title: r.Title,
-				StartsAt: r.StartsAt, EndsAt: r.EndsAt, AllDay: r.AllDay, Location: r.Location,
+				StartsAt: r.StartsAt, EndsAt: r.EndsAt, AllDay: r.AllDay, Location: r.Location, NeutralTitle: r.NeutralTitle,
 			}, r.AttendeeIds)
 			own := r.OwnerMemberID == viewer
 			switch scope {
@@ -319,8 +321,19 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	if !to.After(from) || to.Sub(from) > MaxWindow {
 		return nil, ErrBadWindow
 	}
-	rows, err := store.New(pool).ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
-		FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+	// The events are parents' records a caregiver may see: the read goes in the
+	// access log in the same transaction, like a parent's List.
+	var rows []store.ListCaregiverCalendarEventsVisibleToParentRow
+	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		q := store.New(tx)
+		var err error
+		rows, err = q.ListCaregiverCalendarEventsVisibleToParent(ctx, store.ListCaregiverCalendarEventsVisibleToParentParams{
+			FamilyID: familyID, ViewerID: viewer, FromAt: from, ToAt: to,
+		})
+		if err != nil {
+			return err
+		}
+		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entity, "")
 	})
 	if err != nil {
 		return nil, err
@@ -329,7 +342,7 @@ func ListForCaregiver(ctx context.Context, pool *pgxpool.Pool, familyID, viewer 
 	for _, r := range rows {
 		out = append(out, fromRow(store.CalendarEvent{
 			ID: r.ID, OwnerMemberID: r.OwnerMemberID, Visibility: r.Visibility, Kind: r.Kind, Title: r.Title,
-			StartsAt: r.StartsAt, EndsAt: r.EndsAt, AllDay: r.AllDay, Location: r.Location,
+			StartsAt: r.StartsAt, EndsAt: r.EndsAt, AllDay: r.AllDay, Location: r.Location, NeutralTitle: r.NeutralTitle,
 		}, r.AttendeeIds))
 	}
 	// Their own shifts too.

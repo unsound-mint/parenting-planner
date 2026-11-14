@@ -1,12 +1,15 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { countWord, familyContext } from "@/lib/format";
+import { familyPeople } from "@/lib/roles";
 import { AccessLog } from "@/components/people/access-log";
 import { InvitationList } from "@/components/people/invitation-list";
 import { InviteForm } from "@/components/people/invite-form";
+import { LoadMapCard } from "@/components/load-map/load-map-card";
+import { ThanksSection } from "@/components/thanks/thanks-section";
+import { Rise } from "@/components/joy/rise";
 import { PageFrame, PageGrid } from "@/components/shell/page";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
@@ -24,11 +27,15 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, invitations, log] = await Promise.all([
+  const [{ data: family }, invitations, log, loadMap, thanks, suggestions] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/invitations", path),
     api.GET("/members/{memberId}/access-log", path),
+    api.GET("/members/{memberId}/load-map", path),
+    api.GET("/members/{memberId}/thanks", path),
+    api.GET("/members/{memberId}/thanks/suggestions", path),
   ]);
+  const people = familyPeople(family ?? { parents: [] });
   if (invitations.response.status === 401) redirect("/");
   // 501: the screen does not exist yet (the nav entry is hidden too).
   if (!family || !invitations.data) notFound();
@@ -48,11 +55,23 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
       <header>
         <h1 className="max-w-2xl text-headline text-balance">{headline}</h1>
         <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
-        {/* Privacy has no nav entry of its own: People is where it lives. */}
-        <Link href={`/family/${memberId}/settings`} className="mt-2 inline-block text-label text-muted-foreground underline decoration-line-2 underline-offset-3 hover:text-ink">
-          Privacy and your data
-        </Link>
       </header>
+      {/* The couple's own section comes first: who carries what, and a way to say thanks.
+          Either part is left out when its endpoint is not available. */}
+      {(loadMap.data || (thanks.data && suggestions.data)) && (
+        <PageGrid className="@4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          {loadMap.data && (
+            <Rise i={1} className="min-w-0">
+              <LoadMapCard memberId={memberId} initial={loadMap.data} people={people} />
+            </Rise>
+          )}
+          {thanks.data && suggestions.data && (
+            <Rise i={2} className="min-w-0">
+              <ThanksSection memberId={memberId} people={people} suggestions={suggestions.data.items} thanks={thanks.data.items} now={new Date()} />
+            </Rise>
+          )}
+        </PageGrid>
+      )}
       {/* Two columns: the form on the left, access and the log stacked on the right (the last row
           is flexible so a tall form does not open a gap between them). Three columns at the widest. */}
       <PageGrid cols={3} className="@4xl:grid-rows-[auto_1fr] @7xl:grid-rows-none">
