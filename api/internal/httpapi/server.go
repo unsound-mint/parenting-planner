@@ -54,6 +54,8 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 	if cfg.Now == nil {
 		cfg.Now = time.Now
 	}
+	// The demo planning family's fertility notes are sealed with the diary key.
+	demo.SealKey = cfg.Diary
 	spec, err := GetSwagger()
 	if err != nil {
 		return nil, err

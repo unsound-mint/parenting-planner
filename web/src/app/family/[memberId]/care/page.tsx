@@ -10,6 +10,8 @@ import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
 import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { FertilityLinkCard } from "@/components/fertility/fertility-link-card";
+import { inPlanningJournal } from "@/lib/fertility";
 import { PageFrame, PageGrid } from "@/components/shell/page";
 import { familyNow } from "@/lib/clock";
 
@@ -49,6 +51,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       entries={diary?.items.filter((e) => e.authorId === memberId)}
       questionnaires={questionnaires?.items}
       now={familyNow(family)}
+      planning={inPlanningJournal(family)}
     />
   );
 }
@@ -61,9 +64,10 @@ type ViewProps = {
   entries?: DiaryEntry[];
   questionnaires?: ScreeningQuestionnaire[];
   now: Date;
+  planning?: boolean;
 };
 
-function CareView({ memberId, name, agenda, slots, entries, questionnaires, now }: ViewProps) {
+function CareView({ memberId, name, agenda, slots, entries, questionnaires, now, planning }: ViewProps) {
   const topics = agenda?.topics ?? [];
   const next = agenda?.nextSession;
   const noteDue = agenda?.noteDue;
@@ -99,6 +103,7 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
             ) : null}
             <AgendaCard memberId={memberId} topics={topics} />
             <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
+            {planning && <FertilityLinkCard memberId={memberId} />}
           </PageGrid>
         )}
       </section>

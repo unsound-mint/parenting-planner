@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Bell, CalendarDays, ChevronRight, FlaskConical, ListChecks, Lock, MessageCircleQuestion, NotebookPen, Rss, Smile, Baby, Stethoscope, UserPlus, type LucideIcon } from "lucide-react";
+import { Flower2, Bell, CalendarDays, ChevronRight, FlaskConical, ListChecks, Lock, MessageCircleQuestion, NotebookPen, Rss, Smile, Baby, Stethoscope, UserPlus, type LucideIcon } from "lucide-react";
 import type { CalendarFeed, Caregiver, CaregiverPermission, Family, NotificationList, Parent } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -98,6 +98,7 @@ const never: [LucideIcon, string][] = [
   [FlaskConical, "Lab results"],
   [Stethoscope, "Session notes"],
   [MessageCircleQuestion, "Appointment questions"],
+  [Flower2, "Fertility journal"],
 ];
 
 /** Fixed: the API cannot grant these records to a caregiver at all. Partner access is per entry. */

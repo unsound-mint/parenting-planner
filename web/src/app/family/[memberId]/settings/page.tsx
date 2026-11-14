@@ -9,7 +9,9 @@ import { StageControl } from "@/components/today/stage-control";
 import { Card, CaregiverCard, FeedCard, NeverShared, NotificationsCard, PartnerCard, StageCard, WaitingInvitations } from "@/components/settings/privacy-cards";
 import { PermissionRow } from "@/components/people/permission-row";
 import type { CaregiverPermission } from "@/lib/api/types";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Compass } from "lucide-react";
+import { JourneyPreferences } from "@/components/fertility/journey-preferences";
+import { getJourneySettings } from "@/lib/journey-settings";
 
 const allPermissions: CaregiverPermission[] = ["care_log", "baby_passport", "schedule", "family_plan", "pregnancy_updates"];
 
@@ -36,10 +38,11 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
   if (!family || !me) notFound();
   const caregiver = isCaregiver(me.role);
 
-  const [feed, notifications, invitations] = await Promise.all([
+  const [feed, notifications, invitations, journey] = await Promise.all([
     api.GET("/members/{memberId}/calendar-feed", path),
     api.GET("/members/{memberId}/notifications", path),
     caregiver ? undefined : api.GET("/members/{memberId}/invitations", path),
+    caregiver ? undefined : getJourneySettings(memberId),
   ]);
 
   const partner = family.parents.find((p) => p.id !== memberId);
@@ -86,6 +89,11 @@ async function Settings({ params }: { params: Promise<{ memberId: string }> }) {
               <StageControl memberId={memberId} stage={family.stage} dueDate={family.dueDate} hasChild={family.children.length > 0} lossEntry={PREGNANCY_LOSS_ENABLED} />
             )}
           </StageCard>
+        )}
+        {!caregiver && journey && (
+          <Card title="Your journey" icon={Compass}>
+            <JourneyPreferences memberId={memberId} initial={journey} showTrying={family.stage === "planning" || family.stage === "trying"} />
+          </Card>
         )}
         {!caregiver && invitations?.data && <WaitingInvitations memberId={memberId} count={waiting} />}
       </div>

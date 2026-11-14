@@ -158,3 +158,14 @@ export type Journey = S["Journey"];
 export type JourneyStage = S["JourneyStage"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+
+// Fertility journal, preparation checklist and journey preferences.
+export type FertilityEntry = S["FertilityEntry"];
+export type FertilityEntryInput = S["FertilityEntryInput"];
+export type FertilityKind = S["FertilityKind"];
+export type FertilityOverview = S["FertilityOverview"];
+export type FertilityVisibility = S["FertilityVisibility"];
+export type PreconceptionChecklist = S["PreconceptionChecklist"];
+export type PreconceptionItem = S["PreconceptionItem"];
+export type PreconceptionGroup = S["PreconceptionGroup"];
+export type JourneySettings = S["JourneySettings"];

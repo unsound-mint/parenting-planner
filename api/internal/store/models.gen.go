@@ -172,6 +172,19 @@ type Family struct {
 	DemoOffsetDays int32
 }
 
+type FertilityEntry struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	Kind          string
+	EntryDate     time.Time
+	Code          *string
+	TempC         *float64
+	NoteSealed    []byte
+	CreatedAt     time.Time
+}
+
 type GrowthMeasurement struct {
 	ID         uuid.UUID
 	FamilyID   uuid.UUID
@@ -216,6 +229,17 @@ type Invitation struct {
 	ExpiresAt   time.Time
 	AcceptedAt  pgtype.Timestamptz
 	RevokedAt   pgtype.Timestamptz
+}
+
+type JourneySetting struct {
+	OwnerMemberID      uuid.UUID
+	FamilyID           uuid.UUID
+	Visibility         string
+	HideBabyContent    bool
+	FertilityTreatment bool
+	PreviousLoss       bool
+	TryingSince        *time.Time
+	UpdatedAt          time.Time
 }
 
 type LabResult struct {
@@ -341,6 +365,15 @@ type PlanItemProgress struct {
 	RuleID    string
 	Status    string
 	UpdatedAt time.Time
+}
+
+type PreconceptionTick struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	ItemKey       string
+	DoneAt        time.Time
 }
 
 type Provider struct {
