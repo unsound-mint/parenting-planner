@@ -26,6 +26,22 @@ type Props = {
   className?: string;
 };
 
+/** Who a partner mission is meant for. Planning has no one pregnant yet, so it says nothing. */
+function partnerLine(stage: Mission["stage"]): string | null {
+  switch (stage) {
+    case "first_trimester":
+    case "second_trimester":
+    case "third_trimester":
+      return "Meant for the partner who isn't pregnant. Either of you can take it.";
+    case "newborn":
+    case "baby":
+    case "toddler":
+      return "Meant for the parent who didn't give birth. Either of you can take it.";
+    default:
+      return null;
+  }
+}
+
 const swap = { duration: 0.18, ease: ease.out };
 const btn = "inline-flex h-11 items-center justify-center gap-1.5 rounded-full px-5 text-label font-semibold press transition-colors duration-(--duration-fast) disabled:opacity-60 md:h-10";
 
@@ -38,6 +54,7 @@ const btn = "inline-flex h-11 items-center justify-center gap-1.5 rounded-full p
  */
 export function MissionCard({ mission, memberId, people, onSwapped, onChange, className }: Props) {
   const [m, setM] = useState(mission);
+  const audience = m.forPartner ? partnerLine(m.stage) : null;
   const [noting, setNoting] = useState(false);
   const [note, setNote] = useState("");
   const [pending, start] = useTransition();
@@ -91,7 +108,7 @@ export function MissionCard({ mission, memberId, people, onSwapped, onChange, cl
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-title text-balance">{m.title}</h3>
-          {m.forPartner && !done && <p className="mt-0.5 text-caption text-muted-foreground">Written for the parent who is not pregnant, either of you can take it</p>}
+          {audience && !done && <p className="mt-0.5 text-caption text-muted-foreground">{audience}</p>}
         </div>
       </div>
       <p className="text-body text-ink-2">{m.why}</p>

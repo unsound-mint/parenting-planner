@@ -99,7 +99,7 @@ var Catalog = []Mission{
 
 	// Third trimester
 	{Key: "t3-car-seat", Stage: Tri3, Title: "Install the car seat and get it checked", Category: Gear, Partner: true, DueDays: 21, Why: "Install it from the manual, then book a check with a certified child passenger safety technician (CPST), ideally before the baby comes. The AAP suggests expectant parents do exactly this.", Source: srcCarSeat},
-	{Key: "t3-batch-cook", Stage: Tri3, Title: "Batch-cook 6 freezer meals", Category: Meals, Partner: true, DueDays: 21, Why: "Label them, stack them flat, and the first fortnight has dinner sorted."},
+	{Key: "t3-batch-cook", Stage: Tri3, Title: "Batch-cook 6 freezer meals", Category: Meals, Partner: true, DueDays: 21, Why: "Label them, stack them flat, and the first two weeks has dinner sorted."},
 	{Key: "t3-night-plan", Stage: Tri3, Title: "Plan the night shifts together", Category: Rest, Partner: true, DueDays: 21, Why: "Agree who covers which nights before you are both exhausted. A written plan beats a 4 a.m. negotiation."},
 	{Key: "t3-hospital-bag", Stage: Tri3, Title: "Pack your own hospital bag", Category: Gear, Partner: true, DueDays: 14, Why: "Snacks, charger, a change of clothes and the paperwork folder. Done once, forgotten happily."},
 	{Key: "t3-newborn-class", Stage: Tri3, Title: "Take a newborn care class", Category: Learning, Partner: true, DueDays: 28, Why: "Holding, bathing, diapering and soothing are easier after you have practised on a doll."},
@@ -114,7 +114,7 @@ var Catalog = []Mission{
 	{Key: "nb-calm-plan", Stage: Newborn, Title: "Agree on your plan for when the crying gets too much", Category: Together, Why: "Put the baby down safely, step away, and hand over. Say it now, while you are both calm.", Source: srcCrying},
 	{Key: "nb-visit-notes", Stage: Newborn, Title: "Go to the next baby visit and take the notes", Category: Care, Partner: true, Why: "Write down weight, feeding and sleep questions beforehand. Two sets of ears help.", Source: srcHunger},
 	{Key: "nb-check-in", Stage: Newborn, Title: "Ask your partner how they are, and listen", Category: Together, Why: "Ten minutes, no fixing. If either of you feels low for more than a couple of weeks, talk to a clinician.", Source: srcPSIDads},
-	{Key: "nb-add-baby-insurance", Stage: Newborn, Title: "Add the baby to your health insurance", Category: Home, Partner: true, DueDays: 14, Why: "With an employer plan you usually have 30 days from the birth to request it, and cover then starts at the birth date. Do it in the first fortnight.", Source: srcNewborns},
+	{Key: "nb-add-baby-insurance", Stage: Newborn, Title: "Add the baby to your health insurance", Category: Home, Partner: true, DueDays: 14, Why: "With an employer plan you usually have 30 days from the birth to request it, and cover then starts at the birth date. Do it in the first two weeks.", Source: srcNewborns},
 	{Key: "nb-laundry", Stage: Newborn, Title: "Own the laundry for two weeks", Category: Home, Partner: true, Why: "It never ends, and it is perfect to hand over."},
 
 	// Baby (rest of the first year)
