@@ -96,21 +96,7 @@ func (s *Server) CreateCareLogEntry(ctx context.Context, req CreateCareLogEntryR
 	case !carePerson(m).CanUse():
 		return CreateCareLogEntry403JSONResponse(errNoCareLogAccess), nil
 	}
-	b := req.Body
-	in := carelog.NewEntry{ChildID: b.ChildId, Kind: string(b.Kind), StartedAt: b.StartedAt, EndedAt: b.EndedAt, Note: b.Note}
-	if b.FeedMethod != nil {
-		v := string(*b.FeedMethod)
-		in.FeedMethod = &v
-	}
-	if b.Diaper != nil {
-		v := string(*b.Diaper)
-		in.Diaper = &v
-	}
-	if b.AmountMl != nil {
-		v := int16(*b.AmountMl)
-		in.AmountMl = &v
-	}
-	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), in, s.now(ctx))
+	e, err := carelog.CreateEntry(ctx, s.pool, familyID, carePerson(m), entryIn(*req.Body), s.now(ctx))
 	switch {
 	case errors.Is(err, carelog.ErrNoChild):
 		return CreateCareLogEntry409JSONResponse(errBabyNotHome), nil
@@ -124,6 +110,77 @@ func (s *Server) CreateCareLogEntry(ctx context.Context, req CreateCareLogEntryR
 		return nil, err
 	}
 	return CreateCareLogEntry201JSONResponse(careEntryOut(e)), nil
+}
+
+func entryIn(b CareLogEntryInput) carelog.NewEntry {
+	in := carelog.NewEntry{ChildID: b.ChildId, Kind: string(b.Kind), StartedAt: b.StartedAt, EndedAt: b.EndedAt, Note: b.Note}
+	if b.FeedMethod != nil {
+		v := string(*b.FeedMethod)
+		in.FeedMethod = &v
+	}
+	if b.Diaper != nil {
+		v := string(*b.Diaper)
+		in.Diaper = &v
+	}
+	if b.AmountMl != nil {
+		v := int16(*b.AmountMl)
+		in.AmountMl = &v
+	}
+	return in
+}
+
+var (
+	errNoCareEntry  = Error{Code: "not_found", Message: "no such care log entry"}
+	errCareKindKept = Error{Code: "kind_changed", Message: "an entry keeps its kind; delete it and log a new one"}
+)
+
+func (s *Server) UpdateCareLogEntry(ctx context.Context, req UpdateCareLogEntryRequestObject) (UpdateCareLogEntryResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return UpdateCareLogEntry401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return UpdateCareLogEntry404JSONResponse(errNoMember), nil
+	case !carePerson(m).CanUse():
+		return UpdateCareLogEntry403JSONResponse(errNoCareLogAccess), nil
+	}
+	e, err := carelog.UpdateEntry(ctx, s.pool, familyID, carePerson(m), req.EntryId, entryIn(*req.Body), s.now(ctx))
+	switch {
+	case errors.Is(err, carelog.ErrNoEntry):
+		return UpdateCareLogEntry404JSONResponse(errNoCareEntry), nil
+	case errors.Is(err, carelog.ErrKindChanged):
+		return UpdateCareLogEntry400JSONResponse(errCareKindKept), nil
+	case errors.Is(err, carelog.ErrMissingDetail):
+		return UpdateCareLogEntry400JSONResponse(errCareLogDetail), nil
+	case errors.Is(err, carelog.ErrBadTimes):
+		return UpdateCareLogEntry400JSONResponse(errCareLogTimes), nil
+	case err != nil:
+		return nil, err
+	}
+	return UpdateCareLogEntry200JSONResponse(careEntryOut(e)), nil
+}
+
+func (s *Server) DeleteCareLogEntry(ctx context.Context, req DeleteCareLogEntryRequestObject) (DeleteCareLogEntryResponseObject, error) {
+	familyID, m, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return DeleteCareLogEntry401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return DeleteCareLogEntry404JSONResponse(errNoMember), nil
+	case !carePerson(m).CanUse():
+		return DeleteCareLogEntry403JSONResponse(errNoCareLogAccess), nil
+	}
+	switch err := carelog.DeleteEntry(ctx, s.pool, familyID, carePerson(m), req.EntryId, s.now(ctx)); {
+	case errors.Is(err, carelog.ErrNoEntry):
+		return DeleteCareLogEntry404JSONResponse(errNoCareEntry), nil
+	case err != nil:
+		return nil, err
+	}
+	return DeleteCareLogEntry204Response{}, nil
 }
 
 func (s *Server) ListCareLogEntries(ctx context.Context, req ListCareLogEntriesRequestObject) (ListCareLogEntriesResponseObject, error) {
@@ -143,7 +200,11 @@ func (s *Server) ListCareLogEntries(ctx context.Context, req ListCareLogEntriesR
 		v := string(*req.Params.Kind)
 		k = &v
 	}
-	rows, sum, err := carelog.ListEntries(ctx, s.pool, familyID, carePerson(m), k, s.now(ctx))
+	days := 0
+	if req.Params.Days != nil {
+		days = *req.Params.Days
+	}
+	rows, sum, err := carelog.ListEntries(ctx, s.pool, familyID, carePerson(m), k, days, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}

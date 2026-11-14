@@ -89,6 +89,15 @@ func (s *seeder) lab(sub subject, owner uuid.UUID, visibility, kind string, take
 	})
 }
 
+func (s *seeder) growth(child uuid.UUID, on time.Time, kg, cm float64, headCm *float64) {
+	if s.err != nil {
+		return
+	}
+	_, s.err = s.q.CreateGrowthMeasurement(s.ctx, store.CreateGrowthMeasurementParams{
+		FamilyID: s.fam, ChildID: child, MeasuredOn: on, WeightKg: kg, HeightCm: cm, HeadCm: headCm,
+	})
+}
+
 // scheduledDose is a dose that is not given yet; the passport lists it as due
 // or upcoming from its due date.
 func (s *seeder) scheduledDose(sub subject, vaccine, dose string, dueOn time.Time) {
@@ -208,8 +217,10 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.careTeam("birth_clinic", "Bayside Birth Center", nil, ptr("Boston, MA"))
 	s.lab(parent(aisha), aisha, "family", "gbs", born.AddDate(0, 0, -25), `{"result": "negative"}`)
 	s.lab(childOf(leo), aisha, "family", "newborn_screen", born.AddDate(0, 0, 1), `{"result": "normal", "hearing": "pass"}`)
-	s.lab(childOf(leo), aisha, "family", "growth", born.AddDate(0, 0, 30),
-		`{"weight_kg": 4.6, "length_cm": 55.0, "head_cm": 37.5}`)
+	// Birth, the two-week check and the one-month visit, so the growth chart has a line.
+	s.growth(leo, born, 3.4, 50.5, ptr(34.5))
+	s.growth(leo, born.AddDate(0, 0, 14), 3.6, 52.0, ptr(35.5))
+	s.growth(leo, born.AddDate(0, 0, 30), 4.6, 55.0, ptr(37.5))
 	s.vaccine(parent(aisha), "tdap", born.AddDate(0, 0, -70))
 	s.vaccine(parent(marcus), "tdap", born.AddDate(0, 0, -40))
 	s.vaccine(childOf(leo), "hepb", born)
@@ -316,7 +327,7 @@ func seedBabyCare(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus
 		{Kind: "feed", StartedAt: at(17, 15), FeedMethod: method("bottle_formula"), AmountMl: ml(100), AuthorMemberID: linda},
 		{Kind: "diaper", StartedAt: at(17, 40), Diaper: method("wet"), AuthorMemberID: linda},
 		{Kind: "sleep", StartedAt: at(18, 0), EndedAt: span(18, 0, 60), AuthorMemberID: linda},
-		{Kind: "feed", StartedAt: at(20, 30), EndedAt: span(20, 30, 25), FeedMethod: method("breast_left"), AuthorMemberID: aisha},
+		{Kind: "feed", StartedAt: at(20, 30), EndedAt: span(20, 30, 25), FeedMethod: method("breast_both"), AuthorMemberID: aisha},
 		{Kind: "diaper", StartedAt: at(21, 0), Diaper: method("both"), AuthorMemberID: aisha},
 		{Kind: "sleep", StartedAt: at(21, 15), EndedAt: span(21, 15, 150), AuthorMemberID: aisha},
 	}
@@ -355,38 +366,52 @@ func seedBabyCare(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus
 // (two night feeds a night this week, one the week before). The seeded thank-you
 // note from Aisha names one of those nights. Nothing is later than now.
 func seedCareHistory(ctx context.Context, q *store.Queries, fam, leo, aisha, marcus uuid.UUID, today time.Time) error {
-	method := func(v string) *string { return &v }
-	add := func(daysAgo, h, m int, kind string, author uuid.UUID) error {
-		e := store.CreateCareLogEntryParams{
-			FamilyID: fam, ChildID: leo, AuthorMemberID: author, Kind: kind,
-			StartedAt: today.AddDate(0, 0, -daysAgo).Add(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute),
-		}
-		switch kind {
-		case "feed":
-			e.FeedMethod = method("breast_left")
-		case "diaper":
-			e.Diaper = method("wet")
-		}
-		_, err := q.CreateCareLogEntry(ctx, e)
-		return err
+	at := func(daysAgo, h, m int) time.Time {
+		return today.AddDate(0, 0, -daysAgo).Add(time.Duration(h)*time.Hour + time.Duration(m)*time.Minute)
 	}
 	type row struct {
 		h, m   int
 		kind   string
 		author uuid.UUID
+		detail string // feed method or diaper content
+		ml     int16  // bottle amount
 	}
 	for d := 2; d <= 13; d++ {
 		rows := []row{
-			{8, 0, "feed", aisha}, {13, 0, "feed", aisha}, {18, 30, "feed", marcus},
-			{8, 30, "diaper", aisha}, {14, 0, "diaper", aisha}, {19, 0, "diaper", marcus},
+			{8, 0, "feed", aisha, "breast_left", 0}, {13, 0, "feed", aisha, "breast_right", 0}, {18, 30, "feed", marcus, "bottle_breast_milk", 90},
+			{8, 30, "diaper", aisha, "wet", 0}, {14, 0, "diaper", aisha, "dirty", 0}, {19, 0, "diaper", marcus, "wet", 0},
 		}
 		if d <= 6 {
-			rows = append(rows, row{23, 30, "feed", aisha}, row{1, 30, "feed", marcus}, row{4, 30, "feed", marcus})
+			rows = append(rows, row{23, 30, "feed", aisha, "breast_both", 0}, row{1, 30, "feed", marcus, "bottle_breast_milk", 90}, row{4, 30, "feed", marcus, "bottle_formula", 100})
 		} else {
-			rows = append(rows, row{23, 30, "feed", aisha}, row{2, 0, "feed", aisha}, row{4, 30, "feed", marcus})
+			rows = append(rows, row{23, 30, "feed", aisha, "breast_both", 0}, row{2, 0, "feed", aisha, "breast_left", 0}, row{4, 30, "feed", marcus, "bottle_formula", 100})
 		}
 		for _, r := range rows {
-			if err := add(d, r.h, r.m, r.kind, r.author); err != nil {
+			e := store.CreateCareLogEntryParams{FamilyID: fam, ChildID: leo, AuthorMemberID: r.author, Kind: r.kind, StartedAt: at(d, r.h, r.m)}
+			detail := r.detail
+			if r.kind == "feed" {
+				e.FeedMethod = &detail
+			} else {
+				e.Diaper = &detail
+			}
+			if r.ml > 0 {
+				e.AmountMl = pgtype.Int2{Int16: r.ml, Valid: true}
+			}
+			if _, err := q.CreateCareLogEntry(ctx, e); err != nil {
+				return err
+			}
+		}
+		// Naps and the night's stretches between feeds, a few minutes different each day,
+		// so the week view shows a pattern. Sleeps are nobody's work: the load map and
+		// thank-you suggestions skip them.
+		jit := (d * 7) % 20
+		for _, sl := range []struct{ h, m, mins int }{{0, 0, 80}, {2, 10, 130}, {5, 0, 150}, {9, 0, 100}, {13, 30, 85}, {15, 40, 45}, {19, 30, 225}} {
+			start := at(d, sl.h, sl.m+jit)
+			e := store.CreateCareLogEntryParams{
+				FamilyID: fam, ChildID: leo, AuthorMemberID: aisha, Kind: "sleep", StartedAt: start,
+				EndedAt: pgtype.Timestamptz{Time: start.Add(time.Duration(sl.mins-jit/2) * time.Minute), Valid: true},
+			}
+			if _, err := q.CreateCareLogEntry(ctx, e); err != nil {
 				return err
 			}
 		}
@@ -422,7 +447,10 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	s.careTeam("pediatrician", "Dr. Nadia Rahman", ptr("(720) 555-0147"), ptr("Foothills Children's Clinic, Denver, CO"))
 	s.careTeam("primary_care", "Dr. Oliver Grant", ptr("(720) 555-0102"), nil)
 	s.lab(childOf(ava), rachel, "family", "lead_screen", born.AddDate(2, 0, 3), `{"blood_lead_ug_dl": 1.2}`)
-	s.lab(childOf(ava), rachel, "family", "growth", born.AddDate(4, 0, 2), `{"weight_kg": 16.3, "height_cm": 102.5}`)
+	// The yearly well-child visits.
+	for i, g := range []struct{ kg, cm float64 }{{3.3, 50.0}, {9.4, 75.0}, {12.2, 87.0}, {14.3, 96.0}, {16.3, 102.5}} {
+		s.growth(ava, born.AddDate(i, 0, 2), g.kg, g.cm, nil)
+	}
 	for _, v := range []struct {
 		name   string
 		months int

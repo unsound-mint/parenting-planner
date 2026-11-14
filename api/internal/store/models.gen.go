@@ -219,6 +219,7 @@ type GrowthMeasurement struct {
 	MeasuredOn time.Time
 	WeightKg   float64
 	HeightCm   float64
+	HeadCm     *float64
 }
 
 type Handoff struct {
