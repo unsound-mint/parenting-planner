@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/health"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -54,10 +55,14 @@ type Person struct {
 	BirthDate *time.Time
 	IsViewer  bool
 	Labs      []store.LabResult // newest first
-	Vaccines  []Vaccine         // by date, given or due
-	Allergies []store.Allergy
-	Growth    []store.GrowthMeasurement // child only, oldest first
-	CareTeam  []store.CareTeam
+	// Screenings are lab records without a single value, newest first.
+	Screenings []store.LabResult
+	// ScreeningOptions is the catalog for this person's stage, to log against.
+	ScreeningOptions []health.ScreeningGroup
+	Vaccines         []Vaccine // by date, given or due
+	Allergies        []store.Allergy
+	Growth           []store.GrowthMeasurement // child only, oldest first
+	CareTeam         []store.CareTeam
 }
 
 func (p Person) IsChild() bool { return p.ChildID != uuid.Nil }
@@ -87,6 +92,14 @@ func Read(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, tod
 		return nil, err
 	}
 	labs, err := q.ListPassportLabsVisibleToParent(ctx, store.ListPassportLabsVisibleToParentParams{FamilyID: familyID, ViewerID: viewer})
+	if err != nil {
+		return nil, err
+	}
+	screenings, err := q.ListPassportScreeningsVisibleToParent(ctx, store.ListPassportScreeningsVisibleToParentParams{FamilyID: familyID, ViewerID: viewer})
+	if err != nil {
+		return nil, err
+	}
+	family, err := q.GetFamily(ctx, familyID)
 	if err != nil {
 		return nil, err
 	}
@@ -123,6 +136,18 @@ func Read(ctx context.Context, q *store.Queries, familyID, viewer uuid.UUID, tod
 		if i, ok := at[subject(l.SubjectMemberID, l.SubjectChildID)]; ok {
 			people[i].Labs = append(people[i].Labs, l)
 		}
+	}
+	for _, l := range screenings {
+		if i, ok := at[subject(l.SubjectMemberID, l.SubjectChildID)]; ok {
+			people[i].Screenings = append(people[i].Screenings, l)
+		}
+	}
+	for i := range people {
+		p := &people[i]
+		p.ScreeningOptions = health.ScreeningOptions(health.ScreeningSubject{
+			Child: p.IsChild(), Mother: p.Role == "mother", Stage: family.Stage,
+			AgeMonths: ageMonths(p.BirthDate, today),
+		})
 	}
 	for _, a := range allergies {
 		if i, ok := at[subject(a.SubjectMemberID, a.SubjectChildID)]; ok {
@@ -174,6 +199,7 @@ func assemble(viewer uuid.UUID, members []store.Member, children []store.Child, 
 	}
 	for i := range out {
 		out[i].Labs = []store.LabResult{}
+		out[i].Screenings = []store.LabResult{}
 		out[i].Vaccines = []Vaccine{}
 		out[i].Allergies = []store.Allergy{}
 		out[i].Growth = []store.GrowthMeasurement{}
@@ -274,4 +300,16 @@ func careTeamSubjects(c store.CareTeam, motherID uuid.UUID, children []store.Chi
 		return ids
 	}
 	return nil
+}
+
+// ageMonths is whole months from birth to today; 0 without a birth date.
+func ageMonths(birth *time.Time, today time.Time) int {
+	if birth == nil {
+		return 0
+	}
+	m := (today.Year()-birth.Year())*12 + int(today.Month()-birth.Month())
+	if today.Day() < birth.Day() {
+		m--
+	}
+	return max(m, 0)
 }

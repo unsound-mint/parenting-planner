@@ -83,3 +83,21 @@ VALUES (@family_id, @role, @name, @clinic, @phone, @subject_member_id, @subject_
 
 -- name: DeleteFamily :exec
 DELETE FROM families WHERE id = $1;
+
+-- Care team rows are family data without a visibility. A row without a subject
+-- is shared by role (the family pediatrician), so any parent may change it;
+-- a psychologist is only ever the acting parent's own.
+-- name: UpdateCareTeamMember :one
+UPDATE care_team
+SET name = @name, role = @role, clinic = @clinic, phone = @phone
+WHERE id = @id AND family_id = @family_id
+  AND (@role::text <> 'psychologist' OR subject_member_id IS NOT NULL OR subject_child_id IS NOT NULL)
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL
+       OR (subject_member_id IS NULL AND subject_child_id IS NULL AND role <> 'psychologist'))
+RETURNING *;
+
+-- name: DeleteCareTeamMember :execrows
+DELETE FROM care_team
+WHERE id = @id AND family_id = @family_id
+  AND (subject_member_id = @actor_id OR subject_child_id IS NOT NULL
+       OR (subject_member_id IS NULL AND subject_child_id IS NULL AND role <> 'psychologist'));

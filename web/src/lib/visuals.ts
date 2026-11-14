@@ -185,6 +185,7 @@ export const passportIcon = {
   allergies: ShieldAlert,
   growth: Ruler,
   careTeam: ContactRound,
+  screenings: ClipboardCheck,
 } satisfies Record<string, LucideIcon>;
 
 /** Confirmed is a solid shield, suspected a dashed question mark: two shapes, not two colours. */
