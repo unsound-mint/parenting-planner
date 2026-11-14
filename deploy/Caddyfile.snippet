@@ -1,10 +1,21 @@
 # Append to /etc/caddy/Caddyfile on musicroombot, then: sudo systemctl reload caddy
+# Check the file first with: caddy validate --config /etc/caddy/Caddyfile
 parenting.unsoundmint.com {
-	encode zstd gzip
+	# The live update stream (GET /api/members/{id}/live, server-sent events) must not be
+	# compressed or buffered, or no event arrives until the buffer fills. It gets its own
+	# handler with no `encode`, and `flush_interval -1` sends every write to the browser at once.
+	@live path_regexp live ^/api/members/[^/]+/live$
+	handle @live {
+		reverse_proxy 127.0.0.1:8792 {
+			flush_interval -1
+		}
+	}
 	handle /api/* {
+		encode zstd gzip
 		reverse_proxy 127.0.0.1:8792
 	}
 	handle {
+		encode zstd gzip
 		reverse_proxy 127.0.0.1:8790
 	}
 }

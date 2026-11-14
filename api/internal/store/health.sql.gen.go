@@ -12,6 +12,24 @@ import (
 	"github.com/google/uuid"
 )
 
+const childInFamily = `-- name: ChildInFamily :one
+
+SELECT EXISTS (SELECT 1 FROM children WHERE id = $1 AND family_id = $2)
+`
+
+type ChildInFamilyParams struct {
+	ChildID  uuid.UUID
+	FamilyID uuid.UUID
+}
+
+// Logging health records (POST /members/{memberId}/immunizations, ...).
+func (q *Queries) ChildInFamily(ctx context.Context, arg ChildInFamilyParams) (bool, error) {
+	row := q.db.QueryRow(ctx, childInFamily, arg.ChildID, arg.FamilyID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const createAllergy = `-- name: CreateAllergy :one
 INSERT INTO allergies (family_id, subject_member_id, subject_child_id, owner_member_id, visibility, substance, certainty, reaction, noted_on)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -421,7 +439,7 @@ func (q *Queries) ListImmunizations(ctx context.Context, familyID uuid.UUID) ([]
 const listLabResultsVisibleToParent = `-- name: ListLabResultsVisibleToParent :many
 SELECT id, family_id, subject_member_id, subject_child_id, owner_member_id, visibility, kind, taken_on, result, note, created_at, name, value, unit, ref_low, ref_high FROM lab_results
 WHERE family_id = $1
-  AND (owner_member_id = $2 OR visibility IN ('partner', 'family'))
+  AND (subject_child_id IS NOT NULL OR owner_member_id = $2 OR visibility IN ('partner', 'family'))
 ORDER BY taken_on DESC
 `
 
@@ -430,7 +448,8 @@ type ListLabResultsVisibleToParentParams struct {
 	ViewerID uuid.UUID
 }
 
-// Mirrors access.CanParentRead: own records, plus records shared with the partner or the family.
+// Mirrors access.CanParentReadHealthRecord: records about the child, own
+// records, plus records shared with the partner or the family.
 func (q *Queries) ListLabResultsVisibleToParent(ctx context.Context, arg ListLabResultsVisibleToParentParams) ([]LabResult, error) {
 	rows, err := q.db.Query(ctx, listLabResultsVisibleToParent, arg.FamilyID, arg.ViewerID)
 	if err != nil {
@@ -551,4 +570,40 @@ func (q *Queries) ListScheduledDoses(ctx context.Context, familyID uuid.UUID) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const nextScheduledDose = `-- name: NextScheduledDose :one
+SELECT vs.dose FROM vaccine_schedule vs
+WHERE vs.family_id = $1
+  AND vs.vaccine = $2
+  AND vs.subject_member_id IS NOT DISTINCT FROM $3::uuid
+  AND vs.subject_child_id IS NOT DISTINCT FROM $4::uuid
+  AND NOT EXISTS (
+    SELECT 1 FROM immunizations i
+    WHERE i.family_id = vs.family_id AND i.vaccine = vs.vaccine AND i.dose = vs.dose
+      AND i.subject_member_id IS NOT DISTINCT FROM vs.subject_member_id
+      AND i.subject_child_id IS NOT DISTINCT FROM vs.subject_child_id)
+ORDER BY vs.due_on
+LIMIT 1
+`
+
+type NextScheduledDoseParams struct {
+	FamilyID        uuid.UUID
+	Vaccine         string
+	SubjectMemberID uuid.NullUUID
+	SubjectChildID  uuid.NullUUID
+}
+
+// The earliest scheduled dose of a vaccine for one subject that no given dose
+// has matched yet (same subject, vaccine and dose label, as the passport matches).
+func (q *Queries) NextScheduledDose(ctx context.Context, arg NextScheduledDoseParams) (string, error) {
+	row := q.db.QueryRow(ctx, nextScheduledDose,
+		arg.FamilyID,
+		arg.Vaccine,
+		arg.SubjectMemberID,
+		arg.SubjectChildID,
+	)
+	var dose string
+	err := row.Scan(&dose)
+	return dose, err
 }

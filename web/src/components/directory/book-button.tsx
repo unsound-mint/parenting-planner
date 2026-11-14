@@ -29,7 +29,7 @@ export function BookButton({
 
   if (requested || sent) {
     return (
-      <p role="status" className={cn("flex min-h-11 items-center justify-center gap-2 rounded-lg bg-status-up-soft px-3 text-label font-semibold text-status-up", compact ? "w-full md:w-36" : "w-full")}>
+      <p role="status" className={cn("flex min-h-11 items-center justify-center gap-2 rounded-lg bg-status-up-soft px-3 text-label font-semibold text-status-up", compact ? "w-full @2xl:w-36" : "w-full")}>
         <Check className="size-4" aria-hidden />
         Requested
       </p>
@@ -54,7 +54,7 @@ export function BookButton({
   }
 
   return (
-    <Button size="lg" onClick={request} disabled={pending} className={cn("h-11", compact ? "w-full md:w-36" : "w-full")}>
+    <Button size="lg" onClick={request} disabled={pending} className={cn("h-11", compact ? "w-full @2xl:w-36" : "w-full")}>
       <Send aria-hidden />
       {pending ? "Sending..." : "Request a visit"}
     </Button>

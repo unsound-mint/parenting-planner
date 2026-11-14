@@ -1,6 +1,7 @@
 import type { CalendarEvent, Family, Parent } from "@/lib/api/types";
 import { dayKey, formatClock } from "@/lib/format";
 import { addDays, todayKey } from "@/lib/schedule";
+import { mockNow, shiftedNow } from "@/lib/clock";
 import { uid } from "./fixtures/dates";
 
 // One demo timeline for every preview mock. A fixture that mentions the prenatal
@@ -36,9 +37,16 @@ export function easternAt(day: string, hhmm: string): string {
 }
 
 /** Eastern calendar day n days from today. */
-export const dayOf = (n: number) => addDays(todayKey(), n);
+export const dayOf = (n: number) => addDays(todayKey(mockNow()), n);
 /** UTC instant for an Eastern clock time n days from today. */
 export const at = (n: number, hhmm: string) => easternAt(dayOf(n), hhmm);
+
+/**
+ * Like at(), but fixed to the real calendar: "Skip a week" moves the family clock
+ * past it instead of dragging it along. The real seed stores appointments at fixed
+ * dates too, so after a skip the visit is behind you and the after-visit view shows.
+ */
+const atFixed = (n: number, hhmm: string) => easternAt(addDays(todayKey(shiftedNow(0)), n), hhmm);
 
 type Who = "mother" | "partner";
 type Spec = {
@@ -64,6 +72,63 @@ export const events = {
   anatomyScan: { id: uid(601), kind: "appointment", title: "Anatomy follow-up scan", day: 19, from: "14:00", to: "15:00", owner: "mother", attendees: ["mother"], location: CLINIC },
 } satisfies Record<string, Spec>;
 
+// Older stages. The real seed (api/internal/demo/families.go) gives the planning
+// family Maya and Daniel (Dr. Okafor, obstetrician; Dr. Brooks, primary care at
+// Cedar Park Family Medicine) and the preschool family Rachel and Tom with Ava,
+// 4 (Dr. Rahman, Foothills Children's Clinic). Their calendars and plans follow
+// these two sets, never the pregnancy family's.
+export type OlderStage = "planning" | "child";
+
+/** Which older-stage mock set a family gets; undefined for pregnancy, newborn and anything else. */
+export function olderStage(family: Pick<Family, "stage">): OlderStage | undefined {
+  if (family.stage === "planning" || family.stage === "trying") return "planning";
+  if (family.stage === "toddler" || family.stage === "preschool" || family.stage === "school_age") return "child";
+  return undefined;
+}
+
+const BROOKS = "Cedar Park Family Medicine";
+const FOOTHILLS = "Foothills Children's Clinic";
+
+export const planningEvents = {
+  mmrShot: { id: uid(630), kind: "appointment", title: "MMR shot with Dr. Brooks", day: 2, from: "08:30", to: "09:00", owner: "mother", attendees: ["mother"], location: BROOKS },
+  budgetTalk: { id: uid(631), kind: "reminder", title: "Talk about budget, leave and who does what", day: 4, from: "19:30", to: "20:30", owner: "partner", attendees: ["mother", "partner"] },
+  preconceptionVisit: { id: uid(632), kind: "appointment", title: "Preconception visit with Dr. Okafor", day: 9, from: "10:00", to: "10:45", owner: "mother", attendees: ["mother", "partner"] },
+} satisfies Record<string, Spec>;
+
+export const childEvents = {
+  parentEvening: { id: uid(635), kind: "class", title: "Parent evening at preschool", day: 3, from: "18:00", to: "19:00", attendees: ["mother", "partner"] },
+  checkup: { id: uid(636), kind: "appointment", title: "4-year check-up with Dr. Rahman", day: 5, from: "09:00", to: "09:45", owner: "mother", attendees: ["mother"], location: FOOTHILLS },
+  schoolTour: { id: uid(637), kind: "reminder", title: "Tour Aspen Hill Elementary", day: 8, from: "16:30", to: "17:30", owner: "partner", attendees: ["mother", "partner"] },
+} satisfies Record<string, Spec>;
+
+type TaskSpec = { n: number; title: string; day: number; owner: Who };
+export const planningTaskPlan = {
+  budgetTalk: { n: 5, title: planningEvents.budgetTalk.title, day: 4, owner: "partner" },
+  history: { n: 1, title: "Write down your family health history", day: 6, owner: "mother" },
+} satisfies Record<string, TaskSpec>;
+export const childTaskPlan = {
+  cutoff: { n: 1, title: "Check the kindergarten cutoff date for your state", day: 3, owner: "mother" },
+  tour: { n: 2, title: childEvents.schoolTour.title, day: 8, owner: "partner" },
+} satisfies Record<string, TaskSpec>;
+
+/** The calendar and Today of an older-stage family, in day order. */
+export function olderWeek(stage: OlderStage, c: Couple, familyId: string): CalendarEvent[] {
+  const task = (t: TaskSpec): CalendarEvent => ({
+    id: `mock-task-${stage}-${t.n}`,
+    kind: "task",
+    title: t.title,
+    startsAt: `${dayOf(t.day)}T00:00:00Z`,
+    allDay: true,
+    ownerId: c[t.owner].id,
+    attendeeIds: [c[t.owner].id],
+    visibility: "family",
+    taskId: taskId(familyId, t.n),
+  });
+  return stage === "planning"
+    ? [calendarEvent(planningEvents.mmrShot, c), calendarEvent(planningEvents.budgetTalk, c), task(planningTaskPlan.history), calendarEvent(planningEvents.preconceptionVisit, c)]
+    : [calendarEvent(childEvents.parentEvening, c), task(childTaskPlan.cutoff), calendarEvent(childEvents.checkup, c), calendarEvent(childEvents.schoolTour, c)];
+}
+
 /** Tasks the calendar and Today also show. `n` is the task's position in the tasks fixture seed. */
 export const taskPlan = {
   pediatrician: { n: 2, title: "Choose a pediatrician", day: 2, owner: "mother" },
@@ -79,6 +144,15 @@ export const careTeam = {
   psychologist: { id: "7c0f3b8e-5d2a-4e61-9a43-2b8f6d1c0e57", name: "Dr. Maya Ellison (demo)", credentials: "PhD, licensed clinical psychologist", focus: "Perinatal and postpartum mental health", clinic: "Harbor Counseling" },
 };
 
+/** Where the family plans to give birth. The real seed has no hospital yet. travelMinutes is the usual drive from home. */
+export const birthHospital = {
+  name: "St. Anne's Birth Center",
+  address: "1200 Harbor Road, Oakland, CA 94607",
+  phone: "555-0188",
+  deskPhone: "555-0190",
+  travelMinutes: 22,
+};
+
 /** A previous visit that already happened, for questions carried over. */
 export const lastVisit = { id: uid(609), day: -14 };
 
@@ -90,8 +164,8 @@ export function calendarEvent(spec: Spec, c: Couple, extra: Partial<CalendarEven
     id: spec.id,
     kind: spec.kind,
     title: spec.title,
-    startsAt: at(spec.day, spec.from),
-    ...(spec.to ? { endsAt: at(spec.day, spec.to) } : {}),
+    startsAt: (spec.kind === "appointment" ? atFixed : at)(spec.day, spec.from),
+    ...(spec.to ? { endsAt: (spec.kind === "appointment" ? atFixed : at)(spec.day, spec.to) } : {}),
     allDay: false,
     ...(spec.owner ? { ownerId: id(spec.owner) } : {}),
     attendeeIds: spec.attendees.map(id),
