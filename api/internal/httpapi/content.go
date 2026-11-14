@@ -117,6 +117,13 @@ func guideOut(e content.Entry) Guide {
 	if e.Minutes > 0 {
 		g.Minutes = &e.Minutes
 	}
+	if e.RuleID != "" {
+		id := e.RuleID
+		g.RuleId = &id
+	}
+	if e.Action != nil {
+		g.Action = guideActionOut(e.Action)
+	}
 	for _, st := range e.Stages {
 		g.Stages = append(g.Stages, Stage(st))
 	}
@@ -134,4 +141,25 @@ func guideOut(e content.Entry) Guide {
 		g.UnlocksAtWeek = &unlock
 	}
 	return g
+}
+
+func guideActionOut(a *content.Action) *GuideAction {
+	out := GuideAction{Kind: GuideActionKind(a.Kind)}
+	if a.Label != "" {
+		out.Label = &a.Label
+	}
+	if a.Title != "" {
+		out.Title = &a.Title
+	}
+	if a.Question != "" {
+		out.Question = &a.Question
+	}
+	if a.Shift != nil {
+		days := make([]Weekday, 0, len(a.Shift.Days))
+		for _, d := range a.Shift.Days {
+			days = append(days, Weekday(d))
+		}
+		out.Shift = &ShiftSuggestion{Title: a.Shift.Title, Days: days, StartTime: a.Shift.StartTime, EndTime: a.Shift.EndTime}
+	}
+	return &out
 }
