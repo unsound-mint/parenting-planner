@@ -17,7 +17,7 @@ type Item = {
   id: string;
   icon: LucideIcon;
   title: string;
-  /** When, in the family's weeks. */
+  /** When, in the family's weeks: the app's suggestion, not a guideline. Empty when a task date says it. */
   when: string;
   detail: string;
   state: { done: boolean; note: string; href?: string };
@@ -44,15 +44,17 @@ export function BirthPrep({
   tasks: Task[];
   birthParent: string;
 }) {
+  const classTask = findTask(tasks, /class/i);
   const bagHasCarSeat = tasks.some((t) => t.kind === "hospital_bag" && /car seat/i.test(t.title));
   const items: Item[] = [
     {
       id: "class",
       icon: GraduationCap,
       title: "Take a childbirth class together",
-      when: "wk 28–34",
+      // The task's own date wins over the suggested weeks, so the row never shows two timings.
+      when: classTask?.dueOn ? "" : "wk 28–34",
       detail: "Breathing, positions and pain relief, learned before the day and practised as a pair.",
-      state: taskState(findTask(tasks, /class/i), memberId, "Add it to your plan"),
+      state: taskState(classTask, memberId, "Add it to your plan"),
     },
     {
       id: "preferences",
@@ -68,7 +70,7 @@ export function BirthPrep({
       icon: Baby,
       title: "Perineal massage, if it feels right",
       when: "last 4 weeks",
-      detail: `For a first vaginal birth, massage done for at least the last four weeks of pregnancy meant fewer tears needing stitches and fewer episiotomies. ${birthParent}'s choice; ask the midwife or OB how.`,
+      detail: `Done for at least the last four weeks of pregnancy, it meant less perineal trauma needing stitches, mostly fewer episiotomies, for a first vaginal birth. Tears were no different. ${birthParent}'s choice; ask the midwife or OB how.`,
       state: { done: false, note: "Optional" },
       sources: [LABOR_SOURCES.cochranePerineal],
     },

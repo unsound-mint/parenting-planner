@@ -153,7 +153,7 @@ export function BreathingGuide({ birthParent, isBirthParent, week }: { birthPare
   const toWeek36 = week != null && week < 36 ? 36 - week : 0;
 
   return (
-    <SoftCard as="section" aria-labelledby="breathe-title" className="@4xl:col-span-2">
+    <SoftCard as="section" aria-labelledby="breathe-title" className="rise @4xl:col-span-2" style={{ "--i": 3 } as React.CSSProperties}>
       <div className="grid gap-8 @3xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         {/* The stage: a soft blob with the illustrations' face, sleeping eyes. */}
         <div className="flex flex-col items-center">
@@ -250,7 +250,7 @@ export function BreathingGuide({ birthParent, isBirthParent, week }: { birthPare
           </p>
 
           <p className="text-caption text-muted-foreground">
-            What the evidence says: Cochrane reviews found that relaxation, massage and continuous support from someone you trust may ease labor pain or help the birth go well. The studies are small and the evidence is low quality, so use what helps you.
+            What the evidence says: Cochrane reviews found that relaxation, massage and continuous support from someone you trust may ease labor pain or help the birth go well. The reviews rate the evidence as low quality, so use what helps you.
           </p>
           <SourceLine
             sources={[

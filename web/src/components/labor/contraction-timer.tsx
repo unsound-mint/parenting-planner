@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Lock, Phone, RotateCcw, Settings2, Undo2 } from "lucide-react";
-import { checkRule, clock, LABOR_SOURCES, NICHD_RULE, pretermPattern, urgentPattern, withIntervals, type CallRule } from "@/lib/labor";
+import { checkRule, clock, FORGOTTEN_MS, LABOR_SOURCES, MIN_COUNTED_MS, NICHD_RULE, PRETERM_BEFORE_WEEK, urgentPattern, withIntervals, type CallRule } from "@/lib/labor";
 import { cn } from "@/lib/utils";
 import { SoftCard } from "@/components/joy/soft-card";
 import { SourceLine } from "@/components/joy/source-line";
@@ -41,7 +41,8 @@ export function ContractionTimer({
   const { list, running, tap, undo, clear, loaded, rule, customRule, setRule } = useContractions(familyId);
   const last = list.at(-1);
   const now = useNow();
-  useWakeLock(running || (last != null && now - last.start < ACTIVE_MS));
+  const forgotten = running && now - last!.start > FORGOTTEN_MS;
+  useWakeLock((running && !forgotten) || (!running && last != null && now - last.start < ACTIVE_MS));
 
   const timed = withIntervals(list).reverse();
   const done = timed.filter((c) => c.duration != null);
@@ -50,7 +51,7 @@ export function ContractionTimer({
 
   return (
     <>
-      <SoftCard tone="sun" hero as="section" aria-labelledby="timer-title" className="@4xl:col-span-2">
+      <SoftCard tone="sun" hero as="section" aria-labelledby="timer-title" className="rise @4xl:col-span-2" style={{ "--i": 1 } as React.CSSProperties}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 id="timer-title" className="text-headline">
             Contraction timer
@@ -62,7 +63,7 @@ export function ContractionTimer({
         </div>
 
         <div className="mt-5 grid gap-6 @3xl:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:mt-7">
-          <TapButton running={running} startedAt={running ? last!.start : undefined} now={now} onTap={tap} disabled={!loaded} />
+          <TapButton forgotten={forgotten} running={running} startedAt={running ? last!.start : undefined} now={now} onTap={tap} disabled={!loaded} />
 
           <div className="flex min-w-0 flex-col gap-5">
             <dl className="grid grid-cols-3 gap-3">
@@ -134,7 +135,7 @@ function Figure({ label, value }: { label: string; value: string }) {
  * Started / Ended. The two faces crossfade (opacity only) and the press scales,
  * both as transitions, so a fast double tap retargets instead of restarting.
  */
-function TapButton({ running, startedAt, now, onTap, disabled }: { running: boolean; startedAt?: number; now: number; onTap: () => void; disabled: boolean }) {
+function TapButton({ running, forgotten, startedAt, now, onTap, disabled }: { running: boolean; forgotten: boolean; startedAt?: number; now: number; onTap: () => void; disabled: boolean }) {
   return (
     <button
       type="button"
@@ -152,7 +153,7 @@ function TapButton({ running, startedAt, now, onTap, disabled }: { running: bool
       <span className={cn("relative col-start-1 row-start-1 flex flex-col items-center gap-1 text-me transition-opacity duration-(--duration-base) ease-(--ease-out)", !running && "opacity-0")} aria-hidden={!running}>
         <span className="font-mono text-display tabular-nums">{startedAt != null ? clock(now - startedAt) : "0:00"}</span>
         <span className="text-title">Ended</span>
-        <span className="text-label font-normal text-ink-2">Tap when it eases off</span>
+        <span className="text-label font-normal text-ink-2">{forgotten ? "Forgot to tap? Tap, then Undo last tap" : "Tap when it eases off"}</span>
       </span>
       <span className="sr-only">{running ? "Contraction running. Tap when it ends." : "Tap when a contraction starts."}</span>
     </button>
@@ -207,25 +208,25 @@ function CallCard({
 }) {
   const [editing, setEditing] = useState(false);
   const check = checkRule(list, rule, now);
-  const preterm = pretermPattern(list, week, now);
+  const preterm = week != null && week < PRETERM_BEFORE_WEEK;
   const urgent = urgentPattern(list, now);
-  const callNow = check.matches || preterm;
+  const callNow = check.matches;
   const progress = Math.min(check.runMin / rule.forMin, 1);
 
   return (
+    // Not inside a rise: this card holds the Urgent help link, which never animates.
     <SoftCard as="section" tone={callNow ? "leaf" : "plain"} aria-labelledby="call-title" className="flex flex-col gap-5">
       <div>
         <p className="font-mono text-caption tracking-wide text-muted-foreground uppercase">When to call</p>
         <h2 id="call-title" className="mt-1 text-title" aria-live="polite">
           {callNow ? "Time to call your provider" : check.count >= 2 ? "Not yet at your rule" : "Your rule to call"}
         </h2>
-        {preterm ? (
-          <p className="mt-2 text-body">
-            Before week 37, NICHD says regular contractions are a reason to call your provider or go to the hospital now, without waiting an hour.
+        {callNow && <p className="mt-2 text-body">The pattern you timed matches the rule below. Call and tell them what you timed.</p>}
+        {preterm && (
+          <p className="mt-2 rounded-2xl bg-sun p-3 text-label font-normal">
+            You are before week 37. NICHD says regular, frequent contractions now are a reason to call your provider or go to the hospital straight away, without waiting an hour.
           </p>
-        ) : callNow ? (
-          <p className="mt-2 text-body">The pattern you timed matches the rule below. Call and tell them what you timed.</p>
-        ) : null}
+        )}
       </div>
 
       {callNow && call && (
@@ -261,7 +262,9 @@ function CallCard({
           <div className="h-full origin-left rounded-full bg-leaf transition-transform duration-(--duration-slow) ease-(--ease-out)" style={{ transform: `scaleX(${check.count >= 2 ? progress : 0})` }} />
         </div>
         <p className="mt-1.5 font-mono text-caption text-muted-foreground">
-          {check.count >= 2 ? `${check.count} in a row · ${Math.floor(check.runMin)} of ${rule.forMin} min` : "Starts counting from the first close pair"}
+          {check.count >= 2
+            ? `${check.count} in a row · ${Math.floor(check.runMin)} of ${rule.forMin} min`
+            : `Counts from the first close pair; taps under ${MIN_COUNTED_MS / 1000} s are not counted`}
         </p>
         <SourceLine className="mt-2" sources={[LABOR_SOURCES.nichdStart]} />
       </div>

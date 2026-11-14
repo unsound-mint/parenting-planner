@@ -14,10 +14,10 @@ export const LABOR_SOURCES = {
   cdcHearHer: { title: "CDC Hear Her: Urgent maternal warning signs", url: "https://www.cdc.gov/hearher/maternal-warning-signs/index.html", checkedAt: CHECKED },
   eohuBreathing: { title: "Eastern Ontario Health Unit: Breathing techniques for labour and delivery", url: "https://eohu.ca/en/my-health/breathing-techniques-for-labour-and-delivery", checkedAt: CHECKED },
   lothian: { title: "Lothian 2011, Lamaze breathing (J Perinat Educ)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3209750/", checkedAt: CHECKED },
-  cochraneRelax: { title: "Cochrane 2018: Relaxation techniques for pain management in labour", url: "https://pubmed.ncbi.nlm.nih.gov/29589650/", checkedAt: CHECKED },
-  cochraneMassage: { title: "Cochrane 2018: Massage and other manual methods for pain in labour", url: "https://pubmed.ncbi.nlm.nih.gov/29589380/", checkedAt: CHECKED },
-  cochraneSupport: { title: "Cochrane 2017: Continuous support for women during childbirth", url: "https://pubmed.ncbi.nlm.nih.gov/28681500/", checkedAt: CHECKED },
-  cochranePerineal: { title: "Cochrane 2013: Antenatal perineal massage", url: "https://pubmed.ncbi.nlm.nih.gov/23633325/", checkedAt: CHECKED },
+  cochraneRelax: { title: "Cochrane relaxation review 2018: Relaxation techniques for pain management in labour", url: "https://pubmed.ncbi.nlm.nih.gov/29589650/", checkedAt: CHECKED },
+  cochraneMassage: { title: "Cochrane massage review 2018: Massage, reflexology and other manual methods for pain management in labour", url: "https://pubmed.ncbi.nlm.nih.gov/29589380/", checkedAt: CHECKED },
+  cochraneSupport: { title: "Cochrane support review 2017: Continuous support for women during childbirth", url: "https://pubmed.ncbi.nlm.nih.gov/28681500/", checkedAt: CHECKED },
+  cochranePerineal: { title: "Cochrane perineal massage review 2013: Antenatal perineal massage for reducing perineal trauma", url: "https://pubmed.ncbi.nlm.nih.gov/23633325/", checkedAt: CHECKED },
   nichdPain: { title: "NICHD: Pain relief during labor and delivery", url: "https://www.nichd.nih.gov/health/topics/labor-delivery/topicinfo/pain-relief", checkedAt: CHECKED },
   cdcCarSeat: { title: "CDC: Child passenger safety", url: "https://www.cdc.gov/child-passenger-safety/about/index.html", checkedAt: CHECKED },
 } satisfies Record<string, Source>;
@@ -35,12 +35,26 @@ export type CallRule = { everyMin: number; forMin: number; lastsSec?: number };
 /** NICHD: "regular contractions every 5 to 10 minutes for an hour should let their health care provider know". */
 export const NICHD_RULE: CallRule = { everyMin: 10, forMin: 60 };
 
-/** NICHD: labor before 37 weeks is preterm; regular, frequent contractions then mean call or go in. */
+/** NICHD: labor before 37 weeks is preterm; regular, frequent contractions then mean call or go in, without waiting an hour. */
 export const PRETERM_BEFORE_WEEK = 37;
 
 const MIN = 60_000;
 
 export type Timed = Contraction & { duration?: number; interval?: number };
+
+/**
+ * Taps shorter than this are not counted by any rule: labor contractions last
+ * far longer, so a practice tap or a fumbled double tap never raises the call card.
+ */
+export const MIN_COUNTED_MS = 15_000;
+
+/** Contractions the rules look at: finished ones of a real length, and the one still running. */
+export function counted(list: readonly Contraction[]): Contraction[] {
+  return list.filter((c) => c.end == null || c.end - c.start >= MIN_COUNTED_MS);
+}
+
+/** A Started nobody ended for this long was forgotten: it no longer counts or keeps the screen on. */
+export const FORGOTTEN_MS = 5 * 60_000;
 
 /** Oldest first, each with its duration (ms) and the interval from the previous start (ms). */
 export function withIntervals(list: readonly Contraction[]): Timed[] {
@@ -59,7 +73,7 @@ export function withIntervals(list: readonly Contraction[]): Timed[] {
  * faded out stops matching.
  */
 export function currentRun(list: readonly Contraction[], rule: CallRule, now: number): Timed[] {
-  const timed = withIntervals(list);
+  const timed = withIntervals(counted(list).filter((c) => c.end != null || now - c.start < FORGOTTEN_MS));
   const last = timed.at(-1);
   if (!last || now - last.start > rule.everyMin * MIN) return [];
   let i = timed.length - 1;
@@ -87,22 +101,13 @@ export function checkRule(list: readonly Contraction[], rule: CallRule, now: num
 }
 
 /**
- * Before 37 weeks NICHD says regular, frequent contractions at any point mean
- * notify a provider or go to the hospital, with no hour to wait. "Regular" here
- * is three or more in a row at most 10 minutes apart.
- */
-export function pretermPattern(list: readonly Contraction[], week: number | undefined, now: number): boolean {
-  if (week == null || week >= PRETERM_BEFORE_WEEK) return false;
-  return currentRun(list, { everyMin: 10, forMin: 0 }, now).length >= MIN_RUN;
-}
-
-/**
  * NHS: call your maternity unit urgently if any contraction lasts longer than
  * 2 minutes, or there are 6 or more in 10 minutes. Checked over the last hour.
  */
 export function urgentPattern(list: readonly Contraction[], now: number): boolean {
-  const recent = list.filter((c) => now - c.start <= 60 * MIN);
-  if (recent.some((c) => (c.end ?? now) - c.start > 2 * MIN)) return true;
+  // Finished ones only for length: a Started left running is a forgotten tap, not a 2 minute contraction.
+  const recent = counted(list).filter((c) => now - c.start <= 60 * MIN);
+  if (recent.some((c) => c.end != null && c.end - c.start > 2 * MIN)) return true;
   const starts = recent.map((c) => c.start).sort((a, b) => a - b);
   return starts.some((s, i) => i + 5 < starts.length && starts[i + 5] - s <= 10 * MIN);
 }

@@ -43,7 +43,7 @@ function Pattern({ kind }: { kind: "practice" | "labor" }) {
 
 export function RealOrPractice() {
   return (
-    <SoftCard as="section" aria-labelledby="real-title" className="flex flex-col gap-5">
+    <SoftCard as="section" aria-labelledby="real-title" className="rise flex flex-col gap-5" style={{ "--i": 2 } as React.CSSProperties}>
       <div>
         <p className="font-mono text-caption tracking-wide text-muted-foreground uppercase">Real or practice</p>
         <h2 id="real-title" className="mt-1 text-title">

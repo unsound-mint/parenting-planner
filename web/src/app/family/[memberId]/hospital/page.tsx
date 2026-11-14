@@ -12,8 +12,8 @@ import { BirthPrep } from "@/components/labor/birth-prep";
 import { showsLaborCoach } from "@/components/labor/labor-coach-link";
 
 // "Getting ready for birth": the contraction timer and when to call (the hero,
-// first on a phone), guided breathing, how labor contractions differ from
-// practice ones, a short list for the weeks before, and the "Going to the
+// first on a phone), how labor contractions differ from practice ones, guided
+// breathing, a short list for the weeks before, and the "Going to the
 // hospital" cards. Parents in a pregnancy only; not in pregnancy loss support.
 // The hospital cards need the birth plan (501 until the backend lands, then
 // preview mocks); without it the rest of the page still stands.
@@ -57,17 +57,15 @@ async function Hospital({ params }: { params: Promise<{ memberId: string }> }) {
         <p className="mt-1 text-label font-normal text-muted-foreground">A guide for both of you. Your care team&apos;s instructions always come first.</p>
       </Rise>
 
-      {/* One grid, so at two columns the call card and "Real or practice" pair up (dense
-          packing) instead of each leaving half a row empty. DOM order is the phone order. */}
-      <Rise i={1}>
-        <PageGrid cols={3} className="grid-flow-row-dense">
-          <ContractionTimer familyId={family.id} memberId={memberId} week={week} call={desk && { name: desk.label, phone: desk.phone }} />
-          <BreathingGuide birthParent={birthParent.displayName} isBirthParent={self.id === birthParent.id} week={week} />
-          <RealOrPractice />
-        </PageGrid>
-      </Rise>
+      {/* Not wrapped in Rise: the call card holds the Urgent help link, which never
+          animates. The timer, explainer and breathing cards rise on their own. */}
+      <PageGrid cols={3}>
+        <ContractionTimer familyId={family.id} memberId={memberId} week={week} call={desk && { name: desk.label, phone: desk.phone }} />
+        <RealOrPractice />
+        <BreathingGuide birthParent={birthParent.displayName} isBirthParent={self.id === birthParent.id} week={week} />
+      </PageGrid>
 
-      <Rise i={2} as="section" aria-labelledby="hospital-title" id="hospital" className="scroll-mt-24">
+      <Rise i={4} as="section" aria-labelledby="hospital-title" id="hospital" className="scroll-mt-24">
         <h2 id="hospital-title" className="text-headline">
           Before the day, and going in
         </h2>
