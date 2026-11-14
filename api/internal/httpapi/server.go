@@ -70,10 +70,11 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 			writeError(w, http.StatusInternalServerError, "internal", "something went wrong")
 		},
 	})
-	// Middlewares run last-to-first: validate, then resolve the session.
+	// Middlewares run last-to-first: cap voice note uploads, validate, then
+	// resolve the session.
 	return recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate},
+		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody},
 	})), nil
 }
 

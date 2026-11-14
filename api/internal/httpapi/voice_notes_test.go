@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -44,7 +45,7 @@ func TestVoiceNoteUploadAndPlayBack(t *testing.T) {
 		t.Errorf("note = %+v", n)
 	}
 	if !n.CreatedAt.Equal(testutil.Now) {
-		t.Errorf("createdAt = %v, want the demo clock %v", n.CreatedAt, testutil.Now)
+		t.Errorf("createdAt = %v, want %v", n.CreatedAt, testutil.Now)
 	}
 
 	code, got := c.Raw(http.MethodGet, voiceNotesPath(mom)+"/"+n.Id.String(), "", nil)
@@ -91,6 +92,11 @@ func TestVoiceNoteValidation(t *testing.T) {
 	code, raw := c.Raw(http.MethodPost, path, "audio/webm", bytes.NewReader(append(exact, 1)))
 	if code != http.StatusRequestEntityTooLarge || !strings.Contains(string(raw), "too_large") {
 		t.Errorf("1 MB + 1 byte: status %d, body %s", code, raw)
+	}
+	// Without a Content-Length (chunked), the body is cut off just past 1 MB.
+	chunked := io.MultiReader(bytes.NewReader(exact), bytes.NewReader(exact))
+	if code, raw := c.Raw(http.MethodPost, path, "audio/webm", chunked); code != http.StatusRequestEntityTooLarge {
+		t.Errorf("2 MB chunked: status %d, body %s", code, raw)
 	}
 	var n int
 	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM voice_notes WHERE family_id = $1`, fam.Id).Scan(&n); err != nil || n != 1 {
@@ -189,5 +195,21 @@ func TestUnattachedVoiceNotesAreDeletedAfterADay(t *testing.T) {
 	}
 	if !exists(otherStale.Id) {
 		t.Error("an upload must only clean up its own family's notes")
+	}
+}
+
+func TestSkippingAheadDoesNotExpireAFreshVoiceNote(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("newborn")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	_, first := uploadVoiceNote(t, c, voiceNotesPath(mom), "audio/webm", []byte("first"))
+
+	// "Skip ahead a week" between recording and the next upload.
+	if _, err := c.Pool.Exec(context.Background(), `UPDATE families SET demo_offset_days = 7 WHERE id = $1`, fam.Id); err != nil {
+		t.Fatal(err)
+	}
+	uploadVoiceNote(t, c, voiceNotesPath(mom), "audio/webm", []byte("second"))
+	if code, _ := c.Raw(http.MethodGet, voiceNotesPath(mom)+"/"+first.Id.String(), "", nil); code != http.StatusOK {
+		t.Errorf("a note recorded a minute ago is gone after a demo skip: status %d", code)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/unsound-mint/parenting-planner/api/internal/carelog"
@@ -41,7 +42,10 @@ func (s *Server) CreateVoiceNote(ctx context.Context, req CreateVoiceNoteRequest
 		return CreateVoiceNote400JSONResponse(errVoiceNoteEmpty), nil
 	}
 	n, err := carelog.CreateVoiceNote(ctx, s.pool, familyID, m.ID, carelog.NewVoiceNote{
-		ContentType: contentType, Audio: audio, DurationSeconds: req.Params.DurationSeconds, CreatedAt: s.now(ctx),
+		ContentType: contentType, Audio: audio, DurationSeconds: req.Params.DurationSeconds,
+		// Real time, not the demo clock: the 24-hour cleanup must not delete a
+		// note recorded a minute ago because the family skipped ahead a week.
+		CreatedAt: s.cfg.Now(),
 	})
 	if err != nil {
 		return nil, err
@@ -94,4 +98,24 @@ func (r voiceNoteAudio) VisitGetVoiceNoteResponse(w http.ResponseWriter) error {
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write(r.audio)
 	return err
+}
+
+// capVoiceNoteBody runs before request validation, which reads the whole body
+// into memory. An upload that declares more than the limit gets 413 at once;
+// any other is read at most one byte past the limit, so CreateVoiceNote can
+// still tell that it was too big.
+func capVoiceNoteBody(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/voice-notes") {
+			if r.ContentLength > carelog.MaxVoiceNoteBytes {
+				writeError(w, http.StatusRequestEntityTooLarge, errVoiceNoteTooLarge.Code, errVoiceNoteTooLarge.Message)
+				return
+			}
+			r.Body = struct {
+				io.Reader
+				io.Closer
+			}{io.LimitReader(r.Body, carelog.MaxVoiceNoteBytes+1), r.Body}
+		}
+		next.ServeHTTP(w, r)
+	})
 }
