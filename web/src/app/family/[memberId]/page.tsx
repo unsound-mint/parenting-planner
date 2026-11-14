@@ -19,7 +19,8 @@ import { GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/toda
 //   each item folded in and the why opening in place;
 // - mood and sleep card: today's check-in, the last seven days and any pattern;
 // - questions card: the next visits and what to ask there;
-// - weekly card and guides: only what the plan does not already say;
+// - weekly card: the baby's week only (size, development, birth prep);
+// - guides: only reading the plan does not already cover;
 // - the top bar: the week of pregnancy and the due date.
 // The DOM order is the phone order; from xl the plan and the rest sit side by side.
 export default function WeekPage({ params }: PageProps<"/family/[memberId]">) {
@@ -96,7 +97,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         <Suspense fallback={null}>
           <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
         </Suspense>
-        <WeekCardSlot card={card} plan={plan.items} />
+        <WeekCardSlot card={card} babyOnly />
         <GuidesSlot guides={guides} plan={plan.items} />
         {late && <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />}
       </aside>

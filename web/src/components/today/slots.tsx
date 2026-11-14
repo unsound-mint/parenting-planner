@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Family, Guide, PlanItem, PregnancyWeek, Today } from "@/lib/api/types";
-import { guideRepeatsPlan, weekCardBeyondPlan } from "@/lib/week";
+import { guideRepeatsPlan, babyWeekOnly } from "@/lib/week";
 import { CaregiverToday } from "./caregiver-today";
 import { GuideList } from "./guide-list";
 import { StageControl } from "./stage-control";
@@ -20,21 +20,21 @@ export function optional<T>(request: PromiseLike<{ data?: T }>): Promise<T | und
   );
 }
 
-// plan: on a parent's This week, the card keeps only the baby's week (no to-dos) and
-// drops the week number the top bar shows (lib/week.ts); it renders nothing when no
-// new fact is left.
-export function WeekCardSlot({ card, plan }: { card: Pending<PregnancyWeek>; plan?: PlanItem[] }) {
+// babyOnly: on a parent's This week the plan owns every to-do, so the card
+// keeps only the baby's week and drops the week number the top bar shows
+// (lib/week.ts). It renders nothing when that leaves nothing.
+export function WeekCardSlot({ card, babyOnly }: { card: Pending<PregnancyWeek>; babyOnly?: boolean }) {
   return (
     <Suspense fallback={null}>
-      <WeekCardLoader card={card} plan={plan} />
+      <WeekCardLoader card={card} babyOnly={babyOnly} />
     </Suspense>
   );
 }
-async function WeekCardLoader({ card, plan }: { card: Pending<PregnancyWeek>; plan?: PlanItem[] }) {
+async function WeekCardLoader({ card, babyOnly }: { card: Pending<PregnancyWeek>; babyOnly?: boolean }) {
   const data = await card;
   if (!data) return null;
-  if (!plan) return <WeekCard card={data} />;
-  const left = weekCardBeyondPlan(data, plan);
+  if (!babyOnly) return <WeekCard card={data} />;
+  const left = babyWeekOnly(data);
   return left ? <WeekCard card={left} withWeek={false} /> : null;
 }
 
