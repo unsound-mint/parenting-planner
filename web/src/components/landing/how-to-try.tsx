@@ -6,7 +6,7 @@ const steps: { icon: LucideIcon; title: string; detail: string }[] = [
   { icon: CalendarCheck, title: "Read This week", detail: "What is due now, and why it is in the plan." },
   { icon: Smile, title: "Log a mood check-in", detail: "Pick a face. Private unless you share it." },
   { icon: Users, title: "Switch to Jake", detail: "Same family, his own plan." },
-  { icon: Route, title: "Open Journey", detail: "The whole path, from planning to school age." },
+  { icon: Route, title: "Open Journey", detail: "Your next weeks, with each step on a timeline." },
   { icon: TriangleAlert, title: "Try Urgent help", detail: "Fixed screen, no AI." },
 ];
 

@@ -1,21 +1,22 @@
-import type { Family, Stage } from "@/lib/api/types";
+import type { Family, PlanItem, Stage } from "@/lib/api/types";
+import { countThings, daysUntil, formatShortDate } from "@/lib/format";
 
 // The path from planning to age 9. "Birth" is a milestone between Pregnancy
 // and Newborn, so it has a node but no API stage of its own.
-export type JourneyNode = { key: string; label: string; hint: string; milestone?: boolean };
+export type JourneyNode = { key: string; label: string };
 
 export const journeyNodes: JourneyNode[] = [
-  { key: "planning", label: "Planning", hint: "Getting ready" },
-  { key: "pregnancy", label: "Pregnancy", hint: "40 weeks" },
-  { key: "birth", label: "Birth", hint: "Meeting your baby", milestone: true },
-  { key: "newborn", label: "Newborn", hint: "0 to 3 months" },
-  { key: "first-year", label: "First year", hint: "3 to 12 months" },
-  { key: "toddler", label: "Toddler", hint: "1 to 3 years" },
-  { key: "preschool", label: "Preschool", hint: "3 to 6 years" },
-  { key: "school-age", label: "School age to 9", hint: "6 to 9 years" },
+  { key: "planning", label: "Planning" },
+  { key: "pregnancy", label: "Pregnancy" },
+  { key: "birth", label: "Birth" },
+  { key: "newborn", label: "Newborn" },
+  { key: "first-year", label: "First year" },
+  { key: "toddler", label: "Toddler" },
+  { key: "preschool", label: "Preschool" },
+  { key: "school-age", label: "School age" },
 ];
 
-const nodeIndex: Record<Stage, number> = {
+export const nodeIndex: Record<Stage, number> = {
   planning: 0,
   trying: 0,
   pregnancy: 1,
@@ -26,107 +27,73 @@ const nodeIndex: Record<Stage, number> = {
   school_age: 7,
 };
 
-// Age range in months covered by each child stage, to place the marker inside it.
-const monthsRange: Partial<Record<Stage, [number, number]>> = {
-  postpartum: [0, 3],
-  infant: [3, 12],
-  toddler: [12, 36],
-  preschool: [36, 72],
-  school_age: [72, 108],
+const MIN_WEEKS = 6;
+const MAX_WEEKS = 16;
+
+export type Lane = {
+  weeks: number;
+  days: number;
+  /** A tick every two weeks: days from today and a label (gestational week or date). */
+  ticks: { days: number; label: string }[];
+  /** The baby's due date when it falls inside the window. */
+  babyDue?: string;
+  /** Items due inside the window (or overdue), soonest first. */
+  inWindow: PlanItem[];
+  /** Items due after the window or with no date. */
+  later: PlanItem[];
 };
 
-const DAY = 86_400_000;
+/**
+ * The stretch of coming weeks that holds this parent's next steps: long enough
+ * to reach the last dated item (and the due date in late pregnancy), never
+ * shorter than MIN_WEEKS or longer than MAX_WEEKS, in whole two-week steps.
+ */
+export function laneWindow(family: Family, items: PlanItem[]): Lane {
+  const sorted = [...items].sort((a, b) => (a.dueBy ?? "9999-12-31").localeCompare(b.dueBy ?? "9999-12-31"));
+  const dueDays = (d?: string) => (d ? daysUntil(d) : Infinity);
+  const babyDays = family.stage === "pregnancy" && family.dueDate ? daysUntil(family.dueDate) : Infinity;
 
-function utcToday(): number {
-  const now = new Date();
-  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-}
+  const reach = Math.max(
+    0,
+    ...sorted.map((i) => dueDays(i.dueBy)).filter((d) => d <= MAX_WEEKS * 7),
+    babyDays <= MAX_WEEKS * 7 ? babyDays : 0,
+  );
+  const weeks = Math.min(MAX_WEEKS, Math.max(MIN_WEEKS, Math.ceil((reach + 7) / 14) * 2));
+  const days = weeks * 7;
 
-function daysBetween(isoDate: string, from: number): number {
-  return Math.round((from - new Date(isoDate).getTime()) / DAY);
-}
-
-const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
-
-/** Index of the current node and how far through it the family is (0 to 1). */
-export function journeyPosition(family: Family): { index: number; progress: number; position: number } {
-  const index = nodeIndex[family.stage];
-  let progress = 0;
-  if (family.stage === "pregnancy" && family.gestationalWeek != null) {
-    progress = clamp01(family.gestationalWeek / 40);
-  } else if (family.children[0] && monthsRange[family.stage]) {
-    const [from, to] = monthsRange[family.stage]!;
-    progress = clamp01((family.children[0].ageMonths - from) / (to - from));
+  const pregnancyWeek = family.stage === "pregnancy" ? family.gestationalWeek : undefined;
+  const ticks: Lane["ticks"] = [];
+  for (let d = 14; d < days; d += 14) {
+    const date = new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
+    ticks.push({ days: d, label: pregnancyWeek != null ? `wk ${pregnancyWeek + d / 7}` : formatShortDate(date) });
   }
-  // The last node has no next node to move towards.
-  const position = index === journeyNodes.length - 1 ? index : index + progress;
-  return { index, progress, position };
+
+  return {
+    weeks,
+    days,
+    ticks,
+    babyDue: babyDays >= 0 && babyDays <= days ? family.dueDate : undefined,
+    inWindow: sorted.filter((i) => dueDays(i.dueBy) <= days),
+    later: sorted.filter((i) => dueDays(i.dueBy) > days),
+  };
 }
 
-function plural(n: number, unit: string): string {
-  return `${n} ${unit}${n === 1 ? "" : "s"}`;
-}
+/** A headline about what is next and a short line of context, from the family's data. */
+export function journeyHeadline(family: Family, lane: Lane): { headline: string; support: string } {
+  const n = lane.inWindow.length;
+  const steps = n === 0 ? "Nothing to schedule" : `${countThings(n)} to do`;
+  const headline = lane.babyDue && n > 0 ? `${steps} before you meet your baby.` : `${steps} in the next ${lane.weeks} weeks.`;
 
-// The child's age as one number and unit, for the hero ring and the headline.
-function agePart(birthDate: string, ageMonths: number): { value: number; unit: string } {
-  const days = Math.max(0, daysBetween(birthDate, utcToday()));
-  if (days < 14) return { value: days, unit: "day" };
-  if (days < 84) return { value: Math.floor(days / 7), unit: "week" };
-  if (ageMonths < 24) return { value: ageMonths, unit: "month" };
-  return { value: Math.floor(ageMonths / 12), unit: "year" };
-}
-
-function ageText(birthDate: string, ageMonths: number): string {
-  const { value, unit } = agePart(birthDate, ageMonths);
-  const rest = ageMonths % 12;
-  if (unit === "year" && rest !== 0) return `${plural(value, "year")} and ${plural(rest, "month")}`;
-  return plural(value, unit);
-}
-
-function weeksLeft(family: Family, week: number): number {
-  return family.dueDate
-    ? Math.max(0, Math.ceil((new Date(family.dueDate).getTime() - utcToday()) / DAY / 7))
-    : Math.max(0, 40 - week);
-}
-
-/** The one big number in the hero, with its unit, and the ring fill (0 to 1). */
-export function journeyFigure(family: Family): { value: number | null; unit: string; caption: string; progress: number } {
-  const { progress } = journeyPosition(family);
   const child = family.children[0];
+  let support = "";
   if (family.stage === "pregnancy" && family.gestationalWeek != null) {
-    return { value: weeksLeft(family, family.gestationalWeek), unit: "weeks", caption: "to go", progress };
+    support = `Week ${family.gestationalWeek} of pregnancy${family.dueDate ? ` · due ${formatShortDate(family.dueDate)}` : ""}`;
+  } else if (child) {
+    support = `${child.name}, ${child.ageMonths} months old`;
+  } else if (family.stage === "planning") {
+    support = "Planning for a baby";
+  } else if (family.stage === "trying") {
+    support = "Trying for a baby";
   }
-  if (child && monthsRange[family.stage]) {
-    const { value, unit } = agePart(child.birthDate, child.ageMonths);
-    return { value, unit: value === 1 ? unit : `${unit}s`, caption: "old", progress };
-  }
-  return { value: null, unit: "", caption: "", progress };
-}
-
-/** Headline and a short follow-up sentence, both computed from the family's data. */
-export function journeyHeadline(family: Family): { headline: string; support: string } {
-  const child = family.children[0];
-  if (family.stage === "pregnancy" && family.gestationalWeek != null) {
-    const week = family.gestationalWeek;
-    const left = weeksLeft(family, week);
-    const wait =
-      left === 0
-        ? "Your baby could arrive any day now."
-        : `About ${plural(left, "week")} until you meet your baby.`;
-    return { headline: `Week ${week} of 40. ${wait}`, support: "Birth is the next stop on the path." };
-  }
-  if (family.stage === "planning") {
-    return { headline: "You are planning for a baby.", support: "There is no rush. The path starts here." };
-  }
-  if (family.stage === "trying") {
-    return { headline: "You are trying for a baby.", support: "Planning and trying share the first stop on the path." };
-  }
-  if (child) {
-    const next = journeyNodes[nodeIndex[family.stage] + 1];
-    return {
-      headline: `${child.name} is ${ageText(child.birthDate, child.ageMonths)} old.`,
-      support: next ? `${next.label} is the next stop on the path.` : "You have come a long way together.",
-    };
-  }
-  return { headline: "Here is where you are on the path.", support: "" };
+  return { headline, support };
 }
