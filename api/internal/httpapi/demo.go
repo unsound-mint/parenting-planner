@@ -39,7 +39,7 @@ func (s *Server) CreateDemoTimeSkip(ctx context.Context, _ CreateDemoTimeSkipReq
 	if !ok {
 		return CreateDemoTimeSkip401JSONResponse(errNoSession), nil
 	}
-	if err := demo.SkipWeek(ctx, s.pool, familyID); err != nil {
+	if err := demo.SkipWeek(ctx, s.pool, familyID, s.now(ctx)); err != nil {
 		return nil, err
 	}
 	fam, err := s.loadFamily(ctx, familyID)
