@@ -2,6 +2,7 @@ import type { AppointmentQuestion } from "@/lib/api/types";
 import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { isoAt, uid } from "./dates";
+import { mockNow } from "@/lib/clock";
 import { calendarEvent, couple, events, lastVisit } from "../timeline";
 
 const obVisit = events.prenatalVisit.id;
@@ -24,10 +25,18 @@ export const appointmentQuestionMocks = {
     // Every demo question is about the pregnancy; loss support shows none.
     if (inLossSupport(family)) return { appointments: [], items: [] };
     const c = couple(family);
-    return {
-    appointments: [calendarEvent(events.prenatalVisit, c), calendarEvent(events.anatomyScan, c)],
-    items: demoQuestions(ctx.path.memberId),
-    };
+    // As the real list does: an unanswered question of a visit that has passed moves
+    // to the next upcoming visit of the same kind (carried over), or to none.
+    const now = mockNow().getTime();
+    const visits = [events.prenatalVisit, events.tdapVisit, events.anatomyScan].map((e) => calendarEvent(e, c));
+    const startsAt = (id: string) => Date.parse(visits.find((v) => v.id === id)?.startsAt ?? "");
+    const next = (id: string) => (id === obVisit ? visits.find((v) => v.id === events.tdapVisit.id && startsAt(v.id) > now)?.id : undefined);
+    const items = demoQuestions(ctx.path.memberId).map((q): AppointmentQuestion => {
+      if (q.answered || !q.appointmentId || startsAt(q.appointmentId) > now) return q;
+      const moved = next(q.appointmentId);
+      return { ...q, appointmentId: moved, carriedOver: moved !== q.askedForAppointmentId };
+    });
+    return { appointments: visits.filter((v) => items.some((q) => q.appointmentId === v.id)), items };
   }),
   ...mock("/members/{memberId}/appointment-questions", "post", (ctx) => ({
     id: uid(620),

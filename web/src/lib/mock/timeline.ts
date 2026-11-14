@@ -1,7 +1,7 @@
 import type { CalendarEvent, Family, Parent } from "@/lib/api/types";
 import { dayKey, formatClock } from "@/lib/format";
 import { addDays, todayKey } from "@/lib/schedule";
-import { mockNow } from "@/lib/clock";
+import { mockNow, shiftedNow } from "@/lib/clock";
 import { uid } from "./fixtures/dates";
 
 // One demo timeline for every preview mock. A fixture that mentions the prenatal
@@ -40,6 +40,13 @@ export function easternAt(day: string, hhmm: string): string {
 export const dayOf = (n: number) => addDays(todayKey(mockNow()), n);
 /** UTC instant for an Eastern clock time n days from today. */
 export const at = (n: number, hhmm: string) => easternAt(dayOf(n), hhmm);
+
+/**
+ * Like at(), but fixed to the real calendar: "Skip a week" moves the family clock
+ * past it instead of dragging it along. The real seed stores appointments at fixed
+ * dates too, so after a skip the visit is behind you and the after-visit view shows.
+ */
+const atFixed = (n: number, hhmm: string) => easternAt(addDays(todayKey(shiftedNow(0)), n), hhmm);
 
 type Who = "mother" | "partner";
 type Spec = {
@@ -100,8 +107,8 @@ export function calendarEvent(spec: Spec, c: Couple, extra: Partial<CalendarEven
     id: spec.id,
     kind: spec.kind,
     title: spec.title,
-    startsAt: at(spec.day, spec.from),
-    ...(spec.to ? { endsAt: at(spec.day, spec.to) } : {}),
+    startsAt: (spec.kind === "appointment" ? atFixed : at)(spec.day, spec.from),
+    ...(spec.to ? { endsAt: (spec.kind === "appointment" ? atFixed : at)(spec.day, spec.to) } : {}),
     allDay: false,
     ...(spec.owner ? { ownerId: id(spec.owner) } : {}),
     attendeeIds: spec.attendees.map(id),

@@ -162,7 +162,8 @@ function Visit({ visit, items, memberId }: { visit: CalendarEvent; items: Appoin
   );
 }
 
-export function Question({ q, memberId }: { q: AppointmentQuestion; memberId: string }) {
+/** after: the visit has passed, so an unanswered question says where it goes next. */
+export function Question({ q, memberId, after = false }: { q: AppointmentQuestion; memberId: string; after?: boolean }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [answer, setAnswer] = useState("");
@@ -205,10 +206,10 @@ export function Question({ q, memberId }: { q: AppointmentQuestion; memberId: st
         </button>
         <div className="min-w-0 flex-1 pt-0.5">
           <p className={cn("text-body", q.answered && "text-muted-foreground")}>{q.text}</p>
-          {q.carriedOver && !q.answered && (
+          {(after || q.carriedOver) && !q.answered && (
             <span className="mt-1 inline-flex h-5 items-center gap-1 rounded-full bg-status-due-soft px-2 text-caption font-medium text-status-due">
               <CornerDownRight className="size-3" aria-hidden />
-              Carried over
+              {after ? "Carries to your next visit" : "Carried over"}
             </span>
           )}
           {q.answered && q.answer && <p className="mt-1 rounded-lg bg-muted px-3 py-2 text-label">{q.answer}</p>}

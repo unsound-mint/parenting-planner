@@ -2450,9 +2450,12 @@ paths:
       description: |
         The prep view of an appointment the acting parent can see
         (CalendarEvent of kind appointment), also after the visit has
-        passed (the web then shows the after-visit view). Questions are the ones
-        listAppointmentQuestions would return for it, with the same
-        visibility rules. Documents and the travel estimate are computed
+        started (the web then shows the after-visit view). Questions are the
+        ones listAppointmentQuestions would return for it, with the same
+        visibility rules. After the start they are the ones that were under
+        this appointment when it started, answered or not: unanswered ones
+        have moved on to the next visit by then and still show here, so the
+        parent can answer them after the visit. Documents and the travel estimate are computed
         from the appointment's kind and location. Mother and partner only;
         a grandparent or nanny, and any appointment that is not visible to
         the acting parent, get 404. note is the acting parent's own private
