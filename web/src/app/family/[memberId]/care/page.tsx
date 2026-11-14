@@ -6,7 +6,7 @@ import { familyNow } from "@/lib/clock";
 import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { JournalAndCare } from "@/components/care/journal-and-care";
-import { CareTeamCard, FindHelpCard, ScreeningCard } from "@/components/care/care-rows";
+import { CareTeamCard, FindHelpCard, RecoveryCard, ScreeningCard } from "@/components/care/care-rows";
 import { shortName } from "@/components/care/names";
 import { recommend } from "@/components/directory/recommend";
 import { firstOpenings } from "@/components/directory/openings";
@@ -37,7 +37,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, openTimes, visits, patterns] = await Promise.all([
+  const [family, agenda, slots, diary, questionnaires, screenings, passport, providers, openTimes, visits, patterns, recovery] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/psychologist-agenda", path),
     api.GET("/members/{memberId}/psychologist-slots", path),
@@ -49,6 +49,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/provider-slots", path),
     api.GET("/members/{memberId}/provider-bookings", path),
     api.GET("/members/{memberId}/mood-patterns", path),
+    // 200 only once a baby is on record (409 before), so the card never leads to an empty screen.
+    api.GET("/members/{memberId}/recovery-guidance", path),
   ]);
   const fam = family.data;
   const me = fam?.parents.find((p) => p.id === memberId);
@@ -94,6 +96,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
 
       <Rise i={3} className="mt-4 grid min-w-0 items-start gap-6 @4xl:grid-cols-2 @7xl:grid-cols-3">
         {passport.data && <CareTeamCard memberId={memberId} team={team} />}
+        {recovery.response.ok && me.role === "mother" && <RecoveryCard memberId={memberId} />}
         {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
         {providers.data && openTimes.data && <FindHelpCard memberId={memberId} picks={picks} next={nextVisit} now={now} />}
       </Rise>

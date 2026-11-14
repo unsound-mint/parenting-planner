@@ -152,6 +152,12 @@
       transform: translateY(8px);
     }
   }
+  /* A range bar on the Money screen growing from its left edge. */
+  @keyframes money-grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
 }
 
 /* Headings speak in Fraunces with the soft axis; @utility so md:text-title gets it too. */
