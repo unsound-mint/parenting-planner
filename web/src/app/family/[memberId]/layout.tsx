@@ -3,6 +3,7 @@ import { Suspense, ViewTransition } from "react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
+import { inLossSupport } from "@/lib/loss";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
 import { LiveUpdates } from "@/components/shell/live-updates";
@@ -47,7 +48,8 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
       ]);
   const hidden = unavailableScreens({
     calendar: calendar.response.status,
-    simulator: simulator.response.status,
+    // Newborn practice is baby prep: none of it while the family is in pregnancy loss support.
+    simulator: inLossSupport(family) ? 404 : simulator.response.status,
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
     ...(invitations ? { people: invitations.response.status } : {}),
   });

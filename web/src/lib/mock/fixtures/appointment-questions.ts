@@ -1,3 +1,4 @@
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { isoAt, uid } from "./dates";
 import { calendarEvent, couple, events, lastVisit } from "../timeline";
@@ -8,7 +9,10 @@ const scan = events.anatomyScan.id;
 // Two upcoming appointments (from the shared timeline), one question carried over from a visit that already happened.
 export const appointmentQuestionMocks = {
   ...mock("/members/{memberId}/appointment-questions", "get", async (ctx) => {
-    const c = couple(await ctx.family());
+    const family = await ctx.family();
+    // Every demo question is about the pregnancy; loss support shows none.
+    if (inLossSupport(family)) return { appointments: [], items: [] };
+    const c = couple(family);
     return {
     appointments: [calendarEvent(events.prenatalVisit, c), calendarEvent(events.anatomyScan, c)],
     items: [

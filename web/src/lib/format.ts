@@ -37,7 +37,9 @@ export const stageLabel: Record<Stage, string> = {
 };
 
 /** One line under the greeting: where the family is right now. */
+// Empty in pregnancy loss support: no week, no due date, and not "Planning" either.
 export function familyContext(family: Family): string {
+  if (family.pregnancyLoss) return "";
   if (family.stage === "pregnancy" && family.gestationalWeek != null) {
     const due = family.dueDate ? ` · due ${formatShortDate(family.dueDate)}` : "";
     return `Week ${family.gestationalWeek} of pregnancy${due}`;

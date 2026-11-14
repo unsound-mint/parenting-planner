@@ -1,3 +1,4 @@
+import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
 import { CHECKED, isoAt } from "./dates";
 
@@ -18,7 +19,11 @@ const perinatal = {
 };
 
 export const weeklyPlanMocks = {
-  ...mock("/members/{memberId}/weekly-plan", "get", (ctx) => ({
+  ...mock("/members/{memberId}/weekly-plan", "get", async (ctx) => {
+    // This note is about week 25. In pregnancy loss support answer like the rule
+    // fallback, which the AI plan card does not draw.
+    if (inLossSupport(await ctx.family())) return { memberId: ctx.path.memberId, generatedAt: isoAt(0, 6), fallback: true, intro: "", sections: [] };
+    return {
     memberId: ctx.path.memberId,
     generatedAt: isoAt(0, 6),
     fallback: false,
@@ -62,5 +67,6 @@ export const weeklyPlanMocks = {
         ],
       },
     ],
-  })),
+  };
+  }),
 };

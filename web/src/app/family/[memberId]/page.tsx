@@ -63,11 +63,13 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const attention = plan.items.filter((i) => i.status !== "upcoming");
   const focus = attention[0];
   // The headline names the one thing; PlanBoard picks the same focus item.
-  const headline = !focus
-    ? `You are on track, ${parent.displayName}. Nothing needs you this week.`
-    : attention.length === 1
-      ? `One thing this week: ${focus.title}.`
-      : `${countThings(attention.length)} this week. First: ${focus.title}.`;
+  const headline = family.pregnancyLoss
+    ? `We are so sorry, ${parent.displayName}. Take the time you need.`
+    : !focus
+      ? `You are on track, ${parent.displayName}. Nothing needs you this week.`
+      : attention.length === 1
+        ? `One thing this week: ${focus.title}.`
+        : `${countThings(attention.length)} this week. First: ${focus.title}.`;
 
   return (
     <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,44rem)_minmax(0,22rem)] xl:justify-start">
@@ -76,7 +78,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
           {headline}
         </h1>
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
-        <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <p className="mt-2 text-label font-normal text-muted-foreground empty:hidden sm:hidden">{familyContext(family)}</p>
         <div className="mt-3 empty:hidden">
           <StageSlot guides={guides} memberId={memberId} family={family} />
         </div>
@@ -92,7 +94,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
           <BabyHomeSwitch memberId={memberId} agreedShifts={shifts.items.filter((s) => s.status === "agreed")} />
         )}
         <WeekCardSlot card={card} />
-        <GuidesSlot guides={guides} />
+        {/* In pregnancy loss support the support card replaces stage articles, even ones that would read as fine. */}
+        {!family.pregnancyLoss && <GuidesSlot guides={guides} />}
         <Suspense fallback={null}>
           <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
         </Suspense>
