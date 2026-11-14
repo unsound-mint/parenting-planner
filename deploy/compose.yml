@@ -1,10 +1,37 @@
-# Production on musicroombot. Caddy on the host terminates TLS and proxies to 127.0.0.1:8790.
+# Production on musicroombot. Caddy on the host terminates TLS and routes
+# /api/* to the Go API (127.0.0.1:8792) and everything else to Next (127.0.0.1:8790).
+# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD.
 name: parenting
 services:
-  web:
-    build: ..
+  postgres:
+    image: postgres:17-alpine
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: parenting
+      POSTGRES_DB: parenting
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in deploy/.env}
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parenting"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ../api
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
+    ports: ["127.0.0.1:8792:8080"]
+
+  web:
+    build: ../web
+    restart: unless-stopped
+    depends_on: [api]
+    environment:
+      API_INTERNAL_URL: http://api:8080
     ports: ["127.0.0.1:8790:3000"]
-    volumes: ["app-data:/app/data"]
+
 volumes:
-  app-data:
+  pgdata:

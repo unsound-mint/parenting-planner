@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Parenting Planner API
+  version: 0.1.0
+  description: |
+    Contract between web/ and api/. Both sides generate code from this file
+    (`make gen`); never edit generated code by hand. Change this file first,
+    in its own PR or together with both implementations.
+
+    Auth: there is no login. POST /demo/sessions creates a demo family and
+    sets an httpOnly session cookie that scopes every other call to that family.
+servers:
+  - url: /api
+security:
+  - session: []
+tags:
+  - name: demo
+  - name: family
+  - name: plan
+paths:
+  /healthz:
+    get:
+      operationId: healthz
+      security: []
+      responses:
+        "200":
+          description: The API and its database are up.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /demo/sessions:
+    post:
+      operationId: createDemoSession
+      tags: [demo]
+      security: []
+      summary: Start a demo with a fresh copy of a synthetic family
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDemoSessionRequest"
+      responses:
+        "201":
+          description: Family created; the session cookie is set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          $ref: "#/components/responses/Error"
+
+  /family:
+    get:
+      operationId: getFamily
+      tags: [family]
+      summary: The family of the current session, with parents and children
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "401":
+          $ref: "#/components/responses/Error"
+
+  /members/{memberId}/plan:
+    get:
+      operationId: getMemberPlan
+      tags: [plan]
+      summary: This week's plan for one parent
+      description: |
+        Items come from the guideline rules engine, evaluated against the family
+        data this parent is allowed to see. Each item says why it applies and
+        cites its source.
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        "401":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: pp_session
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: not_found
+        message:
+          type: string
+
+    DemoTemplate:
+      type: string
+      description: Which synthetic family to copy. Add a value here when its seed exists.
+      enum: [pregnancy]
+
+    CreateDemoSessionRequest:
+      type: object
+      required: [template]
+      properties:
+        template:
+          $ref: "#/components/schemas/DemoTemplate"
+
+    Stage:
+      type: string
+      description: Where the family is on the journey from planning to age 9.
+      enum: [planning, trying, pregnancy, postpartum, infant, toddler, preschool, school_age]
+
+    ParentRole:
+      type: string
+      enum: [mother, partner]
+
+    Family:
+      type: object
+      required: [id, template, stage, parents, children]
+      properties:
+        id:
+          type: string
+          format: uuid
+        template:
+          $ref: "#/components/schemas/DemoTemplate"
+        stage:
+          $ref: "#/components/schemas/Stage"
+        dueDate:
+          type: string
+          format: date
+          description: Set during pregnancy.
+        gestationalWeek:
+          type: integer
+          description: Completed weeks of pregnancy today, derived from dueDate.
+        parents:
+          type: array
+          items:
+            $ref: "#/components/schemas/Parent"
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/Child"
+
+    Parent:
+      type: object
+      required: [id, role, displayName]
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/ParentRole"
+        displayName:
+          type: string
+
+    Child:
+      type: object
+      required: [id, name, birthDate, ageMonths]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        ageMonths:
+          type: integer
+
+    Plan:
+      type: object
+      required: [memberId, generatedAt, items]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+        generatedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          description: Sorted by status (overdue, due, upcoming), then due date.
+          items:
+            $ref: "#/components/schemas/PlanItem"
+
+    PlanItemStatus:
+      type: string
+      enum: [overdue, due, upcoming]
+
+    PlanCategory:
+      type: string
+      enum: [screening, vaccine, visit, mental_health, logistics, couple, learning]
+
+    PlanItem:
+      type: object
+      required: [ruleId, title, detail, status, category, reason, source]
+      properties:
+        ruleId:
+          type: string
+          example: glucose-screen
+        title:
+          type: string
+        detail:
+          type: string
+          description: What to do, in plain language.
+        status:
+          $ref: "#/components/schemas/PlanItemStatus"
+        category:
+          $ref: "#/components/schemas/PlanCategory"
+        dueBy:
+          type: string
+          format: date
+        reason:
+          type: string
+          description: Why this applies to this parent now, based on their data.
+        source:
+          $ref: "#/components/schemas/Source"
+
+    Source:
+      type: object
+      required: [title, url, checkedAt]
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        checkedAt:
+          type: string
+          format: date
+          description: When someone last confirmed the guideline still says this.

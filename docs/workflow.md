@@ -16,7 +16,7 @@ Every piece of work is a GitHub issue. A good issue has:
 - acceptance criteria as a checklist someone can verify on the live site;
 - one area label (`frontend`, `backend`, `product`) and one priority (`P0` demo-critical, `P1` should have, `P2` nice to have).
 
-If a feature needs both frontend and backend, write two issues and link them. Backend first agrees the server action signature in `src/server/actions.ts` so frontend can start right away.
+If a feature needs both frontend and backend, write two issues and link them, plus the endpoint change to `api/openapi.yaml`. The contract change lands first, so frontend can build against generated types while backend implements it.
 
 ### For Dayana: working with Claude
 

@@ -10,23 +10,17 @@ Built for Business Cup 2.0 by Zimran, Skills track.
 
 ## Run locally
 
+Needs Go 1.26, Node 24 with pnpm, and Docker.
+
 ```sh
-pnpm install
-pnpm dev          # http://localhost:3000
+(cd web && pnpm install)
+make api     # Postgres in Docker + Go API on :8091
+make web     # in another terminal: http://localhost:3000
 ```
-
-The SQLite database is created in `data/app.db` on first request and migrated automatically.
-
-| Command | What it does |
-| --- | --- |
-| `pnpm typecheck` | Generate route types and run `tsc` |
-| `pnpm lint` | ESLint |
-| `pnpm db:generate` | Create a migration after editing `src/server/db/schema.ts` |
-| `pnpm db:studio` | Browse the local database |
 
 ## Stack
 
-Next.js 16 (App Router, server actions), SQLite with Drizzle ORM, Tailwind CSS. Deployed as one Docker container behind Caddy. See [docs/architecture.md](docs/architecture.md).
+Go API (net/http, Postgres, sqlc, goose) and a Next.js 16 frontend, connected by an OpenAPI contract that generates both the Go server interface and the TypeScript client. Deployed with Docker Compose behind Caddy. See [docs/architecture.md](docs/architecture.md).
 
 ## Team
 

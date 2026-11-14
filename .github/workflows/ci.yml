@@ -7,16 +7,56 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  check:
+  api:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: parenting
+          POSTGRES_PASSWORD: parenting
+          POSTGRES_DB: parenting
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U parenting" --health-interval 2s --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
+      - name: Generated code is up to date
+        run: |
+          go generate ./...
+          go tool sqlc generate
+          git diff --exit-code -- . || (echo "::error::Run 'make gen' and commit the result" && exit 1)
+      - run: go vet ./...
+      - run: go test ./...
+        env:
+          TEST_DATABASE_URL: postgres://parenting:parenting@localhost:5432/parenting?sslmode=disable
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      - name: Generated API client is up to date
+        run: |
+          pnpm gen:api
+          git diff --exit-code -- src/lib/api || (echo "::error::Run 'make gen' and commit the result" && exit 1)
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm build

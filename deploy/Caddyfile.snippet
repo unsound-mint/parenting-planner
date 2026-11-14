@@ -1,5 +1,10 @@
 # Append to /etc/caddy/Caddyfile on musicroombot, then: sudo systemctl reload caddy
 parenting.unsoundmint.com {
 	encode zstd gzip
-	reverse_proxy 127.0.0.1:8790
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8792
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8790
+	}
 }

@@ -24,4 +24,4 @@ jobs:
           # The server key is restricted to deploy/deploy.sh; the command here is ignored.
           ssh denis@46.62.161.228 deploy
       - name: Smoke test
-        run: curl -fsS -o /dev/null https://parenting.unsoundmint.com/
+        run: curl -fsS -o /dev/null https://parenting.unsoundmint.com/ && curl -fsS -o /dev/null https://parenting.unsoundmint.com/api/healthz

@@ -1,0 +1,17 @@
+# Local development database. Start with `make db`.
+name: parenting-dev
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: parenting
+      POSTGRES_PASSWORD: parenting
+      POSTGRES_DB: parenting
+    ports: ["127.0.0.1:5433:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parenting"]
+      interval: 2s
+      retries: 15
+volumes:
+  pgdata:
