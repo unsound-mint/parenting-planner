@@ -12,6 +12,7 @@ import { MilestoneCard } from "@/components/child/milestone-card";
 import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
+import { PortraitFlipbook } from "@/components/portrait";
 
 /**
  * The home for a child past toddler age (the "Baby" screen has feeds and diapers,
@@ -82,6 +83,7 @@ export async function ChildHome({ memberId, family }: { memberId: string; family
             </section>
           )}
           {card.data && <BabyCard passport={card.data} />}
+          <PortraitFlipbook memberId={memberId} childId={child.id} />
         </Stack>
       </PageGrid>
 

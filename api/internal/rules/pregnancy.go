@@ -24,7 +24,7 @@ var pregnancyRules = []Rule{
 	{
 		ID:       "glucose-screen",
 		Title:    "Gestational diabetes screening",
-		Detail:   "Ask your OB to schedule the glucose screening test. It is usually done between 24 and 28 weeks.",
+		Detail:   "Guidelines suggest screening for gestational diabetes in the second half of pregnancy. Ask your OB when to schedule yours.",
 		Category: Screening,
 		Audience: ForMother,
 		Source:   srcUSPSTFGestationalDiabetes,
@@ -38,15 +38,15 @@ var pregnancyRules = []Rule{
 			}
 			by := f.DateAtWeek(28)
 			if week < 24 {
-				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("You are %d weeks pregnant; screening is recommended from 24 weeks.", week)}, true
+				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest gestational diabetes screening from 24 weeks, and you are %d weeks pregnant. Your OB can tell you when to schedule it.", week)}, true
 			}
-			return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("You are %d weeks pregnant and no glucose screening result is on file.", week)}, true
+			return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest gestational diabetes screening between 24 and 28 weeks, and you are %d weeks pregnant with no result on file. Your OB can arrange it.", week)}, true
 		},
 	},
 	{
 		ID:       "tdap-pregnancy",
 		Title:    "Tdap vaccine for this pregnancy",
-		Detail:   "Get the Tdap (whooping cough) vaccine as early as possible between 27 and 36 weeks, so your baby is born with protection.",
+		Detail:   "Guidelines suggest a Tdap (whooping cough) vaccine in each pregnancy, so the baby is born with protection. Ask your OB when it fits.",
 		Category: Vaccine,
 		Audience: ForMother,
 		Source:   srcACOGTdap,
@@ -61,18 +61,18 @@ var pregnancyRules = []Rule{
 			by := f.DateAtWeek(36)
 			switch {
 			case week < 27:
-				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("You are %d weeks pregnant; the recommended window opens at 27 weeks.", week)}, true
+				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest Tdap from 27 weeks, and you are %d weeks pregnant. Ask your OB when to plan it.", week)}, true
 			case week <= 36:
-				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("You are %d weeks pregnant and Tdap is not recorded for this pregnancy.", week)}, true
+				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest Tdap between 27 and 36 weeks, and you are %d weeks pregnant with none recorded for this pregnancy. Your OB can check whether it is right for you.", week)}, true
 			default:
-				return Result{Status: Overdue, Reason: "The recommended window (27 to 36 weeks) has passed without Tdap recorded. Ask your OB; it can still be given."}, true
+				return Result{Status: Overdue, Reason: "Because guidelines suggest Tdap between 27 and 36 weeks, and none is recorded for this pregnancy. Ask your OB whether it can still be given."}, true
 			}
 		},
 	},
 	{
 		ID:       "tdap-partner",
 		Title:    "Tdap vaccine before the baby arrives",
-		Detail:   "Adults who will be in close contact with the baby and have never had Tdap should get it. Book it with your primary care doctor or a pharmacy.",
+		Detail:   "Guidelines suggest Tdap for adults who will be in close contact with a newborn. Ask your doctor or pharmacist whether you need it.",
 		Category: Vaccine,
 		Audience: ForPartner,
 		Source:   srcACOGTdap,
@@ -86,13 +86,13 @@ var pregnancyRules = []Rule{
 			if week < 27 {
 				status = Upcoming
 			}
-			return Result{Status: status, DueBy: &by, Reason: fmt.Sprintf("The baby is due in %d weeks and you have no Tdap on record.", 40-week)}, true
+			return Result{Status: status, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest Tdap for adults who will be close to a newborn, and the baby is due in %d weeks with no Tdap on your record. Your doctor can check your history.", 40-week)}, true
 		},
 	},
 	{
 		ID:       "gbs-screen",
 		Title:    "Group B strep test",
-		Detail:   "A quick swab test done between 36 and 37 weeks. If positive, you get antibiotics during labor to protect the baby.",
+		Detail:   "Guidelines suggest a Group B strep swab test in late pregnancy. Ask your OB about it; they will explain what a result means for the birth.",
 		Category: Screening,
 		Audience: ForMother,
 		Source:   srcACOGGBS,
@@ -107,11 +107,11 @@ var pregnancyRules = []Rule{
 			by := f.DateAtWeek(37)
 			switch {
 			case week < 36:
-				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("You are %d weeks pregnant; the test is done at 36 to 37 weeks.", week)}, true
+				return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest a Group B strep test at 36 to 37 weeks, and you are %d weeks pregnant. Your OB will say when to schedule it.", week)}, true
 			case week <= 37:
-				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("You are %d weeks pregnant and no GBS result is on file.", week)}, true
+				return Result{Status: Due, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest a Group B strep test at 36 to 37 weeks, and you are %d weeks pregnant with no result on file. Your OB can do it at your next visit.", week)}, true
 			default:
-				return Result{Status: Overdue, Reason: "No GBS result is on file after 37 weeks. Ask your OB about it at your next visit."}, true
+				return Result{Status: Overdue, Reason: "Because guidelines suggest a Group B strep test at 36 to 37 weeks, and no result is on file. Ask your OB about it at your next visit."}, true
 			}
 		},
 	},

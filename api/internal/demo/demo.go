@@ -219,7 +219,14 @@ func seedPregnancy(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	if err := seedCaregivers(ctx, q, fam.ID); err != nil {
 		return uuid.Nil, err
 	}
+	// The bump once a month so far; week 28 is the next one to take.
+	if err := bumpWeeks(ctx, q, fam.ID, due, 8, 12, 16, 20, 24); err != nil {
+		return uuid.Nil, err
+	}
 	if err := seedLearning(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedMissions(ctx, q, Pregnancy, fam.ID, mom.ID, partner.ID, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedPaperwork(ctx, q, fam.ID, mom.ID, partner.ID, nil, today); err != nil {

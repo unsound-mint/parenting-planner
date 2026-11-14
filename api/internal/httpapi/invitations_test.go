@@ -223,3 +223,50 @@ func TestAccessLogShowsInvitationEventsAndCaregiverActivity(t *testing.T) {
 		t.Errorf("accept audit rows = %d", n)
 	}
 }
+
+func TestParentChangesCaregiverPermissions(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	var b httpapi.CreatedInvitation
+	c.Post(invitePath(mom), inviteBody("grandparent", "schedule"), http.StatusCreated, &b)
+	grandma := testutil.New(t)
+	var got httpapi.InvitationAcceptance
+	grandma.Post("/api/invitations/"+b.Token+"/accept", nil, http.StatusCreated, &got)
+	path := "/api/members/" + mom.Id.String() + "/caregivers/" + got.MemberId.String()
+
+	var out httpapi.Caregiver
+	c.Patch(path, map[string]any{"permissions": []string{"care_log", "schedule"}}, http.StatusOK, &out)
+	if len(out.Permissions) != 2 {
+		t.Fatalf("permissions = %v", out.Permissions)
+	}
+	var f httpapi.Family
+	grandma.Get("/api/family", http.StatusOK, &f)
+	found := false
+	for _, x := range f.Caregivers {
+		if x.Id == got.MemberId {
+			found = len(x.Permissions) == 2
+		}
+	}
+	if !found {
+		t.Error("the caregiver's own session must see the new permissions")
+	}
+	var list httpapi.InvitationList
+	c.Get(invitePath(mom), http.StatusOK, &list)
+	for _, i := range list.Items {
+		if i.Id == b.Invitation.Id && len(i.Permissions) != 2 {
+			t.Errorf("the invitation must follow: %v", i.Permissions)
+		}
+	}
+
+	// Only a parent, only for a caregiver of this family, only valid permissions.
+	grandma.Patch("/api/members/"+got.MemberId.String()+"/caregivers/"+got.MemberId.String(), map[string]any{"permissions": []string{"care_log"}}, http.StatusForbidden, nil)
+	c.Patch("/api/members/"+mom.Id.String()+"/caregivers/"+mom.Id.String(), map[string]any{"permissions": []string{"care_log"}}, http.StatusNotFound, nil)
+	c.Patch(path, map[string]any{"permissions": []string{"labs"}}, http.StatusBadRequest, nil)
+	c.Patch(path, map[string]any{"permissions": []string{}}, http.StatusOK, &out)
+	if len(out.Permissions) != 0 {
+		t.Errorf("permissions = %v", out.Permissions)
+	}
+	// Seeded demo caregivers have no invitation behind them.
+	c.Patch("/api/members/"+mom.Id.String()+"/caregivers/"+fam.Caregivers[0].Id.String(), map[string]any{"permissions": []string{"care_log"}}, http.StatusOK, &out)
+}

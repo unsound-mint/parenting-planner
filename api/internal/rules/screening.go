@@ -302,9 +302,9 @@ func moodScreenRule(f Facts) (Result, bool) {
 	}
 	if f.Today.Before(visit) {
 		by := visit
-		return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("%s's %d-month visit is on the way, and a short mood questionnaire is suggested around it.", baby.Name, month)}, true
+		return Result{Status: Upcoming, DueBy: &by, Reason: fmt.Sprintf("Because guidelines suggest a short mood questionnaire around well-baby visits, and %s's %d-month visit is on the way. Your doctor can go over the result with you.", baby.Name, month)}, true
 	}
-	return Result{Status: Due, Reason: fmt.Sprintf("%s is %d months old and you have not taken a mood questionnaire since the %d-month visit window opened.", baby.Name, baby.AgeMonths(f.Today), month)}, true
+	return Result{Status: Due, Reason: fmt.Sprintf("Because guidelines suggest a short mood questionnaire around well-baby visits, and %s is %d months old with none taken since the %d-month visit window opened. Your doctor can go over the result with you.", baby.Name, baby.AgeMonths(f.Today), month)}, true
 }
 
 // SuggestedInstrument is the questionnaire the viewer's plan asks for now.
@@ -330,7 +330,7 @@ func repeatRule(instrument string) func(Facts) (Result, bool) {
 			return Result{}, false
 		}
 		in, _ := InstrumentByID(instrument)
-		reason := fmt.Sprintf("Your questionnaire on %s scored %d of %d.", s.At.Format("Jan 2"), s.Score, in.MaxScore())
+		reason := fmt.Sprintf("Because your questionnaire on %s scored %d of %d, a score worth another look. Mention it to your doctor.", s.At.Format("Jan 2"), s.Score, in.MaxScore())
 		if instrument != EPDS {
 			return Result{Status: Upcoming, Reason: reason}, true
 		}
@@ -373,7 +373,7 @@ var screeningRules = []Rule{
 	{
 		ID:       "mood-screen-partner",
 		Title:    "Partners too: take a short mood questionnaire",
-		Detail:   "About one in ten dads goes through postpartum depression. The same five-minute questionnaire works for partners; your answers stay private unless you share them.",
+		Detail:   "Postpartum depression can affect partners too. The same five-minute questionnaire is open to partners; your answers stay private unless you share them.",
 		Category: MentalHealth,
 		Audience: ForPartner,
 		Source:   srcPSIDads,

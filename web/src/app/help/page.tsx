@@ -14,15 +14,14 @@ import { PRODUCT_NAME } from "@/lib/product";
 // - A full page, never a dialog, so no stray tap or Escape can close it.
 // - Static server component, prerendered at build time. The service worker
 //   (app/sw.js/route.ts) keeps a copy so it opens offline.
-// - Wording is owned by Dayana (#182). Every number and claim below was read on
-//   the cited page on 2026-11-14; re-check them before changing anything here.
+// - No source lines or dates on the page itself. Wording is owned by Dayana (#182).
+//   Every number and claim below was read on 2026-11-14 on the CDC Hear Her page
+//   (warning signs), 988lifeline.org, the HRSA hotline page and poison.org; re-check them before changing anything here.
 //   The HRSA hotline page refuses automated readers, so the hotline's details
 //   are checked on the PSI page that lists it.
 export const metadata: Metadata = {
   title: "Help now",
 };
-
-const CHECKED = "checked 2026-11-14";
 
 const WARNING_SIGNS = [
   "Headache that won't go away or gets worse over time",
@@ -53,7 +52,6 @@ type Line = {
   /** Digits for tel: and sms:. */
   dial: string;
   text: boolean;
-  source: { href: string; label: string };
 };
 
 const LINES: Line[] = [
@@ -65,7 +63,6 @@ const LINES: Line[] = [
     display: "988",
     dial: "988",
     text: true,
-    source: { href: "https://988lifeline.org/", label: "988lifeline.org" },
   },
   {
     id: "maternal",
@@ -76,7 +73,6 @@ const LINES: Line[] = [
     display: "1-833-852-6262",
     dial: "18338526262",
     text: true,
-    source: { href: "https://www.postpartum.net/get-help/", label: "postpartum.net/get-help" },
   },
   {
     id: "poison",
@@ -87,24 +83,11 @@ const LINES: Line[] = [
     display: "1-800-222-1222",
     dial: "18002221222",
     text: false,
-    source: { href: "https://www.poison.org/contact-us", label: "poison.org" },
   },
 ];
 
 const actionClass =
   "inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 text-body font-semibold whitespace-nowrap text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-
-function Source({ href, label }: { href: string; label: string }) {
-  return (
-    <p className="font-mono text-caption text-muted-foreground">
-      Source:{" "}
-      <a href={href} className="underline underline-offset-4">
-        {label}
-      </a>
-      , {CHECKED}
-    </p>
-  );
-}
 
 function LineCard({ line }: { line: Line }) {
   const Icon = line.icon;
@@ -134,7 +117,6 @@ function LineCard({ line }: { line: Line }) {
           </a>
         )}
       </div>
-      <Source {...line.source} />
     </section>
   );
 }
@@ -202,10 +184,8 @@ export default function HelpPage() {
             </li>
           ))}
         </ul>
-        <Source href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html" label="CDC Hear Her campaign" />
       </section>
 
-      <p className="text-label text-muted-foreground">This page is the same for everyone. It is never written by AI.</p>
     </main>
   );
 }

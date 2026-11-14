@@ -43,24 +43,17 @@ func (s *Server) ListGuides(ctx context.Context, req ListGuidesRequestObject) (L
 }
 
 func (s *Server) GetPregnancyWeek(ctx context.Context, req GetPregnancyWeekRequestObject) (GetPregnancyWeekResponseObject, error) {
-	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
+	familyID, viewer, state, deny, err := s.pregnancyReader(ctx, req.MemberId)
 	switch {
 	case err != nil:
 		return nil, err
-	case kind == errUnauthorized:
+	case deny == pregnancyNoSession:
 		return GetPregnancyWeek401JSONResponse(errNoSession), nil
-	case kind == errNotFound:
+	case deny == pregnancyNoMember:
 		return GetPregnancyWeek404JSONResponse(errNoMember), nil
-	}
-	viewer := content.Viewer{Role: m.Role}
-	if !viewer.MayReadPregnancy() {
+	case deny == pregnancyForbidden:
 		return GetPregnancyWeek403JSONResponse(errForbidden), nil
-	}
-	state, _, err := s.contentState(ctx, familyID)
-	if err != nil {
-		return nil, err
-	}
-	if state.Stage != "pregnancy" || !state.HasWeek {
+	case deny == pregnancyNotPregnant:
 		return GetPregnancyWeek409JSONResponse(errNotPregnant), nil
 	}
 	card, ok := content.WeekCard(req.Week, viewer, state.Week)
@@ -83,6 +76,69 @@ func (s *Server) GetPregnancyWeek(ctx context.Context, req GetPregnancyWeekReque
 		out.BirthPrep = append(out.BirthPrep, guideOut(e))
 	}
 	return GetPregnancyWeek200JSONResponse(out), nil
+}
+
+func (s *Server) GetPregnancyGrowth(ctx context.Context, req GetPregnancyGrowthRequestObject) (GetPregnancyGrowthResponseObject, error) {
+	_, _, state, deny, err := s.pregnancyReader(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case deny == pregnancyNoSession:
+		return GetPregnancyGrowth401JSONResponse(errNoSession), nil
+	case deny == pregnancyNoMember, deny == pregnancyForbidden:
+		// actingMember already answers 404 for a caregiver, so a parent always passes MayReadPregnancy.
+		return GetPregnancyGrowth404JSONResponse(errNoMember), nil
+	case deny == pregnancyNotPregnant:
+		return GetPregnancyGrowth409JSONResponse(errNotPregnant), nil
+	}
+	weeks := content.GrowthWeeks()
+	out := PregnancyGrowth{CurrentWeek: min(max(state.Week, content.MinWeek), content.MaxWeek), Weeks: make([]PregnancyGrowthWeek, 0, len(weeks))}
+	for _, w := range weeks {
+		g := PregnancyGrowthWeek{Week: w.Week, Size: *sizeOut(w.Size), Hotspots: make([]GrowthHotspot, 0, len(w.Hotspots))}
+		for _, h := range w.Hotspots {
+			g.Hotspots = append(g.Hotspots, GrowthHotspot{Area: GrowthHotspotArea(h.Area), Text: h.Text, Sources: []Source{sourceOut(h.Source)}})
+		}
+		out.Weeks = append(out.Weeks, g)
+	}
+	return GetPregnancyGrowth200JSONResponse(out), nil
+}
+
+type pregnancyDenial int
+
+const (
+	pregnancyAllowed pregnancyDenial = iota
+	pregnancyNoSession
+	pregnancyNoMember
+	pregnancyForbidden
+	pregnancyNotPregnant
+)
+
+// pregnancyReader is the shared gate for pregnancy content (the weekly card and
+// the 3D growth view): the acting member must be allowed to read pregnancy
+// content, and the family must be pregnant with a known week. Pregnancy loss
+// support moves the family to planning, so it lands on pregnancyNotPregnant.
+func (s *Server) pregnancyReader(ctx context.Context, memberID uuid.UUID) (uuid.UUID, content.Viewer, content.State, pregnancyDenial, error) {
+	familyID, m, kind, err := s.actingMember(ctx, memberID)
+	switch {
+	case err != nil:
+		return familyID, content.Viewer{}, content.State{}, pregnancyAllowed, err
+	case kind == errUnauthorized:
+		return familyID, content.Viewer{}, content.State{}, pregnancyNoSession, nil
+	case kind == errNotFound:
+		return familyID, content.Viewer{}, content.State{}, pregnancyNoMember, nil
+	}
+	viewer := content.Viewer{Role: m.Role}
+	if !viewer.MayReadPregnancy() {
+		return familyID, viewer, content.State{}, pregnancyForbidden, nil
+	}
+	state, _, err := s.contentState(ctx, familyID)
+	if err != nil {
+		return familyID, viewer, state, pregnancyAllowed, err
+	}
+	if state.Stage != "pregnancy" || !state.HasWeek {
+		return familyID, viewer, state, pregnancyNotPregnant, nil
+	}
+	return familyID, viewer, state, pregnancyAllowed, nil
 }
 
 // contentState reads the family's stage, gestational week and youngest child's age.
@@ -226,4 +282,43 @@ func (s *Server) GetStageNow(ctx context.Context, req GetStageNowRequestObject) 
 		out.Sources = append(out.Sources, sourceOut(src))
 	}
 	return GetStageNow200JSONResponse(out), nil
+}
+
+func adviceOut(a content.SafetyAdvice) SafetyAdvice {
+	return SafetyAdvice{Status: SafetyAdviceStatus(a.Status), Why: a.Why}
+}
+
+func (s *Server) ListSafetyReference(ctx context.Context, req ListSafetyReferenceRequestObject) (ListSafetyReferenceResponseObject, error) {
+	_, _, kind, err := s.actingMember(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return ListSafetyReference401JSONResponse(errNoSession), nil
+	case kind == errNotFound:
+		return ListSafetyReference404JSONResponse(errNoMember), nil
+	}
+	entries := content.SafetyReference()
+	out := SafetyReferenceList{Items: make([]SafetyEntry, 0, len(entries))}
+	for _, e := range entries {
+		item := SafetyEntry{
+			Id: e.ID, Category: SafetyEntryCategory(e.Category), Topic: e.Topic, Name: e.Name, Aliases: e.Aliases,
+			Pregnancy: adviceOut(e.Preg), Sources: make([]Source, 0, len(e.Sources)),
+		}
+		if e.Breast != nil {
+			b := adviceOut(*e.Breast)
+			item.Breastfeeding = &b
+		}
+		if e.Ask != "" {
+			item.Ask = &e.Ask
+		}
+		if e.Learn != nil {
+			item.Learn = &SafetyLearnLink{PathId: e.Learn.PathID, LessonId: e.Learn.LessonID}
+		}
+		for _, src := range e.Sources {
+			item.Sources = append(item.Sources, sourceOut(src))
+		}
+		out.Items = append(out.Items, item)
+	}
+	return ListSafetyReference200JSONResponse(out), nil
 }

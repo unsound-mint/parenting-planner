@@ -168,7 +168,7 @@ func TestGuidesCarryTheirRuleAndTheirAction(t *testing.T) {
 	if tdap.RuleId == nil || *tdap.RuleId != "tdap-pregnancy" {
 		t.Errorf("preg-tdap explains the Tdap rule: %+v", tdap.RuleId)
 	}
-	if a := tdap.Action; a == nil || a.Kind != httpapi.GuideActionKindAddTask || a.Title == nil || *a.Title != "Get the Tdap vaccine" {
+	if a := tdap.Action; a == nil || a.Kind != httpapi.GuideActionKindAskAtVisit || a.Question == nil || *a.Question == "" {
 		t.Errorf("preg-tdap action = %+v", tdap.Action)
 	}
 	if g := guides["preg-warning-signs"]; g.RuleId != nil || g.Action == nil || g.Action.Kind != httpapi.GuideActionKindPractice {
@@ -233,6 +233,74 @@ func TestStageNowIsNotServedInPregnancy(t *testing.T) {
 	var e httpapi.Error
 	c.Get("/api/members/"+mom.Id.String()+"/now", http.StatusConflict, &e)
 	if e.Code != "pregnant" {
+		t.Errorf("code = %q", e.Code)
+	}
+}
+
+func TestSafetyReferenceIsSourcedForEveryRole(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	for _, role := range []httpapi.ParentRole{httpapi.ParentRoleMother, httpapi.ParentRolePartner} {
+		m := testutil.Parent(t, fam, role)
+		var got httpapi.SafetyReferenceList
+		c.Get("/api/members/"+m.Id.String()+"/safety-reference", http.StatusOK, &got)
+		if len(got.Items) < 20 {
+			t.Fatalf("%s: %d entries", role, len(got.Items))
+		}
+		for _, e := range got.Items {
+			if len(e.Sources) == 0 || e.Sources[0].CheckedAt.String() != "2026-11-14" {
+				t.Errorf("%s: sources %+v", e.Id, e.Sources)
+			}
+			if (e.Category == httpapi.Medicine) != (e.Ask != nil && *e.Ask == "Ask your pharmacist, OB or midwife, or other clinician before you take it.") {
+				t.Errorf("%s: ask line %v", e.Id, e.Ask)
+			}
+		}
+	}
+}
+
+func TestSafetyReferenceNeedsASession(t *testing.T) {
+	c := testutil.New(t)
+	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
+	testutil.New(t).Get("/api/members/"+mom.Id.String()+"/safety-reference", http.StatusUnauthorized, nil)
+	c2 := testutil.New(t)
+	c2.StartDemo("pregnancy")
+	c2.Get("/api/members/"+mom.Id.String()+"/safety-reference", http.StatusNotFound, nil)
+}
+
+func TestPregnancyGrowthServesEveryWeek(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom, partner := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	var g httpapi.PregnancyGrowth
+	c.Get("/api/members/"+mom.Id.String()+"/pregnancy-growth", http.StatusOK, &g)
+	if g.CurrentWeek != 25 || len(g.Weeks) != 37 || g.Weeks[0].Week != 4 || g.Weeks[36].Week != 40 {
+		t.Fatalf("currentWeek=%d, %d weeks", g.CurrentWeek, len(g.Weeks))
+	}
+	w25 := g.Weeks[21]
+	if w25.Week != 25 || w25.Size.Comparison != "a zucchini" || w25.Size.WeightG == nil || len(w25.Hotspots) == 0 {
+		t.Errorf("week 25: %+v", w25)
+	}
+	for _, h := range w25.Hotspots {
+		if len(h.Sources) != 1 || h.Sources[0].Url == "" || h.Sources[0].CheckedAt.IsZero() {
+			t.Errorf("week 25 hotspot without its source: %+v", h)
+		}
+	}
+	c.Get("/api/members/"+partner.Id.String()+"/pregnancy-growth", http.StatusOK, nil)
+
+	// The same gate as the weekly card: parents only, so a caregiver id is not found.
+	for _, cg := range fam.Caregivers {
+		c.Get("/api/members/"+cg.Id.String()+"/pregnancy-growth", http.StatusNotFound, nil)
+		c.Get("/api/members/"+cg.Id.String()+"/pregnancy-weeks/25", http.StatusNotFound, nil)
+	}
+	other := testutil.New(t)
+	other.StartDemo("pregnancy")
+	other.Get("/api/members/"+mom.Id.String()+"/pregnancy-growth", http.StatusNotFound, nil)
+
+	nf := testutil.New(t)
+	newborn := testutil.Parent(t, nf.StartDemo("newborn"), httpapi.ParentRoleMother)
+	var e httpapi.Error
+	nf.Get("/api/members/"+newborn.Id.String()+"/pregnancy-growth", http.StatusConflict, &e)
+	if e.Code != "not_pregnant" {
 		t.Errorf("code = %q", e.Code)
 	}
 }
