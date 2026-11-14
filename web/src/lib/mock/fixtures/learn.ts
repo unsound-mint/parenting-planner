@@ -223,6 +223,7 @@ export const learnMocks = {
     if (theirFinish?.finishedAt) {
       const title = lessonById.get(theirFinish.lessonId)?.title ?? "";
       nudge = {
+        id: `lesson_finished:${theirFinish.lessonId}:${theirFinish.finishedAt}`,
         memberId: other.id,
         kind: "lesson_finished",
         at: theirFinish.finishedAt,
@@ -255,7 +256,7 @@ export const learnMocks = {
     for (const p of pool) push({ id: p.id, text: p.text });
     for (const l of now) push({ id: `lesson:${l.id}`, text: l.talkPrompt!, lessonId: l.id });
     const prompts = [...list.filter((p) => !p.talkedAt), ...list.filter((p) => p.talkedAt).sort((a, b) => (b.talkedAt ?? "").localeCompare(a.talkedAt ?? ""))];
-    return { ...(nudge ? { nudge } : {}), prompts };
+    return { ...(nudge ? { nudge } : {}), prompts, closedNudgeIds: [] };
   }),
 
   ...mock("/members/{memberId}/couple-talks", "post", async (ctx) => {
