@@ -72,8 +72,8 @@ export function PostcardCard({
         style={{ transformOrigin: "left center" }}
       >
         <SoftCard tone="sun" hero as="article" aria-label="This week's postcard" className="flex flex-col gap-6 ring-1 ring-sun-2">
-          <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:gap-8">
-            <div className="mx-auto w-full max-w-56 sm:max-w-none">
+          <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] sm:gap-8">
+            <div className="mx-auto w-full max-w-64 sm:max-w-none">
               {card.kind === "pregnancy" && card.comparison ? (
                 <SizeIllustration comparison={card.comparison} label={`${card.period}, ${card.headline.toLowerCase()}`} bubble="Hello!" />
               ) : (
