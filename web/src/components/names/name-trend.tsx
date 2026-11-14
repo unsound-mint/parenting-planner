@@ -13,7 +13,9 @@ export function NameTrend({ years, counts, className }: { years: readonly number
   const n = Math.min(years.length, counts.length);
   if (n < 2) return null;
   const max = Math.max(1, ...counts.slice(0, n));
-  const x = (i: number) => PAD + (i / (n - 1)) * (W - PAD * 2);
+  // Placed by year, so the 2020 to 2025 step reads as half a decade.
+  const span = Math.max(1, years[n - 1] - years[0]);
+  const x = (i: number) => PAD + ((years[i] - years[0]) / span) * (W - PAD * 2);
   const y = (v: number) => H - PAD - (v / max) * (H - PAD * 2);
   const points = Array.from({ length: n }, (_, i) => `${x(i).toFixed(1)},${y(counts[i]).toFixed(1)}`).join(" ");
   const label = `US babies per year: ${Array.from({ length: n }, (_, i) => `${years[i]} ${counts[i].toLocaleString("en-US")}`).join(", ")}`;
@@ -23,7 +25,7 @@ export function NameTrend({ years, counts, className }: { years: readonly number
       <polyline points={points} fill="none" className="stroke-muted-foreground/70" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={x(n - 1)} cy={y(counts[n - 1])} r={4} className="fill-me stroke-card" strokeWidth={2} />
       {Array.from({ length: n }, (_, i) => (
-        <rect key={years[i]} x={x(i) - (W - PAD * 2) / (n - 1) / 2} y={0} width={(W - PAD * 2) / (n - 1)} height={H} fill="transparent">
+        <rect key={years[i]} x={i === 0 ? 0 : (x(i - 1) + x(i)) / 2} y={0} width={(i === n - 1 ? W : (x(i) + x(i + 1)) / 2) - (i === 0 ? 0 : (x(i - 1) + x(i)) / 2)} height={H} fill="transparent">
           <title>{`${years[i]}: ${counts[i].toLocaleString("en-US")} babies`}</title>
         </rect>
       ))}

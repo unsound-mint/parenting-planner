@@ -66,22 +66,23 @@ export function NameDeck({
     commit(verdict);
   };
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement | null;
-      if (el && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName))) return;
-      const verdict: NameVerdict | undefined = e.key === "ArrowRight" ? "love" : e.key === "ArrowLeft" ? "no" : e.key === "ArrowUp" ? "maybe" : undefined;
-      if (!verdict || !top || busy.current) return;
-      e.preventDefault();
-      busy.current = true;
-      commit(verdict);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  });
+  // Arrow keys answer only while focus is in the deck, so they never steal page
+  // scrolling or fire from a chip or a filter elsewhere on the page.
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    const verdict: NameVerdict | undefined = e.key === "ArrowRight" ? "love" : e.key === "ArrowLeft" ? "no" : e.key === "ArrowUp" ? "maybe" : undefined;
+    if (!verdict || !top || busy.current) return;
+    e.preventDefault();
+    busy.current = true;
+    commit(verdict);
+  };
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      aria-label={top ? `Name deck: ${top.name}. Right arrow love, up arrow maybe, left arrow not for us.` : "Name deck"}
+      className="flex flex-col items-center gap-5 rounded-[2rem] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+    >
       <div className="relative grid w-full max-w-md [grid-template-areas:'stack']">
         {cards
           .slice(0, 3)
@@ -144,7 +145,7 @@ export function NameDeck({
           <Heart className="size-7 fill-current" />
         </AnswerButton>
       </div>
-      <p className="hidden font-mono text-caption text-muted-foreground md:block">drag, or use ← ↑ →</p>
+      <p className="hidden font-mono text-caption text-muted-foreground md:block">drag, or focus the deck and use ← ↑ →</p>
     </div>
   );
 }

@@ -108,12 +108,14 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
         />
       )}
 
-      {/* The names quest card renders nothing once the baby is born (409) or for a caregiver (404). */}
-      <Rise i={3} className="grid gap-6 @4xl:grid-cols-2 @7xl:grid-cols-3">
-        <Suspense fallback={null}>
-          <NamesQuestCard memberId={memberId} parents={family.data.parents} />
-        </Suspense>
-      </Rise>
+      {/* The names quest is open before the birth only (the API answers 409 after); loss support never reaches here. */}
+      {["planning", "trying", "pregnancy"].includes(family.data.stage) && (
+        <Rise i={3} className="grid gap-6 @4xl:grid-cols-2 @7xl:grid-cols-3">
+          <Suspense fallback={null}>
+            <NamesQuestCard memberId={memberId} parents={family.data.parents} />
+          </Suspense>
+        </Rise>
+      )}
 
       {practice && (
         <Rise i={4}>
