@@ -43,6 +43,7 @@ tags:
   - name: admin
   - name: account
   - name: portraits
+  - name: childcare
 paths:
   /healthz:
     get:
@@ -90,6 +91,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "429":
+          description: Error. Too many new demos from one address (rate_limited); Retry-After is set.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /demo/custom-sessions:
     post:
@@ -132,6 +139,12 @@ paths:
                 $ref: "#/components/schemas/Family"
         "400":
           description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Error. Too many new demos from one address (rate_limited); Retry-After is set.
           content:
             application/json:
               schema:
@@ -269,6 +282,208 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/childcare-options:
+    get:
+      operationId: listChildcareOptions
+      tags: [childcare]
+      summary: The childcare options the family is tracking, newest first
+      description: |
+        Daycares, nannies and family care the parents are looking at, with
+        where each one stands (researching to accepted or declined), waitlist
+        position and dates. Family-wide: both parents see and edit the same
+        list. A caregiver's session gets 403. An offered option with a
+        decideBy date puts "Decide on a childcare offer" on both parents' plans.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOptionList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createChildcareOption
+      tags: [childcare]
+      summary: Start tracking a childcare option
+      description: Either parent may add one. A caregiver's session gets 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildcareOptionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /family/childcare-options/{optionId}:
+    parameters:
+      - $ref: "#/components/parameters/ChildcareOptionId"
+    get:
+      operationId: getChildcareOption
+      tags: [childcare]
+      summary: One childcare option
+      description: A caregiver's session gets 403.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      operationId: updateChildcareOption
+      tags: [childcare]
+      summary: Replace a childcare option with the values sent
+      description: |
+        A full replace: optional fields left out are cleared. Send the whole
+        option, for example with a new status and waitlist position.
+        A caregiver's session gets 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChildcareOptionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChildcareOption"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      operationId: deleteChildcareOption
+      tags: [childcare]
+      summary: Stop tracking a childcare option
+      description: A caregiver's session gets 403.
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Error
           content:
             application/json:
@@ -6087,6 +6302,14 @@ components:
         type: string
         format: uuid
 
+    ChildcareOptionId:
+      name: optionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
     InvitationId:
       name: invitationId
       in: path
@@ -6224,6 +6447,94 @@ components:
     PaidTier:
       type: string
       enum: [plus, concierge]
+
+    ChildcareKind:
+      type: string
+      description: daycare = a center; nanny = care at home; family = a relative or a home-based family daycare.
+      enum: [daycare, nanny, family]
+
+    ChildcareStatus:
+      type: string
+      description: Where the family stands with this option, in the order it usually goes.
+      enum: [researching, toured, applied, waitlisted, offered, accepted, declined]
+
+    ChildcareOptionInput:
+      type: object
+      required: [name, kind, status]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Little Harbor Early Learning
+        kind:
+          $ref: "#/components/schemas/ChildcareKind"
+        contact:
+          type: string
+          maxLength: 300
+          description: Free text, such as a person, phone number or email.
+        monthlyCost:
+          type: integer
+          minimum: 0
+          maximum: 100000
+          description: Cost per month in whole US dollars.
+        status:
+          $ref: "#/components/schemas/ChildcareStatus"
+        waitlistPosition:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        appliedOn:
+          type: string
+          format: date
+        decideBy:
+          type: string
+          format: date
+          description: The date the family must answer by, such as the deadline to accept an offered place.
+        notes:
+          type: string
+          maxLength: 2000
+
+    ChildcareOption:
+      type: object
+      required: [id, name, kind, status, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          $ref: "#/components/schemas/ChildcareKind"
+        contact:
+          type: string
+        monthlyCost:
+          type: integer
+          description: Cost per month in whole US dollars.
+        status:
+          $ref: "#/components/schemas/ChildcareStatus"
+        waitlistPosition:
+          type: integer
+        appliedOn:
+          type: string
+          format: date
+        decideBy:
+          type: string
+          format: date
+        notes:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChildcareOptionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChildcareOption"
 
     UpgradeIntentInput:
       type: object

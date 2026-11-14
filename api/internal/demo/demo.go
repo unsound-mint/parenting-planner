@@ -93,6 +93,12 @@ func seedCaregivers(ctx context.Context, q *store.Queries, familyID uuid.UUID) e
 // SkipDays is how far one "Skip ahead a week" moves a family's demo clock.
 const SkipDays = 7
 
+// MaxOffsetDays bounds the demo clock: two years ahead covers every stage
+// change a demo shows. Each skip copies a week of check-ins, so without a
+// bound a loop of skips would grow the family's rows forever. A skip past
+// the bound changes nothing.
+const MaxOffsetDays = 2 * 364
+
 // SkipWeek moves one family's demo clock SkipDays ahead. Only that family's
 // rows change; a new demo is a new family, which starts at real time.
 //
@@ -104,12 +110,19 @@ const SkipDays = 7
 func SkipWeek(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, now time.Time) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
+		fam, err := q.GetFamily(ctx, familyID)
+		if err != nil {
+			return err
+		}
+		if int(fam.DemoOffsetDays)+SkipDays > MaxOffsetDays {
+			return nil
+		}
 		if err := q.CopyMoodCheckinsForwardVisibleToParent(ctx, store.CopyMoodCheckinsForwardVisibleToParentParams{
 			Days: SkipDays, FamilyID: familyID, FromAt: now.AddDate(0, 0, -SkipDays), ToAt: now,
 		}); err != nil {
 			return err
 		}
-		_, err := q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
+		_, err = q.SkipFamilyDemoClock(ctx, store.SkipFamilyDemoClockParams{Days: SkipDays, ID: familyID})
 		return err
 	})
 }
