@@ -1,6 +1,6 @@
 # Contest requirements
 
-Business Cup 2.0 by Zimran, "From zero to product". Source: organizer slides, Nov 14 2026.
+Business Cup 2.0 by Zimran, "From zero to product". Source: organizer slides, Nov 14 2026. Organizer answers to team questions: [faq.md](faq.md).
 
 ## The challenge
 

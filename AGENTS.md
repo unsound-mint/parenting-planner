@@ -4,7 +4,7 @@ Read this before any work in this repo. It is loaded in every session, so keep i
 
 ## Context
 
-Hackathon project for Business Cup 2.0 (Zimran). Deadline 12:00, Nov 15 2026. Rules and scoring: `docs/requirements.md`. What we build and what we do not: `docs/product.md`. Evidence and guideline sources: `docs/research.md`. The demo script in `docs/demo-script.md` is the acceptance test for the MVP.
+Hackathon project for Business Cup 2.0 (Zimran). Deadline 12:00, Nov 15 2026. Rules and scoring: `docs/requirements.md`, organizer answers in `docs/faq.md`. What we build and what we do not: `docs/product.md`. Evidence and guideline sources: `docs/research.md`. The demo script in `docs/demo-script.md` is the acceptance test for the MVP.
 
 Before starting an issue, read `docs/product.md`. If the issue conflicts with it, say so instead of building it.
 
