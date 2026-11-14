@@ -12,7 +12,7 @@ func (s *Server) CreateUpgradeIntent(ctx context.Context, req CreateUpgradeInten
 	if !ok {
 		return CreateUpgradeIntent401JSONResponse(errNoSession), nil
 	}
-	in, err := upgrade.Request(ctx, s.pool, familyID, string(req.Body.Tier), s.cfg.Now())
+	in, err := upgrade.Request(ctx, s.pool, familyID, string(req.Body.Tier), s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
