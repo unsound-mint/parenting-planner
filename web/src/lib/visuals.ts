@@ -227,7 +227,7 @@ export const providerTypeLabel: Record<ProviderType, { one: string; many: string
 
 export const providerTypes = Object.keys(providerTypeIcon) as ProviderType[];
 
-/** The written weekly note from the AI plan (components/week/ai-plan.tsx). */
+/** The written weekly note from the AI plan (components/week/plan-with-note.tsx). */
 export const weeklyNoteIcon: LucideIcon = PenLine;
 
 /** A detected pattern in the parent's own check-ins. */

@@ -101,3 +101,15 @@ export type LeaveDeadline = S["LeaveDeadline"];
 export type InsuranceCall = S["InsuranceCall"];
 export type InsuranceCallInput = S["InsuranceCallInput"];
 export type InsuranceCallTopic = S["InsuranceCallTopic"];
+||||||| b3ca4a4
+export type Notification = S["Notification"];
+export type NotificationKind = S["NotificationKind"];
+export type NotificationList = S["NotificationList"];
+export type CalendarFeed = S["CalendarFeed"];
+export type CalendarFeedScope = S["CalendarFeedScope"];
+export type DiaryEntry = S["DiaryEntry"];
+export type ScreeningQuestionnaire = S["ScreeningQuestionnaire"];
+export type ScreeningChoice = S["ScreeningChoice"];
+export type ScreeningInstrument = S["ScreeningInstrument"];
+export type ScreeningBand = S["ScreeningBand"];
+export type MoodScreeningResult = S["MoodScreeningResult"];

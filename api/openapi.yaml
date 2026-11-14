@@ -38,6 +38,7 @@ tags:
   - name: screening
   - name: offers
   - name: admin
+  - name: account
 paths:
   /healthz:
     get:
@@ -150,6 +151,32 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Family"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      operationId: deleteFamily
+      tags: [account]
+      summary: Delete the session's family and everything stored for it
+      description: |
+        Account deletion for the demo, where the account is the family behind
+        the session cookie. Deletes the family and every row that belongs to
+        it (parents, children, caregivers, health records, check-ins, notes,
+        bookings, sessions and the audit log) and clears the pp_session
+        cookie. Other families are untouched. The old cookie gets 401
+        afterwards. Nothing is soft-deleted. Backups: see "Deletion and
+        backups" in docs/data-model.md.
+      responses:
+        "204":
+          description: Deleted; the session cookie is cleared.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
         "401":
           description: Error
           content:
@@ -386,6 +413,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/export:
+    get:
+      operationId: getMemberExport
+      tags: [account]
+      summary: Download everything the acting parent may see, as one JSON file
+      description: |
+        Data export for one parent. Contains the family, the passport, mood
+        check-ins, psychologist bookings, session notes and plan progress,
+        read with the same access rules as the screens: all of the acting
+        parent's own records, records the other parent shared with them, and
+        nothing the other parent kept private. The read is audited. The
+        response is sent as a file download (Content-Disposition attachment).
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberExport"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/plan/{ruleId}/status:
     put:
       operationId: setPlanItemProgress
@@ -548,12 +613,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
   /members/{memberId}/screenings:
     parameters:
       - $ref: "#/components/parameters/MemberId"
@@ -594,12 +653,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
           description: Error
           content:
             application/json:
@@ -646,12 +699,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
           description: Error
           content:
             application/json:
@@ -5248,6 +5295,56 @@ components:
           description: The acting parent first, then the other parent, then the child.
           items:
             $ref: "#/components/schemas/PassportPerson"
+
+    MemberExport:
+      type: object
+      description: |
+        One parent's data export. Lists are complete (no time window), newest
+        first. Modules added later add their own optional field here.
+      required: [memberId, exportedAt, family, passport, moodCheckins, psychologistBookings, sessionNotes, planProgress]
+      properties:
+        memberId:
+          type: string
+          format: uuid
+          description: The parent who exported.
+        exportedAt:
+          type: string
+          format: date-time
+        family:
+          $ref: "#/components/schemas/Family"
+        passport:
+          $ref: "#/components/schemas/Passport"
+        moodCheckins:
+          type: array
+          items:
+            $ref: "#/components/schemas/MoodCheckin"
+        psychologistBookings:
+          type: array
+          description: The acting parent's own bookings.
+          items:
+            $ref: "#/components/schemas/PsychologistBooking"
+        sessionNotes:
+          type: array
+          description: The acting parent's own notes after sessions.
+          items:
+            $ref: "#/components/schemas/SessionNote"
+        planProgress:
+          type: array
+          description: What the acting parent recorded on their plan items.
+          items:
+            $ref: "#/components/schemas/ExportedPlanProgress"
+
+    ExportedPlanProgress:
+      type: object
+      required: [ruleId, status, updatedAt]
+      properties:
+        ruleId:
+          type: string
+        status:
+          $ref: "#/components/schemas/PlanItemProgress"
+        updatedAt:
+          type: string
+          format: date-time
 
     PassportPerson:
       type: object

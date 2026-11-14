@@ -5,6 +5,7 @@ import { serverApi } from "@/lib/api/server";
 import { familyContext } from "@/lib/format";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
+import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav } from "@/components/shell/family-nav";
 import { RoleSwitch } from "@/components/shell/role-switch";
@@ -24,11 +25,12 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family, response }, calendar, simulator] = await Promise.all([
+  const [{ data: family, response }, calendar, simulator, notifications] = await Promise.all([
     api.GET("/family"),
     // Probes: a screen shows in the nav only once its endpoint works for this person.
     api.GET("/members/{memberId}/calendar-events", { params: { ...path.params, query: { scope: "mine" } } }),
     api.GET("/members/{memberId}/simulator", path),
+    api.GET("/members/{memberId}/notifications", path),
   ]);
   if (response.status === 401 || !family) redirect("/");
   const people = familyPeople(family);
@@ -76,9 +78,14 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             Demo data
           </span>
           <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
-            {family.tier === "free" ? "Plans" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+            {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           </Link>
           <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
+          {notifications.data && (
+            <div className="order-5">
+              <NotificationBell memberId={memberId} role={person.role} initial={notifications.data} />
+            </div>
+          )}
           <div className="order-5 hidden md:block">
             <UrgentHelpLink />
           </div>

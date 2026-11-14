@@ -162,6 +162,15 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 	return i, err
 }
 
+const deleteFamily = `-- name: DeleteFamily :exec
+DELETE FROM families WHERE id = $1
+`
+
+func (q *Queries) DeleteFamily(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteFamily, id)
+	return err
+}
+
 const getFamily = `-- name: GetFamily :one
 SELECT id, template, stage, due_date, created_at, demo_offset_days FROM families WHERE id = $1
 `

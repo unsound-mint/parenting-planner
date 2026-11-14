@@ -82,7 +82,17 @@ export interface paths {
         get: operations["getFamily"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete the session's family and everything stored for it
+         * @description Account deletion for the demo, where the account is the family behind
+         *     the session cookie. Deletes the family and every row that belongs to
+         *     it (parents, children, caregivers, health records, check-ins, notes,
+         *     bookings, sessions and the audit log) and clears the pp_session
+         *     cookie. Other families are untouched. The old cookie gets 401
+         *     afterwards. Nothing is soft-deleted. Backups: see "Deletion and
+         *     backups" in docs/data-model.md.
+         */
+        delete: operations["deleteFamily"];
         options?: never;
         head?: never;
         patch?: never;
@@ -229,6 +239,31 @@ export interface paths {
          *     Reading labs and allergies is audited like any sensitive read.
          */
         get: operations["getPassport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download everything the acting parent may see, as one JSON file
+         * @description Data export for one parent. Contains the family, the passport, mood
+         *     check-ins, psychologist bookings, session notes and plan progress,
+         *     read with the same access rules as the screens: all of the acting
+         *     parent's own records, records the other parent shared with them, and
+         *     nothing the other parent kept private. The read is audited. The
+         *     response is sent as a file download (Content-Disposition attachment).
+         */
+        get: operations["getMemberExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2781,6 +2816,34 @@ export interface components {
             /** @description The acting parent first, then the other parent, then the child. */
             people: components["schemas"]["PassportPerson"][];
         };
+        /**
+         * @description One parent's data export. Lists are complete (no time window), newest
+         *     first. Modules added later add their own optional field here.
+         */
+        MemberExport: {
+            /**
+             * Format: uuid
+             * @description The parent who exported.
+             */
+            memberId: string;
+            /** Format: date-time */
+            exportedAt: string;
+            family: components["schemas"]["Family"];
+            passport: components["schemas"]["Passport"];
+            moodCheckins: components["schemas"]["MoodCheckin"][];
+            /** @description The acting parent's own bookings. */
+            psychologistBookings: components["schemas"]["PsychologistBooking"][];
+            /** @description The acting parent's own notes after sessions. */
+            sessionNotes: components["schemas"]["SessionNote"][];
+            /** @description What the acting parent recorded on their plan items. */
+            planProgress: components["schemas"]["ExportedPlanProgress"][];
+        };
+        ExportedPlanProgress: {
+            ruleId: string;
+            status: components["schemas"]["PlanItemProgress"];
+            /** Format: date-time */
+            updatedAt: string;
+        };
         PassportPerson: {
             /** Format: uuid */
             id: string;
@@ -4335,6 +4398,34 @@ export interface operations {
             };
         };
     };
+    deleteFamily: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted; the session cookie is cleared. */
+            204: {
+                headers: {
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     createDemoTimeSkip: {
         parameters: {
             query?: never;
@@ -4647,6 +4738,56 @@ export interface operations {
             };
         };
     };
+    getMemberExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberExport"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     setPlanItemProgress: {
         parameters: {
             query?: never;
@@ -4891,15 +5032,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Error */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     createScreening: {
@@ -4962,15 +5094,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Error */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     createLabResult: {
@@ -5026,15 +5149,6 @@ export interface operations {
             };
             /** @description Error */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
-            /** @description Error */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
