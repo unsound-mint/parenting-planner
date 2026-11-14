@@ -11,6 +11,7 @@ import { directoryMocks } from "./fixtures/directory";
 import { insuranceMocks } from "./fixtures/insurance";
 import { leaveMocks } from "./fixtures/leave";
 import { learnMocks } from "./fixtures/learn";
+import { loadMapMocks } from "./fixtures/load-map";
 import { milestoneMocks } from "./fixtures/milestones";
 import { moodPatternMocks } from "./fixtures/mood-patterns";
 import { notificationMocks } from "./fixtures/notifications";
@@ -43,6 +44,7 @@ const tables: MockTable[] = [
   insuranceMocks,
   leaveMocks,
   learnMocks,
+  loadMapMocks,
   milestoneMocks,
   moodPatternMocks,
   notificationMocks,
