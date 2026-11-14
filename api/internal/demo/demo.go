@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/unsound-mint/parenting-planner/api/internal/offers"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -60,6 +61,11 @@ func start(ctx context.Context, pool *pgxpool.Pool, seed seedFunc, today time.Ti
 			return err
 		}
 		familyID = id
+		// Every family, from a template or a visitor's own details, gets its
+		// own copy of the partner offers for the admin panel to edit.
+		if err := offers.Seed(ctx, q, id, today); err != nil {
+			return err
+		}
 		return q.CreateSession(ctx, store.CreateSessionParams{TokenHash: hash, FamilyID: id, ExpiresAt: time.Now().Add(SessionTTL)})
 	})
 	return familyID, token, err
