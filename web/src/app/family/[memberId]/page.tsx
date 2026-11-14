@@ -8,6 +8,7 @@ import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
 import { CaregiverHome } from "@/components/week/caregiver-home";
 import { SleepChart } from "@/components/week/sleep-chart";
+import { ComingUpSlot, GuidesSlot, StageSlot, WeekCardSlot, optional } from "@/components/today/slots";
 
 // Own check-ins needed before the sleep chart earns space in the right rail.
 const MIN_SLEEP_CHECKINS = 3;
@@ -26,6 +27,9 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
+  // Newer endpoints start now and render in their own slots; None of them gates the page.
+  const today = optional(api.GET("/members/{memberId}/today", path));
+  const guides = optional(api.GET("/members/{memberId}/guides", { params: { path: { memberId }, query: { kind: "article" } } }));
   const [{ data: family }, { data: plan }, { data: checkins }, { data: patterns }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/plan", path),
@@ -35,7 +39,13 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   ]);
   // Grandparents and nannies get the baby's care, not a parent's plan (lib/roles.ts).
   const caregiver = family?.caregivers?.find((c) => c.id === memberId);
-  if (family && caregiver) return <CaregiverHome family={family} caregiver={caregiver} />;
+  const week = family?.stage === "pregnancy" ? family.gestationalWeek : undefined;
+  // Weeks 4 to 40 only; a nanny never gets the card (the API answers 403).
+  const card =
+    family && week != null && week >= 4 && week <= 40 && caregiver?.role !== "nanny"
+      ? optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week } } }))
+      : undefined;
+  if (family && caregiver) return <CaregiverHome family={family} caregiver={caregiver} today={today} guides={guides} card={card} />;
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
@@ -60,11 +70,19 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         </h1>
         {/* The top bar shows this line from sm up; repeat it here only on phones, where the bar has no room. */}
         <p className="mt-2 text-label font-normal text-muted-foreground sm:hidden">{familyContext(family)}</p>
+        <div className="mt-3 empty:hidden">
+          <StageSlot guides={guides} memberId={memberId} family={family} />
+        </div>
         <PlanBoard items={plan.items} memberId={memberId} />
+        <div className="mt-8 empty:hidden">
+          <ComingUpSlot today={today} />
+        </div>
         <AiPlan memberId={memberId} />
       </section>
 
       <aside className="flex flex-col gap-6 xl:pt-1">
+        <WeekCardSlot card={card} />
+        <GuidesSlot guides={guides} />
         {pattern && <MoodPatternCard pattern={pattern} checkins={own} memberId={memberId} />}
         {own.length >= MIN_SLEEP_CHECKINS && <SleepChart checkins={own} />}
         <MoodCheckinCard memberId={memberId} partnerName={partner?.displayName} />
