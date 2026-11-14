@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, HeartHandshake, IdCard, Route, Search, type LucideIcon } from "lucide-react";
+import { CalendarCheck, CalendarDays, HeartHandshake, IdCard, Route, Search, Target, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -17,24 +17,27 @@ const items: { href: string; screen: string; label: string; icon: LucideIcon }[]
   { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
   { href: "/directory", screen: "directory", label: "Find help", icon: Search },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
+  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target },
 ];
 
 // hasPlan is false while GET tasks does not answer 200 (501 in production without preview mocks): no Plan entry then.
-export function FamilyNav({ memberId, role, hasPlan }: { memberId: string; role: Role; hasPlan: boolean }) {
+// hidden: other screens whose endpoint refuses this person (403, 404) or is not built and has no preview mock.
+export function FamilyNav({ memberId, role, hasPlan, hidden = [] }: { memberId: string; role: Role; hasPlan: boolean; hidden?: string[] }) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
   return (
-    <nav aria-label="Family" className="flex gap-1 md:flex-col">
-      {items.filter((item) => canOpen(role, item.screen) && (item.screen !== "plan" || hasPlan)).map((item) => {
+    <nav aria-label="Family" className="-mx-1 flex gap-1 overflow-x-auto px-1 md:mx-0 md:flex-col md:overflow-visible md:px-0">
+      {items.filter((item) => canOpen(role, item.screen) && (item.screen !== "plan" || hasPlan) && !hidden.includes(item.screen)).map((item) => {
         const href = base + item.href;
-        const active = pathname === href;
+        const active = item.href === "" ? pathname === href : pathname.startsWith(href);
         return (
           <Link
             key={item.href}
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-0.5 py-1.5 text-center text-caption whitespace-nowrap transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
+              "flex min-h-11 min-w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-caption transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
               active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
