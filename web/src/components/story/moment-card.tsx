@@ -25,10 +25,15 @@ export const momentIcon: Record<StoryMomentKind, LucideIcon> = {
 /** Who did it: one person as a chip, two or more as overlapping avatars with their names. */
 function People({ people }: { people: Person[] }) {
   if (people.length === 0) return null;
-  if (people.length === 1) return <PartnerChip person={people[0]} />;
+  if (people.length === 1)
+    return (
+      <span className="self-start">
+        <PartnerChip person={people[0]} />
+      </span>
+    );
   const names = people.map((p) => p.displayName);
   return (
-    <span className="inline-flex items-center gap-2 text-label text-ink-2">
+    <span className="inline-flex items-center gap-2 self-start text-label text-ink-2">
       <span className="flex -space-x-1.5">
         {people.map((p) => (
           <Avatar key={p.id} person={p} size="sm" className="ring-2 ring-card" />
