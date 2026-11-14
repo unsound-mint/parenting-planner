@@ -32,6 +32,7 @@ Architecture and commands: `docs/architecture.md`. Before changing `api/`, read 
 
 - `api/openapi.yaml` is the only contract between web and api. To add or change an endpoint, edit it first, run `make gen`, then implement both sides. Never edit `*.gen.go` or `*.gen.ts`; CI fails if generated code is stale.
 - The web app never touches the database and never hand-writes API types; it uses the generated client (`web/src/lib/api/`).
+- While an endpoint still returns 501, design against typed preview mocks in `web/src/lib/mock/fixtures/` (one file per feature, registered in `web/src/lib/mock/index.ts`). They apply only to 501 answers, are on in development and off in production unless `NEXT_PUBLIC_PREVIEW_MOCKS=1`. Never put demo data in components.
 - Every family-scoped query filters by the session's family id. Reads of sensitive records (labs, diary, mood, session notes) go through the visibility rules in `api/internal/access`; the SQL filter must mirror the Go function and say so in a comment.
 - Schema changes are new goose migrations in `api/internal/store/migrations/`; never edit an applied one. Migrations run on API start.
 - Health logic lives in `api/internal/rules` as pure functions with tests. Each rule cites a source you actually opened and its checked date.

@@ -106,6 +106,8 @@ func (s *Server) session(next http.Handler) http.Handler {
 var (
 	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
+	// errForbidden is for a person who is in the family but may not do this.
+	errForbidden = Error{Code: "forbidden", Message: "this person may not do that"}
 
 	errNoBooking         = Error{Code: "not_found", Message: "no such session for this parent"}
 	errSlotTaken         = Error{Code: "slot_taken", Message: "this time is no longer open"}
