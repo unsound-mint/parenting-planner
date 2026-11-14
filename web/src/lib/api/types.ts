@@ -158,3 +158,19 @@ export type Journey = S["Journey"];
 export type JourneyStage = S["JourneyStage"];
 export type Portrait = S["Portrait"];
 export type PortraitList = S["PortraitList"];
+
+// Money pack
+export type Budget = S["Budget"];
+export type BudgetItem = S["BudgetItem"];
+export type BudgetItemInput = S["BudgetItemInput"];
+export type BudgetSuggestion = S["BudgetSuggestion"];
+export type BudgetCategory = S["BudgetCategory"];
+export type BudgetPayer = S["BudgetPayer"];
+export type BirthCostPlan = S["BirthCostPlan"];
+export type BirthCostInput = S["BirthCostInput"];
+export type ChildcareList = S["ChildcareList"];
+export type ChildcareOption = S["ChildcareOption"];
+export type ChildcareOptionInput = S["ChildcareOptionInput"];
+export type ChildcareKind = S["ChildcareKind"];
+export type ChildcareStatus = S["ChildcareStatus"];
+export type BirthCostScenario = S["BirthCostScenario"];

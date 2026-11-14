@@ -67,6 +67,11 @@ func seedMoney(ctx context.Context, q *store.Queries, fam uuid.UUID, stage strin
 			return err
 		}
 	}
+	if _, err := q.UpsertBirthCostPlan(ctx, store.UpsertBirthCostPlanParams{
+		FamilyID: fam, DeductibleCents: 300_000, OutOfPocketMaxCents: 750_000, CoinsurancePercent: 20, UpdatedAt: today,
+	}); err != nil {
+		return err
+	}
 	for _, o := range daycareOptions {
 		cost := o.dollars * 100
 		p := store.CreateChildcareOptionParams{

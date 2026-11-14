@@ -9,6 +9,7 @@ import {
   Blocks,
   BookOpen,
   Brain,
+  School,
   CalendarClock,
   CircleHelp,
   CalendarRange,
@@ -308,6 +309,7 @@ export const calendarKindIcon: Record<CalendarEventKind, LucideIcon> = {
   shift: Baby,
   task: SquareCheck,
   psychologist_session: Brain,
+  childcare_deadline: School,
 };
 
 export const calendarKindLabel: Record<CalendarEventKind, string> = {
@@ -318,6 +320,7 @@ export const calendarKindLabel: Record<CalendarEventKind, string> = {
   shift: "Shift",
   task: "Task due",
   psychologist_session: "Session",
+  childcare_deadline: "Apply by",
 };
 
 /** Simulator skills (components/simulator). */
