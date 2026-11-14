@@ -2,6 +2,7 @@ package httpapi_test
 
 import (
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/google/uuid"
@@ -162,7 +163,8 @@ func TestLoadMapListsItemsTakersAndWithdraw(t *testing.T) {
 	c.Post(tasksPath(mom.Id)+"/"+id+"/reassignment/withdraw", nil, http.StatusOK, nil)
 	c.Get(loadMapPath(mom.Id), http.StatusOK, &m)
 	planning, _ = areaOf(m, httpapi.LoadMapAreaKeyPlanning)
-	if len(planning.OfferedByMeTaskIds) != 0 || len(planning.HandoverTaskIds) != 1 {
+	// The withdrawn task can be handed over again; other seeded tasks may be in that list too.
+	if len(planning.OfferedByMeTaskIds) != 0 || !slices.ContainsFunc(planning.HandoverTaskIds, func(h uuid.UUID) bool { return h.String() == id }) {
 		t.Errorf("after withdrawing, planning = %+v", planning)
 	}
 }
