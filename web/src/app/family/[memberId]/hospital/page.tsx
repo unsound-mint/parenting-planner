@@ -2,12 +2,21 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
-import { PageFrame } from "@/components/shell/page";
+import { PageFrame, PageGrid } from "@/components/shell/page";
+import { Rise } from "@/components/joy/rise";
 import { HospitalMode } from "@/components/hospital/hospital-mode";
+import { ContractionTimer } from "@/components/labor/contraction-timer";
+import { BreathingGuide } from "@/components/labor/breathing-guide";
+import { RealOrPractice } from "@/components/labor/real-or-practice";
+import { BirthPrep } from "@/components/labor/birth-prep";
+import { showsLaborCoach } from "@/components/labor/labor-coach-link";
 
-// "Going to the hospital": the screen for the moment labour starts. Parents only.
-// Without a birth plan (501 in production until the backend lands, 404 for a
-// caregiver or in pregnancy loss support) the screen is not offered.
+// "Getting ready for birth": the contraction timer and when to call (the hero,
+// first on a phone), guided breathing, how labor contractions differ from
+// practice ones, a short list for the weeks before, and the "Going to the
+// hospital" cards. Parents in a pregnancy only; not in pregnancy loss support.
+// The hospital cards need the birth plan (501 until the backend lands, then
+// preview mocks); without it the rest of the page still stands.
 export default function HospitalPage({ params }: PageProps<"/family/[memberId]/hospital">) {
   return (
     <Suspense fallback={<Fallback />}>
@@ -20,21 +29,56 @@ async function Hospital({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [{ data: family }, { data: plan }, { data: tasks }] = await Promise.all([
+  const [{ data: family, response }, { data: plan }, { data: tasks }] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/birth-plan", path),
-    api.GET("/members/{memberId}/tasks", { params: { path: { memberId }, query: { kind: "hospital_bag" } } }),
+    api.GET("/members/{memberId}/tasks", path),
   ]);
+  if (response.status === 401) redirect("/");
   const self = family && familyPeople(family).find((p) => p.id === memberId);
   // A person from another family (an old tab after a new session): open the current family.
   if (family && !self) redirect("/family");
-  if (!family || !self || isCaregiver(self.role) || !plan) notFound();
+  if (!family || !self) notFound();
+  if (isCaregiver(self.role)) redirect(`/family/${memberId}`);
+  if (!showsLaborCoach(family)) notFound();
+
   const other = family.parents.find((p) => p.id !== memberId);
+  const birthParent = family.parents.find((p) => p.role === "mother") ?? self;
+  const week = family.gestationalWeek ?? undefined;
+  const all = tasks?.items ?? [];
+  const bags = tasks ? all.filter((t) => t.kind === "hospital_bag") : undefined;
+  // The number to call in labor: the first contact that is a place, not one of the parents.
+  const desk = plan?.contacts.find((c) => !c.memberId);
 
   return (
     <PageFrame>
-      <h1 className="text-headline text-balance">Going to the hospital</h1>
-      <HospitalMode plan={plan} bags={tasks?.items} memberId={memberId} partner={other && { id: other.id, name: other.displayName }} />
+      <Rise as="header" i={0}>
+        <h1 className="text-headline text-balance">Getting ready for birth</h1>
+        <p className="mt-1 text-label font-normal text-muted-foreground">A guide for both of you. Your care team&apos;s instructions always come first.</p>
+      </Rise>
+
+      <Rise i={1}>
+        <PageGrid cols={3}>
+          <ContractionTimer familyId={family.id} memberId={memberId} week={week} call={desk && { name: desk.label, phone: desk.phone }} />
+        </PageGrid>
+      </Rise>
+
+      <Rise i={2}>
+        <PageGrid cols={3}>
+          <BreathingGuide birthParent={birthParent.displayName} isBirthParent={self.id === birthParent.id} week={week} />
+          <RealOrPractice />
+        </PageGrid>
+      </Rise>
+
+      <Rise i={3} as="section" aria-labelledby="hospital-title" id="hospital" className="scroll-mt-24">
+        <h2 id="hospital-title" className="text-headline">
+          Before the day, and going in
+        </h2>
+        <PageGrid cols={3} className="mt-4">
+          <BirthPrep memberId={memberId} plan={plan} tasks={all} birthParent={birthParent.displayName} />
+          {plan && <HospitalMode plan={plan} bags={bags} memberId={memberId} partner={other && { id: other.id, name: other.displayName }} />}
+        </PageGrid>
+      </Rise>
     </PageFrame>
   );
 }
