@@ -167,6 +167,11 @@ export type Postcard = S["Postcard"];
 export type PostcardLove = S["PostcardLove"];
 export type Journey = S["Journey"];
 export type JourneyStage = S["JourneyStage"];
+export type Story = S["Story"];
+export type StoryChapter = S["StoryChapter"];
+export type StoryMoment = S["StoryMoment"];
+export type StoryMomentKind = S["StoryMomentKind"];
+export type StoryInvitation = S["StoryInvitation"];
 
 export type LoadMap = S["LoadMap"];
 export type LoadMapArea = S["LoadMapArea"];
