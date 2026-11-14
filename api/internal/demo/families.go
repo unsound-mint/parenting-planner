@@ -167,7 +167,7 @@ func (s *seeder) visit(owner, with uuid.UUID, title string, on time.Time) {
 	}
 	e, err := s.q.CreateCalendarEvent(s.ctx, store.CreateCalendarEventParams{
 		FamilyID: s.fam, OwnerMemberID: owner, Visibility: "family", Kind: "appointment", Title: title,
-		StartsAt: on.Add(15 * time.Hour),
+		StartsAt: atHour(on, 15),
 	})
 	if s.err = err; err == nil {
 		s.err = s.q.AddCalendarEventAttendee(s.ctx, store.AddCalendarEventAttendeeParams{EventID: e.ID, MemberID: with})
