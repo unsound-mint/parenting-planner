@@ -65,6 +65,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/shifts", path),
   ]);
   const parent = family?.parents.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !parent) redirect("/family");
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
   const own = (checkins?.items ?? []).filter((c) => c.authorId === memberId);

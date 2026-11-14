@@ -1,9 +1,23 @@
 # Production on musicroombot. Caddy on the host terminates TLS and routes
 # /api/* to the Go API (127.0.0.1:8792) and everything else to Next (127.0.0.1:8790).
-# Secrets live in deploy/.env (git-ignored): POSTGRES_PASSWORD, and optionally
-# SENTRY_DSN (API error reports; unset means no reports are sent), and
-# DIARY_ENCRYPTION_KEY (32 bytes, base64: `openssl rand -base64 32`). Without the key the
-# API makes a new one on every start and older diary entries can no longer be read.
+# Secrets live in deploy/.env on the server (git-ignored, chmod 600, survives
+# deploy.sh's git reset because it is untracked). Compose reads it automatically.
+#   POSTGRES_PASSWORD=...   required
+#   SENTRY_DSN=...          optional; API error reports, unset means none are sent
+#   DIARY_ENCRYPTION_KEY=...  32 bytes, base64 (`openssl rand -base64 32`). Without it
+#                           the API makes a new key on every start and older diary
+#                           entries can no longer be read
+#   ANTHROPIC_API_KEY=...   optional; without it the AI plan is off and the
+#                           rule plan shows on its own
+#   ANTHROPIC_MODEL=...     optional model id override for the AI plan
+#   STRIPE_SECRET_KEY=...   optional, sk_test_...; with STRIPE_WEBHOOK_SECRET (whsec_...)
+#   STRIPE_WEBHOOK_SECRET   and PUBLIC_BASE_URL (https://parenting.unsoundmint.com).
+#   PUBLIC_BASE_URL         Without all three the payment endpoints answer 503 and
+#                           the pricing page only records interest
+# Check the key is set without printing it (never run `docker compose config`
+# on the server, it prints every value):
+#   grep -c '^ANTHROPIC_API_KEY=.' deploy/.env                  # 1 = set
+#   docker compose -f deploy/compose.yml logs api | grep ai_plan  # ai_plan=true
 name: parenting
 services:
   postgres:
@@ -27,11 +41,21 @@ services:
     environment:
       DATABASE_URL: postgres://parenting:${POSTGRES_PASSWORD}@postgres:5432/parenting?sslmode=disable
       SENTRY_DSN: ${SENTRY_DSN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
       DIARY_ENCRYPTION_KEY: ${DIARY_ENCRYPTION_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
     ports: ["127.0.0.1:8792:8080"]
 
   web:
-    build: ../web
+    build:
+      context: ../web
+      args:
+        # Preview mocks fill endpoints that still return 501. On until the backend
+        # lands; set PREVIEW_MOCKS=0 in deploy/.env to turn them off.
+        NEXT_PUBLIC_PREVIEW_MOCKS: ${PREVIEW_MOCKS:-1}
     restart: unless-stopped
     depends_on: [api]
     environment:

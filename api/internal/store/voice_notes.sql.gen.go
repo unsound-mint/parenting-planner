@@ -84,20 +84,32 @@ func (q *Queries) DeleteStaleVoiceNotes(ctx context.Context, arg DeleteStaleVoic
 }
 
 const getVoiceNoteVisibleToMember = `-- name: GetVoiceNoteVisibleToMember :one
-SELECT id, family_id, uploader_member_id, handoff_id, content_type, size_bytes, duration_seconds, audio, created_at FROM voice_notes
-WHERE id = $1 AND family_id = $2 AND uploader_member_id = $3
+SELECT id, family_id, uploader_member_id, handoff_id, content_type, size_bytes, duration_seconds, audio, created_at FROM voice_notes v
+WHERE v.id = $1 AND v.family_id = $2
+  AND (v.uploader_member_id = $3
+       OR (v.handoff_id IS NOT NULL AND EXISTS (
+            SELECT 1 FROM handoffs h
+            WHERE h.id = v.handoff_id AND h.family_id = v.family_id
+              AND ($4::bool OR h.from_member_id = $3 OR h.to_member_id = $3))))
 `
 
 type GetVoiceNoteVisibleToMemberParams struct {
-	ID       uuid.UUID
-	FamilyID uuid.UUID
-	ViewerID uuid.UUID
+	ID              uuid.UUID
+	FamilyID        uuid.UUID
+	ViewerID        uuid.UUID
+	SeesAllHandoffs bool
 }
 
-// Only the uploader may play a note for now. When handoffs land (#370), whoever
-// may see the attached handoff may play it too.
+// The uploader may play a note. Once it is attached to a handoff, whoever may see
+// that handoff may too, mirroring listHandoffs: a parent sees every handoff of the
+// family, a caregiver only handoffs to or from them (@sees_all_handoffs is false).
 func (q *Queries) GetVoiceNoteVisibleToMember(ctx context.Context, arg GetVoiceNoteVisibleToMemberParams) (VoiceNote, error) {
-	row := q.db.QueryRow(ctx, getVoiceNoteVisibleToMember, arg.ID, arg.FamilyID, arg.ViewerID)
+	row := q.db.QueryRow(ctx, getVoiceNoteVisibleToMember,
+		arg.ID,
+		arg.FamilyID,
+		arg.ViewerID,
+		arg.SeesAllHandoffs,
+	)
 	var i VoiceNote
 	err := row.Scan(
 		&i.ID,
