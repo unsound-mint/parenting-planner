@@ -54,6 +54,15 @@ type Child struct {
 	BirthDate time.Time
 }
 
+type ContentOverride struct {
+	FamilyID  uuid.UUID
+	Kind      string
+	ItemID    string
+	Title     *string
+	Body      *string
+	UpdatedAt time.Time
+}
+
 type Family struct {
 	ID             uuid.UUID
 	Template       string
@@ -119,6 +128,32 @@ type MoodCheckin struct {
 	Energy        int16
 	SleepHours    float64
 	Note          *string
+}
+
+type MoodScreening struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	TakenAt       time.Time
+	Instrument    string
+	Answers       []int16
+	Score         int16
+	Band          string
+	Urgent        bool
+}
+
+type Notification struct {
+	ID                uuid.UUID
+	FamilyID          uuid.UUID
+	RecipientMemberID uuid.UUID
+	Kind              string
+	EntityID          *string
+	ActorMemberID     uuid.NullUUID
+	Title             string
+	OnDay             *time.Time
+	CreatedAt         time.Time
+	ReadAt            pgtype.Timestamptz
 }
 
 type PartnerOffer struct {

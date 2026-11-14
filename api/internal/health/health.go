@@ -18,6 +18,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/notify"
+	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
@@ -156,10 +158,13 @@ type NewLabValue struct {
 	RefLow, RefHigh *float64
 	TakenOn         time.Time
 	Visibility      access.Visibility
+	// Now is the family's clock, for the notification an out-of-range value sends.
+	Now time.Time
 }
 
 // LogLabValue records one measured lab value. Its kind is the name in
-// lowercase with underscores ("Vitamin D" -> vitamin_d).
+// lowercase with underscores ("Vitamin D" -> vitamin_d). A value outside its
+// reference range notifies the people who own the record (notify.LabFlagged).
 func LogLabValue(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, today time.Time, in NewLabValue) (store.LabResult, error) {
 	if err := checkDate(in.TakenOn, today); err != nil {
 		return store.LabResult{}, err
@@ -187,6 +192,11 @@ func LogLabValue(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.U
 			return err
 		}
 		out = l
+		if _, flagged := rules.LabOutOfRange(value, in.RefLow, in.RefHigh); flagged {
+			if err := notify.LabFlagged(ctx, q, familyID, l, actor, in.Now); err != nil {
+				return err
+			}
+		}
 		return access.Audit(ctx, q, familyID, actor, access.ActionCreate, entityLabResult, l.ID.String())
 	})
 	return out, err
