@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import Link from "next/link";
 import { UsersRound } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
