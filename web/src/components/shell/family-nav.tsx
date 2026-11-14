@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const items: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "", label: "This week", icon: CalendarCheck },
   { href: "/journey", label: "Journey", icon: Route },
+  // Enable when the API lands (#172): { href: "/passport", label: "Passport", icon: IdCard },
   // enable when the API lands (#175): { href: "/directory", label: "Find help", icon: Users },
 ];
 
