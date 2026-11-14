@@ -39,17 +39,6 @@ func moments(s httpapi.Story, kind httpapi.StoryMomentKind) []httpapi.StoryMomen
 	return out
 }
 
-func caregiver(t *testing.T, fam httpapi.Family, role httpapi.CaregiverRole) httpapi.Caregiver {
-	t.Helper()
-	for _, cg := range fam.Caregivers {
-		if cg.Role == role {
-			return cg
-		}
-	}
-	t.Fatalf("family has no %s", role)
-	return httpapi.Caregiver{}
-}
-
 func TestStoryNeedsSessionAndOwnFamily(t *testing.T) {
 	c := testutil.New(t)
 	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
