@@ -9,13 +9,18 @@ import type { FriendReactionKind, FriendUpdate } from "@/lib/api/types";
 import { spring, tap } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
 import { KINDS } from "./share-composer";
-import { familyName } from "./friend-list";
 
 const REACTIONS: { kind: FriendReactionKind; label: string; sent: string; icon: LucideIcon }[] = [
   { kind: "heart", label: "Love this", sent: "loves this", icon: Heart },
   { kind: "hug", label: "Send a hug", sent: "sent a hug", icon: HandHeart },
   { kind: "got_this", label: "You've got this", sent: "says you've got this", icon: Sparkle },
 ];
+
+// The author once, with the rest of their family as context: "Ngozi · with Ben".
+const withFamily = (author: string, names: string[]) => {
+  const rest = names.filter((n) => n !== author);
+  return rest.length ? `${author} · with ${rest.join(" and ")}` : author;
+};
 
 const when = (iso: string) => {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -67,7 +72,7 @@ export function UpdateCard({ memberId, myName, update: u, onRemoved }: { memberI
           <kind.icon className="size-4.5" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-label text-ink">{u.mine ? (u.authoredByMe ? "You shared" : `${u.authorName} shared`) : `${u.authorName}, ${familyName(u.familyNames)}`}</span>
+          <span className="block truncate text-label text-ink">{u.mine ? (u.authoredByMe ? "You shared" : `${u.authorName} shared`) : withFamily(u.authorName, u.familyNames)}</span>
           <span className="font-mono text-caption text-muted-foreground">
             {kind.label} · {when(u.createdAt)}
           </span>

@@ -39,17 +39,17 @@ func Seed(ctx context.Context, q *store.Queries, familyID uuid.UUID, today time.
 	str := func(s string) *string { return &s }
 	friends := []friend{
 		{
-			stage: "pregnancy", due: today.AddDate(0, 0, 9*7), mother: "Ana", partner: "Marcus", since: 40,
+			stage: "pregnancy", due: today.AddDate(0, 0, 9*7), mother: "Ngozi", partner: "Ben", since: 40,
 			updates: []update{
 				{kind: "week", headline: str("Week 31 of pregnancy"), body: "Baby is about the size of a coconut and kicks hardest right after dinner.", daysAgo: 1, hour: 19},
-				{kind: "note", body: "Packed the hospital bag today. Marcus added three phone chargers and no socks.", daysAgo: 6, hour: 20},
+				{kind: "note", body: "Packed the hospital bag today. Ben added three phone chargers and no socks.", daysAgo: 6, hour: 20},
 			},
 		},
 		{
-			stage: "infant", due: today.AddDate(0, -5, 0), mother: "Priya", partner: "Sam", since: 75,
+			stage: "infant", due: today.AddDate(0, -5, 0), mother: "Sara", partner: "Erik", since: 75,
 			updates: []update{
-				{kind: "moment", body: "Leo rolled from his back to his tummy for the first time, then looked very surprised.", daysAgo: 2, hour: 10},
-				{kind: "note", body: "First full night in his own crib. We checked on him four times anyway.", daysAgo: 9, hour: 8},
+				{kind: "moment", body: "Linnea rolled from her back to her tummy for the first time, then looked very surprised.", daysAgo: 2, hour: 10},
+				{kind: "note", body: "First full night in her own crib. We checked on her four times anyway.", daysAgo: 9, hour: 8},
 			},
 		},
 	}
