@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
+	"github.com/unsound-mint/parenting-planner/api/internal/tasks"
 )
 
 const (
@@ -27,6 +28,8 @@ type seeder struct {
 	today time.Time
 	fam   uuid.UUID
 	err   error
+	// paperwork, when set, seeds the paperwork checklist for these parents at the end.
+	paperwork *struct{ mother, partner uuid.UUID }
 }
 
 func newSeeder(ctx context.Context, q *store.Queries, today time.Time, t Template, stage string, due *time.Time) *seeder {
@@ -122,6 +125,9 @@ func (s *seeder) done() (uuid.UUID, error) {
 	if s.err == nil {
 		s.err = seedCaregivers(s.ctx, s.q, s.fam)
 	}
+	if s.err == nil && s.paperwork != nil {
+		s.err = tasks.SeedPaperwork(s.ctx, s.q, s.fam, s.paperwork.mother, s.paperwork.partner, map[int]bool{0: true}, s.today)
+	}
 	if s.err != nil {
 		return uuid.Nil, s.err
 	}
@@ -161,6 +167,7 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s := newSeeder(ctx, q, today, Newborn, "postpartum", nil)
 	aisha := s.member("mother", "Aisha", date(1997, 11, 5))
 	marcus := s.member("partner", "Marcus", date(1994, 3, 22))
+	s.paperwork = &struct{ mother, partner uuid.UUID }{aisha, marcus}
 	leo := s.child("Leo", born)
 	s.careTeam("obgyn", "Dr. Lena Park", ptr("(617) 555-0133"), nil)
 	s.careTeam("pediatrician", "Dr. Samuel Ortiz", ptr("(617) 555-0164"), ptr("Harborview Pediatrics, Boston, MA"))

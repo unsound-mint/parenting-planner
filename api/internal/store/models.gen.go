@@ -90,6 +90,7 @@ type Child struct {
 
 type EmergencyContact struct {
 	ID        uuid.UUID
+	Seq       pgtype.Int8
 	FamilyID  uuid.UUID
 	Name      string
 	Relation  string
@@ -266,6 +267,29 @@ type Shift struct {
 	StartsOn  *time.Time
 	RoundID   uuid.NullUUID
 	CreatedAt time.Time
+}
+
+type Task struct {
+	ID                      uuid.UUID
+	Seq                     pgtype.Int8
+	FamilyID                uuid.UUID
+	Kind                    string
+	Title                   string
+	Detail                  *string
+	DueOn                   *time.Time
+	DueAnchor               *string
+	DueOffsetDays           pgtype.Int4
+	Bag                     *string
+	AssigneeMemberID        uuid.UUID
+	PendingAssigneeMemberID uuid.NullUUID
+	Done                    bool
+	DoneAt                  pgtype.Timestamptz
+	DoneByMemberID          uuid.NullUUID
+	SourceTitle             *string
+	SourceUrl               *string
+	SourceCheckedOn         *time.Time
+	CreatedByMemberID       uuid.UUID
+	CreatedAt               time.Time
 }
 
 type UpgradeIntent struct {
