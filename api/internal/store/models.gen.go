@@ -302,6 +302,24 @@ type PlanItemProgress struct {
 	UpdatedAt time.Time
 }
 
+type PostcardLine struct {
+	ID             uuid.UUID
+	FamilyID       uuid.UUID
+	PeriodKey      string
+	AuthorMemberID uuid.NullUUID
+	AuthorName     string
+	Body           string
+	UpdatedAt      time.Time
+}
+
+type PostcardLofe struct {
+	ID           uuid.UUID
+	FamilyID     uuid.UUID
+	FromMemberID uuid.UUID
+	Message      *string
+	CreatedAt    time.Time
+}
+
 type Psychologist struct {
 	ID          uuid.UUID
 	Name        string
