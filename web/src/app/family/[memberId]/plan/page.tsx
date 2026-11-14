@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { familyPeople, isCaregiver } from "@/lib/roles";
 import { hasOlderChild, isPlanning } from "@/lib/stage";
@@ -30,6 +30,8 @@ async function Plan({ params }: { params: Promise<{ memberId: string }> }) {
   ]);
   const people = family ? familyPeople(family) : [];
   const self = people.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !self) redirect("/family");
   if (!family || !self || isCaregiver(self.role) || !tasks) notFound();
 
   // The leave planner counts toward a birth; pregnancy loss support, planning and an older child hide its tab.

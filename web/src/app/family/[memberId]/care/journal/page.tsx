@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { Journal } from "@/components/wellbeing/journal";
@@ -26,6 +26,8 @@ async function Page({ params }: { params: Promise<{ memberId: string }> }) {
     api.GET("/members/{memberId}/mood-checkins", path),
   ]);
   const me = family?.parents.find((p) => p.id === memberId);
+  // A person from another family (an old tab after a new session): open the current family.
+  if (family && !me) redirect("/family");
   if (!family || !me) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);
 

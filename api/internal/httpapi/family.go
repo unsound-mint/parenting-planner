@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/unsound-mint/parenting-planner/api/internal/billing"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/upgrade"
 )
@@ -60,10 +61,20 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 		}
 	}
 
-	// There is no billing, so every family stays on free; an upgrade intent
-	// only shows as "upgrade requested".
-	tier := TierFree
+	// One subscription covers the family, so both parents get its tier.
+	sub, hasSub, err := billing.Current(ctx, s.q, id)
+	if err != nil {
+		return Family{}, err
+	}
+	tier := Tier(billing.Tier(sub, hasSub))
 	out.Tier = &tier
+	if hasSub {
+		out.Subscription = &Subscription{Tier: PaidTier(sub.Tier), Status: SubscriptionStatus(sub.Status), StartedAt: sub.StartedAt.UTC()}
+		if sub.CurrentPeriodEnd.Valid {
+			end := sub.CurrentPeriodEnd.Time.UTC()
+			out.Subscription.CurrentPeriodEnd = &end
+		}
+	}
 	intent, ok, err := upgrade.Current(ctx, s.q, id)
 	if err != nil {
 		return Family{}, err
