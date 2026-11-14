@@ -55,9 +55,8 @@ export const weeklyPlanMocks = {
               title: "For you both",
               points: [
                 {
-                  text: "Go with Emily to the glucose screen if you can. It takes about an hour.",
-                  reason: "Emily is in week 25 and the screen is not booked yet.",
-                  source: glucose,
+                  text: "Start your half of the hospital bag this weekend, so the last weeks stay calm.",
+                  reason: "The bag is on your shared plan and the due date is 15 weeks away.",
                 },
               ],
             },

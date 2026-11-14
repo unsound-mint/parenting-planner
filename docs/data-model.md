@@ -339,7 +339,7 @@ Overlapping PRs:
 | `lab_results` | Owner plus a subject (parent or child) | `visibility`. Plan reads are filtered by `internal/access` but not audited. | `internal/plan` (rules), Passport (#342) |
 | `immunizations` | Subject only. No owner. | none | Plan facts (vaccine rules), Passport (#342) |
 | `audit_log` | Family; actor is a member | It is the audit. | Written by `wellbeing` and `care`. `GET .../access-log` is a stub on main; #363 builds it. |
-| `mood_checkins` | Owner | `visibility`, audited on read and write | Home: mood check-in card, sleep chart, `GET/POST .../mood-checkins`, `GET .../mood-patterns`; plan facts |
+| `mood_checkins` | Owner | `visibility`, audited on read and write | Home: mood and sleep card (check-in, seven-day chart, pattern), `GET/POST .../mood-checkins`, `GET .../mood-patterns`; plan facts |
 | `upgrade_intents` | One row per family | n/a | Pricing: `POST /family/upgrade-intents` |
 | `psychologists` | Global demo row | n/a | Care screen |
 | `psychologist_slots` | Family. No owner until booked. | n/a | Care: `GET .../psychologist-slots` |

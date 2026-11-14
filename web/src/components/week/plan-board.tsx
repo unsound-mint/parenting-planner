@@ -303,7 +303,7 @@ function NoteLine({ point, small, className }: { point: WeeklyPlanPoint; small?:
   return (
     <span className={cn("flex items-start gap-1.5", small ? "text-label text-muted-foreground" : "text-body", className)}>
       <Icon className={cn("shrink-0 text-primary", small ? "mt-0.5 size-3.5" : "mt-1 size-4")} aria-label="From your weekly note" />
-      <span className={small ? "line-clamp-2" : undefined}>{point.text}</span>
+      <span>{point.text}</span>
     </span>
   );
 }

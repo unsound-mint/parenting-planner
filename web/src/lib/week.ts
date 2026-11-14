@@ -33,12 +33,18 @@ const topic = (id: string) => id.split(/[-_]/).filter((w) => w && !GENERIC.has(w
 
 /**
  * A guide repeats a plan item when it cites the same guideline or its id names
- * the same topic ("preg-tdap" and rule "tdap-pregnancy"). The contract has no
+ * the same topic or category ("preg-tdap" and rule "tdap-pregnancy"). The contract has no
  * link between guides and rules yet; replace this with one when it does.
  */
 export function guideRepeatsPlan(guide: Guide, items: PlanItem[]): boolean {
-  const words = new Set(topic(guide.id));
-  return items.some((i) => i.source.url === guide.source.url || (topic(i.ruleId).length > 0 && topic(i.ruleId).every((w) => words.has(w))));
+  const words = topic(guide.id);
+  return items.some(
+    (i) =>
+      i.source.url === guide.source.url ||
+      (topic(i.ruleId).length > 0 && topic(i.ruleId).every((w) => words.includes(w))) ||
+      // "preg-partner-vaccines" is about the partner's "vaccine" item.
+      words.some((w) => w.startsWith(i.category)),
+  );
 }
 
 /**

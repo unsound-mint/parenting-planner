@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import type { Family, Guide, PregnancyWeek, Today } from "@/lib/api/types";
+import type { Family, Guide, PlanItem, PregnancyWeek, Today } from "@/lib/api/types";
+import { guideRepeatsPlan, weekCardBeyondPlan } from "@/lib/week";
 import { CaregiverToday } from "./caregiver-today";
-import { ComingUp } from "./coming-up";
 import { GuideList } from "./guide-list";
 import { StageControl } from "./stage-control";
 import { WeekCard } from "./week-card";
@@ -20,28 +20,22 @@ export function optional<T>(request: PromiseLike<{ data?: T }>): Promise<T | und
   );
 }
 
-export function WeekCardSlot({ card }: { card: Pending<PregnancyWeek> }) {
+// plan: on a parent's This week, the card drops what the plan already says and
+// the week number the top bar shows (lib/week.ts); it renders nothing when no
+// new fact is left.
+export function WeekCardSlot({ card, plan }: { card: Pending<PregnancyWeek>; plan?: PlanItem[] }) {
   return (
     <Suspense fallback={null}>
-      <WeekCardLoader card={card} />
+      <WeekCardLoader card={card} plan={plan} />
     </Suspense>
   );
 }
-async function WeekCardLoader({ card }: { card: Pending<PregnancyWeek> }) {
+async function WeekCardLoader({ card, plan }: { card: Pending<PregnancyWeek>; plan?: PlanItem[] }) {
   const data = await card;
-  return data ? <WeekCard card={data} /> : null;
-}
-
-export function ComingUpSlot({ today }: { today: Pending<Today> }) {
-  return (
-    <Suspense fallback={null}>
-      <ComingUpLoader today={today} />
-    </Suspense>
-  );
-}
-async function ComingUpLoader({ today }: { today: Pending<Today> }) {
-  const data = await today;
-  return data ? <ComingUp events={data.events} tasks={data.tasks} /> : null;
+  if (!data) return null;
+  if (!plan) return <WeekCard card={data} />;
+  const left = weekCardBeyondPlan(data, plan);
+  return left ? <WeekCard card={left} withWeek={false} /> : null;
 }
 
 export function CaregiverTodaySlot({ today, names }: { today: Pending<Today>; names: Record<string, string> }) {
@@ -56,17 +50,20 @@ async function CaregiverTodayLoader({ today, names }: { today: Pending<Today>; n
   return data ? <CaregiverToday today={data} names={names} /> : null;
 }
 
-export function GuidesSlot({ guides }: { guides: Pending<{ items: Guide[] }> }) {
+// plan: leave out guides about a plan item; the item already says it.
+export function GuidesSlot({ guides, plan }: { guides: Pending<{ items: Guide[] }>; plan?: PlanItem[] }) {
   return (
     <Suspense fallback={null}>
-      <GuidesLoader guides={guides} />
+      <GuidesLoader guides={guides} plan={plan} />
     </Suspense>
   );
 }
-async function GuidesLoader({ guides }: { guides: Pending<{ items: Guide[] }> }) {
+async function GuidesLoader({ guides, plan }: { guides: Pending<{ items: Guide[] }>; plan?: PlanItem[] }) {
   const data = await guides;
+  if (!data) return null;
+  const items = plan ? data.items.filter((g) => !guideRepeatsPlan(g, plan)) : data.items;
   // Two guides keep the home short; the API lists the most relevant first.
-  return data ? <GuideList guides={data.items.slice(0, 2)} /> : null;
+  return <GuideList guides={items.slice(0, 2)} />;
 }
 
 // The stage chip waits for the stage content endpoint (a preview mock counts): stage
