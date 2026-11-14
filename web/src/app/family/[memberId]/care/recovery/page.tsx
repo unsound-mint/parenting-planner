@@ -83,7 +83,7 @@ async function Recovery({ params }: { params: Promise<{ memberId: string }> }) {
           </Rise>
           {items.length > 0 && (
             <Rise i={3}>
-              <RecoveryEntries memberId={memberId} items={items} partnerName={other?.displayName} authorName={(id) => names.get(id) ?? "Her"} />
+              <RecoveryEntries memberId={memberId} items={items} partnerName={other?.displayName} authorNames={Object.fromEntries(names)} />
             </Rise>
           )}
         </Stack>

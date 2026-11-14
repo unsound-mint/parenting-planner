@@ -45,14 +45,14 @@ export function PainTrend({ items }: { items: RecoveryCheckin[] }) {
   );
 }
 
-export function RecoveryEntries({ memberId, items, partnerName, authorName }: { memberId: string; items: RecoveryCheckin[]; partnerName?: string; authorName: (id: string) => string }) {
+export function RecoveryEntries({ memberId, items, partnerName, authorNames }: { memberId: string; items: RecoveryCheckin[]; partnerName?: string; authorNames: Record<string, string> }) {
   return (
     <section aria-label="Check-ins" className="flex min-w-0 flex-col gap-3">
       <h2 className="font-mono text-caption tracking-[0.07em] text-muted-foreground uppercase">Check-ins</h2>
       <ul className="flex flex-col gap-3">
         {items.map((e) => (
           <li key={e.id}>
-            <Entry memberId={memberId} entry={e} partnerName={partnerName} own={e.authorId === memberId} author={authorName(e.authorId)} />
+            <Entry memberId={memberId} entry={e} partnerName={partnerName} own={e.authorId === memberId} author={authorNames[e.authorId] ?? "Her"} />
           </li>
         ))}
       </ul>
