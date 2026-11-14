@@ -82,10 +82,11 @@ func New(pool *pgxpool.Pool, cfg Config) (http.Handler, error) {
 		},
 	})
 	// Middlewares run last-to-first: check the Stripe webhook signature on the
-	// raw body, cap voice note uploads, validate, then resolve the session.
+	// raw body, cap voice note and portrait uploads, validate, then resolve the
+	// session.
 	return recoverPanics(HandlerWithOptions(strict, StdHTTPServerOptions{
 		BaseURL:     "/api",
-		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, s.verifyStripeSignature},
+		Middlewares: []MiddlewareFunc{s.session, validate, capVoiceNoteBody, capPortraitBody, s.verifyStripeSignature},
 	})), nil
 }
 
