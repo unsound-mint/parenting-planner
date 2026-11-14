@@ -224,8 +224,8 @@ var (
 	errVoiceNoteEmpty    = Error{Code: "invalid_request", Message: "the recording is empty"}
 	errVoiceNoteTooLarge = Error{Code: "too_large", Message: "a voice note can be at most 1 MB"}
 
-	errUnknownProvider  = Error{Code: "unknown_provider", Message: "no such provider in the directory"}
-	errAlreadyRequested = Error{Code: "already_requested", Message: "you already asked this provider for an appointment"}
+	errNoProviderBooking = Error{Code: "not_found", Message: "no such booking for this parent"}
+	errBookingStarted    = Error{Code: "booking_started", Message: "this visit has already started"}
 )
 
 var (

@@ -16,7 +16,8 @@ func EncodeFeed(events []Event, now time.Time) string {
 	var out strings.Builder
 	out.WriteString("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Family Nest//Calendar//EN\r\n")
 	for _, event := range events {
-		if event.Kind == "psychologist_session" {
+		// Psychologist sessions and private directory visits never leave the app.
+		if event.Kind == "psychologist_session" || (event.Kind == "provider_visit" && event.Visibility == "private") {
 			continue
 		}
 		out.WriteString("BEGIN:VEVENT\r\n")
@@ -37,9 +38,11 @@ func EncodeFeed(events []Event, now time.Time) string {
 			}
 		}
 		title := event.Title
-		if event.NeutralTitle {
+		// A shared directory visit still names a provider (a therapist, say), so
+		// an outside calendar only gets a neutral title.
+		if event.NeutralTitle || event.Kind == "provider_visit" {
 			switch event.Kind {
-			case "appointment":
+			case "appointment", "provider_visit":
 				title = "Appointment"
 			case "class":
 				title = "Class"

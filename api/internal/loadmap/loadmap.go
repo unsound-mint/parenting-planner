@@ -96,8 +96,16 @@ type Share struct {
 	RecentCount *int
 }
 
+// Item is a task behind a task area, for the screen to open.
+type Item struct {
+	Task    store.Task
+	Due     *time.Time
+	Offered *uuid.UUID
+}
+
 type Area struct {
 	Key, Label, Unit string
+	Items            []Item
 	Owned, Started   []Share
 	Handover         []uuid.UUID
 	OfferedToMe      []uuid.UUID
@@ -178,6 +186,12 @@ func Build(in Input) []Area {
 		key := AreaOfTask(t)
 		a := get(key)
 		owned[key].add(t.AssigneeMemberID, false, false)
+		li := Item{Task: t, Due: it.Deadline.On}
+		if t.PendingAssigneeMemberID.Valid && !t.Done {
+			id := t.PendingAssigneeMemberID.UUID
+			li.Offered = &id
+		}
+		a.Items = append(a.Items, li)
 		started[key].add(t.CreatedByMemberID, false, false)
 		if t.Done {
 			continue
@@ -235,6 +249,20 @@ func Build(in Input) []Area {
 		if total(a.Owned) == 0 {
 			continue
 		}
+		sort.SliceStable(a.Items, func(i, j int) bool {
+			x, y := a.Items[i].Task, a.Items[j].Task
+			if x.Done != y.Done {
+				return !x.Done
+			}
+			dx, dy := a.Items[i].Due, a.Items[j].Due
+			if (dx != nil) != (dy != nil) {
+				return dx != nil
+			}
+			if dx != nil && !dx.Equal(*dy) {
+				return dx.Before(*dy)
+			}
+			return x.Title < y.Title
+		})
 		out = append(out, *a)
 	}
 	sort.Slice(out, func(i, j int) bool {
@@ -266,19 +294,34 @@ func clock(hhmm string) time.Duration {
 }
 
 // Load reads the family's data and builds the map for the acting parent.
-func Load(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, now time.Time) ([]Area, error) {
+func Load(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, now time.Time) ([]Area, []uuid.UUID, error) {
 	q := store.New(pool)
 	items, err := tasks.ListWith(ctx, q, familyID, nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	care, err := q.ListCareLogEntries(ctx, store.ListCareLogEntriesParams{FamilyID: familyID, Since: now.AddDate(0, 0, -WindowDays)})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	shifts, err := q.ListActiveShifts(ctx, familyID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return Build(Input{Now: now, Actor: actor, Tasks: items, Care: care, Shifts: shifts}), nil
+	parents, err := q.ListMembers(ctx, familyID)
+	if err != nil {
+		return nil, nil, err
+	}
+	caregivers, err := q.ListCaregivers(ctx, familyID)
+	if err != nil {
+		return nil, nil, err
+	}
+	// Whoever Propose accepts as a target: parents, and caregivers with family_plan.
+	takers := []uuid.UUID{}
+	for _, m := range append(parents, caregivers...) {
+		if m.ID != actor && (tasks.Person{ID: m.ID, Role: m.Role, Permissions: m.Permissions}).CanUse() {
+			takers = append(takers, m.ID)
+		}
+	}
+	return Build(Input{Now: now, Actor: actor, Tasks: items, Care: care, Shifts: shifts}), takers, nil
 }

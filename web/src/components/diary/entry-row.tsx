@@ -2,10 +2,11 @@
 
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUpRight, HeartHandshake, ListPlus, Lock, NotebookPen, Star, X } from "lucide-react";
+import { ArrowUpRight, HeartHandshake, ListPlus, Lock, NotebookPen, Pencil, Star, Trash2, X } from "lucide-react";
 import type { DiaryEntry, Visibility } from "@/lib/api/types";
 import { formatDayNumber, formatMonth, formatWeekday } from "@/lib/format";
 import { MoodFace, MOODS, type Mood } from "@/components/joy/mood-face";
+import { MoodPicker } from "@/components/joy/mood-picker";
 import { PartnerChip } from "@/components/joy/partner-chip";
 import { duration, ease, spring } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,7 @@ export function entryDay(iso: string): string {
  *
  * Own entries: the privacy chip opens the audience switch in place (it morphs,
  * it does not open a panel), and "Bring to <psychologist>" turns into a short
- * title field. Only that title goes to the agenda, never the entry; the field
+ * title field. Only that title goes to the agenda (the brief), never the text unless the parent switches it on in the brief; the field
  * starts empty on purpose so no private words travel by accident.
  * The partner's shared entries carry their chip and nothing to change.
  * Only the newest entry not yet on the agenda shows "Bring to" outright; on
@@ -40,6 +41,8 @@ export function EntryRow({
   offer,
   onVisibility,
   onBring,
+  onEdit,
+  onDelete,
 }: {
   entry: DiaryEntry;
   mine: boolean;
@@ -52,7 +55,14 @@ export function EntryRow({
   onVisibility: (v: Visibility) => Promise<boolean>;
   /** Resolves true once saved. from is where the title field was, so the topic can fly from it. */
   onBring: (title: string, from: DOMRect | undefined) => Promise<boolean>;
+  /** Saves new text and mood; resolves true once saved. */
+  onEdit?: (body: string, mood: Mood | undefined) => Promise<boolean>;
+  /** Deletes after the inline confirm. */
+  onDelete?: () => void;
 }) {
+  const [mode, setMode] = useState<"read" | "edit" | "delete">("read");
+  const [draft, setDraft] = useState(entry.body);
+  const [draftMood, setDraftMood] = useState<Mood | null>((entry.mood as Mood | undefined) ?? null);
   const [editing, setEditing] = useState<"none" | "audience" | "bring">("none");
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
@@ -100,8 +110,124 @@ export function EntryRow({
               A first
             </span>
           )}
+          {mine && mode === "read" && (onEdit || onDelete) && (
+            <span className="ml-auto inline-flex gap-0.5 font-sans transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-focus-within/entry:opacity-100 pointer-fine:group-hover/entry:opacity-100">
+              {onEdit && (
+                <IconButton label="Edit entry" onClick={() => setMode("edit")}>
+                  <Pencil className="size-3.5" aria-hidden />
+                </IconButton>
+              )}
+              {onDelete && (
+                <IconButton label="Delete entry" onClick={() => setMode("delete")}>
+                  <Trash2 className="size-3.5" aria-hidden />
+                </IconButton>
+              )}
+            </span>
+          )}
         </p>
-        <p className="mt-1 text-title font-normal whitespace-pre-line text-ink [font-variation-settings:'SOFT'_50]">{entry.body}</p>
+        <AnimatePresence mode="popLayout" initial={false}>
+          {mode === "edit" ? (
+            <motion.form
+              key="edit"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={spring.ui}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const text = draft.trim();
+                if (!text || busy || !onEdit) return;
+                setBusy(true);
+                const ok = await onEdit(text, draftMood ?? undefined);
+                setBusy(false);
+                if (ok) setMode("read");
+              }}
+              className="mt-2 flex flex-col gap-3"
+            >
+              <MoodPicker value={draftMood} onChange={setDraftMood} label="How you felt" />
+              <label htmlFor={`edit-${entry.id}`} className="sr-only">
+                Your entry
+              </label>
+              <textarea
+                id={`edit-${entry.id}`}
+                autoFocus
+                value={draft}
+                maxLength={5000}
+                rows={Math.min(8, Math.max(2, draft.split("\n").length + 1))}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setMode("read")}
+                className="w-full resize-y rounded-2xl border border-line-2 bg-paper px-4 py-3 text-body outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="submit"
+                  disabled={!draft.trim() || busy}
+                  className="press min-h-10 rounded-full bg-me px-4 text-label font-semibold text-white outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+                >
+                  {busy ? "Saving..." : "Save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraft(entry.body);
+                    setDraftMood((entry.mood as Mood | undefined) ?? null);
+                    setMode("read");
+                  }}
+                  className="press min-h-10 rounded-full px-4 text-label text-ink-2 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.form>
+          ) : (
+            <motion.p
+              key="read"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: duration.fast, ease: ease.out }}
+              className="mt-1 text-title font-normal whitespace-pre-line text-ink [font-variation-settings:'SOFT'_50]"
+            >
+              {entry.body}
+            </motion.p>
+          )}
+        </AnimatePresence>
+        <AnimatePresence initial={false}>
+          {mode === "delete" && (
+            <motion.div
+              key="confirm"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={spring.ui}
+              role="alertdialog"
+              aria-label="Delete this entry?"
+              className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-muted px-4 py-2.5"
+            >
+              <p className="mr-auto text-label text-ink-2">
+                Delete this entry?{entry.agendaTopic ? ` Its topic leaves your brief too.` : ""}
+              </p>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => {
+                  setMode("read");
+                  onDelete?.();
+                }}
+                className="press min-h-9 rounded-full bg-ink px-4 text-label font-semibold text-paper outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                Delete
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("read")}
+                className="press min-h-9 rounded-full px-4 text-label text-ink-2 outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                Keep it
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* The side column: who can read it, and the agenda. Under the text on phones. */}
@@ -166,7 +292,7 @@ export function EntryRow({
                   className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-leaf-soft px-3 text-label text-leaf"
                 >
                   <ListPlus className="size-3.5" aria-hidden />
-                  On {psychologist}&apos;s agenda
+                  In your brief
                 </motion.span>
               ) : editing === "bring" ? (
                 <motion.form
@@ -202,7 +328,7 @@ export function EntryRow({
                     </button>
                     <CloseButton label="Cancel" onClick={() => setEditing("none")} />
                   </div>
-                  <p className="px-2 text-caption text-muted-foreground">{psychologist} sees only this title.</p>
+                  <p className="px-2 text-caption text-muted-foreground">Only the title goes in your brief for {psychologist}.</p>
                 </motion.form>
               ) : (
                 <motion.button
@@ -237,6 +363,20 @@ function CloseButton({ label, onClick }: { label: string; onClick: () => void })
       className="press flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-card hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <X className="size-4" aria-hidden />
+    </button>
+  );
+}
+
+function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="press flex size-8 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-muted hover:text-ink focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      {children}
     </button>
   );
 }

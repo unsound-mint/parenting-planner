@@ -10,16 +10,21 @@ const ids = (family: Family) => ({
 });
 const ago = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const NONE: string[] = [];
+const item = (n: number, title: string, assigneeId: string, createdById: string, kind: "task" | "hospital_bag" = "task") => ({
+  taskId: `00000000-0000-4000-8000-0000000000c${n}`, title, kind, done: false, assigneeId, createdById,
+});
 
 export const loadMapMocks = {
   ...mock("/members/{memberId}/load-map", "get", async (ctx) => {
     const { mom, partner } = ids(await ctx.family());
+    const mine = [item(1, "Book the 20-week scan", mom, mom), item(2, "Ask the clinic about classes", mom, mom), item(3, "Confirm the midwife visit", mom, mom)];
     return {
       windowDays: 14,
+      takers: [partner],
       areas: [
-        { key: "appointments" as const, label: "Appointments", unit: "items" as const, owned: [{ memberId: mom, count: 3 }], started: [{ memberId: mom, count: 3 }], handoverTaskIds: ["00000000-0000-4000-8000-0000000000a1"], offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE },
-        { key: "shopping" as const, label: "Shopping", unit: "items" as const, owned: [{ memberId: partner, count: 2 }], started: [{ memberId: mom, count: 2 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE },
-        { key: "hospital_bag" as const, label: "Hospital bag", unit: "items" as const, owned: [{ memberId: mom, count: 4 }, { memberId: partner, count: 4 }], started: [{ memberId: mom, count: 8 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE },
+        { key: "appointments" as const, label: "Appointments", unit: "items" as const, owned: [{ memberId: mom, count: 3 }], started: [{ memberId: mom, count: 3 }], handoverTaskIds: mine.map((m) => m.taskId), offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE, items: mine },
+        { key: "shopping" as const, label: "Shopping", unit: "items" as const, owned: [{ memberId: partner, count: 2 }], started: [{ memberId: mom, count: 2 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE, items: [item(4, "Order the crib", partner, mom), item(5, "Buy a car seat", partner, mom)] },
+        { key: "hospital_bag" as const, label: "Hospital bag", unit: "items" as const, owned: [{ memberId: mom, count: 4 }, { memberId: partner, count: 4 }], started: [{ memberId: mom, count: 8 }], handoverTaskIds: NONE, offeredToMeTaskIds: NONE, offeredByMeTaskIds: NONE, items: [] },
       ],
     };
   }),

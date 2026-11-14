@@ -860,7 +860,7 @@ export interface paths {
          * Providers in the ecosystem directory, optionally filtered
          * @description Every provider is synthetic demo data. The directory is the same for
          *     every family and holds no personal records, so any parent in the session
-         *     may read it. Sorted by next available date, soonest first.
+         *     may read it. Sorted by name; open times come from listProviderSlots.
          */
         get: operations["listProviders"];
         put?: never;
@@ -871,7 +871,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/members/{memberId}/booking-requests": {
+    "/members/{memberId}/provider-slots": {
         parameters: {
             query?: never;
             header?: never;
@@ -890,23 +890,97 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * The acting parent's own booking requests
-         * @description Only requests made by this parent, newest first. The partner's requests are never included.
+         * Open times with directory providers, next 14 days
+         * @description Synthetic availability, stored per family; there is no real provider
+         *     integration. Soonest first. A time is left out when the acting parent
+         *     booked it, or when anyone in the family booked it and shared the
+         *     booking; the partner's private bookings hide nothing, so this list
+         *     never reveals them.
          */
-        get: operations["listBookingRequests"];
+        get: operations["listProviderSlots"];
         put?: never;
-        /**
-         * The acting parent asks a provider for an appointment
-         * @description Saves a request with status requested; nothing is sent to a real
-         *     provider. A request is sensitive: it can reveal that a parent is seeking
-         *     care, so only the parent who made it can see it, never the partner.
-         *     Asking the same provider twice returns 409.
-         */
-        post: operations["createBookingRequest"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/provider-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Bookings the acting parent may see, from 30 days ago on
+         * @description The parent's own bookings and the ones their partner shared with the
+         *     family. Soonest first, so the next visit leads; past ones (up to 30
+         *     days) come first and are marked by their time.
+         */
+        get: operations["listProviderBookings"];
+        put?: never;
+        /**
+         * The acting parent books an open time with a provider
+         * @description Nothing is sent to a real provider. The parent chooses who sees the
+         *     booking: private (only them) or family (their partner too, and it is on
+         *     the shared calendar). Returns 409 slot_taken if the time is gone.
+         */
+        post: operations["createProviderBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/provider-bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cancel a booking; its time opens again
+         * @description Only the parent who booked it.
+         */
+        delete: operations["deleteProviderBooking"];
+        options?: never;
+        head?: never;
+        /**
+         * Move a booking to another open time, or change who sees it or its note
+         * @description Only the parent who booked it. slotId must be an open future time with
+         *     the same provider (409 slot_taken otherwise). A booking that has
+         *     started cannot move (409 booking_started).
+         */
+        patch: operations["updateProviderBooking"];
         trace?: never;
     };
     "/members/{memberId}/mood-patterns": {
@@ -1010,6 +1084,99 @@ export interface paths {
          *     Returns 409 slot_taken if the slot is gone.
          */
         post: operations["createPsychologistBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/psychologist-bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * The acting parent cancels one of their upcoming sessions
+         * @description Only the parent's own bookings that have not started (a past session
+         *     keeps its note); any other id is 404 no_booking. The slot opens again.
+         *     A brief that was waiting to be sent goes back to a draft, so nothing is
+         *     sent for a cancelled session. Audited.
+         */
+        delete: operations["deletePsychologistBooking"];
+        options?: never;
+        head?: never;
+        /**
+         * The acting parent moves one of their upcoming sessions to another open slot
+         * @description Only the parent's own bookings that have not started; any other id is
+         *     404 no_booking. 409 slot_taken when the new slot is unknown, past or
+         *     already booked by this parent. A brief scheduled for the session moves
+         *     with it: it is sent the day before the new time. Audited.
+         */
+        patch: operations["updatePsychologistBooking"];
+        trace?: never;
+    };
+    "/members/{memberId}/session-brief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * The acting parent's brief for their next psychologist session
+         * @description The brief is what the parent chooses to send their psychologist before
+         *     a session: the agenda topics, the text of the journal entries they
+         *     picked, an optional summary of their own mood check-ins and a note.
+         *     Nothing reaches the psychologist until the parent schedules or sends
+         *     it. While a draft, items and mood are built from the parent's current
+         *     agenda and check-ins; once scheduled or sent they are the copy frozen
+         *     at that moment. A scheduled brief counts as sent from sendAt (the day
+         *     before the session) on the family's clock. Always 200: with nothing
+         *     saved yet it is an empty draft. Private to the author; the partner
+         *     reads their own brief. Audited.
+         */
+        get: operations["getSessionBrief"];
+        /**
+         * The acting parent saves, schedules or sends their brief
+         * @description status draft saves the choices and cancels a scheduled send.
+         *     scheduled freezes the brief and sends it the day before the next
+         *     session (when the session is less than a day away it is sent at
+         *     once). sent freezes it and marks it sent now, for a brief the parent
+         *     delivered themselves (the printed copy). Both need a booked session:
+         *     409 no_session otherwise. 409 brief_sent once it has been sent. sharedEntryIds are the
+         *     parent's own journal entries on the agenda whose text goes with the
+         *     brief; any other id is 400 unknown_entry. Audited.
+         */
+        put: operations["updateSessionBrief"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1147,6 +1314,43 @@ export interface paths {
          *     be granted. Sends a live update of kind invitation to parents.
          */
         post: operations["createInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/caregivers/{caregiverId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                caregiverId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A parent removes a grandparent's or nanny's access directly
+         * @description For caregivers who are in the family without an invitation of their
+         *     own (the demo families). Same effect as revoking an accepted
+         *     invitation: they drop out of family.caregivers and their member id
+         *     gets 404 everywhere. Mother or partner only (403 otherwise); 404 when
+         *     the id is not an active caregiver of this family. Recorded in the
+         *     access log as a revoked invitation.
+         */
+        post: operations["revokeCaregiver"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1901,6 +2105,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/tasks/{taskId}/reassignment/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The assignee takes back an offer nobody has answered yet
+         * @description Only the current assignee; 409 not_assignee for anyone else and
+         *     409 not_offered when the task has no open offer. The task never
+         *     moved, so it simply stops being offered. Sends a live update of kind task.
+         */
+        post: operations["withdrawTaskReassignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/load-map": {
         parameters: {
             query?: never;
@@ -1941,9 +2179,11 @@ export interface paths {
          *     third colour.
          *
          *     The area is handed over with the existing reassignment flow: the
-         *     screen offers each id in handoverTaskIds to the other parent with
+         *     screen offers each id in handoverTaskIds to anyone in takers with
          *     proposeTaskReassignment, and the task moves only when they accept.
-         *     offeredToMeTaskIds are offers waiting for the acting parent.
+         *     offeredToMeTaskIds are offers waiting for the acting parent;
+         *     withdrawTaskReassignment takes back an offer nobody answered.
+         *     items lists the tasks behind a task area, so the screen can open them.
          */
         get: operations["getLoadMap"];
         put?: never;
@@ -3821,19 +4061,59 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * The author deletes one of their entries
+         * @description Only the author; any other id is 404. Its topic leaves the agenda and
+         *     a draft brief stops carrying its text; a brief that was scheduled with
+         *     its text goes back to a draft. Audited.
+         */
+        delete: operations["deleteDiaryEntry"];
         options?: never;
         head?: never;
         /**
-         * The author changes who may read one of their entries
-         * @description Only the author can share or unshare an entry. Any other entry id,
-         *     including the other parent's entry, is 404.
+         * The author edits one of their entries or changes who may read it
+         * @description Only the author can edit, share or unshare an entry. Any other entry
+         *     id, including the other parent's entry, is 404.
          *
          *     visibility is always sent (the UI sends the current value when only
-         *     the topic changes). agendaTopic adds or changes the topic on the
-         *     author's psychologist agenda; an empty string removes it. Audited.
+         *     something else changes). body and mood replace the text and the
+         *     feeling. agendaTopic adds or changes the topic on the author's
+         *     psychologist agenda; an empty string removes it. Audited.
          */
         patch: operations["updateDiaryEntry"];
+        trace?: never;
+    };
+    "/members/{memberId}/nudge-dismissals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The acting parent closes a partner nudge
+         * @description id is PartnerNudge.id. The nudge stays closed for this parent only;
+         *     the next activity of the other parent makes a new nudge. Parents only;
+         *     a caregiver gets 404. Repeating it is fine.
+         */
+        post: operations["createNudgeDismissal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/members/{memberId}/stories": {
@@ -5739,7 +6019,7 @@ export interface components {
          * @description What kind of care the provider offers.
          * @enum {string}
          */
-        ProviderType: "perinatal_therapist" | "psychologist" | "doula" | "lactation_consultant" | "sleep_consultant" | "child_therapist" | "tutor";
+        ProviderType: "perinatal_therapist" | "psychologist" | "doula" | "lactation_consultant" | "sleep_consultant" | "child_therapist" | "tutor" | "pediatrician" | "obstetrician";
         /**
          * @description Two-letter US state code.
          * @example CA
@@ -5759,45 +6039,74 @@ export interface components {
              *     ]
              */
             languages: string[];
-            /** Format: date */
-            nextAvailable: string;
             /** @description Price of one session in US dollars. */
             priceUsd: number;
             /** @description One plain sentence on what this provider helps with. */
             summary: string;
+            /** @example IBCLC */
+            credentials: string;
+            /** @description Two or three plain sentences for the profile. */
+            bio: string;
+            visitModes: ("in_person" | "video" | "home")[];
+            /** @description Length of one visit. */
+            sessionMinutes: number;
         };
         ProviderList: {
             items: components["schemas"]["Provider"][];
         };
-        BookingRequestInput: {
+        ProviderSlot: {
+            /** Format: uuid */
+            id: string;
             /** Format: uuid */
             providerId: string;
-            /** @description Optional message for the provider. */
-            note?: string;
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+        };
+        ProviderSlotList: {
+            /** @description Soonest first. */
+            items: components["schemas"]["ProviderSlot"][];
         };
         /**
-         * @description Only requested exists for now; the demo never confirms a booking.
+         * @description private = only the parent who booked; family = their partner too, on the shared calendar.
          * @enum {string}
          */
-        BookingRequestStatus: "requested";
-        BookingRequest: {
+        BookingVisibility: "private" | "family";
+        ProviderBookingInput: {
+            /** Format: uuid */
+            slotId: string;
+            visibility: components["schemas"]["BookingVisibility"];
+            /** @description Optional note for the visit (what to bring up). */
+            note?: string;
+        };
+        /** @description Every field optional; absent means unchanged. An empty note clears it. */
+        ProviderBookingUpdate: {
+            /** Format: uuid */
+            slotId?: string;
+            visibility?: components["schemas"]["BookingVisibility"];
+            note?: string;
+        };
+        ProviderBooking: {
             /** Format: uuid */
             id: string;
             /**
              * Format: uuid
-             * @description The parent who made the request.
+             * @description The parent who booked; only they can move or cancel it.
              */
             memberId: string;
             /** Format: uuid */
             providerId: string;
-            status: components["schemas"]["BookingRequestStatus"];
+            providerName: string;
+            /** Format: date-time */
+            startsAt: string;
+            durationMinutes: number;
+            visibility: components["schemas"]["BookingVisibility"];
             note?: string;
             /** Format: date-time */
             createdAt: string;
         };
-        BookingRequestList: {
-            /** @description Newest first. */
-            items: components["schemas"]["BookingRequest"][];
+        ProviderBookingList: {
+            items: components["schemas"]["ProviderBooking"][];
         };
         Passport: {
             /**
@@ -6748,7 +7057,33 @@ export interface components {
             /** @description Of count, how many fall in the last 7 days. Only on care log areas, so a screen can say who has picked up more this week. */
             recentCount?: number;
         };
+        LoadMapItem: {
+            /** Format: uuid */
+            taskId: string;
+            title: string;
+            kind: components["schemas"]["TaskKind"];
+            /** Format: date */
+            dueOn?: string;
+            done: boolean;
+            /**
+             * Format: uuid
+             * @description Who carries it now.
+             */
+            assigneeId: string;
+            /**
+             * Format: uuid
+             * @description Who first put it on the plan (noticed it).
+             */
+            createdById: string;
+            /**
+             * Format: uuid
+             * @description Who it is offered to, while nobody has answered.
+             */
+            pendingAssigneeId?: string;
+        };
         LoadMapArea: {
+            /** @description The tasks counted in this area, open ones first then soonest due. Empty for care areas. */
+            items: components["schemas"]["LoadMapItem"][];
             key: components["schemas"]["LoadMapAreaKey"];
             /** @example Appointments */
             label: string;
@@ -6765,6 +7100,8 @@ export interface components {
             offeredByMeTaskIds: string[];
         };
         LoadMap: {
+            /** @description Everyone but the acting parent who can take a task, meaning the other parent and any grandparent or nanny with family_plan. */
+            takers: string[];
             /** @example 14 */
             windowDays: number;
             areas: components["schemas"]["LoadMapArea"][];
@@ -6829,10 +7166,12 @@ export interface components {
         /**
          * @description appointment, class, reminder and other are stored events; shift is
          *     one occurrence of an active shift; task is a task due date;
-         *     psychologist_session is the owner's own booking, always private.
+         *     psychologist_session is the owner's own booking, always private;
+         *     provider_visit is a directory booking (the owner's own, or the
+         *     partner's when they shared it with the family).
          * @enum {string}
          */
-        CalendarEventKind: "appointment" | "class" | "reminder" | "other" | "shift" | "task" | "psychologist_session";
+        CalendarEventKind: "appointment" | "class" | "reminder" | "other" | "shift" | "task" | "psychologist_session" | "provider_visit";
         /** @enum {string} */
         CalendarEventInputKind: "appointment" | "class" | "reminder" | "other";
         /**
@@ -7271,9 +7610,84 @@ export interface components {
             source: components["schemas"]["Source"];
             partnerAnswer?: components["schemas"]["QuizAnswer"];
         };
+        NudgeDismissalInput: {
+            id: string;
+        };
+        /**
+         * @description draft = only the parent sees it; scheduled = frozen and sent at
+         *     sendAt; sent = with the psychologist.
+         * @enum {string}
+         */
+        SessionBriefStatus: "draft" | "scheduled" | "sent";
+        SessionBriefInput: {
+            status: components["schemas"]["SessionBriefStatus"];
+            /** @description Add the summary of the parent's own check-ins. */
+            includeMood: boolean;
+            sharedEntryIds: string[];
+            /** @description A few words for the psychologist. Empty removes it. */
+            note?: string;
+        };
+        SessionBriefItem: {
+            /** @description The topic title. */
+            text: string;
+            /** Format: uuid */
+            diaryEntryId?: string;
+            /**
+             * Format: date-time
+             * @description When the journal entry behind the topic was written.
+             */
+            writtenAt?: string;
+            /** @description The entry's text, only when the parent chose to send it. */
+            entryText?: string;
+        };
+        MoodDay: {
+            /**
+             * Format: date
+             * @description Eastern calendar day.
+             */
+            day: string;
+            /** @description The average of that day's check-ins, 1 to 5. */
+            mood: number;
+        };
+        /**
+         * @description What the parent logged, described, never assessed: how many
+         *     check-ins, on how many days mood was 2 or lower, average sleep.
+         */
+        MoodSummary: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            checkins: number;
+            lowDays: number;
+            averageSleep?: number;
+            /** @description Oldest first, days with a check-in only. */
+            days: components["schemas"]["MoodDay"][];
+        };
+        SessionBrief: {
+            status: components["schemas"]["SessionBriefStatus"];
+            session?: components["schemas"]["PsychologistBooking"];
+            /**
+             * Format: date-time
+             * @description When a scheduled brief goes out, the day before the session.
+             */
+            sendAt?: string;
+            /** Format: date-time */
+            sentAt?: string;
+            includeMood: boolean;
+            sharedEntryIds: string[];
+            note?: string;
+            /** @description In agenda order. Frozen once scheduled or sent. */
+            items: components["schemas"]["SessionBriefItem"][];
+            mood?: components["schemas"]["MoodSummary"];
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         /** @enum {string} */
         PartnerNudgeKind: "lesson_finished" | "quiz_answered" | "name_added";
         PartnerNudge: {
+            /** @description Stable for the same activity; send it to createNudgeDismissal to close the nudge. */
+            id: string;
             /**
              * Format: uuid
              * @description The other parent, who did it.
@@ -7386,6 +7800,12 @@ export interface components {
             items: components["schemas"]["Letter"][];
         };
         Together: {
+            /**
+             * @description Ids of nudges this parent closed in the last 30 days, for nudges
+             *     the client builds itself (the quiz to compare answers uses
+             *     the same id as the partner nudge for that quiz).
+             */
+            closedNudgeIds: string[];
             nudge?: components["schemas"]["PartnerNudge"];
             prompts: components["schemas"]["TalkPrompt"][];
         };
@@ -8185,7 +8605,7 @@ export interface components {
         };
         /**
          * @description How the author felt when writing, on the MoodCheckin.mood scale (1 =
-         *     very low, 5 = very good). Optional, set once when the entry is written.
+         *     very low, 5 = very good). Optional; the author can change it later.
          *     It is part of the entry, so it has the entry's visibility: whoever may
          *     read the entry sees it. It is not a mood check-in and does not feed
          *     mood patterns, agenda topics or the plan.
@@ -8197,6 +8617,9 @@ export interface components {
             agendaTopic?: string;
             /** @description Mark or unmark the entry as a first. Leave out to keep it. */
             first?: boolean;
+            /** @description New text for the entry. Leave out to keep it. */
+            body?: string;
+            mood?: components["schemas"]["DiaryMood"];
         };
         DiaryEntry: {
             /** Format: uuid */
@@ -11097,7 +11520,59 @@ export interface operations {
             };
         };
     };
-    listBookingRequests: {
+    listProviderSlots: {
+        parameters: {
+            query?: {
+                /** @description Only this provider's times. */
+                providerId?: string;
+            };
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderSlotList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listProviderBookings: {
         parameters: {
             query?: never;
             header?: never;
@@ -11123,7 +11598,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BookingRequestList"];
+                    "application/json": components["schemas"]["ProviderBookingList"];
                 };
             };
             /** @description Error */
@@ -11146,7 +11621,7 @@ export interface operations {
             };
         };
     };
-    createBookingRequest: {
+    createProviderBooking: {
         parameters: {
             query?: never;
             header?: never;
@@ -11166,7 +11641,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["BookingRequestInput"];
+                "application/json": components["schemas"]["ProviderBookingInput"];
             };
         };
         responses: {
@@ -11176,7 +11651,127 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BookingRequest"];
+                    "application/json": components["schemas"]["ProviderBooking"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteProviderBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cancelled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateProviderBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderBookingUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderBooking"];
                 };
             };
             /** @description Error */
@@ -11533,6 +12128,246 @@ export interface operations {
             };
             /** @description Error */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deletePsychologistBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cancelled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updatePsychologistBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PsychologistBookingInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PsychologistBooking"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getSessionBrief: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionBrief"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateSessionBrief: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SessionBriefInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionBrief"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11935,6 +12770,70 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Error"];
                 };
+            };
+        };
+    };
+    revokeCaregiver: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                caregiverId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Access removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -13603,6 +14502,74 @@ export interface operations {
         };
     };
     declineTaskReassignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                taskId: components["parameters"]["TaskId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not implemented yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    withdrawTaskReassignment: {
         parameters: {
             query?: never;
             header?: never;
@@ -18749,6 +19716,54 @@ export interface operations {
             };
         };
     };
+    deleteDiaryEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     updateDiaryEntry: {
         parameters: {
             query?: never;
@@ -18812,6 +19827,66 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createNudgeDismissal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NudgeDismissalInput"];
+            };
+        };
+        responses: {
+            /** @description Closed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
