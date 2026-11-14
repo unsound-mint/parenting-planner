@@ -166,3 +166,23 @@ func TestLoadMapListsItemsTakersAndWithdraw(t *testing.T) {
 		t.Errorf("after withdrawing, planning = %+v", planning)
 	}
 }
+
+func TestRevokeCaregiverWithoutInvitation(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
+	if len(fam.Caregivers) == 0 {
+		t.Skip("no caregivers in the demo family")
+	}
+	cg := fam.Caregivers[0]
+	c.Post("/api/members/"+cg.Id.String()+"/caregivers/"+cg.Id.String()+"/revoke", nil, http.StatusForbidden, nil)
+	c.Post("/api/members/"+mom.Id.String()+"/caregivers/"+uuid.New().String()+"/revoke", nil, http.StatusNotFound, nil)
+	c.Post("/api/members/"+mom.Id.String()+"/caregivers/"+cg.Id.String()+"/revoke", nil, http.StatusNoContent, nil)
+	var f httpapi.Family
+	c.Get("/api/family", http.StatusOK, &f)
+	for _, x := range f.Caregivers {
+		if x.Id == cg.Id {
+			t.Errorf("removed caregiver still listed")
+		}
+	}
+}

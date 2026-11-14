@@ -62,14 +62,14 @@ export function AreaRow({ area, n, memberId, people, self, takers, busy, celebra
   const counts = order.filter((id) => id === self.id || id === partner?.id || countOf(area.owned, id) > 0);
 
   return (
-    <Rise as="li" i={n + 1} className="flex min-w-0 flex-col gap-3 rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/40">
+    <Rise as="li" i={n + 1} className="mb-1 flex min-w-0 break-inside-avoid flex-col gap-3 rounded-2xl p-3 transition-colors duration-150 hover:bg-muted/40">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <button
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((o) => !o)}
-          className="group flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="group flex min-h-11 min-w-48 flex-1 items-center gap-2.5 rounded-xl text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-sun text-ink-2">
             <Icon aria-hidden className="size-5" />

@@ -124,7 +124,7 @@ export function LoadMapCard({ memberId, initial, people }: { memberId: string; i
         </div>
       </dl>
 
-      <ul className="grid gap-1 @2xl:grid-cols-2 @2xl:items-start @2xl:gap-x-6">
+      <ul className="@2xl:columns-2 @2xl:gap-x-6">
         {map.areas.map((area, n) => (
           <AreaRow
             key={area.key}

@@ -52,6 +52,8 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
   const waitingLine = waiting > 0 ? `${countWord(waiting)} ${waiting === 1 ? "invitation is" : "invitations are"} waiting to be opened.` : undefined;
   const headline = [helping, waitingLine].filter(Boolean).join(" ") || "Nobody else helps yet. Invite someone with a link.";
 
+  const invitedIds = new Set(shown.map((i) => i.memberId).filter(Boolean));
+  const direct = (family.caregivers ?? []).filter((c) => !invitedIds.has(c.id));
   const couple = loadMap.data;
   const hasThanks = !!(thanks.data && suggestions.data);
   return (
@@ -86,12 +88,12 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
         <div className="min-w-0">
           <InviteForm memberId={memberId} family={family} />
         </div>
-        {shown.length > 0 && (
+        {(shown.length > 0 || direct.length > 0) && (
           <section aria-labelledby="people-title" className="min-w-0 rounded-2xl border border-border bg-card p-4 md:p-5">
             <h2 id="people-title" className="mb-3 text-title">
               Who has access
             </h2>
-            <InvitationList memberId={memberId} items={shown} />
+            <InvitationList memberId={memberId} items={shown} direct={direct} />
           </section>
         )}
         {log.data && <AccessLog items={log.data.items} now={new Date()} />}
