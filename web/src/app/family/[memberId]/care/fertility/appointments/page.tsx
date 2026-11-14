@@ -8,7 +8,7 @@ import { formatShortDate } from "@/lib/format";
 import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { SoftCard } from "@/components/joy/soft-card";
-import { AppointmentQuestions } from "@/components/week/appointment-questions";
+import { QuestionsCard } from "@/components/week/appointment-questions-card";
 import { FertilityTabs } from "@/components/fertility/fertility-tabs";
 import { NotesCard } from "@/components/fertility/notes-card";
 
@@ -54,9 +54,7 @@ async function Appointments({ params }: { params: Promise<{ memberId: string }> 
       </Rise>
       <PageGrid>
         <Rise i={2}>
-          <Suspense>
-            <AppointmentQuestions memberId={memberId} partnerName={partner?.displayName} />
-          </Suspense>
+          {questions && <QuestionsCard memberId={memberId} partnerName={partner?.displayName} appointments={questions.appointments} questions={questions.items} />}
         </Rise>
         <Stack>
           <Rise i={3}>
