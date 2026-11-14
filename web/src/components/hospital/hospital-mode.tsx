@@ -6,6 +6,7 @@ import { bagIcon, bagLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { ProgressRing } from "@/components/plan/hospital-bags";
 import { SoftCard } from "@/components/joy/soft-card";
+import { Stack } from "@/components/shell/page";
 import { TellPartner } from "./tell-partner";
 
 // "Going to the hospital": the cards for the moment labor starts, as cells of
@@ -31,31 +32,73 @@ export function HospitalMode({
   const progress = bags ? bagProgress(bags) : undefined;
   return (
     <>
-      <SoftCard as="section" aria-labelledby="calls-title" className="flex flex-col gap-3">
-        <h3 id="calls-title" className="text-title">
-          When it starts
-        </h3>
-        {partner && <TellPartner memberId={memberId} name={partner.name} />}
-        <ul className="flex flex-col gap-2">
-          {contacts.map((c) => (
-            <li key={c.label}>
-              <a
-                href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
-                className="press flex min-h-16 items-center gap-3 rounded-2xl bg-muted/70 px-4 py-2.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-them-soft text-them">
-                  <Phone className="size-4.5" aria-hidden />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-label font-semibold">{c.name}</span>
-                  <span className="block text-caption text-muted-foreground">{c.label}</span>
-                </span>
-                <span className="font-mono text-label">{c.phone}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </SoftCard>
+      <Stack>
+        <SoftCard as="section" aria-labelledby="calls-title" className="flex flex-col gap-3">
+          <h3 id="calls-title" className="text-title">
+            When it starts
+          </h3>
+          {partner && <TellPartner memberId={memberId} name={partner.name} />}
+          <ul className="flex flex-col gap-2">
+            {contacts.map((c) => (
+              <li key={c.label}>
+                <a
+                  href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
+                  className="press flex min-h-16 items-center gap-3 rounded-2xl bg-muted/70 px-4 py-2.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-them-soft text-them">
+                    <Phone className="size-4.5" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-label font-semibold">{c.name}</span>
+                    <span className="block text-caption text-muted-foreground">{c.label}</span>
+                  </span>
+                  <span className="font-mono text-label">{c.phone}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </SoftCard>
+
+        {bags && progress && (
+          <SoftCard as="section" aria-labelledby="bags-title" className="flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <ProgressRing done={progress.done} total={progress.total} />
+              <div className="min-w-0 flex-1">
+                <h3 id="bags-title" className="text-title">
+                  {missing.length === 0 ? "Bags are packed" : `${missing.length} left to pack`}
+                </h3>
+                <Link href={`/family/${memberId}/plan`} className="inline-flex min-h-11 items-center text-label text-primary hover:underline md:min-h-0">
+                  Open the bag lists
+                </Link>
+              </div>
+            </div>
+            {missing.length > 0 && (
+              <ul className="flex flex-col gap-3">
+                {HOSPITAL_BAGS.map((bag) => {
+                  const left = missing.filter((t) => t.bag === bag);
+                  if (left.length === 0) return null;
+                  const Icon = bagIcon[bag];
+                  return (
+                    <li key={bag}>
+                      <p className="flex items-center gap-2 text-label font-medium text-muted-foreground">
+                        <Icon className="size-4" aria-hidden />
+                        {bagLabel[bag]}
+                      </p>
+                      <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                        {left.map((t) => (
+                          <li key={t.id} className="rounded-full bg-sun px-3 py-1 text-caption text-ink-2">
+                            {t.title}
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </SoftCard>
+        )}
+      </Stack>
 
       <SoftCard as="section" aria-labelledby="route-title" className="flex flex-col gap-4">
         <div className="flex items-start gap-3">
@@ -110,45 +153,6 @@ export function HospitalMode({
         </div>
       </SoftCard>
 
-      {bags && progress && (
-        <SoftCard as="section" aria-labelledby="bags-title" className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <ProgressRing done={progress.done} total={progress.total} />
-            <div className="min-w-0 flex-1">
-              <h3 id="bags-title" className="text-title">
-                {missing.length === 0 ? "Bags are packed" : `${missing.length} left to pack`}
-              </h3>
-              <Link href={`/family/${memberId}/plan`} className="inline-flex min-h-11 items-center text-label text-primary hover:underline md:min-h-0">
-                Open the bag lists
-              </Link>
-            </div>
-          </div>
-          {missing.length > 0 && (
-            <ul className="flex flex-col gap-3">
-              {HOSPITAL_BAGS.map((bag) => {
-                const left = missing.filter((t) => t.bag === bag);
-                if (left.length === 0) return null;
-                const Icon = bagIcon[bag];
-                return (
-                  <li key={bag}>
-                    <p className="flex items-center gap-2 text-label font-medium text-muted-foreground">
-                      <Icon className="size-4" aria-hidden />
-                      {bagLabel[bag]}
-                    </p>
-                    <ul className="mt-1.5 flex flex-wrap gap-1.5">
-                      {left.map((t) => (
-                        <li key={t.id} className="rounded-full bg-sun px-3 py-1 text-caption text-ink-2">
-                          {t.title}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </SoftCard>
-      )}
     </>
   );
 }

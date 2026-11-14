@@ -18,11 +18,11 @@ function Pattern({ kind }: { kind: "practice" | "labor" }) {
   const dots =
     kind === "practice"
       ? [
-          [8, 5],
-          [30, 4],
-          [40, 6],
-          [70, 4],
-          [86, 5],
+          [8, 4],
+          [22, 5],
+          [52, 4],
+          [64, 5],
+          [88, 4],
         ]
       : [
           [8, 3.5],

@@ -19,21 +19,10 @@ export function RhythmBars({ list, now }: { list: readonly Contraction[]; now: n
   const recent = list.filter((c) => (c.end ?? now) > from);
   return (
     <figure className="min-w-0">
-      <svg viewBox={`0 0 ${W} ${H + 18}`} className="block h-auto w-full" role="img" aria-label={`${recent.length} contractions in the last hour`}>
+      <svg viewBox={`0 0 ${W} ${H + 6}`} className="block h-auto w-full" role="img" aria-label={`${recent.length} contractions in the last hour`}>
         <line x1="0" x2={W} y1={H} y2={H} className="stroke-line-2" strokeWidth="2" strokeLinecap="round" />
         {TICKS.map((m) => (
-          <g key={m}>
-            <line x1={W - (m / 60) * W} x2={W - (m / 60) * W} y1={H - 4} y2={H + 4} className="stroke-line-2" strokeWidth="2" />
-            <text
-              x={Math.min(Math.max(W - (m / 60) * W, 14), W - 14)}
-              y={H + 17}
-              textAnchor="middle"
-              className="fill-muted-foreground font-mono"
-              fontSize="12"
-            >
-              {m === 0 ? "now" : `-${m}m`}
-            </text>
-          </g>
+          <line key={m} x1={W - (m / 60) * W} x2={W - (m / 60) * W} y1={H - 4} y2={H + 4} className="stroke-line-2" strokeWidth="2" />
         ))}
         {recent.map((c) => {
           const left = x(c.start);
@@ -44,6 +33,12 @@ export function RhythmBars({ list, now }: { list: readonly Contraction[]; now: n
           return <rect key={c.start} x={left} y={H - h} width={width} height={h} rx={Math.min(width / 2, 6)} className={c.end == null ? "fill-me" : "fill-me-mid"} />;
         })}
       </svg>
+      {/* Tick labels in HTML, so they stay readable however small the chart is drawn. */}
+      <figcaption className="mt-1 flex justify-between font-mono text-caption text-muted-foreground" aria-hidden>
+        {TICKS.map((m) => (
+          <span key={m}>{m === 0 ? "now" : `-${m}m`}</span>
+        ))}
+      </figcaption>
     </figure>
   );
 }
