@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const items: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "", label: "This week", icon: CalendarCheck },
   { href: "/journey", label: "Journey", icon: Route },
+  // enable when the API lands (#175): { href: "/directory", label: "Find help", icon: Users },
 ];
 
 export function FamilyNav({ memberId }: { memberId: string }) {
