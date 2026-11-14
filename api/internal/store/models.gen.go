@@ -512,6 +512,16 @@ type Task struct {
 	CreatedAt               time.Time
 }
 
+type Thank struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	FromMemberID  uuid.UUID
+	ToMemberID    uuid.UUID
+	Body          string
+	SuggestionKey *string
+	CreatedAt     time.Time
+}
+
 type UpgradeIntent struct {
 	FamilyID    uuid.UUID
 	Tier        string
