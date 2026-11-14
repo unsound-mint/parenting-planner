@@ -138,7 +138,11 @@ func LoadAnchors(ctx context.Context, q *store.Queries, familyID uuid.UUID) (Anc
 // List returns the family's tasks, soonest due first and undated last.
 // Hospital bag items are not returned once the baby is home.
 func List(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, kind *string) ([]Item, error) {
-	q := store.New(pool)
+	return ListWith(ctx, store.New(pool), familyID, kind)
+}
+
+// ListWith is List on an open transaction or pool.
+func ListWith(ctx context.Context, q *store.Queries, familyID uuid.UUID, kind *string) ([]Item, error) {
 	a, babyHome, err := LoadAnchors(ctx, q, familyID)
 	if err != nil {
 		return nil, err
