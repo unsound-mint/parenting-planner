@@ -79,6 +79,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /demo/custom-sessions:
+    post:
+      operationId: createCustomSession
+      tags: [demo]
+      security: []
+      summary: Start with a new family built from the visitor's own details
+      description: |
+        "Try it with your own details": creates a new family for this visitor
+        from what they typed, through the same seed and rules path as the demo
+        families, and sets the same session cookie as createDemoSession. The
+        family's template is `custom`. No auth; nothing is stored beyond the
+        typed fields, and each call makes a separate family.
+
+        Dates are checked against the stage (400 `bad_details` otherwise):
+        - pregnancy: dueDate is required, from 14 days ago to 280 days ahead.
+        - postpartum, infant, toddler, preschool, school_age: childBirthDate is
+          required, not in the future, and the child's age must fit the stage:
+          postpartum under 3 months, infant 3 to 11 months, toddler 12 to 35
+          months, preschool 36 to 59 months, school_age 60 months to 9 years.
+        - planning, trying: no dates.
+        A date that does not belong to the stage is ignored and not stored, and
+        childName is ignored before birth.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomFamilyInput"
+      responses:
+        "201":
+          description: Family created; the session cookie is set.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Family"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /family:
     get:
       operationId: getFamily
@@ -2889,8 +2941,8 @@ components:
 
     DemoTemplate:
       type: string
-      description: "Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists."
-      enum: [planning, pregnancy, newborn, preschool]
+      description: "Which synthetic family to copy: planning (trying for a first baby), pregnancy (second trimester), newborn (baby about 7 weeks old), preschool (child aged 4). Add a value here when its seed exists. `custom` marks a family built from the visitor's own details (createCustomSession); createDemoSession rejects it with 400."
+      enum: [planning, pregnancy, newborn, preschool, custom]
 
     CreateDemoSessionRequest:
       type: object
@@ -2898,6 +2950,34 @@ components:
       properties:
         template:
           $ref: "#/components/schemas/DemoTemplate"
+
+    CustomFamilyInput:
+      type: object
+      required: [stage, motherName, partnerName]
+      properties:
+        stage:
+          $ref: "#/components/schemas/Stage"
+        dueDate:
+          type: string
+          format: date
+          description: Required for pregnancy.
+        childBirthDate:
+          type: string
+          format: date
+          description: Required once the child is born (postpartum and later).
+        childName:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: Optional; "Baby" when left out.
+        motherName:
+          type: string
+          minLength: 1
+          maxLength: 40
+        partnerName:
+          type: string
+          minLength: 1
+          maxLength: 40
 
     Stage:
       type: string
