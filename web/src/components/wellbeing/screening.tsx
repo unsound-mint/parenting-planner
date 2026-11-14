@@ -9,6 +9,7 @@ import { api } from "@/lib/api/client";
 import type { MoodScreeningResult, ScreeningBand, ScreeningQuestionnaire } from "@/lib/api/types";
 import { formatDayNumber, formatMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { helpHref } from "@/components/shell/urgent-help-link";
 import { Button } from "@/components/ui/button";
 
 // Fixed wording per band. The API sends its own fixed message too (never
@@ -137,7 +138,7 @@ function Ask({ memberId, q, onExit, onDone }: { memberId: string; q: ScreeningQu
       }
       // Fixed crisis screen, not generated text. The result is already saved.
       if (data.urgent) {
-        router.push("/help");
+        router.push(helpHref(memberId));
         return;
       }
       onDone(data);
@@ -248,7 +249,7 @@ function Result({ memberId, q, r, onAgain }: { memberId: string; q: ScreeningQue
         </Button>
       </div>
       <p className="mt-4 border-t border-border pt-3 text-caption text-muted-foreground">
-        A screening is not a diagnosis. If you ever feel unsafe, <Link href="/help" className="underline underline-offset-2">get urgent help now</Link>.
+        A screening is not a diagnosis. If you ever feel unsafe, <a href={helpHref(memberId)} className="underline underline-offset-2">get urgent help now</a>.
       </p>
       <p className="mt-2 font-mono text-caption text-muted-foreground">
         Source:{" "}

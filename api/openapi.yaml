@@ -3206,6 +3206,114 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/children/{childId}/milestones:
+    get:
+      operationId: listChildMilestones
+      tags: [passport]
+      summary: The child's developmental milestone checklist for their age
+      description: |
+        Mother or partner only; a grandparent or nanny gets 404, like the
+        health passport. Returns the CDC "Learn the Signs. Act Early."
+        checklist for the child's age (the latest of the 2, 3, 4 and 5 year
+        checklists the child has reached). `observed` is what a parent
+        ticked. A milestone that is not ticked is a prompt to watch for it
+        and mention it at the next visit; the API and the UI never call it a
+        delay or a diagnosis. 404 for a child not in the family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MilestoneChecklist"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/children/{childId}/milestones/{milestoneId}:
+    put:
+      operationId: setChildMilestone
+      tags: [passport]
+      summary: A parent ticks or unticks a milestone
+      description: |
+        Mother or partner only (404 for a caregiver). Idempotent: setting
+        the value it already has returns the milestone unchanged.
+        `observedOn` is today in the family's clock when ticking. 404 for an
+        unknown milestone id or a child not in the family.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: milestoneId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MilestoneInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/checkout-sessions:
     post:
       operationId: createCheckoutSession
@@ -7335,6 +7443,52 @@ components:
           example: Newborn hearing screen passed
         detail:
           type: string
+
+    MilestoneDomain:
+      type: string
+      enum: [social_emotional, language_communication, cognitive, movement_physical]
+
+    Milestone:
+      type: object
+      required: [id, domain, text, observed]
+      properties:
+        id:
+          type: string
+          description: Stable key, for example 4y-language-sentences.
+        domain:
+          $ref: "#/components/schemas/MilestoneDomain"
+        text:
+          type: string
+        observed:
+          type: boolean
+        observedOn:
+          type: string
+          format: date
+          description: Set when observed.
+
+    MilestoneInput:
+      type: object
+      required: [observed]
+      properties:
+        observed:
+          type: boolean
+
+    MilestoneChecklist:
+      type: object
+      required: [childId, checklistAgeMonths, items, source]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        checklistAgeMonths:
+          type: integer
+          description: Which CDC checklist this is (24, 36, 48 or 60).
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Milestone"
+        source:
+          $ref: "#/components/schemas/Source"
 
     ChildPassport:
       type: object

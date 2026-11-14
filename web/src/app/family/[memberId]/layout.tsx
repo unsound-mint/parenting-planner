@@ -7,6 +7,7 @@ import { inLossSupport } from "@/lib/loss";
 import { PRODUCT_NAME } from "@/lib/product";
 import { familyPeople, isCaregiver, unavailableScreens } from "@/lib/roles";
 import { ResetDemo } from "@/components/shell/reset-demo";
+import { DemoMenu } from "@/components/shell/demo-menu";
 import { DemoClock } from "@/components/shell/demo-clock";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
@@ -67,7 +68,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <div className="flex items-center justify-between gap-3 md:block">
           <p className="px-2 text-[15px] font-semibold tracking-tight">{PRODUCT_NAME}</p>
           <div className="md:hidden">
-            <UrgentHelpLink />
+            <UrgentHelpLink memberId={memberId} />
           </div>
         </div>
         <FamilyNav memberId={memberId} role={person.role} hasPlan={hasPlan} hidden={hidden} />
@@ -86,12 +87,18 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <header className="print:hidden flex flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-4 md:px-8 md:pt-5">
           <RoleSwitch people={people} memberId={memberId} />
           <span className="order-3 hidden flex-1 md:block" />
-          <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due">
+          <span className="order-4 inline-flex h-6 items-center rounded-full bg-status-due-soft px-2.5 text-caption font-medium text-status-due max-md:hidden">
             Demo data
           </span>
-          <ResetDemo />
-          <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} />
-          <Link href="/pricing" className="order-4 text-label text-muted-foreground transition-colors duration-150 hover:text-foreground">
+          <ResetDemo className="max-md:hidden" />
+          <DemoClock memberId={memberId} daysAhead={family.demoDaysAhead ?? 0} className="max-md:hidden" />
+          <DemoMenu
+            memberId={memberId}
+            daysAhead={family.demoDaysAhead ?? 0}
+            upgrade={family.tier === "free"}
+            planLabel={`${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+          />
+          <Link href="/pricing" className="order-4 text-label max-md:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
             {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
           </Link>
           <span className="order-4 hidden text-label font-normal text-muted-foreground sm:inline">{familyContext(family)}</span>
@@ -101,7 +108,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             </div>
           )}
           <div className="order-5 hidden md:block">
-            <UrgentHelpLink />
+            <UrgentHelpLink memberId={memberId} />
           </div>
         </header>
         <LiveUpdates memberId={memberId} />
