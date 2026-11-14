@@ -48,7 +48,7 @@ export function PassportBody({ memberId, people, personId }: { memberId: string;
         <div className="grid min-w-0 items-start gap-4 lg:gap-6 @4xl:col-span-2 @4xl:grid-cols-2 @7xl:col-span-1 @7xl:grid-cols-1">
           <AllergiesCard person={person} memberId={memberId} />
           <CareTeamCard person={person} memberId={memberId} />
-          {person.kind === "child" && <GrowthCard growth={person.growth} />}
+          {person.kind === "child" && <GrowthCard key={person.id} growth={person.growth} memberId={memberId} childId={person.id} name={person.name} canEdit={canWrite} />}
         </div>
       </PageGrid>
     </PageFrame>
