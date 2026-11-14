@@ -91,7 +91,7 @@ export function BirthPrep({
       title: "Know the route to the hospital",
       when: "by wk 36",
       detail: plan?.hospital ? "Drive it once, ideally at night, and know where to park and which door is open late." : "Choose where you will give birth, then drive the route once.",
-      state: plan?.hospital ? { done: true, note: "Saved below", href: "#hospital" } : { done: false, note: "Not chosen yet" },
+      state: plan?.hospital ? { done: true, note: "In the hospital card", href: "#hospital" } : { done: false, note: "Not chosen yet" },
     },
     {
       id: "call",
@@ -99,7 +99,7 @@ export function BirthPrep({
       title: "Know who to call, and in what order",
       when: "by wk 37",
       detail: "The labor desk first, then your OB or midwife. Ask them now what their own rule for calling is, and set it in the timer.",
-      state: plan?.contacts.length ? { done: true, note: `${plan.contacts.length} numbers saved below`, href: "#hospital" } : { done: false, note: "Ask at your next visit" },
+      state: plan?.contacts.length ? { done: true, note: `${plan.contacts.length} numbers in the call card`, href: "#hospital" } : { done: false, note: "Ask at your next visit" },
       sources: [LABOR_SOURCES.nichdStart],
     },
   ];
