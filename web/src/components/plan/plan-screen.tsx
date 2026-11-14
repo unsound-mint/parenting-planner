@@ -18,6 +18,7 @@ import { InsuranceLog, insuranceHeadline } from "./insurance-log";
 import { LeavePlanner, leaveHeadline } from "./leave-planner";
 import { PaperworkTimeline } from "./paperwork-timeline";
 import { TaskRow, type TaskCtx } from "./task-row";
+import { WeekTracker } from "./week-tracker";
 import { useFamilyNow } from "@/components/shell/family-clock";
 
 type Tab = "task" | "paperwork" | "hospital_bag" | "leave" | "insurance";
@@ -33,6 +34,8 @@ export function PlanScreen({
   leave: initialLeave,
   calls: initialCalls,
   dueOn,
+  trackWeeks = false,
+  weekTasks = [],
 }: {
   initial: Task[];
   people: Person[];
@@ -42,6 +45,10 @@ export function PlanScreen({
   leave?: LeavePlan;
   calls?: InsuranceCall[];
   dueOn?: string;
+  /** Show the week tracker: a pregnancy with a due date, not in loss support. */
+  trackWeeks?: boolean;
+  /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
+  weekTasks?: string[];
 }) {
   const now = useFamilyNow();
   const [tasks, setTasks] = useState(initial);
@@ -51,9 +58,9 @@ export function PlanScreen({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("task");
 
-  // A leave deadline sends you to its paperwork task: bring it into view once the tab has rendered.
+  // A leave deadline or a tracker item sends you to its task: bring it into view once the tab has rendered.
   useEffect(() => {
-    if (tab === "paperwork" && focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (focusTask) document.getElementById(`task-${focusTask}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [tab, focusTask]);
 
   const replace = (t: Task) => setTasks((all) => all.map((x) => (x.id === t.id ? t : x)));
@@ -184,6 +191,24 @@ export function PlanScreen({
             );
           })}
         </div>
+      )}
+
+      {trackWeeks && dueOn && (active === "task" || active === "paperwork") && (
+        <WeekTracker
+          tasks={[...plan, ...paperwork]}
+          people={people}
+          dueOn={dueOn}
+          now={now}
+          suggestions={weekTasks}
+          onOpen={(t) => {
+            if (t.kind === active) document.getElementById(`task-${t.id}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+            else {
+              setFocusTask(t.id);
+              setTab(t.kind as Tab);
+            }
+          }}
+          onAdd={(title, due) => add(title, { dueOn: due })}
+        />
       )}
 
       <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`} className="min-w-0">
