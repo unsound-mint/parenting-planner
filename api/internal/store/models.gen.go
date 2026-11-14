@@ -120,6 +120,27 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type PartnerOffer struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	PartnerName string
+	Title       string
+	Detail      string
+	Url         string
+	Stages      []string
+	Audience    []string
+	Active      bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type PartnerOfferClick struct {
+	ID        uuid.UUID
+	FamilyID  uuid.UUID
+	OfferID   uuid.UUID
+	ClickedAt time.Time
+}
+
 type PlanItemProgress struct {
 	ID        uuid.UUID
 	FamilyID  uuid.UUID
