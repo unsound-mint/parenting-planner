@@ -11,10 +11,10 @@ import (
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
-func (s *Server) invitationOut(inv store.Invitation) Invitation {
+func (s *Server) invitationOut(ctx context.Context, inv store.Invitation) Invitation {
 	out := Invitation{
 		Id: inv.ID, Role: CaregiverRole(inv.Role), DisplayName: inv.DisplayName, Permissions: permissionsOut(inv.Permissions),
-		Status: InvitationStatus(invitations.StatusOf(inv, s.cfg.Now())), InvitedById: inv.InvitedBy,
+		Status: InvitationStatus(invitations.StatusOf(inv, s.now(ctx))), InvitedById: inv.InvitedBy,
 		CreatedAt: inv.CreatedAt, ExpiresAt: inv.ExpiresAt,
 	}
 	if inv.MemberID.Valid {
@@ -51,11 +51,11 @@ func (s *Server) CreateInvitation(ctx context.Context, req CreateInvitationReque
 		return CreateInvitation403JSONResponse(errForbidden), nil
 	}
 	b := req.Body
-	inv, token, err := invitations.Create(ctx, s.pool, familyID, req.MemberId, string(b.Role), b.DisplayName, permissionStrings(b.Permissions), s.cfg.Now())
+	inv, token, err := invitations.Create(ctx, s.pool, familyID, req.MemberId, string(b.Role), b.DisplayName, permissionStrings(b.Permissions), s.now(ctx))
 	if err != nil {
 		return nil, err
 	}
-	return CreateInvitation201JSONResponse{Invitation: s.invitationOut(inv), Token: token, Path: "/invite/" + token}, nil
+	return CreateInvitation201JSONResponse{Invitation: s.invitationOut(ctx, inv), Token: token, Path: "/invite/" + token}, nil
 }
 
 func (s *Server) ListInvitations(ctx context.Context, req ListInvitationsRequestObject) (ListInvitationsResponseObject, error) {
@@ -76,7 +76,7 @@ func (s *Server) ListInvitations(ctx context.Context, req ListInvitationsRequest
 	}
 	items := make([]Invitation, 0, len(rows))
 	for _, r := range rows {
-		items = append(items, s.invitationOut(r))
+		items = append(items, s.invitationOut(ctx, r))
 	}
 	return ListInvitations200JSONResponse{Items: items}, nil
 }
@@ -93,7 +93,7 @@ func (s *Server) RevokeInvitation(ctx context.Context, req RevokeInvitationReque
 	case !isParentRole(m.Role):
 		return RevokeInvitation403JSONResponse(errForbidden), nil
 	}
-	inv, err := invitations.Revoke(ctx, s.pool, familyID, req.MemberId, req.InvitationId, s.cfg.Now())
+	inv, err := invitations.Revoke(ctx, s.pool, familyID, req.MemberId, req.InvitationId, s.now(ctx))
 	switch {
 	case errors.Is(err, invitations.ErrNotFound):
 		return RevokeInvitation404JSONResponse(errNoInvitation), nil
@@ -102,7 +102,7 @@ func (s *Server) RevokeInvitation(ctx context.Context, req RevokeInvitationReque
 	case err != nil:
 		return nil, err
 	}
-	return RevokeInvitation200JSONResponse(s.invitationOut(inv)), nil
+	return RevokeInvitation200JSONResponse(s.invitationOut(ctx, inv)), nil
 }
 
 func (s *Server) GetInvitation(ctx context.Context, req GetInvitationRequestObject) (GetInvitationResponseObject, error) {
@@ -116,12 +116,12 @@ func (s *Server) GetInvitation(ctx context.Context, req GetInvitationRequestObje
 	inv := store.Invitation{AcceptedAt: row.AcceptedAt, RevokedAt: row.RevokedAt, ExpiresAt: row.ExpiresAt}
 	return GetInvitation200JSONResponse{
 		Role: CaregiverRole(row.Role), DisplayName: row.DisplayName, Permissions: permissionsOut(row.Permissions),
-		Status: InvitationStatus(invitations.StatusOf(inv, s.cfg.Now())), InvitedByName: row.InvitedByName, ExpiresAt: row.ExpiresAt,
+		Status: InvitationStatus(invitations.StatusOf(inv, s.now(ctx))), InvitedByName: row.InvitedByName, ExpiresAt: row.ExpiresAt,
 	}, nil
 }
 
 func (s *Server) AcceptInvitation(ctx context.Context, req AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error) {
-	familyID, cg, token, err := invitations.Accept(ctx, s.pool, req.Token, s.cfg.Now())
+	familyID, cg, token, err := invitations.Accept(ctx, s.pool, req.Token, s.now(ctx))
 	switch {
 	case errors.Is(err, invitations.ErrNotFound):
 		return AcceptInvitation404JSONResponse(errNoInvitation), nil
@@ -156,7 +156,7 @@ func (s *Server) ListAccessLogEntries(ctx context.Context, req ListAccessLogEntr
 	case !isParentRole(m.Role):
 		return ListAccessLogEntries403JSONResponse(errForbidden), nil
 	}
-	rows, err := invitations.AccessLog(ctx, s.pool, familyID, s.cfg.Now())
+	rows, err := invitations.AccessLog(ctx, s.pool, familyID, s.now(ctx))
 	if err != nil {
 		return nil, err
 	}

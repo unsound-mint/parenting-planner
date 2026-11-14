@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
+import { requireParent } from "@/lib/guard";
 import { familyContext } from "@/lib/format";
 import { formatShortDate } from "@/lib/format";
 import { categoryIcon, statusTint } from "@/lib/visuals";
@@ -20,6 +21,7 @@ export default function JourneyPage({ params }: PageProps<"/family/[memberId]/jo
 
 async function Journey({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
+  await requireParent(memberId);
   const api = await serverApi();
   const [{ data: family }, { data: plan }] = await Promise.all([
     api.GET("/family"),

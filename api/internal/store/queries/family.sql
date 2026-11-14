@@ -42,6 +42,9 @@ SELECT * FROM care_team WHERE family_id = $1 ORDER BY role, name;
 -- name: GetFamilyForUpdate :one
 SELECT * FROM families WHERE id = $1 FOR UPDATE;
 
+-- name: SkipFamilyDemoClock :one
+UPDATE families SET demo_offset_days = demo_offset_days + sqlc.arg(days)::int WHERE id = sqlc.arg(id) RETURNING *;
+
 -- name: UpdateFamilyStage :one
 UPDATE families SET stage = $2, due_date = $3 WHERE id = $1 RETURNING *;
 

@@ -55,11 +55,12 @@ type Child struct {
 }
 
 type Family struct {
-	ID        uuid.UUID
-	Template  string
-	Stage     string
-	DueDate   *time.Time
-	CreatedAt time.Time
+	ID             uuid.UUID
+	Template       string
+	Stage          string
+	DueDate        *time.Time
+	CreatedAt      time.Time
+	DemoOffsetDays int32
 }
 
 type GrowthMeasurement struct {

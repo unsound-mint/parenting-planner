@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { serverApi } from "@/lib/api/server";
 import { countThings, familyContext } from "@/lib/format";
 import { AppointmentQuestions } from "@/components/week/appointment-questions";
@@ -7,7 +7,7 @@ import { AiPlan } from "@/components/week/ai-plan";
 import { PlanBoard } from "@/components/week/plan-board";
 import { MoodPatternCard } from "@/components/week/mood-pattern-card";
 import { MoodCheckinCard } from "@/components/week/mood-checkin-card";
-import { CaregiverHome } from "@/components/week/caregiver-home";
+import { BabyHome } from "@/components/baby/baby-home";
 import { SleepChart } from "@/components/week/sleep-chart";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
@@ -33,16 +33,10 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   // Newer endpoints start now and render in their own slots; None of them gates the page.
   const today = optional(api.GET("/members/{memberId}/today", path));
   const guides = optional(api.GET("/members/{memberId}/guides", { params: { path: { memberId }, query: { kind: "article" } } }));
-  const [{ data: family }, { data: plan }, { data: checkins }, { data: patterns }, { data: shifts }] = await Promise.all([
-    api.GET("/family"),
-    api.GET("/members/{memberId}/plan", path),
-    api.GET("/members/{memberId}/mood-checkins", path),
-    // No pattern means no card.
-    api.GET("/members/{memberId}/mood-patterns", path),
-    // Answers 501 until the API lands; then the "Baby is home" switch stays hidden.
-    api.GET("/members/{memberId}/shifts", path),
-  ]);
-  // Grandparents and nannies get the baby's care, not a parent's plan (lib/roles.ts).
+  // Caregivers get the baby's care and never a parent's plan or check-ins, so
+  // decide who is acting before asking for any of them.
+  const { data: family, response } = await api.GET("/family");
+  if (response.status === 401) redirect("/");
   const caregiver = family?.caregivers?.find((c) => c.id === memberId);
   const week = family?.stage === "pregnancy" ? family.gestationalWeek : undefined;
   // Weeks 4 to 40 only; a nanny never gets the card (the API answers 403).
@@ -50,7 +44,15 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     family && week != null && week >= 4 && week <= 40 && caregiver?.role !== "nanny"
       ? optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week } } }))
       : undefined;
-  if (family && caregiver) return <CaregiverHome family={family} caregiver={caregiver} today={today} guides={guides} card={card} />;
+  if (family && caregiver) return <BabyHome memberId={memberId} family={family} slots={{ today, guides, card }} />;
+  const [{ data: plan }, { data: checkins }, { data: patterns }, { data: shifts }] = await Promise.all([
+    api.GET("/members/{memberId}/plan", path),
+    api.GET("/members/{memberId}/mood-checkins", path),
+    // No pattern means no card.
+    api.GET("/members/{memberId}/mood-patterns", path),
+    // Answers 501 until the API lands; then the "Baby is home" switch stays hidden.
+    api.GET("/members/{memberId}/shifts", path),
+  ]);
   const parent = family?.parents.find((p) => p.id === memberId);
   if (!family || !parent || !plan) notFound();
   const partner = family.parents.find((p) => p.id !== memberId);

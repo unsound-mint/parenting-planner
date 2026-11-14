@@ -44,16 +44,16 @@ async function ComingUpLoader({ today }: { today: Pending<Today> }) {
   return data ? <ComingUp events={data.events} tasks={data.tasks} /> : null;
 }
 
-export function CaregiverTodaySlot({ today, names }: { today: Pending<Today>; names: Record<string, string> }) {
+export function CaregiverTodaySlot({ today, names, shiftOnly }: { today: Pending<Today>; names: Record<string, string>; shiftOnly?: boolean }) {
   return (
     <Suspense fallback={null}>
-      <CaregiverTodayLoader today={today} names={names} />
+      <CaregiverTodayLoader today={today} names={names} shiftOnly={shiftOnly} />
     </Suspense>
   );
 }
-async function CaregiverTodayLoader({ today, names }: { today: Pending<Today>; names: Record<string, string> }) {
+async function CaregiverTodayLoader({ today, names, shiftOnly }: { today: Pending<Today>; names: Record<string, string>; shiftOnly?: boolean }) {
   const data = await today;
-  return data ? <CaregiverToday today={data} names={names} /> : null;
+  return data ? <CaregiverToday today={data} names={names} shiftOnly={shiftOnly} /> : null;
 }
 
 export function GuidesSlot({ guides }: { guides: Pending<{ items: Guide[] }> }) {
