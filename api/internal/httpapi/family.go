@@ -37,7 +37,7 @@ func (s *Server) loadFamily(ctx context.Context, id uuid.UUID) (Family, error) {
 	today := s.today()
 	out := Family{
 		Id: fam.ID, Template: DemoTemplate(fam.Template), Stage: Stage(fam.Stage),
-		Parents: make([]Parent, 0, len(members)), Children: make([]Child, 0, len(children)),
+		Parents: make([]Parent, 0, len(members)), Caregivers: []Caregiver{}, Children: make([]Child, 0, len(children)),
 	}
 	if fam.DueDate != nil {
 		out.DueDate = &openapi_types.Date{Time: *fam.DueDate}
