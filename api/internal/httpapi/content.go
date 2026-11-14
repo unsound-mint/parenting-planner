@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
+	"github.com/unsound-mint/parenting-planner/api/internal/admin"
 	"github.com/unsound-mint/parenting-planner/api/internal/content"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 )
@@ -29,10 +30,14 @@ func (s *Server) ListGuides(ctx context.Context, req ListGuidesRequestObject) (L
 	if req.Params.Kind != nil {
 		want = content.Kind(*req.Params.Kind)
 	}
+	edits, err := admin.Edits(ctx, s.q, familyID)
+	if err != nil {
+		return nil, err
+	}
 	entries := content.Guides(state, content.Viewer{Role: m.Role}, want)
 	out := GuideList{Items: make([]Guide, 0, len(entries))}
 	for _, e := range entries {
-		out.Items = append(out.Items, guideOut(e))
+		out.Items = append(out.Items, guideOut(edits.Guide(e)))
 	}
 	return ListGuides200JSONResponse(out), nil
 }
@@ -63,6 +68,11 @@ func (s *Server) GetPregnancyWeek(ctx context.Context, req GetPregnancyWeekReque
 		// The contract limits week to 4..40, so this is unreachable.
 		return GetPregnancyWeek400JSONResponse(Error{Code: "invalid_request", Message: "week must be 4 to 40"}), nil
 	}
+	edits, err := admin.Edits(ctx, s.q, familyID)
+	if err != nil {
+		return nil, err
+	}
+	card = edits.Card(card)
 	out := PregnancyWeek{
 		Week: card.Week, IsCurrentWeek: card.Week == state.Week, WhyItMatters: card.WhyItMatters,
 		Tasks: card.Tasks, Questions: card.Questions, BirthPrep: make([]Guide, 0, len(card.BirthPrep)),
