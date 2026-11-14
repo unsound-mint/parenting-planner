@@ -20,6 +20,7 @@ tags:
   - name: wellbeing
   - name: directory
   - name: passport
+  - name: health
   - name: care
   - name: invitations
   - name: content
@@ -490,6 +491,161 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/immunizations:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createImmunization
+      tags: [health]
+      summary: The acting parent logs a vaccine dose given to them or to a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Another parent's id is
+        never accepted.
+        The plan and the journey read doses on the next request, so a logged
+        dose removes the matching rule item. When dose is left out and a dose
+        of this vaccine is scheduled for the subject, the earliest scheduled
+        dose is the one marked as given.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImmunizationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VaccineDose"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/screenings:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createScreening
+      tags: [health]
+      summary: The acting parent logs a screening that was done for them or a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Another parent's id is
+        never accepted.
+        A screening is a lab record without a single value (stored with the
+        lab results), so it is sensitive: visibility is required and the
+        write is audited. The plan reads it on the next request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreeningInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Screening"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /members/{memberId}/lab-results:
+    parameters:
+      - $ref: "#/components/parameters/MemberId"
+    post:
+      operationId: createLabResult
+      tags: [health]
+      summary: The acting parent logs one measured lab value for them or a child
+      description: |
+        The subject is the acting parent, or the child named by childId
+        (404 when the child is not in the family). Another parent's id is
+        never accepted.
+        Sensitive: visibility is required and the write is audited. The
+        response carries the out-of-range flag computed from the stored
+        reference range. 400 when refLow is above refHigh or takenOn is in
+        the future.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LabResultInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LabResult"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "501":
           description: Error
           content:
             application/json:
@@ -3681,6 +3837,125 @@ components:
         takenOn:
           type: string
           format: date
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        flag:
+          $ref: "#/components/schemas/LabFlag"
+
+    LabFlag:
+      type: object
+      description: |
+        Set only when the value is outside the reference range stored with the
+        result (below refLow or above refHigh; a value equal to a bound is in
+        range). Computed by the server from database state. The wording is
+        fixed and never diagnostic: it only says to discuss the value with a
+        doctor.
+      required: [direction, message, basis]
+      properties:
+        direction:
+          type: string
+          enum: [low, high]
+        message:
+          type: string
+          example: Outside the usual range. Discuss with your doctor.
+        basis:
+          type: string
+          description: Where the range comes from.
+          example: Reference range reported with this lab result
+
+    VaccineKey:
+      type: string
+      description: The vaccine keys the rules read.
+      enum: [tdap, td, flu, covid19, rsv, hepb, hepa, dtap, mmr, varicella, hib, pcv, ipv, rotavirus]
+
+    ImmunizationInput:
+      type: object
+      required: [vaccine, givenOn]
+      properties:
+        childId:
+          type: string
+          format: uuid
+          description: Set to log the dose for this child; leave out for the acting parent.
+        vaccine:
+          $ref: "#/components/schemas/VaccineKey"
+        dose:
+          type: string
+          minLength: 1
+          maxLength: 60
+          example: Dose 1 of 5
+        givenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
+
+    ScreeningKind:
+      type: string
+      description: |
+        glucose_screen = pregnancy glucose screening; gbs = group B strep
+        test in pregnancy; vision_screen = a child's vision screening.
+      enum: [glucose_screen, gbs, vision_screen]
+
+    ScreeningInput:
+      type: object
+      required: [kind, takenOn, visibility]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/ScreeningKind"
+        takenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    Screening:
+      type: object
+      required: [id, kind, takenOn, visibility]
+      properties:
+        id:
+          type: string
+          format: uuid
+        childId:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/ScreeningKind"
+        takenOn:
+          type: string
+          format: date
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+
+    LabResultInput:
+      type: object
+      required: [name, value, unit, takenOn, visibility]
+      properties:
+        childId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          example: Ferritin
+        value:
+          type: number
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 20
+          example: ng/mL
+        refLow:
+          type: number
+        refHigh:
+          type: number
+        takenOn:
+          type: string
+          format: date
+          description: Not in the future (400).
         visibility:
           $ref: "#/components/schemas/Visibility"
 

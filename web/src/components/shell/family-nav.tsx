@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Brain, CalendarCheck, CalendarDays, Ellipsis, IdCard, Route, Target, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck, CalendarDays, Ellipsis, HeartHandshake, IdCard, Route, Search, Target, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -16,9 +16,9 @@ type Item = { href: string; screen: string; label: string; icon: LucideIcon; /**
 const items: Item[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck, phone: true },
   { href: "/plan", screen: "plan", label: "Plan", icon: planIcon, phone: true },
-  { href: "/care", screen: "care", label: "Care", icon: Brain, phone: true },
+  { href: "/care", screen: "care", label: "Care", icon: HeartHandshake, phone: true },
   { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
-  { href: "/directory", screen: "directory", label: "Find help", icon: Users },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Search },
   { href: "/journey", screen: "journey", label: "Journey", icon: Route },
   { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, phone: true },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target },

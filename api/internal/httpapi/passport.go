@@ -19,7 +19,7 @@ func (s *Server) GetPassport(ctx context.Context, req GetPassportRequestObject) 
 	case kind == errNotFound:
 		return GetPassport404JSONResponse(errNoMember), nil
 	}
-	today := s.today()
+	today := s.today(ctx)
 	people, err := passport.Get(ctx, s.pool, familyID, req.MemberId, today)
 	if err != nil {
 		return nil, err

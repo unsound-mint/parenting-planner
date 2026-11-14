@@ -33,7 +33,7 @@ For a whole issue, follow the `backend-issue` skill (`.claude/skills/backend-iss
 | Visibility default | The client sends visibility explicitly. Diary and session notes default to `private` in the UI; never widen it on the server. |
 | Audit | Every create, read (list or get), update and delete of sensitive data calls `access.Audit` inside the same transaction. Entity names are snake_case singular (`mood_checkin`). |
 | Transactions | Domain functions take `*pgxpool.Pool` and use `pgx.BeginFunc`. Handlers never open transactions. |
-| Time | Use `s.cfg.Now()` and `s.today()`, never `time.Now()`. Tests run at `testutil.Now`. |
+| Time | Use `s.now(ctx)` and `s.today(ctx)`, never `time.Now()` or `s.cfg.Now()` in a handler: they are the session family's clock, which "Skip ahead a week" moves (`families.demo_offset_days`). Only seeding a new demo uses `s.realToday()`. Tests run at `testutil.Now`. |
 | Schema changes | A new goose file `000NN_short_name.sql` with `-- +goose Up` and `-- +goose Down`. Never edit or delete an existing migration (CI checks). Use `uuid` keys with `gen_random_uuid()`, `timestamptz`, `CHECK` constraints for enums, `ON DELETE CASCADE` to `families`. |
 | Generated code | Never edit `*.gen.go`. Change the YAML or SQL and run `make gen`. |
 | Health rules | Pure functions in `internal/rules`, each with a `Source` you opened yourself and today's date as `CheckedAt`. If the page will not load (some CDC and AAP pages block scripts), stop and ask; never cite from memory. Rule text is Dayana's; keep it plain and never diagnostic. Every rule id appears in a test (`TestEveryRuleIsTested`). |
