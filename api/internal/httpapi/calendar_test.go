@@ -189,6 +189,9 @@ func TestAppointmentQuestionAnswerAndReopen(t *testing.T) {
 	if !got.Answered || got.AnsweredAt == nil || got.Answer == nil || got.CarriedOver {
 		t.Errorf("answered question = %+v", got)
 	}
+	if _, offset := got.AnsweredAt.Zone(); offset != 0 {
+		t.Errorf("answeredAt must be UTC, got %v", got.AnsweredAt)
+	}
 	if got.AppointmentId == nil || *got.AppointmentId != carried.AskedForAppointmentId {
 		t.Errorf("an answered question stays under the visit it was asked for, got %v", got.AppointmentId)
 	}

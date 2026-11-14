@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
@@ -105,7 +106,7 @@ func appointmentQuestionOut(q calendar.Question) AppointmentQuestion {
 	return AppointmentQuestion{
 		Id: q.ID, AuthorId: q.AuthorID, Text: q.Text, AppointmentId: q.AppointmentID,
 		AskedForAppointmentId: q.AskedForAppointmentID, CarriedOver: q.CarriedOver,
-		Answered: q.AnsweredAt != nil, Answer: q.Answer, AnsweredAt: q.AnsweredAt,
+		Answered: q.AnsweredAt != nil, Answer: q.Answer, AnsweredAt: utcOrNil(q.AnsweredAt),
 		Visibility: Visibility(q.Visibility), CreatedAt: q.CreatedAt.UTC(),
 	}
 }
@@ -124,4 +125,12 @@ func calendarEventOut(e store.CalendarEvent) CalendarEvent {
 		out.EndsAt = &t
 	}
 	return out
+}
+
+func utcOrNil(t *time.Time) *time.Time {
+	if t == nil {
+		return nil
+	}
+	u := t.UTC()
+	return &u
 }
