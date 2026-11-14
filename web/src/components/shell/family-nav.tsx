@@ -2,25 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarCheck, Route, type LucideIcon } from "lucide-react";
-import { planIcon } from "@/lib/visuals";
+import { Brain, CalendarCheck, IdCard, Route, Users, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
+import { planIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 
-// Only screens that work are listed (organizer rule: hide what does not work).
-// Add an entry here when its route lands.
-// Each role sees only the screens canOpen() allows (lib/roles.ts).
+// Ordered by how often a parent needs them: this week first, then the weekly
+// care session, the records they pull up at a visit, the directory, and the
+// long view last. Each role sees only the screens canOpen() allows (lib/roles.ts).
 const items: { href: string; screen: string; label: string; icon: LucideIcon }[] = [
   { href: "", screen: "", label: "This week", icon: CalendarCheck },
-  { href: "/journey", screen: "journey", label: "Journey", icon: Route },
   { href: "/plan", screen: "plan", label: "Plan", icon: planIcon },
-  // Enable when the API lands (#174; also import Brain from lucide-react). The route /family/[memberId]/care exists.
-  // { href: "/care", label: "Care", icon: Brain },
-  // Enable when the API lands (#172): { href: "/passport", label: "Passport", icon: IdCard },
-  // enable when the API lands (#175): { href: "/directory", label: "Find help", icon: Users },
+  { href: "/care", screen: "care", label: "Care", icon: Brain },
+  { href: "/passport", screen: "passport", label: "Passport", icon: IdCard },
+  { href: "/directory", screen: "directory", label: "Find help", icon: Users },
+  { href: "/journey", screen: "journey", label: "Journey", icon: Route },
 ];
 
-// hasPlan is false while GET tasks does not answer 200 (it is 501 until the backend lands): no Plan entry then.
+// hasPlan is false while GET tasks does not answer 200 (501 in production without preview mocks): no Plan entry then.
 export function FamilyNav({ memberId, role, hasPlan }: { memberId: string; role: Role; hasPlan: boolean }) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
@@ -35,7 +34,7 @@ export function FamilyNav({ memberId, role, hasPlan }: { memberId: string; role:
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-label transition-colors duration-150",
+              "flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-caption transition-colors duration-150 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-2.5 md:py-2 md:text-left md:text-label",
               active ? "bg-secondary font-semibold text-secondary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >

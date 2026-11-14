@@ -72,7 +72,7 @@ export function mockMiddleware(table: MockTable): Middleware {
       const body = bodies.get(request);
       const data = await entry.build({
         path: (params.path ?? {}) as Record<string, string>,
-        query: Object.fromEntries(Object.entries(params.query ?? {}).map(([k, v]) => [k, String(v)])),
+        query: Object.fromEntries(Object.entries(params.query ?? {}).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])),
         body: body as never,
         family: async () => {
           const res = await fetch(new URL("/api/family", request.url), { headers: { cookie: request.headers.get("cookie") ?? "" }, cache: "no-store" });
