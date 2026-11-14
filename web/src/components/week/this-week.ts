@@ -1,4 +1,4 @@
-import type { LearningPath, Lesson, PregnancyWeek, QuizQuestion, Stage, Task } from "@/lib/api/types";
+import type { LearningPath, Lesson, Mission, PregnancyWeek, QuizQuestion, Stage, Task } from "@/lib/api/types";
 
 // Pure choices behind This week: which reads, which quiz, what the baby says.
 // Kept apart from the components so the rules are in one readable place.
@@ -6,16 +6,34 @@ import type { LearningPath, Lesson, PregnancyWeek, QuizQuestion, Stage, Task } f
 export type BabySize = NonNullable<PregnancyWeek["size"]>;
 
 /** "head to heel" for crown-heel; the measure changes at week 20, so the label follows the data. */
-export function lengthLabel(size: Pick<BabySize, "lengthMeasure" | "lengthCm">): string {
-  const inches = (size.lengthCm / 2.54).toFixed(1);
-  const what = size.lengthMeasure === "crown-heel" ? "head to heel" : size.lengthMeasure === "crown-rump" ? "head to bottom" : "length of the embryo";
-  return size.lengthCm >= 2.54 ? `${what}, about ${inches} in` : what;
+export function lengthLabel(size: Pick<BabySize, "lengthMeasure">): string {
+  return size.lengthMeasure === "crown-heel" ? "head to heel" : size.lengthMeasure === "crown-rump" ? "head to bottom" : "length of the embryo";
 }
 
-/** "about 1.7 lb" from the median weight; small weights stay in ounces. */
-export function weightLabel(grams: number): string {
-  const lb = grams / 453.6;
-  return lb >= 1 ? `median, about ${lb.toFixed(1)} lb` : `median, about ${Math.round(grams / 28.35)} oz`;
+// US units first (the audience is American), metric second and smaller.
+const CM_PER_IN = 2.54;
+const G_PER_OZ = 28.3495;
+
+/** 30.0 cm -> "11.8", one decimal so an early week still reads ("0.4"). */
+export function inches(cm: number): string {
+  return (cm / CM_PER_IN).toFixed(1);
+}
+
+/**
+ * Grams as pounds and ounces: 760 g -> [["1", "lb"], ["11", "oz"]]; 85 g -> [["3", "oz"]];
+ * under an ounce one decimal, so week 12's 14 g reads 0.5 oz. 16 oz carries to the pound.
+ */
+export function poundsOunces(grams: number): [string, string][] {
+  const oz = grams / G_PER_OZ;
+  if (oz < 1) return [[oz.toFixed(1), "oz"]];
+  let lb = Math.floor(oz / 16);
+  let rest = Math.round(oz - lb * 16);
+  if (rest === 16) {
+    lb += 1;
+    rest = 0;
+  }
+  if (lb === 0) return [[String(rest), "oz"]];
+  return rest === 0 ? [[String(lb), "lb"]] : [[String(lb), "lb"], [String(rest), "oz"]];
 }
 
 type Topic = "hearing" | "movement" | "other";
@@ -137,4 +155,9 @@ export function bagByPerson(tasks: Task[]): { done: number; total: number; byMem
   const byMember = new Map<string, number>();
   for (const t of bag) if (t.done && t.doneById) byMember.set(t.doneById, (byMember.get(t.doneById) ?? 0) + 1);
   return { done: bag.filter((t) => t.done).length, total: bag.length, byMember };
+}
+
+/** The mission to show on This week: one already taken and not finished, otherwise the first open one. */
+export function pickMission(items: Mission[]): Mission | undefined {
+  return items.find((m) => m.state === "taken") ?? items.find((m) => m.state === "open");
 }
