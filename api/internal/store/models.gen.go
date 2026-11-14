@@ -569,6 +569,28 @@ type ShoppingItem struct {
 	CreatedAt       time.Time
 }
 
+type SimulatorAnswer struct {
+	FamilyID   uuid.UUID
+	MemberID   uuid.UUID
+	RoundID    uuid.UUID
+	QuestionID string
+	ChoiceID   string
+	Skill      string
+	Correct    bool
+	AnsweredAt time.Time
+}
+
+type SimulatorRound struct {
+	ID          uuid.UUID
+	FamilyID    uuid.UUID
+	MemberID    uuid.UUID
+	Mode        string
+	ScenarioID  *string
+	QuestionIds []string
+	CreatedAt   time.Time
+	CompletedAt pgtype.Timestamptz
+}
+
 type StripeEvent struct {
 	ID         string
 	Type       string
