@@ -16,6 +16,7 @@ export type Visibility = S["Visibility"];
 export type MoodCheckin = S["MoodCheckin"];
 export type MoodCheckinInput = S["MoodCheckinInput"];
 export type PlanCategory = S["PlanCategory"];
+export type Source = S["Source"];
 export type AgendaTopic = S["AgendaTopic"];
 export type Psychologist = S["Psychologist"];
 export type PsychologistAgenda = S["PsychologistAgenda"];

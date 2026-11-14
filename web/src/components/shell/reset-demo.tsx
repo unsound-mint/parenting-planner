@@ -10,7 +10,7 @@ export function ResetDemo({ className }: { className?: string }) {
     <Link
       href="/"
       title="Start over with a fresh family"
-      className={cn("order-4 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-label font-medium outline-none transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-8", className)}
+      className={cn("press order-4 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line-2 px-3.5 text-label font-medium text-ink-2 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 md:min-h-9", className)}
     >
       <RotateCcw className="size-3.5" aria-hidden />
       Reset demo
