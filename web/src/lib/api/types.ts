@@ -164,3 +164,6 @@ export type Thanks = S["Thanks"];
 export type ThanksInput = S["ThanksInput"];
 export type ThanksSuggestion = S["ThanksSuggestion"];
 export type ThanksBasis = S["ThanksBasis"];
+||||||| 43b114e
+export type Journey = S["Journey"];
+export type JourneyStage = S["JourneyStage"];

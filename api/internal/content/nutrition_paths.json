@@ -1,0 +1,1016 @@
+{
+ "about": "Nutrition learning paths for planning, pregnancy, first foods and toddlers, both parents. Lesson bodies are our own plain-language writing from the cited pages. Same schema as paths.json, plus path.stage, lesson.stage, lesson.ageMonths (non-pregnancy lessons), quiz.source and lesson.seeAlso.",
+ "checkedAt": "2026-11-14",
+ "sources": {
+  "dga-2025": {
+   "title": "Dietary Guidelines for Americans, 2025 to 2030 (HHS and USDA, January 2026)",
+   "url": "https://cdn.realfood.gov/DGA.pdf",
+   "checkedAt": "2026-11-14"
+  },
+  "dga-2020": {
+   "title": "Dietary Guidelines for Americans, 2020 to 2025 (previous edition), Chapter 2 Infants and Toddlers and Chapter 5 Women Who Are Pregnant or Lactating",
+   "url": "https://www.dietaryguidelines.gov/sites/default/files/2021-03/Dietary_Guidelines_for_Americans-2020-2025.pdf",
+   "checkedAt": "2026-11-14"
+  },
+  "owh-preconception": {
+   "title": "HHS Office on Women's Health: Preconception health",
+   "url": "https://www.womenshealth.gov/pregnancy/you-get-pregnant/preconception-health",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-listeria": {
+   "title": "CDC: Preventing Listeria infection (food safety, including in pregnancy)",
+   "url": "https://www.cdc.gov/listeria/prevention/index.html",
+   "checkedAt": "2026-11-14"
+  },
+  "fda-fish": {
+   "title": "FDA and EPA: Advice about Eating Fish",
+   "url": "https://www.fda.gov/food/consumers/advice-about-eating-fish",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-solids": {
+   "title": "CDC: When, What, and How to Introduce Solid Foods",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/foods-and-drinks/when-what-and-how-to-introduce-solid-foods.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-faqs": {
+   "title": "CDC: Infant and Toddler Nutrition FAQs",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/faqs/index.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-choking": {
+   "title": "CDC: Choking hazards for infants and toddlers",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/foods-and-drinks/choking-hazards.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-foods-avoid": {
+   "title": "CDC: Foods and Drinks to Avoid or Limit",
+   "url": "https://www.cdc.gov/infant-toddler-nutrition/foods-and-drinks/foods-and-drinks-to-avoid-or-limit.html",
+   "checkedAt": "2026-11-14"
+  },
+  "cdc-good-nutrition": {
+   "title": "CDC: Good Nutrition Starts Early",
+   "url": "https://www.cdc.gov/nutrition/features/good-nutrition-starts-early.html",
+   "checkedAt": "2026-11-14"
+  },
+  "niaid-peanut": {
+   "title": "NIAID: Addendum guidelines for the prevention of peanut allergy in the United States (expert panel report, PMC)",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5217343/",
+   "checkedAt": "2026-11-14"
+  },
+  "aap-picky": {
+   "title": "AAP HealthyChildren.org: 10 Tips for Parents of Picky Eaters",
+   "url": "https://www.healthychildren.org/English/ages-stages/toddler/nutrition/Pages/Picky-Eaters.aspx",
+   "checkedAt": "2026-11-14"
+  },
+  "aap-drinks": {
+   "title": "AAP HealthyChildren.org: Recommended Drinks for Children Age 5 and Younger",
+   "url": "https://www.healthychildren.org/English/healthy-living/nutrition/Pages/recommended-drinks-for-young-children-ages-0-5.aspx",
+   "checkedAt": "2026-11-14"
+  }
+ },
+ "paths": [
+  {
+   "id": "eating-before-baby",
+   "title": "Eating for two of you, before the baby",
+   "icon": "two forks sharing one round bowl",
+   "why": "Food habits are easiest to change when you change them together. Start the shared kitchen now, while dinner is still a calm part of the day.",
+   "lessons": [
+    {
+     "id": "plate-you-both-like",
+     "title": "A plate you both like",
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2025",
+     "body": "Before pregnancy, the best food plan is the one two people will actually cook. The 2025 to 2030 Dietary Guidelines boil it down to eating real food: protein at every meal, vegetables and fruit through the day, whole grains, and dairy without added sugar. For a 2,000 calorie day the goals are about 3 servings of vegetables, 2 of fruit, 2 to 4 of whole grains and 3 of dairy, adjusted to your own needs. Water is the default drink. The guidelines also say to cut back on highly processed packaged foods and sugary drinks. You do not need a perfect week. Pick a plate you both like and build around it: something with protein, something green, something whole grain. This week's plate: grilled chicken or beans, a tray of roasted vegetables, brown rice, and fruit with plain yogurt for dessert. Swap one sweet drink each for sparkling water with lemon.",
+     "quiz": [
+      {
+       "question": "Which drink do the 2025 to 2030 guidelines make the default?",
+       "options": [
+        "Water, still or sparkling",
+        "Fruit drinks",
+        "Low-calorie energy drinks"
+       ],
+       "answer": "Water, still or sparkling",
+       "why": "The guidelines say to choose water and unsweetened beverages.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "Guess first, then check: how many servings of vegetables a day in the 2,000 calorie pattern?",
+       "options": [
+        "1",
+        "3",
+        "6"
+       ],
+       "answer": "3",
+       "why": "The goals are 3 servings of vegetables and 2 of fruit.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "What should the dairy on your plate have?",
+       "options": [
+        "No added sugars",
+        "Extra flavoring",
+        "A sweetener instead of sugar"
+       ],
+       "answer": "No added sugars",
+       "why": "The guidelines call for dairy with no added sugars.",
+       "source": "dga-2025"
+      }
+     ],
+     "talkTonight": "What is the one dinner we both look forward to? Make it this week's plate and decide who shops and who cooks."
+    },
+    {
+     "id": "folate-you-can-taste",
+     "title": "Folate you can taste",
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2020",
+     "body": "Folate matters most before conception and in the first weeks, so it is one nutrient with a start date. The Dietary Guidelines say folate occurs naturally in dark green vegetables and in beans, peas and lentils. Enriched grains such as bread, pasta, rice and cereal, and some corn masa flours, are fortified with folic acid. Food helps, but the guidelines treat the supplement as a separate step. The task force they cite advises 400 to 800 micrograms of folic acid daily for anyone planning or capable of pregnancy, starting at least a month before conception. That part lives on our folic acid card, so this lesson is about the plate side. Folate-rich food is also delicious: lentil soup, spinach in an omelet, black bean tacos, a big salad with chickpeas. Partners can enjoy all of it, because one menu is easier than two. Whether you need a supplement, and which one, is a question for your clinician.",
+     "quiz": [
+      {
+       "question": "Which of these does the guideline name as natural folate sources?",
+       "options": [
+        "Dark green vegetables and legumes",
+        "Butter and cream",
+        "Sparkling water"
+       ],
+       "answer": "Dark green vegetables and legumes",
+       "why": "Folate is found in dark green vegetables and in beans, peas and lentils.",
+       "source": "dga-2020"
+      },
+      {
+       "question": "What are enriched grains such as bread and pasta fortified with?",
+       "options": [
+        "Folic acid",
+        "Iodine only",
+        "Added sugar"
+       ],
+       "answer": "Folic acid",
+       "why": "Enriched grains and some corn masa flours carry folic acid.",
+       "source": "dga-2020"
+      },
+      {
+       "question": "When does the supplement window start, as the guidelines describe it?",
+       "options": [
+        "At least a month before conception",
+        "After the first trimester",
+        "Only after a positive test"
+       ],
+       "answer": "At least a month before conception",
+       "why": "The critical period starts at least 1 month before conception.",
+       "source": "dga-2020"
+      }
+     ],
+     "talkTonight": "Which folate dinner sounds best to each of you: lentil soup, bean tacos or a spinach omelet? Put one on the calendar."
+    },
+    {
+     "id": "partner-habits",
+     "title": "What partners can do now",
+     "audience": "partner",
+     "readingMinutes": 1,
+     "source": "owh-preconception",
+     "body": "Planning a baby is not one person's job. The Office on Women's Health says men who drink heavily, smoke or use drugs can have problems with their sperm. It advises men to limit alcohol, quit smoking and illegal drugs, eat well and manage stress, and partners who smoke should not smoke around the person trying to conceive. The page suggests starting preconception care at least three months before trying, and some changes, like quitting smoking, can take longer, so earlier is better. It also tells the person who may become pregnant to stop drinking alcohol and smoking, and that is easier when the household changes together. Try a trial run: a 30 day stretch with no alcohol at home. Swap the evening beer for sparkling water with lime in a nice glass, and cook together instead. If quitting smoking is hard, your doctor can help. The page also suggests that partners get screened for sexually transmitted infections.",
+     "quiz": [
+      {
+       "question": "How long before trying does the page suggest starting preconception care?",
+       "options": [
+        "At least three months",
+        "One week",
+        "Only once you are pregnant"
+       ],
+       "answer": "At least three months",
+       "why": "It advises starting at least three months before trying to conceive.",
+       "source": "owh-preconception"
+      },
+      {
+       "question": "What can heavy drinking, smoking or drug use cause in men, according to the page?",
+       "options": [
+        "Problems with sperm",
+        "Better fertility",
+        "No effect at all"
+       ],
+       "answer": "Problems with sperm",
+       "why": "The page links these habits to sperm problems.",
+       "source": "owh-preconception"
+      },
+      {
+       "question": "What should a partner who smokes avoid doing?",
+       "options": [
+        "Smoking around the woman",
+        "Cooking dinner",
+        "Going to the checkup"
+       ],
+       "answer": "Smoking around the woman",
+       "why": "Partners who smoke should avoid smoking around her.",
+       "source": "owh-preconception"
+      }
+     ],
+     "talkTonight": "Which habit could we change together for 30 days, and what is the replacement we would actually enjoy?"
+    },
+    {
+     "id": "cook-together",
+     "title": "The habit that makes the rest easy",
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2025",
+     "body": "Guidelines feel abstract until you are standing in the kitchen. The 2025 to 2030 Dietary Guidelines ask for more home-prepared meals and fewer highly processed packaged foods. They also give a label trick: added sugars hide under names that contain sugar or syrup, or end in ose, and honey and fruit juice concentrate count too. Cooking together is the easiest way to make this real, and it is a habit worth building before a baby adds chaos. Start small: one meal a week that you plan, shop for and cook as a pair, phones away. One of you picks the recipe, the other picks the music. Cook double and freeze half, which also starts the freezer stash you will be glad of later. This week's plate: salmon, baby potatoes and broccoli on one sheet pan. Keep a note on the fridge of what you loved.",
+     "quiz": [
+      {
+       "question": "Which ingredient name signals an added sugar?",
+       "options": [
+        "Dextrose",
+        "Oat flour",
+        "Olive oil"
+       ],
+       "answer": "Dextrose",
+       "why": "Names ending in ose, such as dextrose, point to added sugar.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "What do the guidelines favor over packaged foods?",
+       "options": [
+        "Home-prepared meals",
+        "Ready-to-eat snacks",
+        "Flavored drinks"
+       ],
+       "answer": "Home-prepared meals",
+       "why": "They ask to prioritize nutrient-dense foods and home-prepared meals.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "Which of these counts as an added sugar on a label?",
+       "options": [
+        "Honey",
+        "The natural sugar in plain milk",
+        "The sugar in a whole apple"
+       ],
+       "answer": "Honey",
+       "why": "Honey is on the list of added sugar names. Fruit and plain milk sugars are natural.",
+       "source": "dga-2025"
+      }
+     ],
+     "talkTonight": "Which night each week can be our cooking night? Who picks the recipe and who picks the music this week?"
+    }
+   ],
+   "stages": [
+    "planning",
+    "trying"
+   ]
+  },
+  {
+   "id": "eating-in-pregnancy",
+   "title": "Eating well in pregnancy",
+   "icon": "a bowl of greens with a small sprout on top",
+   "why": "Most pregnancy food rules are simple once you have the short list. Learn it together and the fridge becomes a team effort.",
+   "lessons": [
+    {
+     "id": "fridge-rules",
+     "title": "The fridge rules",
+     "weeks": [
+      6,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-listeria",
+     "extraSources": [
+      "dga-2020"
+     ],
+     "body": "Listeria infection is rare, but CDC says it can be especially harmful in pregnancy, so the rules are worth following. Most come with a workaround. Deli meat, cold cuts, hot dogs and dry sausages are safer when heated until steaming hot, or 165 degrees F. Unheated soft fresh cheeses such as queso fresco are best avoided, and so is any cheese made from raw milk. Choose pasteurized milk, yogurt and ice cream, and homemade deli salads over store-bought ones. Skip refrigerated smoked fish unless it is cooked into a dish or sealed and shelf-stable. Cook sprouts until steaming hot, and eat cut melon soon after you slice it. The Dietary Guidelines add that meat, poultry, seafood and eggs should be cooked to safe temperatures. Tonight's fix: a ham and hard cheese toastie, heated until steaming, is back on the menu. Our everyday habits lesson covers coffee and alcohol.",
+     "quiz": [
+      {
+       "question": "How do you make deli meat safer in pregnancy?",
+       "options": [
+        "Heat it until steaming hot (165 degrees F)",
+        "Rinse it under water",
+        "Eat it within a day"
+       ],
+       "answer": "Heat it until steaming hot (165 degrees F)",
+       "why": "CDC advises reheating deli meats and hot dogs to steaming hot or 165 degrees F.",
+       "source": "cdc-listeria"
+      },
+      {
+       "question": "Which cheese is the safer choice?",
+       "options": [
+        "Hard cheese",
+        "Unheated queso fresco",
+        "Any cheese made from raw milk"
+       ],
+       "answer": "Hard cheese",
+       "why": "Hard cheeses are listed among the safer choices. Raw milk cheeses and unheated soft fresh cheeses are not.",
+       "source": "cdc-listeria"
+      },
+      {
+       "question": "What should you do with raw or lightly cooked sprouts?",
+       "options": [
+        "Cook them until steaming hot",
+        "Rinse them twice",
+        "Eat them with lemon"
+       ],
+       "answer": "Cook them until steaming hot",
+       "why": "CDC says to avoid raw or lightly cooked sprouts and cook them until steaming hot.",
+       "source": "cdc-listeria"
+      }
+     ],
+     "talkTonight": "What is our one safe swap for the food we miss most, and who checks the labels at the store?"
+    },
+    {
+     "id": "fish-three-lists",
+     "title": "Fish: the three lists",
+     "weeks": [
+      8,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "fda-fish",
+     "extraSources": [
+      "dga-2020"
+     ],
+     "body": "Fish is good for you in pregnancy if you choose well. The FDA and EPA sort fish into three lists. Best choices include salmon, sardines, shrimp, cod, trout, pollock, catfish, tilapia and canned light tuna. The advice for pregnant or breastfeeding adults is 2 to 3 servings a week from that list, where a serving is 4 ounces, or 1 serving from the good choices list, which includes halibut, snapper, mahi mahi and albacore tuna. The choices to avoid because of mercury are king mackerel, marlin, orange roughy, shark, swordfish, bigeye tuna and tilefish from the Gulf of Mexico. The Dietary Guidelines link seafood in pregnancy to better cognitive development in young children. Bonus: for children the same page advises 2 servings a week from the best list, so your future toddler is covered. This week's plate: salmon tacos with cabbage slaw. Pin the three lists to the fridge.",
+     "quiz": [
+      {
+       "question": "How big is one serving of fish in the FDA advice?",
+       "options": [
+        "4 ounces",
+        "1 ounce",
+        "12 ounces"
+       ],
+       "answer": "4 ounces",
+       "why": "One serving is 4 ounces.",
+       "source": "fda-fish"
+      },
+      {
+       "question": "Which fish is on the avoid list?",
+       "options": [
+        "Swordfish",
+        "Salmon",
+        "Shrimp"
+       ],
+       "answer": "Swordfish",
+       "why": "Swordfish is one of the highest-mercury choices to avoid.",
+       "source": "fda-fish"
+      },
+      {
+       "question": "Guess first: which tuna is a best choice?",
+       "options": [
+        "Canned light tuna",
+        "Bigeye tuna",
+        "Both are best choices"
+       ],
+       "answer": "Canned light tuna",
+       "why": "Canned light tuna is a best choice. Albacore is a good choice, and bigeye is on the avoid list.",
+       "source": "fda-fish"
+      }
+     ],
+     "talkTonight": "Which two fish on the best list would we actually cook? Plan one fish dinner this week."
+    },
+    {
+     "id": "key-nutrients",
+     "title": "Iron, iodine, choline, calcium and folate",
+     "weeks": [
+      8,
+      30
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2025",
+     "extraSources": [
+      "dga-2020"
+     ],
+     "body": "Pregnancy raises your needs for several nutrients. The 2025 to 2030 Dietary Guidelines name iron, folate and iodine as the top priorities, and point to choline-rich eggs and calcium-rich dairy as well. Food comes first: iron-rich meats and beans, folate in dark greens and legumes, iodine in dairy, eggs, seafood and iodized salt. Plant iron absorbs better with vitamin C, so squeeze lemon on the lentils. The earlier edition adds that you should not start using table salt if you do not already, but if you do, make it iodized. Many prenatal vitamins have no iodine or choline, so read the label. The guidelines say to talk to your clinician about a daily prenatal vitamin. Questions about anemia, a vegetarian or vegan diet, or any supplement belong with your clinician, who can check and advise. This week's plate: a spinach omelet, orange slices and a glass of milk.",
+     "quiz": [
+      {
+       "question": "Which three nutrients are the top priorities in pregnancy in the 2025 to 2030 guidelines?",
+       "options": [
+        "Iron, folate and iodine",
+        "Sugar, salt and fat",
+        "Vitamin C, zinc and fiber"
+       ],
+       "answer": "Iron, folate and iodine",
+       "why": "The guidelines list iron, folate and iodine as top priorities.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "Which food does the guideline highlight as choline-rich?",
+       "options": [
+        "Eggs",
+        "White rice",
+        "Apple juice"
+       ],
+       "answer": "Eggs",
+       "why": "It points to choline-rich eggs.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "What helps your body absorb plant iron?",
+       "options": [
+        "Vitamin C foods at the same meal",
+        "Drinking coffee with it",
+        "Eating it cold"
+       ],
+       "answer": "Vitamin C foods at the same meal",
+       "why": "The earlier edition says non-heme iron absorbs better with vitamin C-rich foods.",
+       "source": "dga-2020"
+      }
+     ],
+     "talkTonight": "Which nutrient from the list is hardest for us to get from our usual meals? Write one fix to try this week and one question for the next visit."
+    },
+    {
+     "id": "eating-for-two-numbers",
+     "title": "Eating for two, in numbers",
+     "weeks": [
+      12,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2020",
+     "body": "Eating for two does not mean doubling your plate. For a woman with a healthy weight before pregnancy, the Dietary Guidelines estimate no extra calories in the first trimester, about 340 more a day in the second and about 450 more in the third. That is roughly a snack, such as yogurt with fruit and a handful of nuts. Weight gain ranges come from the National Academies and depend on weight before pregnancy, for one baby: 28 to 40 pounds if underweight, 25 to 35 at a healthy weight, 15 to 25 if overweight and 11 to 20 with obesity. Treat them as a conversation starter, not a score. Your clinician tracks your weight at visits, and twins, health conditions and appetite all change the picture, so follow their advice over any chart. Partners, the useful job is not watching the scale. It is making the snack easy to grab.",
+     "quiz": [
+      {
+       "question": "How many extra daily calories in the first trimester, for a healthy prepregnancy weight?",
+       "options": [
+        "None",
+        "About 340",
+        "About 450"
+       ],
+       "answer": "None",
+       "why": "The estimate is plus 0 calories in the first trimester.",
+       "source": "dga-2020"
+      },
+      {
+       "question": "Who tracks pregnancy weight gain and advises on it?",
+       "options": [
+        "Your clinician",
+        "A fitness app",
+        "A relative"
+       ],
+       "answer": "Your clinician",
+       "why": "The guidelines say to follow your healthcare provider's guidance.",
+       "source": "dga-2020"
+      },
+      {
+       "question": "Guess first: the total gain range for a healthy prepregnancy weight, one baby?",
+       "options": [
+        "25 to 35 pounds",
+        "5 to 10 pounds",
+        "45 to 60 pounds"
+       ],
+       "answer": "25 to 35 pounds",
+       "why": "Table 5-3 gives 25 to 35 pounds for a healthy weight.",
+       "source": "dga-2020"
+      }
+     ],
+     "talkTonight": "What is our go-to snack for a hungry afternoon? Who keeps it stocked?"
+    },
+    {
+     "id": "partner-fridge-list",
+     "title": "The partner's fridge list",
+     "weeks": [
+      5,
+      20
+     ],
+     "audience": "partner",
+     "readingMinutes": 1,
+     "source": "cdc-listeria",
+     "extraSources": [
+      "fda-fish",
+      "dga-2020"
+     ],
+     "body": "You cannot carry the baby, but you can carry the shopping. Build a fridge list together and keep it on your phone. Safe basics: pasteurized milk, yogurt and hard cheese, eggs, salmon, shrimp or canned light tuna, beans and lentils, dark greens, oranges and iodized salt. Listeria is the one to plan around, and CDC keeps it simple. Heat deli meat, cold cuts and hot dogs to 165°F or until steaming hot. Pick cheese made with pasteurized milk, such as cheddar, mozzarella, feta or cottage cheese. Eat melon soon after it is cut: do not leave cut melon out for more than 2 hours, or keep it in the fridge for more than a week. On a rough morning, ask what sounds good and bring it before your partner gets up. Prep a few snack boxes on Sunday.",
+     "quiz": [
+      {
+       "question": "How should deli meat be served in pregnancy?",
+       "options": [
+        "Reheated to 165°F or until steaming hot",
+        "Straight from the fridge",
+        "At room temperature"
+       ],
+       "answer": "Reheated to 165°F or until steaming hot",
+       "why": "CDC lists unheated deli meat among the foods to avoid and reheated deli meat as the choice instead.",
+       "source": "cdc-listeria"
+      },
+      {
+       "question": "How long can cut melon stay in the fridge?",
+       "options": [
+        "Up to a week",
+        "Up to a month",
+        "As long as it looks fine"
+       ],
+       "answer": "Up to a week",
+       "why": "CDC says to avoid cut melon kept in the refrigerator for more than a week.",
+       "source": "cdc-listeria"
+      },
+      {
+       "question": "Which cheese is a safe pick?",
+       "options": [
+        "Cheddar made with pasteurized milk",
+        "Any cheese made with raw milk",
+        "Cold queso fresco made with raw milk"
+       ],
+       "answer": "Cheddar made with pasteurized milk",
+       "why": "CDC lists hard cheeses made with pasteurized milk as a choice instead of raw milk cheese.",
+       "source": "cdc-listeria"
+      }
+     ],
+     "talkTonight": "What goes on the fridge list this week? Which snack would make a queasy morning easier?"
+    }
+   ],
+   "stages": [
+    "pregnancy"
+   ]
+  },
+  {
+   "id": "first-foods",
+   "title": "First foods",
+   "icon": "a soft spoon next to a tiny bowl",
+   "why": "The first spoonful is a milestone you will both remember. A few facts up front make it fun and safe, and keep it from becoming a worry.",
+   "lessons": [
+    {
+     "id": "ready-for-a-spoon",
+     "title": "Ready for a spoon?",
+     "ageMonths": [
+      5,
+      7
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-solids",
+     "extraSources": [
+      "dga-2025",
+      "cdc-faqs"
+     ],
+     "body": "Around 6 months most babies are ready to try food, but your baby decides, not the calendar. CDC advises against starting before 4 months and lists the signs: sitting up alone or with support, steady head and neck control, opening the mouth when food is offered, swallowing food instead of pushing it out, reaching for small objects and bringing things to the mouth, and moving food to the back of the tongue. Every child is different, so look for a cluster of signs, not just one. Breast milk or formula stays the main food until 12 months, and early solids are practice. CDC also says that putting cereal in the bottle will not help a baby sleep longer and can raise the choking risk. Make the first taste an event: both parents at the table, a camera ready, a bib you do not mind ruining. Expect faces and mess. Ask your pediatrician if you are unsure about readiness.",
+     "quiz": [
+      {
+       "question": "Before what age does CDC advise against starting solids?",
+       "options": [
+        "4 months",
+        "2 months",
+        "8 months"
+       ],
+       "answer": "4 months",
+       "why": "CDC says introducing foods before 4 months is not recommended.",
+       "source": "cdc-solids"
+      },
+      {
+       "question": "Which is one of the readiness signs?",
+       "options": [
+        "Sitting up alone or with support",
+        "Sleeping through the night",
+        "Having a first tooth"
+       ],
+       "answer": "Sitting up alone or with support",
+       "why": "Sitting up with or without support is on the list of signs.",
+       "source": "cdc-solids"
+      },
+      {
+       "question": "Will cereal in the bottle help a baby sleep longer?",
+       "options": [
+        "No, and it can raise choking risk",
+        "Yes, a little",
+        "Only at night"
+       ],
+       "answer": "No, and it can raise choking risk",
+       "why": "CDC says it will not help sleep and could raise choking risk.",
+       "source": "cdc-faqs"
+      }
+     ],
+     "talkTonight": "Who feeds the very first spoonful, and who films it? Agree before the day."
+    },
+    {
+     "id": "iron-first-menu",
+     "title": "Iron on the first menu",
+     "ageMonths": [
+      6,
+      8
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2020",
+     "extraSources": [
+      "cdc-solids",
+      "dga-2025"
+     ],
+     "body": "Babies are born with iron stores that last about the first 6 months. After that they need iron from food, especially breastfed babies, because breast milk is low in iron. The Dietary Guidelines name meats and seafood and iron-fortified infant cereals as key iron-rich foods from about 6 months. CDC suggests fortified oat, barley or multigrain cereal rather than only rice cereal, which can raise arsenic exposure. Offer one single-ingredient food at a time and wait 3 to 5 days before the next, so reactions are easier to spot. Mashed or pureed meat, and fortified cereal mixed with breast milk, formula or water, are good first steps. Some babies need an iron supplement, so ask your pediatrician about yours. This week's idea: make a first foods taste calendar for the fridge, and tick off each new food together.",
+     "quiz": [
+      {
+       "question": "Roughly how long do a baby's iron stores last?",
+       "options": [
+        "About the first 6 months",
+        "About the first month",
+        "Until age 2"
+       ],
+       "answer": "About the first 6 months",
+       "why": "Infants are typically born with iron stores adequate for about 6 months.",
+       "source": "dga-2020"
+      },
+      {
+       "question": "Which cereal does CDC suggest instead of only rice cereal?",
+       "options": [
+        "Fortified oat, barley or multigrain",
+        "Sweetened corn flakes",
+        "Granola"
+       ],
+       "answer": "Fortified oat, barley or multigrain",
+       "why": "Rice cereal alone can raise arsenic exposure.",
+       "source": "cdc-solids"
+      },
+      {
+       "question": "How long should you wait between new single-ingredient foods?",
+       "options": [
+        "3 to 5 days",
+        "1 hour",
+        "3 weeks"
+       ],
+       "answer": "3 to 5 days",
+       "why": "CDC advises 3 to 5 days between each new food.",
+       "source": "cdc-solids"
+      }
+     ],
+     "talkTonight": "Which first food are we most curious to see our baby's face about? Put it on the taste calendar."
+    },
+    {
+     "id": "textures-and-choking",
+     "title": "Textures and choking safety",
+     "ageMonths": [
+      6,
+      12
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-choking",
+     "extraSources": [
+      "cdc-solids"
+     ],
+     "body": "Start smooth, then get lumpy. CDC says to begin with mashed or pureed foods and thicken them gradually as chewing skills develop. Coughing, gagging and spitting up are common while babies learn. Choking safety comes down to a few habits. Seat your baby upright, never lying down, crawling, walking, or in a car seat or stroller. Stay close and watch every bite. Keep meals calm, unhurried and free of distractions. Cut food small and mash soft foods. CDC's avoid list for young children includes whole grapes, whole nuts, popcorn, raw hard carrots and apples, nut butter by the spoonful, and hard or round candy. Cook hard vegetables until soft and take out skin, bones and seeds. Both parents should talk to the pediatrician about what to do if a baby chokes. Make a game of it: sort pantry foods into safe and not yet with your partner.",
+     "quiz": [
+      {
+       "question": "Where should your baby be while eating?",
+       "options": [
+        "Seated upright",
+        "Lying down",
+        "In the stroller"
+       ],
+       "answer": "Seated upright",
+       "why": "CDC says upright, not lying down, crawling, walking, or in a car seat or stroller.",
+       "source": "cdc-choking"
+      },
+      {
+       "question": "Which of these is on the CDC avoid list for young children?",
+       "options": [
+        "Whole grapes",
+        "Mashed banana",
+        "Pureed pear"
+       ],
+       "answer": "Whole grapes",
+       "why": "Uncut grapes are listed as a choking hazard.",
+       "source": "cdc-choking"
+      },
+      {
+       "question": "How should you serve nut butter?",
+       "options": [
+        "Not by the spoonful",
+        "In a big spoonful",
+        "Straight from the jar"
+       ],
+       "answer": "Not by the spoonful",
+       "why": "Nut butter by the spoonful is a listed hazard. Thin it into other food instead.",
+       "source": "cdc-choking"
+      }
+     ],
+     "talkTonight": "Do we both know what to do if our baby chokes? Pick a class or video to watch together this week."
+    },
+    {
+     "id": "peanut-and-allergens",
+     "title": "Peanut and other common allergens",
+     "ageMonths": [
+      4,
+      8
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "niaid-peanut",
+     "extraSources": [
+      "dga-2025",
+      "cdc-solids",
+      "cdc-choking"
+     ],
+     "body": "Doctors used to advise waiting on peanut. The NIAID addendum guidelines now advise early introduction for babies at higher risk, to lower the chance of peanut allergy. They sort babies into three groups. With severe eczema, egg allergy or both, peanut foods are suggested at about 4 to 6 months, usually after talking with the pediatrician about testing first. With mild to moderate eczema, introduce peanut around 6 months, and it can start at home. With no eczema or known food allergy, peanut can go in freely with other solid foods, in line with family preferences. Serve it safely: thinned peanut butter stirred into breast milk, formula or puree, never whole nuts or a spoonful of thick butter. CDC adds that other common allergens, such as egg, shellfish, nut butters and wheat, can be offered along with other foods. Ask your pediatrician which group your baby is in before you start, and plan together if allergies already run in the family.",
+     "quiz": [
+      {
+       "question": "Who should talk to the pediatrician before the first peanut food?",
+       "options": [
+        "Babies with severe eczema or egg allergy",
+        "Only babies over 1 year",
+        "No baby needs to"
+       ],
+       "answer": "Babies with severe eczema or egg allergy",
+       "why": "These babies are advised to have an evaluation before peanut introduction.",
+       "source": "niaid-peanut"
+      },
+      {
+       "question": "How is peanut butter served to a baby?",
+       "options": [
+        "Thinned into milk, formula or puree",
+        "A thick spoonful",
+        "Whole peanuts"
+       ],
+       "answer": "Thinned into milk, formula or puree",
+       "why": "Whole nuts and spoonfuls of thick butter are choking hazards.",
+       "source": "cdc-choking"
+      },
+      {
+       "question": "At about what age is peanut introduced for mild to moderate eczema?",
+       "options": [
+        "Around 6 months",
+        "At 12 months",
+        "At 3 years"
+       ],
+       "answer": "Around 6 months",
+       "why": "The guideline suggests around 6 months, with no in-office test needed.",
+       "source": "niaid-peanut"
+      }
+     ],
+     "talkTonight": "Does allergy run in either of our families? Write down what to tell the pediatrician at the next visit."
+    },
+    {
+     "id": "honey-milk-water",
+     "title": "Honey, milk and water",
+     "ageMonths": [
+      6,
+      12
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "cdc-foods-avoid",
+     "extraSources": [
+      "cdc-solids",
+      "cdc-good-nutrition"
+     ],
+     "body": "Three rules for the first year. No honey, in any form, not even mixed into food, water or formula, or on a pacifier, because it can cause botulism. No cow's milk as a drink before 12 months. It lacks nutrients babies need and is hard on the kidneys, though unsweetened yogurt and cheese are fine earlier. No juice. Water is the one drink to add, in small amounts: CDC suggests about 4 to 6 ounces a day from 6 to 12 months, while breast milk or formula stays the main drink. Raw juice, raw milk and raw cheese are also off the list. Put the three rules on a card on the fridge so every caregiver sees them. Idea: give your baby a small cup at mealtimes and let them practice, spills included. Bring any question about drinks to your pediatrician.",
+     "quiz": [
+      {
+       "question": "Is honey ever safe before 12 months?",
+       "options": [
+        "No, not in any form",
+        "Yes, a little in water",
+        "Yes, on a pacifier"
+       ],
+       "answer": "No, not in any form",
+       "why": "Honey in any form can cause botulism under 12 months.",
+       "source": "cdc-foods-avoid"
+      },
+      {
+       "question": "When can cow's milk become a drink?",
+       "options": [
+        "After 12 months",
+        "At 6 months",
+        "At 9 months"
+       ],
+       "answer": "After 12 months",
+       "why": "CDC says not before 12 months, though yogurt and cheese can come earlier.",
+       "source": "cdc-solids"
+      },
+      {
+       "question": "About how much water a day from 6 to 12 months, per CDC?",
+       "options": [
+        "4 to 6 ounces",
+        "16 ounces",
+        "None at all"
+       ],
+       "answer": "4 to 6 ounces",
+       "why": "CDC suggests 4 to 6 ounces of water per day.",
+       "source": "cdc-good-nutrition"
+      }
+     ],
+     "talkTonight": "Who tells the grandparents and the sitter about the honey and milk rules? Write it on the fridge card tonight."
+    }
+   ],
+   "stages": [
+    "infant"
+   ]
+  },
+  {
+   "id": "toddler-plates",
+   "title": "Toddler and preschool plates",
+   "icon": "a plate split in colorful sections with a small cup",
+   "why": "Toddlers test everything, including dinner. A few steady habits from both parents make mealtimes calmer and more fun.",
+   "lessons": [
+    {
+     "id": "whats-in-the-cup",
+     "title": "What goes in the cup",
+     "ageMonths": [
+      12,
+      36
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-drinks",
+     "extraSources": [
+      "cdc-foods-avoid",
+      "dga-2025"
+     ],
+     "body": "After the first birthday the cup gets simpler than it looks. Water and plain milk are the stars. For ages 12 to 24 months the AAP lists about 2 cups of whole milk a day and 1 to 4 cups of water. For ages 2 to 5 that becomes 2 to 3 cups of milk and 1 to 5 cups of water. The current Dietary Guidelines also say to switch to whole milk at 12 months. After age 2, ask your pediatrician which milk fat suits your child. Juice is optional: CDC says no more than 4 ounces a day of 100% juice for ages 1 to 3, and whole fruit is better. Skip flavored milk, soda, sports drinks, fruit drinks and toddler milks, which carry added sugar. Fun idea: let your toddler choose a favorite cup at the store, and make it the water cup.",
+     "quiz": [
+      {
+       "question": "About how much whole milk a day for ages 12 to 24 months, per the AAP?",
+       "options": [
+        "2 cups",
+        "5 cups",
+        "None"
+       ],
+       "answer": "2 cups",
+       "why": "The AAP lists 16 ounces, or 2 cups, for 12 to 24 months.",
+       "source": "aap-drinks"
+      },
+      {
+       "question": "What is the limit for 100% juice for ages 1 to 3, per CDC?",
+       "options": [
+        "4 ounces a day",
+        "16 ounces a day",
+        "No limit"
+       ],
+       "answer": "4 ounces a day",
+       "why": "CDC says no more than 4 ounces of 100% fruit juice a day.",
+       "source": "cdc-foods-avoid"
+      },
+      {
+       "question": "Which drink does the AAP say to skip?",
+       "options": [
+        "Flavored milk",
+        "Water",
+        "Plain whole milk"
+       ],
+       "answer": "Flavored milk",
+       "why": "Flavored milk contains added sugar.",
+       "source": "aap-drinks"
+      }
+     ],
+     "talkTonight": "What is the family drink rule at home: water at meals, milk with breakfast? Agree on it so both parents give the same answer.",
+     "stages": [
+      "toddler"
+     ]
+    },
+    {
+     "id": "added-sugar-detectives",
+     "title": "Added sugar detectives",
+     "ageMonths": [
+      12,
+      48
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "dga-2025",
+     "extraSources": [
+      "cdc-foods-avoid"
+     ],
+     "body": "Added sugar is easy to miss because it hides in foods that look healthy, such as muffins, flavored yogurt and cookies. CDC says to avoid it entirely under age 2, and the 2025 to 2030 Dietary Guidelines ask for no added sugars in infancy and early childhood. Fruit and plain milk have natural sugars, which do not count. Become label detectives together. On the ingredient list, look for the word sugar or syrup, or a word ending in ose, and note that honey and fruit juice concentrate also count. The Nutrition Facts label has an added sugars line. Easy swaps: plain yogurt with mashed berries instead of flavored yogurt, a banana instead of a fruit snack, water instead of a juice drink. Game: the first parent to find hidden sugar in the pantry picks the dinner music.",
+     "quiz": [
+      {
+       "question": "Which counts as added sugar?",
+       "options": [
+        "Fruit juice concentrate",
+        "The sugar in a whole banana",
+        "The sugar in plain milk"
+       ],
+       "answer": "Fruit juice concentrate",
+       "why": "Fruit juice concentrate is on the list of added sugar names.",
+       "source": "dga-2025"
+      },
+      {
+       "question": "Under what age does CDC say to avoid added sugar entirely?",
+       "options": [
+        "2 years",
+        "5 years",
+        "10 years"
+       ],
+       "answer": "2 years",
+       "why": "CDC says to avoid added sugars under 24 months.",
+       "source": "cdc-foods-avoid"
+      },
+      {
+       "question": "Guess first: which pantry item often has added sugar?",
+       "options": [
+        "Flavored yogurt",
+        "Plain oats",
+        "Frozen peas"
+       ],
+       "answer": "Flavored yogurt",
+       "why": "CDC names flavored yogurt, muffins and cookies as examples.",
+       "source": "cdc-foods-avoid"
+      }
+     ],
+     "talkTonight": "Which hidden sugar will we each look for first? Check three labels in the pantry tonight and compare results."
+    },
+    {
+     "id": "picky-is-normal",
+     "title": "Picky is normal",
+     "ageMonths": [
+      18,
+      60
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-picky",
+     "extraSources": [
+      "dga-2025"
+     ],
+     "body": "Picky eating is common in toddlers. After the fast growth of infancy, growth and appetite slow down, so a toddler who eats less is not necessarily doing anything wrong. The AAP suggests splitting the job: parents choose and offer the food, and the child decides whether to eat it. Do not make a fuss when a meal is refused, do not bribe with treats, and do not pressure, because pressure can make children dislike foods they might otherwise like. Keep offering. The AAP says acceptance can take 10 or more tastes, and the Dietary Guidelines say 8 to 10 exposures. Offer new foods in small amounts next to a food they already like, such as broccoli with cheese. Scheduled meals and limited snacks help your child arrive hungry. This week's game: a three-bite hello, one bite to smell, one to lick, one to taste. If your child refuses many foods or you worry about growth, ask your pediatrician.",
+     "quiz": [
+      {
+       "question": "About how many tries can a new food need before it is accepted?",
+       "options": [
+        "8 to 10 or more",
+        "1 or 2",
+        "Exactly 3"
+       ],
+       "answer": "8 to 10 or more",
+       "why": "The AAP says 10 or more tastes. The Dietary Guidelines say 8 to 10 exposures.",
+       "source": "aap-picky"
+      },
+      {
+       "question": "What does the AAP say about pressure to eat?",
+       "options": [
+        "It can make children dislike foods",
+        "It works quickly",
+        "It is needed at every meal"
+       ],
+       "answer": "It can make children dislike foods",
+       "why": "Pressure or punishment can make children dislike foods they might otherwise like.",
+       "source": "aap-picky"
+      },
+      {
+       "question": "Which pairing idea does the AAP give?",
+       "options": [
+        "Broccoli with cheese",
+        "Broccoli with a cookie reward",
+        "Broccoli hidden in a bottle"
+       ],
+       "answer": "Broccoli with cheese",
+       "why": "Pairing a new food with a favorite is a listed tip. Treat rewards are not.",
+       "source": "aap-picky"
+      }
+     ],
+     "talkTonight": "Which food has our toddler refused the most? Pick one and plan a no-pressure retry this week, same plan from both of us."
+    },
+    {
+     "id": "family-table",
+     "title": "The family table",
+     "ageMonths": [
+      12,
+      60
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-picky",
+     "extraSources": [
+      "cdc-choking"
+     ],
+     "body": "The family table does a lot of quiet work. The AAP suggests eating together as often as you can, without screens, and serving one meal for everyone with at least one food your child likes. Let your toddler help: pick produce at the store or market, choose a recipe, and take supervised jobs like stirring, sifting, counting and picking herbs. Arrange food in colorful shapes and offer dips. Serve higher-protein foods such as meat and deboned fish at least twice a week. For safety, CDC says to keep your child seated upright, not walking or crawling while eating, to watch closely, and to cut grapes, berries and cherry tomatoes small. Put both parents at the table and phones in a basket. Try a ritual: each person shares one good thing from the day before the first bite.",
+     "quiz": [
+      {
+       "question": "What belongs at the family table, per the AAP?",
+       "options": [
+        "No screens",
+        "A tablet for the toddler",
+        "Separate meals for each person"
+       ],
+       "answer": "No screens",
+       "why": "The AAP suggests eating together without screens or media.",
+       "source": "aap-picky"
+      },
+      {
+       "question": "Which kitchen job suits a toddler, with supervision?",
+       "options": [
+        "Stirring",
+        "Using a sharp knife",
+        "Frying"
+       ],
+       "answer": "Stirring",
+       "why": "The AAP lists sifting, stirring, counting and picking herbs.",
+       "source": "aap-picky"
+      },
+      {
+       "question": "How often should higher-protein foods like meat or deboned fish appear?",
+       "options": [
+        "At least twice a week",
+        "Every meal",
+        "Once a month"
+       ],
+       "answer": "At least twice a week",
+       "why": "The AAP suggests serving them at least twice a week.",
+       "source": "aap-picky"
+      }
+     ],
+     "talkTonight": "What is our good-thing-from-the-day ritual? Try it at dinner tonight and note what your toddler said."
+    }
+   ],
+   "stages": [
+    "toddler",
+    "preschool"
+   ]
+  }
+ ]
+}

@@ -768,12 +768,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/booking-requests:
     parameters:
@@ -824,12 +818,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
     get:
       operationId: listBookingRequests
       tags: [directory]
@@ -850,12 +838,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -3120,12 +3102,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/lesson-reads/{lessonId}:
     put:
@@ -3135,7 +3111,8 @@ paths:
       description: |
         Both parents only; a grandparent or nanny gets 404. The first call sets startedAt. finished true sets
         finishedAt (kept on later calls); finished false clears it again, so
-        "mark as unread" works. 404 unknown_lesson for a lesson that is not
+        "mark as unread" works. Reopening a finished lesson to read it again
+        needs no call: send finished false only to take the finish back. 404 unknown_lesson for a lesson that is not
         in the family's paths, 409 lesson_locked before unlocksAtWeek.
       parameters:
         - $ref: "#/components/parameters/MemberId"
@@ -3177,12 +3154,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/quiz-answers:
     post:
@@ -3191,9 +3162,9 @@ paths:
       summary: Answer one quiz question of a lesson
       description: |
         Both parents only; a grandparent or nanny gets 404. One answer per parent per question, so a couple can
-        compare; 409 already_answered for a second one. 404 for a question
-        not in the family's paths, 400 for a choice that is not in the
-        question. No scores, streaks or badges: the result is only whether
+        compare; 409 already_answered for a second one, 409 lesson_locked
+        before the lesson opens. 404 for a question not in the family's
+        paths, 400 for a choice that is not in the question. No scores, streaks or badges: the result is only whether
         this answer was right, why, and what the other parent chose.
       parameters:
         - $ref: "#/components/parameters/MemberId"
@@ -3234,12 +3205,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/together:
     get:
@@ -3272,12 +3237,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -3326,12 +3285,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/baby-names:
     get:
@@ -3357,12 +3310,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -3414,12 +3361,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 
   /members/{memberId}/baby-names/{nameId}/like:
     put:
@@ -3445,12 +3386,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -3481,12 +3416,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "501":
-          description: Not implemented yet
           content:
             application/json:
               schema:
@@ -8503,6 +8432,10 @@ components:
         talkPrompt:
           type: string
           description: A question for the couple to talk about after reading.
+        talkedAt:
+          type: string
+          format: date-time
+          description: When either parent marked this lesson's talk prompt (prompt id `lesson:<lessonId>`) as talked about. Absent until then.
         urgentHelpLink:
           type: boolean
           description: True for warning-sign and hotline lessons; the UI links to the fixed Urgent help screen and never shows generated text there.
