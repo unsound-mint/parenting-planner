@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/api/client";
 import type { DemoTemplate } from "@/lib/api/types";
+import { Button } from "@/components/ui/button";
 
 export function StartDemo({ template, label }: { template: DemoTemplate; label: string }) {
   const router = useRouter();
@@ -24,14 +25,10 @@ export function StartDemo({ template, label }: { template: DemoTemplate; label: 
 
   return (
     <div>
-      <button
-        onClick={start}
-        disabled={pending}
-        className="rounded-full bg-foreground px-6 py-3 font-medium text-background disabled:opacity-60"
-      >
+      <Button onClick={start} disabled={pending} size="lg" className="h-11 rounded-full px-6 text-base">
         {pending ? "Setting up your family..." : label}
-      </button>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      </Button>
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
     </div>
   );
 }

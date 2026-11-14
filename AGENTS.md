@@ -28,7 +28,7 @@ Touching another owner's area is fine for small changes; mention it in the PR so
 
 ## Code conventions
 
-Architecture and commands: `docs/architecture.md`. Before changing `api/`, read `api/AGENTS.md`: it fixes naming, errors, access, audit and tests, and lists the files to copy. The essentials:
+Architecture and commands: `docs/architecture.md`. Before changing `api/`, read `api/AGENTS.md`: it fixes naming, errors, access, audit and tests, and lists the files to copy. Before building or restyling a screen in `web/`, read `docs/design.md` (direction, tokens, motion, libraries). The essentials:
 
 - `api/openapi.yaml` is the only contract between web and api. To add or change an endpoint, edit it first, run `make gen`, then implement both sides. Never edit `*.gen.go` or `*.gen.ts`; CI fails if generated code is stale.
 - The web app never touches the database and never hand-writes API types; it uses the generated client (`web/src/lib/api/`).

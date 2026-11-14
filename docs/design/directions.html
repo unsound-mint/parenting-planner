@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design directions · Parenting Planner (working name)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- Document shell (neutral, not one of the directions) ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:#EEECE8;color:#222;line-height:1.5;-webkit-font-smoothing:antialiased}
+.doc{max-width:1320px;margin:0 auto;padding:56px 40px 120px}
+.doc h1{font-size:40px;letter-spacing:-.02em;font-weight:700}
+.doc h2{font-size:26px;letter-spacing:-.01em;margin:72px 0 8px}
+.doc h3{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:#666;margin:28px 0 10px;font-weight:600}
+.lede{font-size:18px;color:#444;max-width:820px;margin-top:12px}
+.doc p,.doc li{font-size:15px;color:#333;max-width:860px}
+.doc ul{padding-left:20px}.doc li{margin:4px 0}
+.toc{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.toc a{font-size:14px;color:#222;text-decoration:none;background:#fff;border:1px solid #ddd;padding:6px 12px;border-radius:99px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.panel{background:#fff;border-radius:14px;padding:22px 24px;border:1px solid #e2dfda}
+.panel h4{font-size:15px;margin-bottom:6px}
+.panel p{font-size:14px;color:#444}
+.emo td,.emo th{text-align:left;padding:10px 14px;border-bottom:1px solid #e6e3de;font-size:14px;vertical-align:top}
+.emo th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#777;font-weight:600}
+.emo{border-collapse:collapse;width:100%;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e2dfda}
+.dir-head{display:flex;align-items:baseline;gap:16px;margin:96px 0 6px;border-top:2px solid #222;padding-top:20px}
+.dir-head .letter{font-size:15px;font-weight:700;background:#222;color:#fff;border-radius:6px;padding:2px 9px}
+.dir-head h2{margin:0}
+.meta{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:16px;margin:18px 0 22px}
+.meta .panel{padding:16px 18px}
+.meta b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#777;margin-bottom:4px;font-weight:600}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sw{width:47px;font-size:10px;color:#555;font-family:'JetBrains Mono',monospace}
+.sw i{display:block;height:34px;border-radius:7px;border:1px solid rgba(0,0,0,.08);margin-bottom:3px}
+.frame{border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.08);border:1px solid #d8d4ce}
+.frame .chrome{height:30px;background:#e4e1dc;display:flex;align-items:center;gap:6px;padding:0 12px}
+.frame .chrome i{width:10px;height:10px;border-radius:50%;background:#c9c5bf}
+.frame .chrome span{margin-left:12px;font-size:11px;color:#777;font-family:'JetBrains Mono',monospace}
+.strip{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+.cap{font-size:12px;color:#666;margin:8px 2px 0}
+.status-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:20px}
+pre.tok{background:#1d1d1f;color:#e9e6df;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;padding:16px 18px;border-radius:12px;overflow:auto;margin-top:16px}
+.proscons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+.note{font-size:12px;color:#666;margin-top:6px}
+.reco{background:#222;color:#f3f1ec;border-radius:18px;padding:32px 36px;margin-top:24px}
+.reco p,.reco li{color:#e5e2dc;font-size:15px}
+.reco h4{font-size:18px;margin-bottom:8px;color:#fff}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+
+/* ---------- Shared mock skeleton ---------- */
+.m{display:grid;grid-template-columns:200px 1fr 320px;min-height:640px}
+.m .nav{padding:22px 18px;display:flex;flex-direction:column;gap:4px}
+.m .nav .brand{font-weight:700;margin-bottom:22px;font-size:15px}
+.m .nav a{display:block;padding:7px 10px;border-radius:8px;font-size:13.5px;text-decoration:none;color:inherit}
+.m .main{padding:28px 34px}
+.m .side{padding:28px 26px}
+.mini{min-height:0;display:block}
+.mini .mini-in{padding:20px 22px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.who{display:inline-flex;border-radius:99px;padding:3px;font-size:12.5px}
+.who span{padding:4px 12px;border-radius:99px}
+
+/* ======================= A · STEADY ======================= */
+.A{--bg:#F7F5F1;--surface:#FFFFFF;--ink:#1E2A2C;--muted:#5A6668;--line:#E3E0DA;--sage:#3E6E5E;--sage-soft:#E4EDE8;--slate:#4F6475;--slate-soft:#E6ECF1;--ochre:#8A6414;--ochre-soft:#F6EBD3;--clay:#A24E32;--clay-soft:#F6E2DA;--urgent:#B3261E;--mom:#3E6E5E;--partner:#5B5AA8;
+  background:var(--bg);color:var(--ink);font-family:Inter,sans-serif}
+.A .nav{border-right:1px solid var(--line);background:var(--surface)}
+.A .nav a{color:var(--muted)}.A .nav a.on{background:var(--sage-soft);color:var(--sage);font-weight:600}
+.A .top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.A .who{background:#ECEAE5}.A .who .on{background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:600}
+.A .help{background:var(--ink);color:#fff;border:0;border-radius:8px;padding:7px 12px;font-size:12.5px;font-weight:600}
+.A .help::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#FF8A80;margin-right:7px;vertical-align:1px}
+.A h5{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin:22px 0 10px}
+.A .hello{font-size:26px;font-weight:650;letter-spacing:-.02em}
+.A .sub{color:var(--muted);font-size:14px;margin-top:4px}
+.A .journey{margin:20px 0 6px;position:relative;height:30px}
+.A .journey .bar{position:absolute;left:0;right:0;top:12px;height:6px;border-radius:3px;background:var(--line)}
+.A .journey .fill{position:absolute;left:0;width:23%;top:12px;height:6px;border-radius:3px;background:var(--sage)}
+.A .journey .dot{position:absolute;left:23%;top:6px;width:18px;height:18px;border-radius:50%;background:var(--surface);border:4px solid var(--sage);transform:translateX(-50%)}
+.A .jl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.A .item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start}
+.A .item.sel{border-color:var(--sage);box-shadow:0 0 0 3px var(--sage-soft)}
+.A .item .t{font-weight:600;font-size:14.5px}
+.A .item .d{font-size:13px;color:var(--muted);margin-top:2px}
+.A .st{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.A .st.ok{background:var(--sage-soft);color:var(--sage)}.A .st.up{background:var(--slate-soft);color:var(--slate)}.A .st.due{background:var(--ochre-soft);color:var(--ochre)}.A .st.late{background:var(--clay-soft);color:var(--clay)}.A .st.urg{background:var(--urgent);color:#fff}
+.A .chk{width:18px;height:18px;border-radius:5px;border:1.5px solid #B9B5AE;margin-top:2px}
+.A .side{background:var(--surface);border-left:1px solid var(--line)}
+.A .why .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-top:14px}
+.A .why .v{font-size:13.5px;margin-top:3px}
+.A .why .src{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:6px;color:var(--ink)}
+.A .spark{display:flex;gap:5px;align-items:flex-end;height:44px;margin-top:8px}
+.A .spark i{width:22px;border-radius:4px 4px 2px 2px;background:var(--slate-soft)}
+.A .spark i.low{background:var(--ochre)}
+.A .urgline{margin-top:22px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;display:flex;gap:10px;align-items:center;background:var(--surface)}
+.A .urgline b{color:var(--urgent)}
+
+/* ======================= B · LETTER ======================= */
+.B{--paper:#F6F1E8;--paper2:#EFE8DC;--ink:#2A2421;--muted:#6B5F57;--rule:#D9CFC1;--terra:#9C4A2F;--olive:#56623A;--olive-soft:#E3E5D3;--sand:#7E6024;--sand-soft:#F1E5C8;--plum:#6E4A63;--urgent:#A1261B;
+  background:var(--paper);color:var(--ink);font-family:'Source Serif 4',Georgia,serif}
+.B .m{grid-template-columns:190px 1fr 260px}
+.B .nav{font-family:Inter,sans-serif;border-right:1px solid var(--rule)}
+.B .nav .brand{font-family:Fraunces,serif;font-weight:500;font-size:19px;letter-spacing:-.01em}
+.B .nav a{color:var(--muted)}.B .nav a.on{color:var(--ink);font-weight:600;text-decoration:underline;text-decoration-color:var(--terra);text-underline-offset:5px;text-decoration-thickness:2px}
+.B .help{font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:var(--urgent);border:1.5px solid var(--urgent);background:transparent;border-radius:99px;padding:6px 12px}
+.B .who{font-family:Inter,sans-serif;border:1px solid var(--rule)}.B .who .on{background:var(--ink);color:var(--paper)}
+.B .main{padding:34px 44px}
+.B .kicker{font-family:Inter,sans-serif;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--terra);font-weight:600}
+.B .hl{font-family:Fraunces,serif;font-size:36px;line-height:1.12;font-weight:400;letter-spacing:-.015em;margin:10px 0 14px;max-width:560px}
+.B .hl em{font-style:italic;color:var(--olive)}
+.B .body{font-size:16.5px;line-height:1.62;max-width:560px}
+.B .body p+p{margin-top:12px}
+.B ol{list-style:none;margin-top:22px;max-width:600px;counter-reset:n}
+.B ol li{counter-increment:n;display:grid;grid-template-columns:34px 1fr;gap:6px;padding:14px 0;border-top:1px solid var(--rule)}
+.B ol li::before{content:counter(n);font-family:Fraunces,serif;font-size:22px;color:var(--terra);line-height:1}
+.B ol .t{font-size:17px;font-weight:600}
+.B ol .d{font-size:15px;color:var(--muted);margin-top:2px}
+.B .tag{font-family:Inter,sans-serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-left:8px;vertical-align:2px}
+.B .tag.ok{color:var(--olive)}.B .tag.up{color:var(--plum)}.B .tag.due{color:var(--sand)}.B .tag.late{color:var(--terra)}.B .tag.urg{color:#fff;background:var(--urgent);padding:2px 6px;border-radius:3px}
+.B sup{font-family:Inter,sans-serif;font-size:10px;color:var(--terra);font-weight:700}
+.B .side{border-left:1px solid var(--rule);font-family:Inter,sans-serif;background:var(--paper2)}
+.B .note{font-size:12.5px;color:var(--muted);padding:12px 0;border-bottom:1px solid var(--rule);max-width:none;margin:0}
+.B .note b{color:var(--terra);margin-right:4px}
+.B .note .sig{display:block;margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink)}
+.B .box{margin-top:24px;border:1.5px solid var(--urgent);padding:12px 14px;font-family:Inter,sans-serif;font-size:13px;max-width:600px;display:flex;gap:10px;align-items:center}
+.B .box b{color:var(--urgent)}
+.B .sign{font-family:Fraunces,serif;font-style:italic;color:var(--muted);margin-top:18px;font-size:15px}
+
+/* ======================= C · BLOOM ======================= */
+.C{--bg:#FBF7F3;--card:#FFFFFF;--ink:#2B2836;--muted:#615C70;--line:#EEE6DF;--apricot:#E7A27B;--apricot-ink:#9A4E24;--apricot-soft:#FBE9DE;--sage:#8FB09B;--sage-ink:#3D6B4F;--sage-soft:#E5EFE8;--lav:#B9B4D9;--lav-ink:#5A5394;--lav-soft:#ECEAF6;--honey-ink:#8A5A00;--honey-soft:#FBEFD2;--urgent:#B42318;
+  background:radial-gradient(1200px 500px at 70% -10%,#FBE6DA 0%,transparent 60%),radial-gradient(900px 600px at -10% 100%,#E3EEE6 0%,transparent 55%),var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;position:relative}
+.C .m{grid-template-columns:84px 1fr 330px}
+.C .nav{align-items:center;gap:14px;padding:22px 0}
+.C .nav .ic{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;color:var(--muted)}
+.C .nav .ic.on{background:var(--card);box-shadow:0 4px 14px rgba(90,70,60,.10);color:var(--apricot-ink)}
+.C .nav .logo{width:38px;height:38px;border-radius:50%;background:conic-gradient(from 200deg,var(--apricot),var(--lav),var(--sage),var(--apricot));margin-bottom:12px}
+.C .who{background:rgba(255,255,255,.7)}.C .who .on{background:var(--ink);color:#fff}
+.C .hero{display:grid;grid-template-columns:200px 1fr;gap:26px;align-items:center;margin:14px 0 22px}
+.C .hello{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.C .sub{color:var(--muted);font-size:15px;margin-top:8px;max-width:440px}
+.C .card{background:var(--card);border-radius:22px;padding:18px 20px;box-shadow:0 2px 6px rgba(90,70,60,.05),0 10px 30px rgba(90,70,60,.07)}
+.C .focus{background:linear-gradient(135deg,#FFFFFF 0%,#FFF5EE 100%);border:1px solid var(--apricot-soft)}
+.C .focus .lbl{font-size:12px;font-weight:700;color:var(--apricot-ink);letter-spacing:.04em}
+.C .focus .t{font-size:19px;font-weight:700;margin:6px 0 4px}
+.C .focus .d{font-size:14px;color:var(--muted)}
+.C .btn{display:inline-block;margin-top:12px;background:var(--ink);color:#fff;font-weight:600;font-size:13px;border-radius:99px;padding:9px 16px}
+.C .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-left:6px}
+.C .list{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.C .list .card{padding:14px 16px}
+.C .list .t{font-weight:650;font-size:14px;margin-top:8px}
+.C .list .d{font-size:12.5px;color:var(--muted);margin-top:2px}
+.C .pill{display:inline-block;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px}
+.C .pill.ok{background:var(--sage-soft);color:var(--sage-ink)}.C .pill.up{background:var(--lav-soft);color:var(--lav-ink)}.C .pill.due{background:var(--honey-soft);color:var(--honey-ink)}.C .pill.late{background:var(--apricot-soft);color:var(--apricot-ink)}.C .pill.urg{background:var(--urgent);color:#fff}
+.C .side .card+.card{margin-top:14px}
+.C .mood{display:flex;gap:8px;margin-top:10px}
+.C .mood i{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--muted);font-weight:600}
+.C .mood i.on{background:var(--lav-soft);border-color:var(--lav);color:var(--lav-ink)}
+.C.mini .mini-in{padding-bottom:64px}
+.C .fab{position:absolute;right:22px;bottom:22px;background:var(--urgent);color:#fff;border-radius:99px;padding:11px 16px 11px 14px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(180,35,24,.3);display:flex;gap:8px;align-items:center}
+.C .src{font-size:11.5px;color:var(--muted);margin-top:8px;display:flex;gap:6px;align-items:center}
+.C .src u{text-decoration:none;border-bottom:1px dotted var(--muted)}
+
+/* ======================= D · NIGHT LIGHT ======================= */
+.D{--bg:#14151E;--surface:#1D1F2C;--surface2:#252838;--ink:#EDE7DB;--muted:#A6A3B4;--line:#2F3244;--amber:#E9B872;--amber-soft:rgba(233,184,114,.14);--teal:#7CC2B3;--teal-soft:rgba(124,194,179,.14);--lilac:#B3A9E6;--lilac-soft:rgba(179,169,230,.14);--coral:#F09A7E;--coral-soft:rgba(240,154,126,.15);--urgent:#FF6B5E;
+  background:var(--bg);color:var(--ink);font-family:Manrope,sans-serif}
+.D .nav{border-right:1px solid var(--line)}
+.D .nav a{color:var(--muted)}.D .nav a.on{background:var(--surface2);color:var(--ink);font-weight:600}
+.D .who{background:var(--surface)}.D .who .on{background:var(--surface2);color:var(--amber);font-weight:600}
+.D .help{background:transparent;color:var(--urgent);border:1px solid var(--urgent);border-radius:10px;padding:7px 12px;font-size:12.5px;font-weight:700}
+.D .sky{position:relative;height:150px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#1E2135 0%,#2A2440 70%,#3A2C3E 100%);margin:18px 0 22px;padding:22px 26px}
+.D .sky .hello{font-size:26px;font-weight:600;letter-spacing:-.01em;position:relative}
+.D .sky .sub{color:var(--muted);font-size:14px;margin-top:6px;position:relative;max-width:460px}
+.D .sky svg{position:absolute;right:0;bottom:0}
+.D h5{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:4px 0 10px}
+.D .item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start}
+.D .glow{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
+.D .glow.ok{background:var(--teal);box-shadow:0 0 10px var(--teal)}.D .glow.up{background:var(--lilac);box-shadow:0 0 10px var(--lilac)}.D .glow.due{background:var(--amber);box-shadow:0 0 10px var(--amber)}.D .glow.late{background:var(--coral);box-shadow:0 0 10px var(--coral)}.D .glow.urg{background:var(--urgent);box-shadow:0 0 14px var(--urgent)}
+.D .item .t{font-weight:600;font-size:14.5px}
+.D .item .d{font-size:13px;color:var(--muted);margin-top:2px}
+.D .item .s{font-size:11.5px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono',monospace}
+.D .lab{font-size:11.5px;font-weight:600;white-space:nowrap}
+.D .lab.ok{color:var(--teal)}.D .lab.up{color:var(--lilac)}.D .lab.due{color:var(--amber)}.D .lab.late{color:var(--coral)}
+.D .side{background:var(--surface);border-left:1px solid var(--line)}
+.D .shift{background:var(--surface2);border-radius:14px;padding:14px;margin-top:10px}
+.D .tl{display:flex;height:26px;border-radius:8px;overflow:hidden;margin-top:10px;font-size:11px;font-weight:600}
+.D .tl span{display:grid;place-items:center}
+.D .urgline{margin-top:18px;border:1px solid rgba(255,107,94,.45);border-radius:14px;padding:12px 14px;font-size:13px;display:flex;gap:10px;align-items:center;background:rgba(255,107,94,.06)}
+.D .urgline b{color:var(--urgent)}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<p class="mono" style="color:#777">docs/design/directions.html · Nov 14 2026 · draft for Denis, Dayana, Sofia</p>
+<h1>Design directions</h1>
+<p class="lede">Four ways the product could look and feel. Every direction renders the same moment from step 1 of the demo script: Maya, 24 weeks pregnant, opens her week. Under each one, two small views show how it holds up for her partner and for a family with a 7 week old, because step 5 of the demo switches families and a look built only for pregnancy can fall apart there.</p>
+<p class="lede" style="font-size:15px;color:#666">All names, values and dates are synthetic. Sources in the mocks show the format we will use; the real citations come from <span class="mono">api/internal/rules</span>.</p>
+<nav class="toc"><a href="#feel">What parents feel</a><a href="#rules">Design rules</a><a href="#A">A · Steady</a><a href="#B">B · Letter</a><a href="#C">C · Bloom</a><a href="#D">D · Night light</a><a href="#compare">Compare</a><a href="#reco">Recommendation</a></nav>
+
+<!-- ============ EMOTIONS ============ -->
+<h2 id="feel">What our users feel, and what the screen owes them</h2>
+<p>The brief from Denis: the app exists to lower the anxiety and mental load of busy parents who care a lot. Flo is the reference for how that feels. Flo works emotionally because it starts with reassurance, shows one thing at a time, explains why something matters, and lets you log a feeling in two taps. We borrow those habits, not its pink look.</p>
+<table class="emo" style="margin-top:18px">
+<tr><th style="width:23%">What they feel</th><th style="width:37%">Where it comes from</th><th>What the design does about it</th></tr>
+<tr><td>Fear of missing something</td><td>Screening windows, vaccines and forms arrive from five places with different deadlines. Missing a glucose test or Tdap window feels like a failure as a parent.</td><td>Open on "you are on track" and a count of what needs attention. Every item has a window, not a vague "soon". Done items stay visible so progress is felt.</td></tr>
+<tr><td>Information overload</td><td>Forums, apps and relatives all give different advice. Each search makes it worse.</td><td>One plan for this week, short. Sources are folded behind each item so trust is one tap away but never in the way.</td></tr>
+<tr><td>"Is this normal?"</td><td>Body changes, sleep, mood swings and baby behaviour all look alarming the first time.</td><td>Plain, kind language that names the data behind each point ("you slept under 6 hours on 3 of the last 4 nights"). Clear line between normal, worth asking about, and urgent.</td></tr>
+<tr><td>Feeling unseen, and guilty</td><td>Generic week-by-week content ignores her history. Partners are left out entirely and mothers carry the planning.</td><td>Content visibly built from their data. Each parent has their own screen and accent colour; the shared plan shows who owns what.</td></tr>
+<tr><td>Exhaustion</td><td>Late pregnancy and newborn months mean broken sleep. Much of the use happens at night or one-handed.</td><td>Soft colours that still pass WCAG AA, big targets, no red unless it is a real emergency. A night mode is worth having (direction D).</td></tr>
+<tr><td>Panic in a real emergency</td><td>Bleeding, severe headache, fewer kicks, thoughts of self-harm.</td><td>A fixed, always-visible help path that looks different from everything else. Calm design must not hide it.</td></tr>
+</table>
+
+<h2 id="rules">Rules every direction follows</h2>
+<div class="grid3" style="margin-top:16px">
+<div class="panel"><h4>Reassurance first</h4><p>The first line on the home screen is a status sentence, not a list. "You are on track. Two things need you this week."</p></div>
+<div class="panel"><h4>One focus</h4><p>The week has one highlighted next step. Everything else is visible but quieter.</p></div>
+<div class="panel"><h4>Every item says why</h4><p>Trigger data, guideline, source and checked date sit behind each plan item. This is also how judges see that nothing is hardcoded.</p></div>
+<div class="panel"><h4>Calm status scale</h4><p>On track, upcoming, due, overdue use soft hues. Overdue is warm (clay or coral), never alarm red. Red is reserved for urgent symptoms and crisis.</p></div>
+<div class="panel"><h4>Help is always one click away</h4><p>The crisis and urgent-symptom entry is in every screen's frame, not in a menu. It opens a fixed screen with hotlines, never generated text.</p></div>
+<div class="panel"><h4>Two parents, two colours</h4><p>Mom and Partner each get an accent, used for ownership in the shared plan and the shift handoff. Neither is pink or baby blue.</p></div>
+</div>
+
+<!-- ======================= A ======================= -->
+<div class="dir-head" id="A"><span class="letter">A</span><h2>Steady</h2><span style="color:#666">calm clinic, warm paper</span></div>
+<p>A clear, quiet dashboard: the plan in the middle, the reason behind the selected item on the right. It feels like a good private clinic portal that someone made kind. Built for desktop judges: personalisation and sources are visible without clicking.</p>
+<div class="meta">
+  <div class="panel"><b>References</b>One Medical app, Oura web dashboard, Things 3 for the calm checklist, Linear for restraint.</div>
+  <div class="panel"><b>Type</b>Inter for everything, JetBrains Mono for sources and values.<div class="note mono">next/font: Inter, JetBrains_Mono</div></div>
+  <div class="panel"><b>Imagery</b>None. A journey bar and small mood/sleep charts carry the visuals.
+    <div class="swatches"><div class="sw"><i style="background:#F7F5F1"></i>bg</div><div class="sw"><i style="background:#1E2A2C"></i>ink</div><div class="sw"><i style="background:#3E6E5E"></i>sage</div><div class="sw"><i style="background:#5B5AA8"></i>partner</div><div class="sw"><i style="background:#8A6414"></i>due</div><div class="sw"><i style="background:#A24E32"></i>overdue</div></div></div>
+</div>
+
+<div class="frame"><div class="chrome"><i></i><i></i><i></i><span>/family · Maya · week 24</span></div>
+<div class="A"><div class="m">
+  <div class="nav"><div class="brand">Parenting Planner</div>
+    <a class="on">This week</a><a>Journey</a><a>Health passport</a><a>Mood &amp; diary</a><a>Care team</a><a>Shared plan</a><a>Find help</a></div>
+  <div class="main">
+    <div class="top"><div class="who"><span class="on">Maya</span><span>Jordan</span></div><span class="sp"></span><span style="font-size:12.5px;color:var(--muted)">2nd trimester family</span><button class="help">Urgent help</button></div>
+    <div class="hello">You are on track, Maya. Two things need you this week.</div>
+    <div class="sub">Week 24 of pregnancy · due Mar 6 · plan updated this morning from your check-ins</div>
+    <div class="journey"><div class="bar"></div><div class="fill"></div><div class="dot"></div></div>
+    <div class="jl"><span>Planning</span><span>Pregnancy</span><span>Newborn</span><span>Infant</span><span>Toddler</span><span>Preschool</span><span>School, to 9</span></div>
+    <h5>This week's plan</h5>
+    <div class="item sel"><div class="chk"></div><div><div class="t">Book your glucose screen before week 28</div><div class="d">Your window is open now. No result on file yet. Dr. Lee's clinic has slots Tue and Thu.</div></div><span class="st due">Due by Dec 15</span></div>
+    <div class="item"><div class="chk"></div><div><div class="t">Bring sleep and mood to your next visit</div><div class="d">Under 6 hours on 3 of the last 4 nights, mood 2 of 5 yesterday. We added it to your questions list.</div></div><span class="st due">This week</span></div>
+    <div class="item"><div class="chk"></div><div><div class="t">Recheck iron</div><div class="d">Ferritin was low on Oct 3. Your OB asked for a recheck in 6 weeks.</div></div><span class="st late">5 days over</span></div>
+    <div class="item"><div class="chk" style="background:var(--sage);border-color:var(--sage)"></div><div><div class="t" style="color:var(--muted);text-decoration:line-through">Anatomy scan</div><div class="d">Done Oct 28. Report saved to your passport.</div></div><span class="st ok">Done</span></div>
+    <div class="item"><div class="chk"></div><div><div class="t">Tdap vaccine</div><div class="d">Recommended between weeks 27 and 36. We will remind you on Dec 22.</div></div><span class="st up">In 3 weeks</span></div>
+    <div class="urgline"><b>Severe headache, bleeding, or fewer kicks?</b><span style="color:var(--muted)">Open urgent symptoms. Fixed guidance and numbers, no AI.</span><span class="sp"></span><span>→</span></div>
+  </div>
+  <div class="side why">
+    <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Why this is in your plan</div>
+    <div style="font-size:17px;font-weight:650;margin-top:6px">Glucose screen</div>
+    <div class="k">Your data</div><div class="v">Week 24 · no glucose result · BMI and family history on file</div>
+    <div class="k">Guideline</div><div class="v">Screen for gestational diabetes at 24 weeks or later.</div>
+    <div class="src">USPSTF, Gestational Diabetes: Screening, 2021<br>checked Nov 14 2026</div>
+    <div class="k" style="margin-top:22px">Sleep, last 7 nights</div>
+    <div class="spark"><i style="height:70%"></i><i style="height:80%"></i><i style="height:62%"></i><i class="low" style="height:40%"></i><i class="low" style="height:36%"></i><i style="height:58%"></i><i class="low" style="height:38%"></i></div>
+    <div class="k" style="margin-top:22px">Quick check-in</div>
+    <div class="row" style="gap:6px;margin-top:8px">
+      <span class="st up" style="padding:6px 10px">1</span><span class="st up" style="padding:6px 10px">2</span><span class="st up" style="padding:6px 10px">3</span><span class="st up" style="padding:6px 10px">4</span><span class="st up" style="padding:6px 10px">5</span></div>
+  </div>
+</div></div></div>
+
+<div class="strip">
+ <div><div class="frame"><div class="A mini"><div class="mini-in">
+   <div class="row"><div class="who" style="background:#ECEAE5"><span>Maya</span><span class="on" style="background:#fff;font-weight:600;color:var(--partner)">Jordan</span></div><span class="sp"></span><button class="help">Urgent help</button></div>
+   <div style="font-size:19px;font-weight:650;margin:14px 0 10px">Jordan, three things before the baby comes.</div>
+   <div class="item" style="grid-template-columns:1fr auto"><div><div class="t">Your Tdap shot</div><div class="d">Adults around a newborn should be up to date. Your last dose is not on file.</div></div><span class="st due">Due</span></div>
+   <div class="item" style="grid-template-columns:1fr auto"><div><div class="t">Mood check-in</div><div class="d">Last one 14 days ago. Partners get perinatal depression too.</div></div><span class="st late">Overdue</span></div>
+ </div></div></div><div class="cap">Partner view. Same layout, his own accent (indigo). Status colours carry over.</div></div>
+ <div><div class="frame"><div class="A mini"><div class="mini-in">
+   <div class="row"><b style="font-size:14px">The Parks · Leo, 7 weeks</b><span class="sp"></span><button class="help">Urgent help</button></div>
+   <div style="font-size:19px;font-weight:650;margin:14px 0 10px">Tonight: Sam takes 10 pm to 2 am.</div>
+   <div class="item" style="grid-template-columns:1fr auto"><div><div class="t">Leo's 2-month vaccines</div><div class="d">Window opens Dec 1. Pediatrician has Tue 9:30.</div></div><span class="st up">Next week</span></div>
+   <div class="item" style="grid-template-columns:1fr auto"><div><div class="t">Alex: postpartum depression screen</div><div class="d">Recommended at well-baby visits. Take it here in 3 minutes.</div></div><span class="st due">Due</span></div>
+ </div></div></div><div class="cap">Newborn family. Holds up well; might feel a bit plain for a 4-year-old.</div></div>
+</div>
+
+<div class="status-row"><span style="font-size:13px;color:#555;width:110px">Status scale</span>
+  <span class="A" style="background:transparent;display:flex;gap:8px"><span class="st ok">On track</span><span class="st up">Upcoming</span><span class="st due">Due</span><span class="st late">Overdue</span><span class="st urg">Urgent symptom</span></span></div>
+<div class="proscons">
+ <div class="panel"><h4>Good at</h4><p>Showing data, reasons and sources at once, which is what the 40% "core value is real" score rewards. Scales to the passport, labs and booking screens with no new patterns.</p></div>
+ <div class="panel"><h4>Risk</h4><p>Can read as a competent SaaS dashboard rather than something that cares. Needs warm copy to avoid feeling clinical.</p></div>
+ <div class="panel"><h4>Build cost</h4><p>Lowest. Tailwind defaults plus a few tokens, no imagery. About 2 hours for the shell and components.</p></div>
+</div>
+<pre class="tok">@theme {
+  --color-bg: #F7F5F1;   --color-surface: #FFFFFF;  --color-ink: #1E2A2C;  --color-muted: #5A6668;  --color-line: #E3E0DA;
+  --color-mom: #3E6E5E;  --color-partner: #5B5AA8;
+  --color-ok: #3E6E5E;   --color-ok-soft: #E4EDE8;  --color-up: #4F6475;   --color-up-soft: #E6ECF1;
+  --color-due: #8A6414;  --color-due-soft: #F6EBD3; --color-late: #A24E32; --color-late-soft: #F6E2DA;  --color-urgent: #B3261E;
+  --font-sans: var(--font-inter);  --font-mono: var(--font-jetbrains-mono);  --radius-card: 12px;
+}</pre>
+
+<!-- ======================= B ======================= -->
+<div class="dir-head" id="B"><span class="letter">B</span><h2>Letter</h2><span style="color:#666">a weekly letter from someone who knows you</span></div>
+<p>The weekly plan is written and laid out like a short letter, with sources as margin notes. The AI plan becomes the hero, and it reads as personal because it is prose about her week, not a feed. Data screens (passport, labs) use the same paper and rules but switch to a plain sans for tables.</p>
+<div class="meta">
+  <div class="panel"><b>References</b>Kinfolk and Cereal magazine layouts, The New Yorker's sidebars, Tufte-style margin notes, Headspace's written guidance tone.</div>
+  <div class="panel"><b>Type</b>Fraunces for headlines, Source Serif 4 for the letter, Inter for UI and tables.<div class="note mono">next/font: Fraunces, Source_Serif_4, Inter</div></div>
+  <div class="panel"><b>Imagery</b>Typographic only. Numerals, rules and margin notes do the work.
+    <div class="swatches"><div class="sw"><i style="background:#F6F1E8"></i>paper</div><div class="sw"><i style="background:#2A2421"></i>ink</div><div class="sw"><i style="background:#9C4A2F"></i>terra</div><div class="sw"><i style="background:#56623A"></i>olive</div><div class="sw"><i style="background:#6E4A63"></i>plum</div><div class="sw"><i style="background:#7E6024"></i>due</div></div></div>
+</div>
+
+<div class="frame"><div class="chrome"><i></i><i></i><i></i><span>/family · Maya · week 24</span></div>
+<div class="B"><div class="m">
+  <div class="nav"><div class="brand">Parenting Planner</div>
+    <a class="on">Your week</a><a>Journey</a><a>Health passport</a><a>Mood &amp; diary</a><a>Care team</a><a>Shared plan</a><a>Find help</a></div>
+  <div class="main">
+    <div class="row" style="margin-bottom:26px"><div class="who"><span class="on">Maya</span><span>Jordan</span></div><span class="sp"></span><button class="help">Urgent help</button></div>
+    <div class="kicker">Week 24 · Monday, November 16</div>
+    <div class="hl">Maya, you are on track. <em>Two things</em> need you this week.</div>
+    <div class="body"><p>Your sleep has been short since Thursday and your mood dipped yesterday. That is common around now, and worth saying out loud to Dr. Lee on Tuesday. I have added it to your questions.</p></div>
+    <ol>
+      <li><div><span class="t">Book your glucose screen</span><span class="tag due">Due by Dec 15</span><sup>1</sup><div class="d">The window opened this week and there is no result on file. Tuesday and Thursday mornings are open at the clinic.</div></div></li>
+      <li><div><span class="t">Recheck your iron</span><span class="tag late">5 days over</span><sup>2</sup><div class="d">Ferritin was low on October 3. A quick blood draw can go with the glucose test.</div></div></li>
+      <li><div><span class="t">Tdap, in three weeks</span><span class="tag up">Upcoming</span><sup>3</sup><div class="d">Between weeks 27 and 36. Jordan should get his too.</div></div></li>
+    </ol>
+    <div class="sign">Already done: anatomy scan on Oct 28, flu shot on Oct 2.</div>
+    <div class="box"><b>Severe headache, bleeding, or fewer kicks?</b><span style="color:var(--muted)">Urgent symptoms, fixed guidance, no AI</span><span class="sp"></span>→</div>
+  </div>
+  <div class="side">
+    <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px">Notes</div>
+    <p class="note"><b>1</b>Based on: week 24, no glucose result.<span class="sig">USPSTF 2021 · checked Nov 14 2026</span></p>
+    <p class="note"><b>2</b>Based on: ferritin 14 ng/mL on Oct 3, OB note.<span class="sig">ACOG PB 233 · checked Nov 14 2026</span></p>
+    <p class="note"><b>3</b>Based on: week 24, no Tdap this pregnancy.<span class="sig">CDC Tdap in pregnancy · checked Nov 14 2026</span></p>
+    <p class="note" style="border:0"><b>·</b>Mood 2 of 5 yesterday, under 6 h sleep on 3 of 4 nights. Shared by you.</p>
+  </div>
+</div></div></div>
+
+<div class="strip">
+ <div><div class="frame"><div class="B mini"><div class="mini-in">
+   <div class="row"><div class="who"><span>Maya</span><span class="on">Jordan</span></div><span class="sp"></span><button class="help">Urgent help</button></div>
+   <div class="kicker" style="margin-top:16px">Week 24 · for Jordan</div>
+   <div class="hl" style="font-size:26px;margin:6px 0 4px">You have not checked in for <em>two weeks.</em></div>
+   <div class="body" style="font-size:15px">One in ten fathers gets perinatal depression and almost nobody asks them. It takes a minute. After that: your Tdap shot and the Saturday birth class.</div>
+ </div></div></div><div class="cap">Partner view. The letter voice works well for him and feels less like "her app".</div></div>
+ <div><div class="frame"><div class="B mini"><div class="mini-in">
+   <div class="row"><b style="font-family:Inter;font-size:13px">The Parks · Leo, 7 weeks</b><span class="sp"></span><button class="help">Urgent help</button></div>
+   <div class="kicker" style="margin-top:16px">Tonight</div>
+   <div class="hl" style="font-size:26px;margin:6px 0 4px">Sam has 10 to 2, <em>Alex sleeps.</em></div>
+   <div class="body" style="font-size:15px">Handoff: last feed 9:40, left side, 90 ml top-up. Leo's 2-month vaccines are next Tuesday.<sup>1</sup></div>
+ </div></div></div><div class="cap">Newborn family. Charming, but prose is slow to scan at 3 am.</div></div>
+</div>
+<div class="status-row"><span style="font-size:13px;color:#555;width:110px">Status scale</span>
+  <span class="B" style="background:transparent;display:flex;gap:14px;align-items:center"><span class="tag ok" style="margin:0">On track</span><span class="tag up" style="margin:0">Upcoming</span><span class="tag due" style="margin:0">Due</span><span class="tag late" style="margin:0">Overdue</span><span class="tag urg" style="margin:0">Urgent symptom</span></span></div>
+<div class="proscons">
+ <div class="panel"><h4>Good at</h4><p>Making the AI plan feel personal and human, and the most distinctive of the four for "is it new". Margin notes make sources elegant instead of noisy.</p></div>
+ <div class="panel"><h4>Risk</h4><p>Prose is slower to scan than a list, and data-heavy screens need a second visual system. Serif-heavy UI can feel like a blog rather than a tool.</p></div>
+ <div class="panel"><h4>Build cost</h4><p>Medium. Simple components, but typography needs care and the plan must render well as prose from the API.</p></div>
+</div>
+<pre class="tok">@theme {
+  --color-bg: #F6F1E8;  --color-surface: #EFE8DC;  --color-ink: #2A2421;  --color-muted: #6B5F57;  --color-line: #D9CFC1;
+  --color-mom: #9C4A2F; --color-partner: #56623A;
+  --color-ok: #56623A;  --color-up: #6E4A63;  --color-due: #7E6024;  --color-late: #9C4A2F;  --color-urgent: #A1261B;
+  --font-display: var(--font-fraunces);  --font-serif: var(--font-source-serif-4);  --font-sans: var(--font-inter);
+}</pre>
+
+<!-- ======================= C ======================= -->
+<div class="dir-head" id="C"><span class="letter">C</span><h2>Bloom</h2><span style="color:#666">Flo's emotional model, a family palette</span></div>
+<p>Soft gradients, rounded cards and one big "today" focus. The closest to Flo in feeling, but in apricot, sage and lavender so it reads as family rather than mom-only. Each stage of the journey gets its own generated shape, which gives the 4 demo families visibly different worlds.</p>
+<div class="meta">
+  <div class="panel"><b>References</b>Flo (reassurance and one focus), Calm and Headspace (softness), Oura's gradients, Apple Health's summary cards.</div>
+  <div class="panel"><b>Type</b>Plus Jakarta Sans, rounded and friendly but still sharp in tables.<div class="note mono">next/font: Plus_Jakarta_Sans</div></div>
+  <div class="panel"><b>Imagery</b>Abstract SVG blobs and rings per stage, generated in code.
+    <div class="swatches"><div class="sw"><i style="background:#FBF7F3"></i>bg</div><div class="sw"><i style="background:#2B2836"></i>ink</div><div class="sw"><i style="background:#E7A27B"></i>apricot</div><div class="sw"><i style="background:#8FB09B"></i>sage</div><div class="sw"><i style="background:#B9B4D9"></i>lavender</div><div class="sw"><i style="background:#8A5A00"></i>due ink</div></div></div>
+</div>
+
+<div class="frame"><div class="chrome"><i></i><i></i><i></i><span>/family · Maya · week 24</span></div>
+<div class="C"><div class="m">
+  <div class="nav"><div class="logo"></div>
+    <div class="ic on"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg></div>
+    <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h10M4 18h7"/></svg></div>
+    <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M12 8v6M9 11h6"/></svg></div>
+    <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M9 14c1 1 2 1.5 3 1.5s2-.5 3-1.5M9 10h.01M15 10h.01"/></svg></div>
+    <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5M15 15c3 0 6 1.5 6 4"/></svg></div>
+  </div>
+  <div class="main">
+    <div class="row"><div class="who"><span class="on">Maya</span><span>Jordan</span></div><span class="sp"></span><span style="font-size:13px;color:var(--muted)">Mon, Nov 16</span></div>
+    <div class="hero">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <defs><linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6C3A4"/><stop offset=".55" stop-color="#E7A27B"/><stop offset="1" stop-color="#B9B4D9"/></linearGradient></defs>
+        <path d="M100 18c38 0 76 22 80 64 4 44-26 96-76 98-48 2-86-34-84-82 2-46 38-80 80-80z" fill="url(#cg)" opacity=".9"/>
+        <circle cx="100" cy="100" r="86" fill="none" stroke="#EEE6DF" stroke-width="6"/>
+        <circle cx="100" cy="100" r="86" fill="none" stroke="#2B2836" stroke-width="6" stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="216" transform="rotate(-90 100 100)"/>
+        <text x="100" y="98" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="40" font-weight="700" fill="#2B2836">24</text>
+        <text x="100" y="122" text-anchor="middle" font-family="Plus Jakarta Sans" font-size="13" font-weight="600" fill="#2B2836">weeks of 40</text>
+      </svg>
+      <div><div class="hello">You are on track, Maya.<br>One thing needs you today.</div>
+      <div class="sub">Your plan changed this morning because of your last three check-ins.</div></div>
+    </div>
+    <div class="card focus">
+      <div class="lbl">TODAY</div>
+      <div class="t">Book your glucose screen</div>
+      <div class="d">Your 24 to 28 week window is open and there is no result yet. Dr. Lee has Tuesday 9:00 and Thursday 8:30.</div>
+      <span class="btn">Book Tuesday 9:00</span><span class="btn ghost">Why this?</span>
+      <div class="src">Based on week 24, no result on file · <u>USPSTF 2021</u> · checked Nov 14 2026</div>
+    </div>
+    <div class="list">
+      <div class="card"><span class="pill late">5 days over</span><div class="t">Recheck iron</div><div class="d">Low ferritin on Oct 3. Can go with the glucose test.</div></div>
+      <div class="card"><span class="pill due">This week</span><div class="t">Tell Dr. Lee about sleep</div><div class="d">Under 6 h on 3 of 4 nights. Added to questions.</div></div>
+      <div class="card"><span class="pill up">In 3 weeks</span><div class="t">Tdap vaccine</div><div class="d">Weeks 27 to 36. Jordan too.</div></div>
+      <div class="card"><span class="pill ok">Done</span><div class="t">Anatomy scan</div><div class="d">Oct 28 · saved to passport</div></div>
+    </div>
+  </div>
+  <div class="side">
+    <div class="card"><div style="font-weight:700">How are you today?</div>
+      <div class="mood"><i>1</i><i class="on">2</i><i>3</i><i>4</i><i>5</i></div>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:10px">Low three days running. We will suggest someone to talk to, if you want.</div></div>
+    <div class="card"><div style="font-weight:700">Next session</div><div style="font-size:13px;color:var(--muted);margin-top:4px">Dr. Ana Reyes · perinatal therapist · Thu 6 pm</div>
+      <div style="font-size:13px;margin-top:10px">Agenda: birth anxiety <span style="color:var(--muted)">(shared from diary)</span></div></div>
+    <div class="card"><div style="font-weight:700">Jordan this week</div><div style="font-size:13px;color:var(--muted);margin-top:4px">Birth class Sat · Tdap · 2 of 4 shared tasks done</div></div>
+  </div>
+</div>
+<div class="fab"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 6a5.5 5.5 0 019.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg>Need help now</div>
+</div></div>
+
+<div class="strip">
+ <div><div class="frame"><div class="C mini" style="position:relative"><div class="mini-in">
+   <div class="row"><div class="who"><span>Maya</span><span class="on" style="background:var(--lav-ink)">Jordan</span></div></div>
+   <div class="row" style="margin-top:14px;gap:16px"><svg width="70" height="70" viewBox="0 0 70 70"><path d="M35 5c16 0 30 10 30 28s-14 32-31 32S5 50 5 34 19 5 35 5z" fill="#B9B4D9"/></svg>
+   <div><div style="font-size:19px;font-weight:700">Jordan, how are you doing?</div><div style="font-size:13px;color:var(--muted)">No check-in for 14 days. It takes a minute.</div></div></div>
+   <div class="card" style="margin-top:12px;padding:12px 14px"><span class="pill due">Due</span> <b style="font-size:13.5px;margin-left:6px">Your Tdap shot</b></div>
+ </div><div class="fab" style="right:14px;bottom:14px;padding:8px 12px;font-size:12px">Need help now</div></div></div><div class="cap">Partner view. Lavender world. Soft, but some partners may find it too gentle.</div></div>
+ <div><div class="frame"><div class="C mini" style="position:relative;background:radial-gradient(600px 300px at 80% 0%,#E1EEE5 0%,transparent 60%),#FBF7F3"><div class="mini-in">
+   <div class="row" style="gap:16px"><svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="#8FB09B"/><circle cx="50" cy="22" r="12" fill="#F6C3A4"/></svg>
+   <div><div style="font-size:19px;font-weight:700">Leo is 7 weeks old.</div><div style="font-size:13px;color:var(--muted)">Tonight Sam has 10 pm to 2 am.</div></div></div>
+   <div class="list" style="margin-top:12px"><div class="card"><span class="pill up">Next week</span><div class="t">2-month vaccines</div></div><div class="card"><span class="pill due">Due</span><div class="t">Alex: mood screen</div></div></div>
+ </div><div class="fab" style="right:14px;bottom:14px;padding:8px 12px;font-size:12px">Need help now</div></div></div><div class="cap">Newborn family. A different shape and tint per stage makes the family switch obvious.</div></div>
+</div>
+<div class="status-row"><span style="font-size:13px;color:#555;width:110px">Status scale</span>
+  <span class="C" style="background:transparent;display:flex;gap:8px"><span class="pill ok">On track</span><span class="pill up">Upcoming</span><span class="pill due">Due</span><span class="pill late">Overdue</span><span class="pill urg">Urgent symptom</span></span></div>
+<div class="proscons">
+ <div class="panel"><h4>Good at</h4><p>Lowering anxiety on first sight. The single "today" card cuts the mental load hardest, and stage shapes make personalisation visible during the family switch.</p></div>
+ <div class="panel"><h4>Risk</h4><p>Closest to Flo and the wellness-app look in general, so weaker on "is it new". The data and sources are one click further away.</p></div>
+ <div class="panel"><h4>Build cost</h4><p>Medium. Gradients and SVG shapes are cheap; the per-stage shape set and the floating help button need a few hours of polish.</p></div>
+</div>
+<pre class="tok">@theme {
+  --color-bg: #FBF7F3;  --color-surface: #FFFFFF;  --color-ink: #2B2836;  --color-muted: #615C70;  --color-line: #EEE6DF;
+  --color-mom: #E7A27B; --color-partner: #B9B4D9;  --color-child: #8FB09B;
+  --color-ok: #3D6B4F;  --color-ok-soft: #E5EFE8;  --color-up: #5A5394;  --color-up-soft: #ECEAF6;
+  --color-due: #8A5A00; --color-due-soft: #FBEFD2; --color-late: #9A4E24; --color-late-soft: #FBE9DE;  --color-urgent: #B42318;
+  --font-sans: var(--font-plus-jakarta-sans);  --radius-card: 22px;
+}</pre>
+
+<!-- ======================= D ======================= -->
+<div class="dir-head" id="D"><span class="letter">D</span><h2>Night light</h2><span style="color:#666">dark first, for 3 am</span></div>
+<p>Built for the hours when tired parents actually open the app: dark, warm, low glare, with amber as the only bright colour. Could be the whole product or the night mode for A or C. It shines on the newborn family and the shift handoff.</p>
+<div class="meta">
+  <div class="panel"><b>References</b>Hatch Rest app, Oura's dark mode, Calm's sleep screens, Apple's Sleep Focus.</div>
+  <div class="panel"><b>Type</b>Manrope, open shapes that stay readable on dark backgrounds.<div class="note mono">next/font: Manrope, JetBrains_Mono</div></div>
+  <div class="panel"><b>Imagery</b>A small generated night sky and horizon per stage; glowing status dots.
+    <div class="swatches"><div class="sw"><i style="background:#14151E"></i>bg</div><div class="sw"><i style="background:#1D1F2C"></i>surface</div><div class="sw"><i style="background:#EDE7DB"></i>ink</div><div class="sw"><i style="background:#E9B872"></i>amber</div><div class="sw"><i style="background:#7CC2B3"></i>teal</div><div class="sw"><i style="background:#B3A9E6"></i>lilac</div></div></div>
+</div>
+
+<div class="frame"><div class="chrome" style="background:#2a2b34"><i style="background:#44465a"></i><i style="background:#44465a"></i><i style="background:#44465a"></i><span style="color:#999">/family · Maya · week 24</span></div>
+<div class="D"><div class="m">
+  <div class="nav"><div class="brand">Parenting Planner</div>
+    <a class="on">This week</a><a>Journey</a><a>Health passport</a><a>Mood &amp; diary</a><a>Care team</a><a>Shared plan</a><a>Find help</a></div>
+  <div class="main">
+    <div class="row"><div class="who"><span class="on">Maya</span><span>Jordan</span></div><span class="sp"></span><button class="help">Urgent help</button></div>
+    <div class="sky">
+      <svg width="420" height="150" viewBox="0 0 420 150"><circle cx="330" cy="46" r="20" fill="#E9B872" opacity=".9"/><circle cx="339" cy="40" r="18" fill="#252338"/>
+        <g fill="#EDE7DB" opacity=".7"><circle cx="210" cy="30" r="1.4"/><circle cx="250" cy="70" r="1"/><circle cx="390" cy="90" r="1.3"/><circle cx="280" cy="20" r="1"/><circle cx="160" cy="60" r="1"/></g>
+        <path d="M0 150 C80 110 160 120 240 108 S380 96 420 110 V150Z" fill="#3B2E45"/><path d="M0 150 C120 130 260 140 420 126 V150Z" fill="#46344A"/></svg>
+      <div class="hello">Good evening, Maya. You are on track.</div>
+      <div class="sub">Week 24. Two things this week, nothing tonight. Rest if you can.</div>
+    </div>
+    <h5>This week</h5>
+    <div class="item"><span class="glow due"></span><div class="sp"><div class="t">Book your glucose screen</div><div class="d">Window open, no result yet. Tue 9:00 is free.</div><div class="s">week 24 · no result on file · USPSTF 2021 · checked Nov 14 2026</div></div><span class="lab due">by Dec 15</span></div>
+    <div class="item"><span class="glow late"></span><div class="sp"><div class="t">Recheck iron</div><div class="d">Low ferritin on Oct 3.</div></div><span class="lab late">5 days over</span></div>
+    <div class="item"><span class="glow up"></span><div class="sp"><div class="t">Tdap vaccine</div><div class="d">Weeks 27 to 36. Jordan too.</div></div><span class="lab up">in 3 weeks</span></div>
+    <div class="urgline"><b>Severe headache, bleeding, or fewer kicks?</b><span style="color:var(--muted)">Urgent symptoms, no AI</span><span class="sp"></span>→</div>
+  </div>
+  <div class="side">
+    <div style="font-weight:600">Sleep, last 7 nights</div>
+    <svg width="260" height="70" viewBox="0 0 260 70" style="margin-top:10px"><polyline points="0,20 40,14 80,26 120,50 160,54 200,32 240,52" fill="none" stroke="#B3A9E6" stroke-width="2.5" stroke-linejoin="round"/><line x1="0" y1="40" x2="260" y2="40" stroke="#2F3244" stroke-dasharray="4 4"/><text x="0" y="66" fill="#A6A3B4" font-size="11" font-family="Manrope">6 h line</text></svg>
+    <div style="font-size:13px;color:var(--muted);margin-top:6px">Under 6 hours on 3 of the last 4 nights. Added to your questions for Dr. Lee.</div>
+    <div style="font-weight:600;margin-top:24px">How are you right now?</div>
+    <div class="row" style="gap:8px;margin-top:10px"><span class="shift" style="margin:0;padding:8px 12px">1</span><span class="shift" style="margin:0;padding:8px 12px;outline:1.5px solid var(--amber);color:var(--amber)">2</span><span class="shift" style="margin:0;padding:8px 12px">3</span><span class="shift" style="margin:0;padding:8px 12px">4</span><span class="shift" style="margin:0;padding:8px 12px">5</span></div>
+  </div>
+</div></div></div>
+
+<div class="strip">
+ <div><div class="frame"><div class="D mini"><div class="mini-in">
+   <div class="row"><div class="who"><span>Maya</span><span class="on" style="color:var(--teal)">Jordan</span></div><span class="sp"></span><button class="help">Urgent help</button></div>
+   <div style="font-size:19px;font-weight:600;margin:14px 0 10px">Jordan, a minute for yourself?</div>
+   <div class="item"><span class="glow late"></span><div class="sp"><div class="t">Mood check-in</div><div class="d">Last one 14 days ago.</div></div></div>
+   <div class="item"><span class="glow due"></span><div class="sp"><div class="t">Your Tdap shot</div><div class="d">Not on file.</div></div></div>
+ </div></div></div><div class="cap">Partner view. Teal accent for him.</div></div>
+ <div><div class="frame"><div class="D mini"><div class="mini-in">
+   <div class="row"><b style="font-size:14px">The Parks · Leo, 7 weeks</b><span class="sp"></span><button class="help">Urgent help</button></div>
+   <div style="font-size:19px;font-weight:600;margin:14px 0 4px">Your shift: 10 pm to 2 am.</div>
+   <div style="font-size:13px;color:var(--muted)">Alex is asleep. Handoff note at 2.</div>
+   <div class="tl"><span style="flex:4;background:rgba(124,194,179,.3);color:var(--teal)">Sam</span><span style="flex:4;background:rgba(233,184,114,.25);color:var(--amber)">Alex</span><span style="flex:2;background:var(--surface2);color:var(--muted)">6 am</span></div>
+   <div class="shift" style="font-size:13px">Last feed 9:40 · left side · 90 ml top-up</div>
+ </div></div></div><div class="cap">Newborn family at night. This is where D is clearly the best of the four.</div></div>
+</div>
+<div class="status-row"><span style="font-size:13px;color:#555;width:110px">Status scale</span>
+  <span class="D" style="background:#14151E;display:flex;gap:16px;padding:8px 14px;border-radius:10px;align-items:center;font-size:12px">
+   <span class="row" style="gap:6px"><span class="glow ok" style="margin:0"></span><span class="lab ok">On track</span></span>
+   <span class="row" style="gap:6px"><span class="glow up" style="margin:0"></span><span class="lab up">Upcoming</span></span>
+   <span class="row" style="gap:6px"><span class="glow due" style="margin:0"></span><span class="lab due">Due</span></span>
+   <span class="row" style="gap:6px"><span class="glow late" style="margin:0"></span><span class="lab late">Overdue</span></span>
+   <span class="row" style="gap:6px"><span class="glow urg" style="margin:0"></span><span class="lab" style="color:var(--urgent)">Urgent symptom</span></span></span></div>
+<div class="proscons">
+ <div class="panel"><h4>Good at</h4><p>Real empathy for the newborn months and night feeds, and a strong demo moment for the shift handoff. Distinctive next to the usual pastel apps.</p></div>
+ <div class="panel"><h4>Risk</h4><p>Dark dashboards look moody on a projector and in daylight; a pregnancy home screen in the dark at noon feels off. Better as a mode than the default.</p></div>
+ <div class="panel"><h4>Build cost</h4><p>Low as a token swap on top of A or C (Tailwind dark variant). High as its own full design.</p></div>
+</div>
+<pre class="tok">@theme {   /* or as .dark overrides of A or C */
+  --color-bg: #14151E;  --color-surface: #1D1F2C;  --color-surface-2: #252838;  --color-ink: #EDE7DB;  --color-muted: #A6A3B4;  --color-line: #2F3244;
+  --color-mom: #E9B872; --color-partner: #7CC2B3;
+  --color-ok: #7CC2B3;  --color-up: #B3A9E6;  --color-due: #E9B872;  --color-late: #F09A7E;  --color-urgent: #FF6B5E;
+  --font-sans: var(--font-manrope);
+}</pre>
+
+<!-- ======================= COMPARE ======================= -->
+<h2 id="compare">Side by side</h2>
+<table class="emo" style="margin-top:16px">
+<tr><th></th><th>A · Steady</th><th>B · Letter</th><th>C · Bloom</th><th>D · Night light</th></tr>
+<tr><td>Calm on first sight</td><td>Good</td><td>Good</td><td>Best</td><td>Good at night, odd by day</td></tr>
+<tr><td>Shows data and sources to judges</td><td>Best, always visible</td><td>Good, margin notes</td><td>One click away</td><td>Good, inline</td></tr>
+<tr><td>Feels like it cares</td><td>Needs warm copy</td><td>Best</td><td>Strong</td><td>Strong</td></tr>
+<tr><td>Partner feels included</td><td>Good</td><td>Best</td><td>Fair, can read soft</td><td>Good</td></tr>
+<tr><td>Holds up for newborn and 4-year-old</td><td>Good</td><td>Fair at 3 am</td><td>Best, stage worlds</td><td>Best for newborn</td></tr>
+<tr><td>Looks new next to Flo and others</td><td>Fair</td><td>Best</td><td>Weakest</td><td>Good</td></tr>
+<tr><td>Ready by tomorrow noon</td><td>Easiest</td><td>Medium</td><td>Medium</td><td>Easy as a mode</td></tr>
+</table>
+
+<!-- ======================= RECO ======================= -->
+<h2 id="reco">Recommendation</h2>
+<div class="reco">
+  <h4>Build A (Steady) as the base, take the "today" focus card and stage shapes from C, and write the plan in B's voice.</h4>
+  <p>Judges score working end to end and the realness of the data at 40%, on a laptop. A's layout puts the reason, the data and the source next to every plan item without a click, and it extends to the passport, labs, booking and pricing screens with no new patterns, which matters with one frontend developer and a noon deadline. On its own it risks feeling like a dashboard, so we add C's single focus card on top of the plan, a soft generated shape per stage to make the family switch obvious, and B's letter-like tone for the AI plan text (that part is a prompt and copy decision more than a visual one). D becomes a night mode later if there is time; it is a token swap once A's tokens exist.</p>
+  <p style="margin-top:14px">Decisions I need from Denis or Dayana before building:</p>
+  <ul style="margin-top:6px;padding-left:20px">
+    <li>The product name. Everything here says "Parenting Planner", the placeholder from <span class="mono">web/src/lib/product.ts</span>; the logo and wordmark wait on it.</li>
+    <li>Whether each parent gets their own accent colour. I recommend it, since it makes ownership and handoffs readable, but it fixes the palette early.</li>
+    <li>The track. <span class="mono">docs/requirements.md</span> says Skills and "learning through practice", while <span class="mono">docs/product.md</span> still lists the track as open and pitches a plan and data hub. If it is Skills, the design needs a practice or lesson surface that none of these mocks show.</li>
+  </ul>
+</div>
+
+</div>
+</body>
+</html>
