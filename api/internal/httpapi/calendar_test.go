@@ -2,6 +2,7 @@ package httpapi_test
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -32,6 +33,33 @@ func calTitles(l httpapi.CalendarEventList) []string {
 		out = append(out, e.Title)
 	}
 	return out
+}
+
+func TestUpdateCalendarEventHidesPrivateDetailsFromExports(t *testing.T) {
+	c := testutil.New(t)
+	p := newbornFamily(c, t)
+	base := calBase(p.mom)
+	in := event("Sensitive appointment", "family", time.Hour, p.nanny.Id)
+	in["location"] = "Private address"
+	var e httpapi.CalendarEvent
+	c.Post(base, in, http.StatusCreated, &e)
+	c.Patch(calBase(p.partner)+"/"+e.Id, map[string]any{"title": "other"}, http.StatusNotFound, nil)
+	c.Patch("/api/members/"+p.nanny.Id.String()+"/calendar-events/"+e.Id, map[string]any{"title": "other"}, http.StatusForbidden, nil)
+	c.Patch(base+"/"+uuid.NewString(), map[string]any{"title": "other"}, http.StatusNotFound, nil)
+	c.Patch(base+"/"+e.Id, map[string]any{"neutralTitle": true}, http.StatusOK, &e)
+	if e.Title != "Sensitive appointment" || e.NeutralTitle == nil || !*e.NeutralTitle {
+		t.Fatalf("in-app appointment: %+v", e)
+	}
+	link := feedLink(t, c, "/api/members/"+p.mom.Id.String(), "mine")
+	code, file := c.Raw(http.MethodGet, link, "", nil)
+	if code != http.StatusOK || !strings.Contains(string(file), "SUMMARY:Appointment") ||
+		strings.Contains(string(file), "Sensitive appointment") || strings.Contains(string(file), "Private address") {
+		t.Fatalf("calendar export %d: %s", code, file)
+	}
+	c.Patch(base+"/"+e.Id, map[string]any{"visibility": "private"}, http.StatusOK, &e)
+	if len(e.AttendeeIds) != 0 {
+		t.Fatalf("private event still has attendees: %+v", e.AttendeeIds)
+	}
 }
 
 func TestCalendarValidation(t *testing.T) {

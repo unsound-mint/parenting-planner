@@ -27,9 +27,55 @@ func (q *Queries) AddCalendarEventAttendee(ctx context.Context, arg AddCalendarE
 	return err
 }
 
+const calendarEventAttendees = `-- name: CalendarEventAttendees :many
+SELECT a.member_id FROM calendar_event_attendees a
+JOIN calendar_events e ON e.id = a.event_id
+WHERE e.family_id = $1 AND e.id = $2 ORDER BY a.member_id
+`
+
+type CalendarEventAttendeesParams struct {
+	FamilyID uuid.UUID
+	ID       uuid.UUID
+}
+
+func (q *Queries) CalendarEventAttendees(ctx context.Context, arg CalendarEventAttendeesParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, calendarEventAttendees, arg.FamilyID, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var member_id uuid.UUID
+		if err := rows.Scan(&member_id); err != nil {
+			return nil, err
+		}
+		items = append(items, member_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const clearCalendarEventAttendees = `-- name: ClearCalendarEventAttendees :exec
+DELETE FROM calendar_event_attendees a USING calendar_events e
+WHERE e.family_id = $1 AND e.id = $2 AND a.event_id = e.id
+`
+
+type ClearCalendarEventAttendeesParams struct {
+	FamilyID uuid.UUID
+	ID       uuid.UUID
+}
+
+func (q *Queries) ClearCalendarEventAttendees(ctx context.Context, arg ClearCalendarEventAttendeesParams) error {
+	_, err := q.db.Exec(ctx, clearCalendarEventAttendees, arg.FamilyID, arg.ID)
+	return err
+}
+
 const createCalendarEvent = `-- name: CreateCalendarEvent :one
-INSERT INTO calendar_events (family_id, owner_member_id, visibility, kind, title, starts_at, ends_at, all_day, location)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, family_id, owner_member_id, visibility, kind, title, starts_at, ends_at, all_day, location, created_at
+INSERT INTO calendar_events (family_id, owner_member_id, visibility, kind, title, starts_at, ends_at, all_day, location, neutral_title)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, family_id, owner_member_id, visibility, kind, title, starts_at, ends_at, all_day, location, created_at, neutral_title
 `
 
 type CreateCalendarEventParams struct {
@@ -42,6 +88,7 @@ type CreateCalendarEventParams struct {
 	EndsAt        pgtype.Timestamptz
 	AllDay        bool
 	Location      *string
+	NeutralTitle  bool
 }
 
 func (q *Queries) CreateCalendarEvent(ctx context.Context, arg CreateCalendarEventParams) (CalendarEvent, error) {
@@ -55,6 +102,7 @@ func (q *Queries) CreateCalendarEvent(ctx context.Context, arg CreateCalendarEve
 		arg.EndsAt,
 		arg.AllDay,
 		arg.Location,
+		arg.NeutralTitle,
 	)
 	var i CalendarEvent
 	err := row.Scan(
@@ -69,12 +117,13 @@ func (q *Queries) CreateCalendarEvent(ctx context.Context, arg CreateCalendarEve
 		&i.AllDay,
 		&i.Location,
 		&i.CreatedAt,
+		&i.NeutralTitle,
 	)
 	return i, err
 }
 
 const listCalendarEventsVisibleToParent = `-- name: ListCalendarEventsVisibleToParent :many
-SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at,
+SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at, e.neutral_title,
        COALESCE((SELECT array_agg(a.member_id) FROM calendar_event_attendees a WHERE a.event_id = e.id), '{}')::uuid[] AS attendee_ids
 FROM calendar_events e
 WHERE e.family_id = $1
@@ -102,6 +151,7 @@ type ListCalendarEventsVisibleToParentRow struct {
 	AllDay        bool
 	Location      *string
 	CreatedAt     time.Time
+	NeutralTitle  bool
 	AttendeeIds   []uuid.UUID
 }
 
@@ -133,6 +183,7 @@ func (q *Queries) ListCalendarEventsVisibleToParent(ctx context.Context, arg Lis
 			&i.AllDay,
 			&i.Location,
 			&i.CreatedAt,
+			&i.NeutralTitle,
 			&i.AttendeeIds,
 		); err != nil {
 			return nil, err
@@ -146,7 +197,7 @@ func (q *Queries) ListCalendarEventsVisibleToParent(ctx context.Context, arg Lis
 }
 
 const listCaregiverCalendarEventsVisibleToParent = `-- name: ListCaregiverCalendarEventsVisibleToParent :many
-SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at,
+SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.kind, e.title, e.starts_at, e.ends_at, e.all_day, e.location, e.created_at, e.neutral_title,
        COALESCE((SELECT array_agg(a.member_id) FROM calendar_event_attendees a WHERE a.event_id = e.id), '{}')::uuid[] AS attendee_ids
 FROM calendar_events e
 WHERE e.family_id = $1
@@ -175,6 +226,7 @@ type ListCaregiverCalendarEventsVisibleToParentRow struct {
 	AllDay        bool
 	Location      *string
 	CreatedAt     time.Time
+	NeutralTitle  bool
 	AttendeeIds   []uuid.UUID
 }
 
@@ -206,6 +258,7 @@ func (q *Queries) ListCaregiverCalendarEventsVisibleToParent(ctx context.Context
 			&i.AllDay,
 			&i.Location,
 			&i.CreatedAt,
+			&i.NeutralTitle,
 			&i.AttendeeIds,
 		); err != nil {
 			return nil, err
@@ -216,4 +269,88 @@ func (q *Queries) ListCaregiverCalendarEventsVisibleToParent(ctx context.Context
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockOwnedCalendarEventVisibleToParent = `-- name: LockOwnedCalendarEventVisibleToParent :one
+SELECT id, family_id, owner_member_id, visibility, kind, title, starts_at, ends_at, all_day, location, created_at, neutral_title FROM calendar_events
+WHERE family_id = $1 AND owner_member_id = $2 AND id = $3
+FOR UPDATE
+`
+
+type LockOwnedCalendarEventVisibleToParentParams struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	ID            uuid.UUID
+}
+
+// Mirrors access.CanParentRead with private visibility: only the owner can update.
+func (q *Queries) LockOwnedCalendarEventVisibleToParent(ctx context.Context, arg LockOwnedCalendarEventVisibleToParentParams) (CalendarEvent, error) {
+	row := q.db.QueryRow(ctx, lockOwnedCalendarEventVisibleToParent, arg.FamilyID, arg.OwnerMemberID, arg.ID)
+	var i CalendarEvent
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Kind,
+		&i.Title,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.AllDay,
+		&i.Location,
+		&i.CreatedAt,
+		&i.NeutralTitle,
+	)
+	return i, err
+}
+
+const updateOwnedCalendarEvent = `-- name: UpdateOwnedCalendarEvent :one
+UPDATE calendar_events SET title = $4, starts_at = $5, ends_at = $6,
+    all_day = $7, location = $8, visibility = $9, neutral_title = $10
+WHERE family_id = $1 AND owner_member_id = $2 AND id = $3
+RETURNING id, family_id, owner_member_id, visibility, kind, title, starts_at, ends_at, all_day, location, created_at, neutral_title
+`
+
+type UpdateOwnedCalendarEventParams struct {
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	ID            uuid.UUID
+	Title         string
+	StartsAt      time.Time
+	EndsAt        pgtype.Timestamptz
+	AllDay        bool
+	Location      *string
+	Visibility    string
+	NeutralTitle  bool
+}
+
+func (q *Queries) UpdateOwnedCalendarEvent(ctx context.Context, arg UpdateOwnedCalendarEventParams) (CalendarEvent, error) {
+	row := q.db.QueryRow(ctx, updateOwnedCalendarEvent,
+		arg.FamilyID,
+		arg.OwnerMemberID,
+		arg.ID,
+		arg.Title,
+		arg.StartsAt,
+		arg.EndsAt,
+		arg.AllDay,
+		arg.Location,
+		arg.Visibility,
+		arg.NeutralTitle,
+	)
+	var i CalendarEvent
+	err := row.Scan(
+		&i.ID,
+		&i.FamilyID,
+		&i.OwnerMemberID,
+		&i.Visibility,
+		&i.Kind,
+		&i.Title,
+		&i.StartsAt,
+		&i.EndsAt,
+		&i.AllDay,
+		&i.Location,
+		&i.CreatedAt,
+		&i.NeutralTitle,
+	)
+	return i, err
 }

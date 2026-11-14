@@ -7,11 +7,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/calendar"
 )
 
 var (
+	errNoCalendarEvent   = Error{Code: "not_found", Message: "no such calendar event"}
 	errCalendarForbidden = Error{Code: "forbidden", Message: "you may only see your own schedule"}
 	errBadWindow         = Error{Code: "bad_window", Message: "from and to must be dates at most 31 days apart, to not before from"}
 	errBadAttendee       = Error{Code: "bad_attendee", Message: "every attendee must be a person in this family"}
@@ -22,7 +24,7 @@ func calendarEventOut(e calendar.Event) CalendarEvent {
 	out := CalendarEvent{
 		Id: e.ID, Kind: CalendarEventKind(e.Kind), Title: e.Title, StartsAt: e.StartsAt, EndsAt: e.EndsAt, AllDay: e.AllDay,
 		Location: e.Location, OwnerId: e.OwnerID, AttendeeIds: e.AttendeeIDs, Visibility: CalendarVisibility(e.Visibility),
-		ShiftId: e.ShiftID, TaskId: e.TaskID,
+		ShiftId: e.ShiftID, TaskId: e.TaskID, NeutralTitle: &e.NeutralTitle,
 	}
 	if out.AttendeeIds == nil {
 		out.AttendeeIds = []uuid.UUID{}
@@ -100,6 +102,9 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 		Kind: string(b.Kind), Title: b.Title, StartsAt: b.StartsAt, EndsAt: b.EndsAt, Location: b.Location,
 		Attendees: attendees, Visibility: string(b.Visibility),
 	}
+	if b.NeutralTitle != nil {
+		in.NeutralTitle = *b.NeutralTitle
+	}
 	if b.AllDay != nil {
 		in.AllDay = *b.AllDay
 	}
@@ -121,6 +126,35 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 // empty state on 501.
 
 func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
-func (s *Server) UpdateCalendarEvent(_ context.Context, _ UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
-	return UpdateCalendarEvent501JSONResponse(Error{Code: "not_implemented", Message: "the calendar is not available yet"}), nil
+func (s *Server) UpdateCalendarEvent(ctx context.Context, req UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
+	family, actor, kind, err := s.actingPerson(ctx, req.MemberId)
+	switch {
+	case err != nil:
+		return nil, err
+	case kind == errUnauthorized:
+		return UpdateCalendarEvent401JSONResponse(errNoSession), nil
+	case kind != errNone:
+		return UpdateCalendarEvent404JSONResponse(errNoMember), nil
+	case !isParentRole(actor.Role):
+		return UpdateCalendarEvent403JSONResponse(errForbidden), nil
+	}
+	b := req.Body
+	in := calendar.EventUpdate{Title: b.Title, StartsAt: b.StartsAt, EndsAt: b.EndsAt, Location: b.Location,
+		AllDay: b.AllDay, Attendees: b.AttendeeIds, NeutralTitle: b.NeutralTitle}
+	if b.Visibility != nil {
+		visibility := string(*b.Visibility)
+		in.Visibility = &visibility
+	}
+	out, err := calendar.Update(ctx, s.pool, family, actor.ID, req.EventId, in, s.now(ctx))
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return UpdateCalendarEvent404JSONResponse(errNoCalendarEvent), nil
+	case errors.Is(err, calendar.ErrBadAttendee):
+		return UpdateCalendarEvent400JSONResponse(errBadAttendee), nil
+	case errors.Is(err, calendar.ErrBadTimes):
+		return UpdateCalendarEvent400JSONResponse(errBadTimes), nil
+	case err != nil:
+		return nil, err
+	}
+	return UpdateCalendarEvent200JSONResponse(calendarEventOut(out)), nil
 }
