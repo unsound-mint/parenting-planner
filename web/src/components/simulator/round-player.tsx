@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { SkillBars } from "@/components/simulator/skill-bars";
 import { StartRoundButton } from "@/components/simulator/start-round-button";
+import { PageFrame } from "@/components/shell/page";
 
 // Plays one round: a question, a tap, feedback at once, then the next. The
 // last screen scores the round and offers the one commit action.
@@ -69,7 +70,8 @@ export function RoundPlayer({ memberId, initial, calendarOpen }: { memberId: str
 
   const given = answers[question.id];
   return (
-    <main className="flex min-w-0 max-w-2xl flex-1 flex-col gap-6 px-4 pt-6 pb-16 md:px-8">
+    // One question at a time: the question keeps a reading measure instead of the page grid.
+    <PageFrame className="max-w-2xl">
       <Progress questions={round.questions} answers={answers} index={index} title={round.title} />
       <QuestionCard
         key={question.id}
@@ -80,7 +82,7 @@ export function RoundPlayer({ memberId, initial, calendarOpen }: { memberId: str
         onChoose={(choiceId) => answer(question, choiceId)}
         onNext={next}
       />
-    </main>
+    </PageFrame>
   );
 }
 
@@ -242,7 +244,7 @@ function Result({ memberId, round, calendarOpen }: { memberId: string; round: Si
   const suggestion = result.suggestedShift;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8 xl:grid-cols-[minmax(0,40rem)_minmax(0,22rem)] xl:justify-start">
+    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <section aria-labelledby="result-headline" className="flex min-w-0 flex-col gap-6">
         <div className="flex items-center gap-5">
           <ScoreRing correct={result.correct} total={result.total} />
@@ -279,7 +281,7 @@ function Result({ memberId, round, calendarOpen }: { memberId: string; round: Si
         </div>
       </section>
 
-      <aside className="xl:pt-1">
+      <aside className="min-w-0 @5xl:pt-1">
         <section aria-labelledby="after-title" className="rounded-2xl border border-border bg-card p-5">
           <h2 id="after-title" className="text-title">
             Your skills now
@@ -289,7 +291,7 @@ function Result({ memberId, round, calendarOpen }: { memberId: string; round: Si
           </div>
         </section>
       </aside>
-    </main>
+    </PageFrame>
   );
 }
 

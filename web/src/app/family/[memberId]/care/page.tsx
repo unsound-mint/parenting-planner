@@ -10,6 +10,7 @@ import { NextSessionTile } from "@/components/care/next-session-tile";
 import { SessionNoteCard } from "@/components/care/session-note-card";
 import { SlotPicker } from "@/components/care/slot-picker";
 import { WellbeingLinks } from "@/components/care/wellbeing-links";
+import { PageFrame, PageGrid } from "@/components/shell/page";
 import { familyNow } from "@/lib/clock";
 
 // "Care": the psychologist agenda, booking and the note after a session.
@@ -71,8 +72,8 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
   else if (topics.length > 0) headline = `${topics.length} ${topics.length === 1 ? "topic is" : "topics are"} ready. Pick a time.`;
 
   return (
-    <main className="grid flex-1 gap-8 px-4 pt-6 pb-16 md:px-8">
-      <section aria-labelledby="care-headline" className="flex min-w-0 max-w-5xl flex-col gap-6">
+    <PageFrame>
+      <section aria-labelledby="care-headline" className="flex min-w-0 flex-col gap-6">
         <div>
           <h1 id="care-headline" className="max-w-2xl text-headline text-balance">
             {headline}
@@ -86,7 +87,8 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
         {!agenda ? (
           <Unavailable />
         ) : (
-          <div className="flex max-w-2xl flex-col gap-3">
+          // The session step, the agenda and the wellbeing links: two across, three on the widest screens.
+          <PageGrid cols={3}>
             {noteDue ? (
               <SessionNoteCard memberId={memberId} booking={noteDue} />
             ) : next ? (
@@ -96,11 +98,10 @@ function CareView({ memberId, name, agenda, slots, entries, questionnaires, now 
             ) : null}
             <AgendaCard memberId={memberId} topics={topics} />
             <WellbeingLinks memberId={memberId} entries={entries} questionnaires={questionnaires} />
-          </div>
+          </PageGrid>
         )}
       </section>
-
-    </main>
+    </PageFrame>
   );
 }
 
