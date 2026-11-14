@@ -2367,6 +2367,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/postcard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * This week's postcard for the acting person
+         * @description One card for the family circle: the baby's size this week (pregnancy)
+         *     or what babies do about now (after birth), one line the parents chose
+         *     to share, and the love already sent. Built from the same reference
+         *     content as getPregnancyWeek and getStageNow, never from a diary, mood
+         *     check-in, lab or session note.
+         *
+         *     - Mother and partner: the card as a grandparent sees it, plus every
+         *       love received in the last 7 days.
+         *     - Grandparent: pregnancy needs the pregnancy_updates permission and
+         *       the baby stage needs baby_passport, otherwise 403. loves holds only
+         *       what this grandparent sent.
+         *     - Nanny: always 403. The postcard is for family.
+         *
+         *     409 not_available when there is nothing to show yet: planning
+         *     families, and a baby stage with no child on record.
+         */
+        get: operations["getPostcard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/postcard/line": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Write or clear this week's line on the postcard
+         * @description Mother or partner (a caregiver gets 403). One line per family and
+         *     week: the second parent to save replaces the first, and a new week
+         *     starts empty. An empty text clears the line. The line is shown to
+         *     every grandparent with access to the postcard, so the screen says
+         *     so next to the field. Returns the postcard as the parent sees it.
+         */
+        put: operations["setPostcardLine"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/postcard/love": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a heart, with an optional short message, to the parents
+         * @description A grandparent who may read the postcard (see getPostcard). Parents
+         *     and nannies get 403. Both parents get a love_sent notification,
+         *     at most one per grandparent and day so a tapping hand does not fill
+         *     the bell; every heart is still kept and shown in loves. The
+         *     notification title never carries the message. Returns the postcard
+         *     as this grandparent sees it.
+         */
+        post: operations["sendPostcardLove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/calendar-feed": {
         parameters: {
             query?: never;
@@ -5466,10 +5582,12 @@ export interface components {
          *     caregiver the recipient invited joined (invitation);
          *     subscription_started = the family's paid plan started (both
          *     parents); labour_started = the other parent tapped "Going to the
-         *     hospital" (entityId: the sender, createLabourAlert).
+         *     hospital" (entityId: the sender, createLabourAlert);
+         *     love_sent = a grandparent sent love from the postcard (both parents;
+         *     entityId and actorId: the grandparent).
          * @enum {string}
          */
-        NotificationKind: "task_offered" | "task_offer_answered" | "handoff_received" | "handoff_accepted" | "plan_item_due" | "value_flagged" | "appointment_reminder" | "invitation_accepted" | "subscription_started" | "labour_started";
+        NotificationKind: "task_offered" | "task_offer_answered" | "handoff_received" | "handoff_accepted" | "plan_item_due" | "value_flagged" | "appointment_reminder" | "invitation_accepted" | "subscription_started" | "labour_started" | "love_sent";
         Notification: {
             /** Format: uuid */
             id: string;
@@ -5499,6 +5617,55 @@ export interface components {
         NotificationReadInput: {
             /** @description Leave out to mark all as read. */
             ids?: string[];
+        };
+        Postcard: {
+            /** @enum {string} */
+            kind: "pregnancy" | "baby";
+            stage: components["schemas"]["Stage"];
+            /**
+             * @description "Week 25" or "Week 8 of life", "4 years".
+             * @example Week 25
+             */
+            period: string;
+            /**
+             * @description The size line in pregnancy ("About the size of a zucchini") or the stage headline after birth.
+             * @example About the size of a zucchini
+             */
+            headline: string;
+            /**
+             * @description Pregnancy only. The size comparison, for the illustration.
+             * @example a zucchini
+             */
+            comparison?: string;
+            /** @description One plain sentence on what is happening now. Pregnancy uses the development line of the weekly card. */
+            detail?: string;
+            source: components["schemas"]["Source"];
+            line?: components["schemas"]["PostcardLine"];
+            /** @description Newest first, last 7 days, at most 20. Parents see every heart received, a grandparent only their own. */
+            loves: components["schemas"]["PostcardLove"][];
+            /** @description True when the acting grandparent already sent a heart on the family's today. Always false for parents. */
+            loveSentToday: boolean;
+        };
+        PostcardLine: {
+            text: string;
+            authorName: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PostcardLove: {
+            /** Format: uuid */
+            id: string;
+            fromName: string;
+            message?: string;
+            /** Format: date-time */
+            sentAt: string;
+        };
+        PostcardLineInput: {
+            /** @description Empty clears this week's line. */
+            text: string;
+        };
+        PostcardLoveInput: {
+            message?: string;
         };
         /**
          * @description mine = the person's own events and shifts; family = what scope family shows them (parents only).
@@ -12103,6 +12270,233 @@ export interface operations {
             };
             /** @description Error */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPostcard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Postcard"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    setPostcardLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostcardLineInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Postcard"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    sendPostcardLove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostcardLoveInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Postcard"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

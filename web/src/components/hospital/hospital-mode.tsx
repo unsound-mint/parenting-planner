@@ -5,13 +5,15 @@ import { HOSPITAL_BAGS, bagProgress } from "@/lib/hospital";
 import { bagIcon, bagLabel } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { ProgressRing } from "@/components/plan/hospital-bags";
-import { PageGrid, Stack } from "@/components/shell/page";
+import { SoftCard } from "@/components/joy/soft-card";
+import { Stack } from "@/components/shell/page";
 import { TellPartner } from "./tell-partner";
 
-// "Going to the hospital": one screen for the moment labour starts. Big targets,
-// no reading needed: who to call, tell your partner, the route, what is in
-// the bags and what is missing, the papers to bring. Everything is read from the
-// birth plan and the bag tasks; nothing is typed in here.
+// "Going to the hospital": the cards for the moment labor starts, as cells of
+// the page grid. Big targets, no reading needed: tell your partner, who to
+// call, the route, what is still missing from the bags and the papers to
+// bring. Everything is read from the birth plan and the bag tasks. The birth
+// preferences live in the "Before the day" list, so they are not repeated here.
 export function HospitalMode({
   plan,
   bags,
@@ -29,84 +31,49 @@ export function HospitalMode({
   const missing = bags?.filter((t) => !t.done) ?? [];
   const progress = bags ? bagProgress(bags) : undefined;
   return (
-    <PageGrid cols={3}>
-      <Stack className="gap-3">
-        {partner && <TellPartner memberId={memberId} name={partner.name} />}
-        {contacts.map((c) => (
-          <a
-            key={c.label}
-            href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
-            className="flex min-h-16 items-center gap-4 rounded-2xl border border-border bg-card px-5 py-3 transition-colors duration-150 hover:bg-muted"
-          >
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground">
-              <Phone className="size-5" aria-hidden />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-title">{c.name}</span>
-              <span className="block text-label font-normal text-muted-foreground">{c.label}</span>
-            </span>
-            <span className="font-mono text-label">{c.phone}</span>
-          </a>
-        ))}
-      </Stack>
-
+    <>
       <Stack>
-        <section aria-labelledby="route-title" className="rounded-2xl border border-border bg-card p-5">
-          <h2 id="route-title" className="sr-only">
-            Route
-          </h2>
-          <div className="flex items-start gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground">
-              <MapPinned className="size-5" aria-hidden />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-title">{hospital.name}</p>
-              <p className="text-label font-normal text-muted-foreground">{hospital.address}</p>
-            </div>
-          </div>
-          {hospital.travelMinutes != null && (
-            <p className="mt-4 flex items-baseline gap-2">
-              <Car className="size-4.5 self-center text-muted-foreground" aria-hidden />
-              <span className="font-mono text-display">{hospital.travelMinutes}</span>
-              <span className="text-label font-normal text-muted-foreground">min by car without traffic</span>
-            </p>
-          )}
-          {hospital.mapsUrl && (
-            <a
-              href={hospital.mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-secondary text-label font-semibold text-secondary-foreground transition-colors duration-150 hover:bg-muted"
-            >
-              Open the route
-            </a>
-          )}
-        </section>
+        <SoftCard as="section" aria-labelledby="calls-title" className="flex flex-col gap-3">
+          <h3 id="calls-title" className="text-title">
+            When it starts
+          </h3>
+          {partner && <TellPartner memberId={memberId} name={partner.name} />}
+          <ul className="flex flex-col gap-2">
+            {contacts.map((c) => (
+              <li key={c.label}>
+                <a
+                  href={`tel:${c.phone.replace(/[^\d+]/g, "")}`}
+                  className="press flex min-h-16 items-center gap-3 rounded-2xl bg-muted/70 px-4 py-2.5 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-them-soft text-them">
+                    <Phone className="size-4.5" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-label font-semibold">{c.name}</span>
+                    <span className="block text-caption text-muted-foreground">{c.label}</span>
+                  </span>
+                  <span className="font-mono text-label">{c.phone}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </SoftCard>
 
-        {plan.preferencesNote && (
-          <p className="rounded-2xl border border-border bg-card p-5 text-body">
-            <span className="block text-label font-medium text-muted-foreground">Birth preferences to share</span>
-            {plan.preferencesNote}
-          </p>
-        )}
-      </Stack>
-
-      <Stack className="@4xl:col-span-2 @7xl:col-span-1">
         {bags && progress && (
-          <section aria-labelledby="bags-title" className="rounded-2xl border border-border bg-card p-5">
+          <SoftCard as="section" aria-labelledby="bags-title" className="flex flex-col gap-4">
             <div className="flex items-center gap-4">
               <ProgressRing done={progress.done} total={progress.total} />
               <div className="min-w-0 flex-1">
-                <h2 id="bags-title" className="text-title">
-                  {missing.length === 0 ? "Bags are packed" : `${missing.length} to pack`}
-                </h2>
+                <h3 id="bags-title" className="text-title">
+                  {missing.length === 0 ? "Bags are packed" : `${missing.length} left to pack`}
+                </h3>
                 <Link href={`/family/${memberId}/plan`} className="inline-flex min-h-11 items-center text-label text-primary hover:underline md:min-h-0">
                   Open the bag lists
                 </Link>
               </div>
             </div>
             {missing.length > 0 && (
-              <ul className="mt-3 flex flex-col gap-3">
+              <ul className="flex flex-col gap-3">
                 {HOSPITAL_BAGS.map((bag) => {
                   const left = missing.filter((t) => t.bag === bag);
                   if (left.length === 0) return null;
@@ -119,7 +86,7 @@ export function HospitalMode({
                       </p>
                       <ul className="mt-1.5 flex flex-wrap gap-1.5">
                         {left.map((t) => (
-                          <li key={t.id} className="rounded-full bg-status-due-soft px-2.5 py-1 text-caption text-status-due">
+                          <li key={t.id} className="rounded-full bg-sun px-3 py-1 text-caption text-ink-2">
                             {t.title}
                           </li>
                         ))}
@@ -129,22 +96,52 @@ export function HospitalMode({
                 })}
               </ul>
             )}
-          </section>
+          </SoftCard>
         )}
+      </Stack>
 
-        <section aria-labelledby="docs-title" className="rounded-2xl border border-border bg-card p-5">
-          <h2 id="docs-title" className="flex items-center gap-2 text-title">
-            <FileText className="size-4.5 text-muted-foreground" aria-hidden />
+      <SoftCard as="section" aria-labelledby="route-title" className="flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-sun text-ink-2">
+            <MapPinned className="size-4.5" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 id="route-title" className="text-title">
+              {hospital.name}
+            </h3>
+            <p className="text-label font-normal text-muted-foreground">{hospital.address}</p>
+          </div>
+        </div>
+        {hospital.travelMinutes != null && (
+          <p className="flex items-baseline gap-2">
+            <Car className="size-4.5 self-center text-muted-foreground" aria-hidden />
+            <span className="font-mono text-display leading-none">{hospital.travelMinutes}</span>
+            <span className="text-label font-normal text-muted-foreground">min by car without traffic</span>
+          </p>
+        )}
+        {hospital.mapsUrl && (
+          <a
+            href={hospital.mapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="press flex min-h-12 items-center justify-center gap-2 rounded-full bg-me text-label font-semibold text-primary-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            Open the route
+          </a>
+        )}
+        <div className="border-t border-line pt-4">
+          <h4 className="flex items-center gap-2 text-label font-semibold">
+            <FileText className="size-4 text-muted-foreground" aria-hidden />
             Bring these
-          </h2>
-          <ul className="mt-2 divide-y divide-border">
+          </h4>
+          <ul className="mt-2 flex flex-col gap-2.5">
             {documents.map((d) => (
-              <li key={d.title} className="flex items-start gap-3 py-2.5">
-                <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full", d.ready ? "bg-status-ok text-primary-foreground" : "border-2 border-border")}>
+              <li key={d.title} className="flex items-start gap-3">
+                <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full", d.ready ? "bg-leaf text-primary-foreground" : "border-2 border-line-2")}>
                   {d.ready && <Check className="size-3" strokeWidth={3} aria-hidden />}
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-label font-semibold">
+                  <span className="block text-label">
                     {d.title}
                     <span className="sr-only">{d.ready ? ", ready" : ", not ready"}</span>
                   </span>
@@ -153,8 +150,9 @@ export function HospitalMode({
               </li>
             ))}
           </ul>
-        </section>
-      </Stack>
-    </PageGrid>
+        </div>
+      </SoftCard>
+
+    </>
   );
 }
