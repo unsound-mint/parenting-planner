@@ -18,6 +18,9 @@ type Facts struct {
 	CareTeam map[string]bool
 	// The viewing parent's own mood check-ins from the last 14 days, newest first.
 	RecentMoods []MoodSample
+	// The viewing parent's own mood questionnaires from the last year, newest
+	// first. Never the other parent's, even when shared.
+	MoodScreenings []ScreeningSample
 	// When the viewing parent last wrote a note after a psychologist session
 	// (last 14 days only), and whether they have a next session booked. Never
 	// the note text.

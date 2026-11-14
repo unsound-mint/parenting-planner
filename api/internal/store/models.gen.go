@@ -121,6 +121,19 @@ type MoodCheckin struct {
 	Note          *string
 }
 
+type MoodScreening struct {
+	ID            uuid.UUID
+	FamilyID      uuid.UUID
+	OwnerMemberID uuid.UUID
+	Visibility    string
+	TakenAt       time.Time
+	Instrument    string
+	Answers       []int16
+	Score         int16
+	Band          string
+	Urgent        bool
+}
+
 type Notification struct {
 	ID                uuid.UUID
 	FamilyID          uuid.UUID

@@ -180,6 +180,21 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 		}
 	}
 
+	// Only the viewer's own questionnaires feed their plan.
+	screens, err := q.ListMoodScreeningsVisibleToParent(ctx, store.ListMoodScreeningsVisibleToParentParams{
+		FamilyID: familyID, ViewerID: memberID, Since: now.AddDate(-1, 0, 0),
+	})
+	if err != nil {
+		return rules.Facts{}, err
+	}
+	for _, s := range screens {
+		if s.OwnerMemberID == memberID {
+			f.MoodScreenings = append(f.MoodScreenings, rules.ScreeningSample{
+				At: s.TakenAt, Instrument: s.Instrument, Score: int(s.Score), Band: rules.Band(s.Band), Urgent: s.Urgent,
+			})
+		}
+	}
+
 	// Only the viewer's own session notes and bookings; the plan sees when a
 	// note was written, never its text.
 	notes, err := q.ListSessionNotesVisibleToParent(ctx, store.ListSessionNotesVisibleToParentParams{
