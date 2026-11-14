@@ -2,7 +2,7 @@ import { mockNow } from "@/lib/clock";
 import type { Family, Task } from "@/lib/api/types";
 import { inLossSupport } from "@/lib/loss";
 import { mock } from "../registry";
-import { childEvents, childTaskPlan, dayOf, events, olderStage, planningTaskPlan, taskId as familyTaskId, taskPlan } from "../timeline";
+import { childEvents, childTaskPlan, dayOf, events, isNewborn, newbornTaskPlan, olderStage, planningTaskPlan, taskId as familyTaskId, taskPlan } from "../timeline";
 
 // Preview data for the Plan screen: the shared plan, US paperwork and the three
 // hospital bags of the demo family (Emily, partner Jake, due 2027-02-27). Dates
@@ -62,9 +62,35 @@ function seedOlder(family: Family, stage: "planning" | "child"): Task[] {
   ];
 }
 
+// The newborn family, seven weeks in. Own checkup and the 2-month vaccines are plan
+// items from the rules engine on This week, not repeated here. The paperwork that
+// follows a birth is done except for the return-to-work date; there are no hospital bags.
+function seedNewborn(family: Family): Task[] {
+  const mother = family.parents.find((p) => p.role === "mother")!.id;
+  const partner = family.parents.find((p) => p.role === "partner")!.id;
+  const now = today();
+  const born = family.children[0]?.birthDate ?? addDays(now, -49);
+  const t = (n: number, o: Partial<Task> & Pick<Task, "title" | "assigneeId">): Task => ({ id: taskId(family.id, n), kind: "task", done: false, ...o });
+  const paper = (n: number, o: Omit<Parameters<typeof t>[1], "dueOn"> & { offset: number }): Task => {
+    const { offset, ...rest } = o;
+    return t(n, { ...rest, kind: "paperwork", dueAnchor: "birth_date", dueOffsetDays: offset, dueOn: addDays(born, offset) });
+  };
+  return [
+    t(newbornTaskPlan.pumping.n, { title: newbornTaskPlan.pumping.title, assigneeId: mother, dueOn: dayOf(newbornTaskPlan.pumping.day), detail: "Ask about break time, a private room and a fridge, and give them the date you plan to return." }),
+    t(newbornTaskPlan.carSeat.n, { title: newbornTaskPlan.carSeat.title, assigneeId: partner, dueOn: dayOf(newbornTaskPlan.carSeat.day), detail: "Check them against the seat manual as Leo grows. Many fire stations check the install for free." }),
+    t(3, { title: "Take the Saturday morning feed block", assigneeId: partner, pendingAssigneeId: mother, dueOn: addDays(now, 5), detail: "Marcus offered to swap so you can sleep until 8 on Saturday." }),
+    t(4, { title: "Choose a pediatrician", assigneeId: mother, dueOn: addDays(born, -14), done: true }),
+    paper(5, { title: "Order copies of the birth certificate", assigneeId: partner, offset: 10, done: true }),
+    paper(6, { title: "Apply for Leo's Social Security number", assigneeId: partner, offset: 14, done: true, source: SSA }),
+    paper(7, { title: "Add Leo to your health insurance", assigneeId: mother, offset: 30, done: true, detail: "Most plans give 30 days after birth to add a newborn.", source: HEALTHCARE }),
+    paper(8, { title: "Tell HR your return-to-work date", assigneeId: mother, offset: 70 }),
+  ];
+}
+
 function seed(family: Family): Task[] {
   const stage = olderStage(family);
   if (stage) return seedOlder(family, stage);
+  if (isNewborn(family)) return seedNewborn(family);
   const mother = family.parents.find((p) => p.role === "mother")!.id;
   const partner = family.parents.find((p) => p.role === "partner")!.id;
   let n = 0;
