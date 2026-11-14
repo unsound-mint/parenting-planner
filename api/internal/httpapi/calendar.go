@@ -22,6 +22,7 @@ func calendarEventOut(e calendar.Event) CalendarEvent {
 	out := CalendarEvent{
 		Id: e.ID, Kind: CalendarEventKind(e.Kind), Title: e.Title, StartsAt: e.StartsAt, EndsAt: e.EndsAt, AllDay: e.AllDay,
 		Location: e.Location, OwnerId: e.OwnerID, AttendeeIds: e.AttendeeIDs, Visibility: CalendarVisibility(e.Visibility),
+		ShiftId: e.ShiftID,
 	}
 	if out.AttendeeIds == nil {
 		out.AttendeeIds = []uuid.UUID{}
