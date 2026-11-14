@@ -27,7 +27,10 @@ const Pregnancy Template = "pregnancy"
 var ErrUnknownTemplate = errors.New("unknown demo template")
 
 var seeds = map[Template]func(ctx context.Context, q *store.Queries, today time.Time) (uuid.UUID, error){
+	Planning:  seedPlanning,
 	Pregnancy: seedPregnancy,
+	Newborn:   seedNewborn,
+	Preschool: seedPreschool,
 }
 
 // Start seeds a family from the template and opens a session for it.
