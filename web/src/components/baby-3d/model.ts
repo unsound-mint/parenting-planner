@@ -89,8 +89,8 @@ const KEYS: Key[] = [
   [16, { headR: 0.32, spineR: 0.29, neckDeg: 104, bottomDeg: 246, tailDeg: 246, chestR: 0.18, bellyR: 0.2, bottomR: 0.16, armLen: 0.3, legLen: 0.3, limbR: 0.062, ears: 1 }],
   [20, { headR: 0.3, spineR: 0.28, neckDeg: 106, bottomDeg: 242, tailDeg: 242, chestR: 0.19, bellyR: 0.21, bottomR: 0.18, armLen: 0.32, legLen: 0.36, limbR: 0.068, ears: 1 }],
   [26, { headR: 0.29, spineR: 0.27, neckDeg: 108, bottomDeg: 238, tailDeg: 238, chestR: 0.205, bellyR: 0.23, bottomR: 0.2, armLen: 0.34, legLen: 0.4, limbR: 0.078, ears: 1 }],
-  [32, { headR: 0.285, spineR: 0.26, neckDeg: 108, bottomDeg: 234, tailDeg: 234, chestR: 0.225, bellyR: 0.255, bottomR: 0.22, armLen: 0.35, legLen: 0.42, limbR: 0.09, ears: 1 }],
-  [40, { headR: 0.285, spineR: 0.255, neckDeg: 108, bottomDeg: 232, tailDeg: 232, chestR: 0.24, bellyR: 0.275, bottomR: 0.235, armLen: 0.36, legLen: 0.43, limbR: 0.1, ears: 1 }],
+  [32, { headR: 0.285, spineR: 0.26, neckDeg: 108, bottomDeg: 234, tailDeg: 234, chestR: 0.225, bellyR: 0.255, bottomR: 0.22, armLen: 0.35, legLen: 0.42, limbR: 0.08, ears: 1 }],
+  [40, { headR: 0.285, spineR: 0.255, neckDeg: 108, bottomDeg: 232, tailDeg: 232, chestR: 0.24, bellyR: 0.275, bottomR: 0.235, armLen: 0.36, legLen: 0.44, limbR: 0.085, ears: 1 }],
 ];
 
 
@@ -253,6 +253,25 @@ function facing(out: Vec3, up: Vec3): [Vec3, Vec3, Vec3] {
 
 const sphere = (pos: Vec3, r: number, tone: Tone = "skin"): Part => ({ pos, radii: [r, r, r], basis: [[1, 0, 0], [0, 1, 0], Z], tone });
 
+/** p, pulled back toward from so it is at most len away (a limb cannot reach further). */
+function reach(from: Vec3, p: Vec3, len: number): Vec3 {
+  const d = v.sub(p, from);
+  const l = v.len(d);
+  const max = len * 0.97;
+  return l > max ? v.add(from, v.mul(d, max / l)) : p;
+}
+
+/** The middle joint of a two-part limb of total length len from a to b, bent toward pole. */
+function joint(a: Vec3, b: Vec3, len: number, pole: Vec3): Vec3 {
+  const d = v.sub(b, a);
+  const dist = v.len(d);
+  const mid = v.add(a, v.mul(d, 0.5));
+  const h = Math.sqrt(Math.max(0, (len / 2) ** 2 - (dist / 2) ** 2));
+  const dn = v.norm(d);
+  const off = v.norm(v.sub(pole, v.mul(dn, v.dot(pole, dn))));
+  return v.add(mid, v.mul(off, h));
+}
+
 /** A soft limb segment from a to b: an ellipsoid that overlaps both joints. */
 function segment(a: Vec3, b: Vec3, r: number): Part {
   const d = v.sub(b, a);
@@ -399,59 +418,70 @@ export function layout(p: Params, m: Motion = STILL): Layout {
   const sac = v.add(belly.c, lin([belly.r + 0.05 + yr, belly.front], [0.07, Z], [0.03, belly.down]));
   parts.push({ ...segment(stalkFrom, sac, 0.016 * p.yolk), tone: "yolk" }, sphere(sac, yr, "yolk"));
 
-  // Arms fold up so the hands rest by the chin; legs tuck, knees toward the chest.
-  // Limb buds show from about week 6; the near hand drifts to the mouth mid-pregnancy.
-  const shoulder = torsoAt(0.14);
-  const hip = torsoAt(0.86);
+  // Limbs are placed by where they end up: hands by the chin, knees forward,
+  // feet tucked by the bottom, all on the sides of the body (the curl is nearly
+  // a ball, so there is no room inside the C). joint() bends each limb at a
+  // fixed length, so kicks, stretches and the thumb only move the end points.
+  // Limb buds show from about week 6; early, short limbs just point at their target.
   const limbR = p.limbR > 0.001 ? p.limbR : 0;
   const fingers = clamp01((p.digits - 0.4) / 0.6);
   const paddle = clamp01(p.digits / 0.4);
   const mouthPt = onHead(mouthDir, 1.1);
+  const chin = onHead(lin([1, faceDir], [-1.05, headUp]), 1.04);
+  const shoulder = torsoAt(0.1);
+  const hip = torsoAt(0.84);
+  const tuck = torsoAt(0.97);
+  // A newborn's hands rest in a loose fist; a stretch opens them.
+  const grip = Math.max(m.grip, 0.6 * (1 - m.stretch));
   const limbs: { hand: Vec3; elbow: Vec3; knee: Vec3; foot: Vec3 }[] = [];
   for (const sgn of [1, -1]) {
     const zs: Vec3 = [0, 0, sgn];
-    const s0 = v.add(shoulder.c, lin([shoulder.r * 0.55, zs], [shoulder.r * 0.35, shoulder.front]));
-    const elbowDir = v.norm(lin([0.6, shoulder.down], [0.7, shoulder.front], [0.3, zs]));
-    const elbow = v.add(s0, v.mul(elbowDir, p.armLen * 0.5));
-    // A stretch opens the elbow so the forearm carries on from the upper arm.
-    const foreDir = v.norm(lin([1 - m.stretch, lin([-0.85, shoulder.down], [0.45, shoulder.front], [-0.15, zs])], [m.stretch, elbowDir]));
-    const rest = v.add(elbow, v.mul(foreDir, p.armLen * 0.5));
-    const hand = sgn === 1 ? v.add(rest, v.mul(v.sub(mouthPt, rest), 0.7 * p.thumb * (1 - m.stretch))) : rest;
+    const s0 = v.add(shoulder.c, lin([shoulder.r * 0.8, zs], [shoulder.r * 0.1, shoulder.front]));
+    const rest = lin([1, chin], [hr * 0.3 * sgn, side], [hr * 0.35 * sgn, Z]);
+    // The near hand drifts to the mouth mid-pregnancy; a stretch reaches out and down.
+    const toMouth = sgn === 1 ? 0.85 * p.thumb : 0;
+    const reachOut = v.add(s0, v.mul(v.norm(lin([0.7, shoulder.front], [0.5, shoulder.down], [0.6, zs])), p.armLen));
+    const handAt = lin([(1 - toMouth) * (1 - m.stretch), rest], [toMouth * (1 - m.stretch), mouthPt], [m.stretch, reachOut]);
+    const hand = reach(s0, handAt, p.armLen);
+    const elbow = joint(s0, hand, p.armLen, lin([1, shoulder.down], [0.9, zs], [-0.2, shoulder.front]));
     const along = v.norm(v.sub(hand, elbow));
     const hb = alongY(along);
-    const hs = limbR * 1.3;
+    const hs = limbR * 1.2;
     parts.push(
       segment(s0, elbow, limbR),
-      segment(elbow, hand, limbR * 0.92),
+      segment(elbow, hand, limbR * 0.9),
       // A round bud, then a flat paddle, then a palm with fingers.
-      { pos: hand, radii: [hs * (1 + 0.18 * paddle), hs, hs * (1 - 0.3 * paddle)], basis: hb, tone: "skin" },
+      { pos: hand, radii: [hs * (1 + 0.15 * paddle), hs, hs * (1 - 0.3 * paddle)], basis: hb, tone: "skin" },
     );
     const fr = limbR * fingers;
     for (let j = 0; j < 4; j++) {
-      const open = lin([1, hand], [hs * 0.95, along], [(j - 1.5) * limbR * 0.48, hb[0]]);
-      // A grip pulls the fingertips back into the palm.
-      const f = v.add(open, v.mul(v.sub(lin([1, hand], [hs * 0.45, along], [(j - 1.5) * limbR * 0.4, hb[0]], [hs * 0.5, hb[2]]), open), m.grip));
-      parts.push({ pos: f, radii: [fr * 0.25, fr * 0.45, fr * 0.24], basis: hb, tone: "skin" });
+      const open = lin([1, hand], [hs * 0.95, along], [(j - 1.5) * limbR * 0.45, hb[0]]);
+      // Curled: the fingertips fold back over the palm, so they read as knuckles.
+      const curled = lin([1, hand], [hs * 0.55, along], [(j - 1.5) * limbR * 0.4, hb[0]], [hs * 0.45, hb[2]]);
+      parts.push({ pos: v.add(open, v.mul(v.sub(curled, open), grip)), radii: [fr * 0.25, fr * 0.42, fr * 0.24], basis: hb, tone: "skin" });
     }
-    parts.push({ pos: lin([1, hand], [hs * 0.3, along], [hs * 1.05, hb[0]]), radii: [fr * 0.34, fr * 0.48, fr * 0.32], basis: alongY(lin([0.6, along], [1, hb[0]])), tone: "skin" });
+    parts.push({ pos: lin([1, hand], [hs * 0.35, along], [hs * 0.95, hb[0]]), radii: [fr * 0.3, fr * 0.45, fr * 0.3], basis: alongY(lin([0.6, along], [1, hb[0]])), tone: "skin" });
 
-    const h0 = v.add(hip.c, lin([hip.r * 0.5, zs], [hip.r * 0.3, hip.front]));
-    // Legs part a little in z so the two feet do not pile up on one spot.
-    const thighDir = v.norm(lin([1, hip.front], [-0.35, hip.down], [0.55, zs]));
-    const knee = v.add(h0, v.mul(thighDir, p.legLen * 0.5));
-    // A kick (near leg) or a stretch (both) straightens the knee.
+    const lr = limbR * 1.05;
+    const h0 = v.add(hip.c, lin([hip.r * 0.75, zs], [hip.r * 0.1, hip.front]));
+    const tucked = lin([1, tuck.c], [tuck.r * 0.7, tuck.front], [tuck.r * 1.0, zs]);
+    // A kick (near leg) or a stretch (both) pushes the foot away, which straightens the knee.
     const straighten = Math.max(m.stretch, sgn === 1 ? m.kick : 0);
-    const shinDir = v.norm(lin([1 - straighten, lin([0.95, hip.down], [-0.1, hip.front], [0.18, zs])], [straighten, thighDir]));
-    const foot = v.add(knee, v.mul(shinDir, p.legLen * 0.5));
-    const lr = limbR * 1.15;
-    const toe = v.norm(lin([1 - 0.5 * straighten, lin([1, hip.front], [0.2, hip.down])], [0.5 * straighten, shinDir]));
+    const kickTo = v.add(h0, v.mul(v.norm(lin([0.55, hip.front], [0.8, hip.down], [0.35, zs])), p.legLen));
+    const foot = reach(h0, lin([1 - straighten, tucked], [straighten, kickTo]), p.legLen);
+    // Knees bend forward and up toward the chest, and a little outward.
+    const knee = joint(h0, foot, p.legLen, lin([1.5, hip.front], [-0.5, hip.down], [0.35, zs]));
+    const shin = v.norm(v.sub(foot, knee));
+    // The sole faces the bottom; toes point forward, across the shin.
+    const toe = v.norm(v.sub(hip.front, v.mul(shin, v.dot(hip.front, shin))));
     const fb = alongY(toe);
-    parts.push(segment(h0, knee, lr), segment(knee, foot, lr * 0.85), { pos: foot, radii: [lr * 1.05, lr * 1.6, lr * 0.95], basis: fb, tone: "skin" });
-    // Small and set into the tip of the foot, so two feet read as feet, not a pile of beads.
-    const tr = lr * 0.16 * fingers;
+    parts.push(segment(h0, knee, lr), segment(knee, foot, lr * 0.82), { pos: v.add(foot, v.mul(toe, lr * 0.35)), radii: [lr * 0.95, lr * 1.5, lr * 0.8], basis: fb, tone: "skin" });
+    // Small and set into the tip of the foot, in a row across it.
+    const across = v.norm(v.cross(toe, shin));
+    const tr = lr * 0.17 * fingers;
     for (let j = 0; j < 5; j++) {
-      // Big toe first, on the inner side; the rest step down in size.
-      parts.push(sphere(lin([1, foot], [lr * (1.38 - 0.07 * Math.abs(j - 1)), toe], [(j - 2) * lr * 0.26 * -sgn, fb[2]]), tr * (j === 0 ? 1.3 : 1 - 0.06 * j)));
+      // Big toe first; the rest step down in size and back along the curve.
+      parts.push(sphere(lin([1, foot], [lr * (1.6 - 0.03 * j * j), toe], [(j - 2) * lr * 0.3 * sgn, across], [lr * 0.25, shin]), tr * (j === 0 ? 1.35 : 1 - 0.06 * j)));
     }
     limbs.push({ hand, elbow, knee, foot });
   }
@@ -470,9 +500,10 @@ export function layout(p: Params, m: Motion = STILL): Layout {
   const anchors: Layout["anchors"] = {
     brain: surface(head, p.headR, lin([1, headUp], [0.35, Z], [-0.2, forward])),
     face: surface(head, p.headR, lin([1, faceDir], [0.25, headUp])),
-    eyes: surface(head, p.headR, eyeDir(1)),
+    // Beside the eye, at the temple, so the dot never sits on the eye itself.
+    eyes: surface(head, p.headR, lin([1, eyeDir(1)], [0.42, side], [0.12, headUp])),
     ears: surface(head, p.headR, earDir(-1)),
-    mouth: surface(head, p.headR, lin([1, faceDir], [-0.45, headUp], [-0.2, side])),
+    mouth: surface(head, p.headR, lin([1, faceDir], [-0.4, headUp], [-0.32, side])),
     heart: torso(0.22, (t) => lin([0.55, t.front], [0.85, Z])),
     lungs: torso(0.08, (t) => lin([0.1, t.out], [1, Z], [-0.2, t.down])),
     tummy: torso(0.58, (t) => lin([0.7, t.front], [0.75, Z])),
