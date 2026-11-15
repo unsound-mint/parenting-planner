@@ -8,6 +8,7 @@ import { familyNow } from "@/lib/clock";
 import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { JournalAndCare } from "@/components/care/journal-and-care";
+import { MoodHistory } from "@/components/care/mood-history";
 import { CareTeamCard, FindHelpCard, RecoveryCard, ScreeningCard } from "@/components/care/care-rows";
 import { shortName } from "@/components/care/names";
 import { recommend } from "@/components/directory/recommend";
@@ -77,8 +78,12 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
     <>
       {passport.data && <CareTeamCard memberId={memberId} team={team} />}
       {recovery.response.ok && me.role === "mother" && <RecoveryCard memberId={memberId} />}
-      {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
       {inPlanningJournal(fam) && <FertilityLinkCard memberId={memberId} />}
+    </>
+  );
+  const lead = (
+    <>
+      {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
       {providers.data && openTimes.data && <FindHelpCard memberId={memberId} picks={picks} next={nextVisit} now={now} />}
     </>
   );
@@ -98,7 +103,10 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           <p role="status" className="rounded-3xl border border-line bg-card p-6 text-label text-muted-foreground">
             Your journal is not loading right now. Nothing is lost; try again in a moment.
           </p>
-          <div className="grid min-w-0 items-start gap-6 @4xl:grid-cols-2">{cards}</div>
+          <div className="grid min-w-0 items-start gap-6 @4xl:grid-cols-2">
+            {cards}
+            {lead}
+          </div>
         </>
       ) : (
         <JournalAndCare
@@ -115,6 +123,8 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           checkins={checkins.data?.items ?? []}
           now={now.toISOString()}
           rail={cards}
+          lead={lead}
+          history={<MoodHistory memberId={memberId} now={now.toISOString()} />}
         />
       )}
     </PageFrame>

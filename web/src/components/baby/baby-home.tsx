@@ -11,6 +11,7 @@ import { careLogIcon, careLogLabel, careLogTint, diaperLabel, feedMethodLabel, r
 import { cn } from "@/lib/utils";
 import { AllergyChips, AllergyLabel, BabyCard } from "@/components/baby/baby-card";
 import { MilestoneCard } from "@/components/child/milestone-card";
+import { MilestoneTimeline } from "@/components/child/milestone-timeline";
 import { FeedLogger, QuickAdd, SleepLogger, WhenPicker, WhenProvider, type QuickAction } from "@/components/baby/care-logger";
 import { CareChart } from "@/components/baby/care-chart";
 import { AcceptHandoff, HandoffForm } from "@/components/baby/handoff-actions";
@@ -200,7 +201,10 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
 
       {milestones?.data && (
         <div className="min-w-0 @5xl:col-start-1">
-          <MilestoneCard memberId={memberId} childId={child.id} checklist={milestones.data} />
+          <MilestoneCard key={milestones.data.recorded.map((r) => r.id + r.observedOn).join()} memberId={memberId} childId={child.id} checklist={milestones.data} />
+          <div className="mt-6">
+            <MilestoneTimeline key={milestones.data.recorded.map((r) => r.id + r.observedOn).join()} memberId={memberId} child={child} recorded={milestones.data.recorded} daysAhead={family.demoDaysAhead ?? 0} />
+          </div>
         </div>
       )}
     </PageFrame>

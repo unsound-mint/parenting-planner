@@ -9,6 +9,7 @@ import { categoryIcon, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { BabyCard } from "@/components/baby/baby-card";
 import { MilestoneCard } from "@/components/child/milestone-card";
+import { MilestoneTimeline } from "@/components/child/milestone-timeline";
 import { VaccineTimeline } from "@/components/passport/vaccine-timeline";
 import { ShiftCard } from "@/components/schedule/shift-card";
 import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
@@ -89,7 +90,8 @@ export async function ChildHome({ memberId, family }: { memberId: string; family
         </Stack>
       </PageGrid>
 
-      {milestones.data && <MilestoneCard memberId={memberId} childId={child.id} checklist={milestones.data} />}
+      {milestones.data && <MilestoneCard key={milestones.data.recorded.map((r) => r.id + r.observedOn).join()} memberId={memberId} childId={child.id} checklist={milestones.data} />}
+      {milestones.data && <MilestoneTimeline key={milestones.data.recorded.map((r) => r.id + r.observedOn).join()} memberId={memberId} child={child} recorded={milestones.data.recorded} daysAhead={family.demoDaysAhead ?? 0} />}
     </PageFrame>
   );
 }

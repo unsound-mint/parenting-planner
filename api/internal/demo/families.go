@@ -8,6 +8,7 @@ package demo
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/unsound-mint/parenting-planner/api/internal/access"
+	"github.com/unsound-mint/parenting-planner/api/internal/milestones"
 	"github.com/unsound-mint/parenting-planner/api/internal/rules"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 	"github.com/unsound-mint/parenting-planner/api/internal/storybook"
@@ -134,6 +136,24 @@ func (s *seeder) mood(owner uuid.UUID, visibility string, daysAgo, mood, energy 
 		RecordedAt: s.today.AddDate(0, 0, -daysAgo).Add(20 * time.Hour),
 		Mood:       int16(mood), Energy: int16(energy), SleepHours: sleep, Note: n,
 	})
+}
+
+// moodHistory records older check-ins, one every few days from 182 to 35 days
+// ago, so the six-month and one-year mood views have something to show. They
+// stay out of the default 30 day list, the 7 day patterns and the 14 day brief.
+// level gives mood and sleep for a day that many days ago; the evening hour
+// varies a little, on the family's clock.
+func (s *seeder) moodHistory(owner uuid.UUID, visibility string, level func(daysAgo int) (mood int, sleep float64)) {
+	for i, daysAgo := 0, 182; daysAgo >= 35 && s.err == nil; i, daysAgo = i+1, daysAgo-[]int{3, 4, 5, 4}[i%4] {
+		mood, sleep := level(daysAgo)
+		mood = min(5, max(1, mood))
+		energy := min(5, max(1, mood-1+i%2))
+		_, s.err = s.q.CreateMoodCheckin(s.ctx, store.CreateMoodCheckinParams{
+			FamilyID: s.fam, OwnerMemberID: owner, Visibility: visibility,
+			RecordedAt: atHour(s.today.AddDate(0, 0, -daysAgo), 19+i%3),
+			Mood:       int16(mood), Energy: int16(energy), SleepHours: sleep,
+		})
+	}
 }
 
 // moodScreening records a scored questionnaire daysAgo days before today.
@@ -282,6 +302,23 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.mood(marcus, "private", 2, 2, 2, 4, "")
 	s.mood(marcus, "private", 4, 2, 2, 5, "")
 	s.moodScreening(aisha, "private", rules.EPDS, 14, []int{1, 1, 1, 1, 0, 1, 0, 0, 0, 0})
+	// Months before: a steady pregnancy, tired at the end, the hard first weeks after Leo.
+	s.moodHistory(aisha, "partner", func(d int) (int, float64) {
+		switch {
+		case d > 120:
+			return 4 + d%2, 7.5
+		case d > 56:
+			return 3 + d%2, 6.5
+		default:
+			return 2 + d%2, 4.5
+		}
+	})
+	s.moodHistory(marcus, "private", func(d int) (int, float64) {
+		if d > 56 {
+			return 4, 7
+		}
+		return 3 - d%2, 5
+	})
 	s.learning(Newborn, aisha, marcus)
 	s.missions(Newborn, aisha, marcus)
 	fam, err := s.done()
@@ -537,6 +574,14 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		s.mood(rachel, "partner", m.daysAgo, m.mood, 3, 7, "")
 	}
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
+	// Months before: mostly good, with a run of short nights when Ava started preschool.
+	s.moodHistory(rachel, "partner", func(d int) (int, float64) {
+		if d > 70 && d < 100 {
+			return 2 + d%2, 5.5
+		}
+		return 4 - d%3/2, 7
+	})
+	s.moodHistory(tom, "partner", func(d int) (int, float64) { return 4 - d%4/3, 7.5 })
 	s.event(rachel, tom, "appointment", "Ava's flu shot at Foothills Children's Clinic", 3, 16, "family")
 	s.event(rachel, tom, "other", "Parent-teacher meeting at Ava's preschool", 5, 17, "family")
 	s.learning(Preschool, rachel, tom)
@@ -544,6 +589,30 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 	fam, err := s.done()
 	if err != nil {
 		return uuid.Nil, err
+	}
+	// Firsts the parents ticked over the years, each on the day they saw it, so
+	// Ava's timeline reaches back to her first birthday. None from the 5 year
+	// list she is working through now.
+	for _, m := range []struct {
+		id     string
+		years  int
+		months int
+		days   int
+	}{
+		{"12m-language-wave", 0, 11, 9}, {"12m-movement-cruise", 0, 11, 20}, {"18m-movement-walk", 1, 1, 4},
+		{"18m-language-words", 1, 4, 12}, {"2y-language-words", 1, 10, 3}, {"2y-movement-run", 1, 11, 15},
+		{"3y-language-name", 2, 9, 2}, {"3y-movement-fork", 3, 0, 18}, {"4y-language-sentences", 3, 8, 6},
+		{"4y-social-pretend", 3, 10, 21}, {"4y-social-comfort", 4, 0, 9},
+	} {
+		if _, _, ok := milestones.Find(m.id); !ok {
+			return uuid.Nil, fmt.Errorf("demo: unknown milestone %q", m.id)
+		}
+		if err := q.AddChildMilestoneObservation(ctx, store.AddChildMilestoneObservationParams{
+			FamilyID: fam, ChildID: ava, MilestoneID: m.id, ObservedOn: born.AddDate(m.years, m.months, m.days),
+			SetByMemberID: uuid.NullUUID{UUID: rachel, Valid: true},
+		}); err != nil {
+			return uuid.Nil, err
+		}
 	}
 	// Ava at birth, six months and every birthday so far.
 	if err := childMonths(ctx, q, fam, ava, born, 0, 6, 12, 24, 36, 48); err != nil {
