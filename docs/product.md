@@ -29,11 +29,11 @@ Why they come back tomorrow: the plan changes as the data and the stage change, 
 | Tier | Price | What is in it |
 | --- | --- | --- |
 | Free | $0 | Stage guide, health passport, crisis and help contacts |
-| Plus | ~$29/mo | Weekly plan for both parents, full data hub, pattern insights, partner layer |
+| Plus | $14.99/mo or $119.99/yr | Weekly plan for both parents, full data hub, pattern insights, partner layer |
 | Concierge | ~$99/mo | Plus a human care navigator and one psychologist session a month |
 | Marketplace | take rate | Bookings with providers in the ecosystem |
 
-At a blended $250 to $600 a year, $100M ARR needs roughly 170k to 400k paying families, about 5% to 11% of one year's US births, retained across a 9-year journey.
+On Plus alone ($120 to $180 a year), $100M ARR needs roughly 560k to 830k paying families, 15% to 23% of one year's US births. A blended $250 to $600 a year, with Concierge and bookings on top, would need 170k to 400k. Working: [business-case.md](business-case.md).
 
 ## Product principles
 
@@ -57,7 +57,7 @@ The demo has no login (contest rule): visitors get a fresh copy of the demo fami
 ## Decisions at submission
 
 - Track: Skills. Parents learn newborn care and how to split it by practising, not only reading.
-- Prices as built in `web/src/lib/plans.ts`: Free, Plus $29 a month, Concierge $99 a month. Checkout runs in Stripe test mode.
+- Prices as built in `web/src/lib/plans.ts`: Free, Plus $14.99 a month or $119.99 a year, Concierge $99 a month. Checkout runs in Stripe test mode. `plans.ts` and the Stripe prices must match this before submission.
 - Working name: Parenting Planner (`web/src/lib/product.ts`).
 - Four demo families: planning, 25 weeks pregnant, newborn, preschooler (`web/src/lib/demo-families.ts`).
 - Not checked before the deck: Nanit, Tinyhood, Oath Care, Juniper and Mae. Do not claim nobody does this until they are.
