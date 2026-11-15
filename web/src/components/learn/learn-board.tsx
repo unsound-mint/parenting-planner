@@ -14,9 +14,8 @@ import { LessonGrid, type Talked } from "./lesson-list";
 import { LessonSheet } from "./lesson-sheet";
 import { PathCover } from "./path-cover";
 import { PathList } from "./path-list";
-import { QuizCard } from "./quiz-card";
 import { TalkCard } from "./talk-card";
-import { bothFinished, heroPath, minutesLeft, minutesWord, nextLesson, progressOf, putRead, readOf, withLesson, type Couple } from "./model";
+import { bothFinished, heroPath, minutesLeft, minutesWord, nextLesson, progressOf, putRead, readOf, withLesson, withQuizResult, type Couple } from "./model";
 
 const scrollBehavior = (): ScrollBehavior => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 
@@ -119,25 +118,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
       toast.error("Could not save your answer. Please try again.");
       return false;
     }
-    const r = res.data;
-    setPaths((ps) =>
-      withLesson(ps, q.lessonId, (l) => ({
-        ...l,
-        quiz: l.quiz.map((x) =>
-          x.id !== q.id
-            ? x
-            : {
-                ...x,
-                correctChoiceId: r.correctChoiceId,
-                explanation: r.explanation,
-                answers: [
-                  { memberId: me.id, choiceId, correct: r.correct, answeredAt: new Date().toISOString() },
-                  ...(r.partnerAnswer ? [r.partnerAnswer] : x.answers.filter((a) => a.memberId !== me.id)),
-                ],
-              },
-        ),
-      })),
-    );
+    setPaths((ps) => withQuizResult(ps, q, me.id, choiceId, res.data));
     return true;
   }
 
@@ -156,12 +137,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     }
   }
 
-  // The rail's quiz: the lesson to read next, else the first open lesson with a question left.
   const opened = path.lessons.find((l) => l.id === openId);
-  const unanswered = (l: Lesson) => l.quiz.some((q) => !q.answers.some((a) => a.memberId === me.id));
-  // When every open question is answered, the first answered one stays, so the comparison with the partner is still there.
-  const quizLesson = [nextLesson(path, me), ...path.lessons.filter(unanswered), ...path.lessons].find((l) => l && l.quiz.length > 0);
-  const quizNext = quizLesson && path.lessons.slice(path.lessons.indexOf(quizLesson) + 1).find(unanswered);
 
   const mine = progressOf(path, me.id);
   const theirs = progressOf(path, them?.id);
@@ -242,7 +218,6 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
       </Rise>
 
       <Rise i={3} className="flex min-w-0 flex-col gap-6 @4xl:col-start-2 @4xl:grid @4xl:grid-cols-2 @4xl:items-start @7xl:sticky @7xl:top-4 @7xl:col-start-3 @7xl:row-start-1 @7xl:flex @7xl:items-stretch">
-        {quizLesson && <QuizCard key={quizLesson.id} lesson={quizLesson} couple={couple} nextLesson={quizNext} onAnswer={answer} onOpenLesson={open} />}
         <TalkCard key={path.id} lessons={path.lessons.filter((l) => l.id !== openId)} couple={couple} talked={talked} onTalked={talk} />
       </Rise>
     </div>

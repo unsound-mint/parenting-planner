@@ -13,6 +13,8 @@ import (
 
 const stripeWebhookPath = "/api/billing/stripe-webhook"
 
+var errPlanNotOffered = Error{Code: "invalid_request", Message: "that plan is not offered with that billing interval"}
+
 // CreateCheckoutSession starts a Stripe Checkout for the family. Parents only.
 func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSessionRequestObject) (CreateCheckoutSessionResponseObject, error) {
 	familyID, m, kind, err := s.actingMember(ctx, req.MemberId)
@@ -29,6 +31,13 @@ func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSe
 	if !isParent(m) {
 		return CreateCheckoutSession403JSONResponse(errForbidden), nil
 	}
+	interval := "month"
+	if req.Body.Interval != nil {
+		interval = string(*req.Body.Interval)
+	}
+	if !billing.Offered(string(req.Body.Tier), interval) {
+		return CreateCheckoutSession400JSONResponse(errPlanNotOffered), nil
+	}
 	if !s.cfg.Billing.Enabled() {
 		return CreateCheckoutSession503JSONResponse(errPaymentsUnavailable), nil
 	}
@@ -39,7 +48,7 @@ func (s *Server) CreateCheckoutSession(ctx context.Context, req CreateCheckoutSe
 	if billing.Tier(sub, ok) == string(req.Body.Tier) {
 		return CreateCheckoutSession409JSONResponse(errAlreadySubscribed), nil
 	}
-	cs, err := billing.CreateCheckout(ctx, s.cfg.Billing, familyID, m.ID, string(req.Body.Tier))
+	cs, err := billing.CreateCheckout(ctx, s.cfg.Billing, familyID, m.ID, string(req.Body.Tier), interval)
 	if err != nil {
 		return nil, err
 	}

@@ -3,17 +3,18 @@ import type { Tier } from "@/lib/api/types";
 export type Plan = {
   tier: Tier;
   name: string;
-  /** US dollars per month. */
+  /** US dollars per month; yearlyPrice is dollars per year (absent for Free). */
   price: number;
+  yearlyPrice?: number;
   tagline: string;
   features: string[];
   /** Shown first and emphasized. */
   recommended?: boolean;
 };
 
-// PROPOSAL, not final: tiers and prices follow docs/product.md ("How it makes
-// money"). Dayana decides the final numbers and contents (#180). Change them
-// here only; nothing else on the pricing page hardcodes a price.
+// The owner set these prices on 2026-11-15: Plus is $14.99 a month or $119.99
+// a year. The API holds the same amounts in cents (api/internal/billing).
+// Change them here only; nothing else on the pricing page hardcodes a price.
 export const PLANS: Plan[] = [
   {
     tier: "free",
@@ -25,7 +26,8 @@ export const PLANS: Plan[] = [
   {
     tier: "plus",
     name: "Plus",
-    price: 29,
+    price: 14.99,
+    yearlyPrice: 119.99,
     tagline: "A plan built for each of you",
     recommended: true,
     features: [
@@ -36,11 +38,17 @@ export const PLANS: Plan[] = [
       "Shared plan and shift handoffs",
     ],
   },
-  {
-    tier: "concierge",
-    name: "Concierge",
-    price: 99,
-    tagline: "A person on your side",
-    features: ["Everything in Plus", "A human care navigator", "One psychologist session a month"],
-  },
 ];
+
+export type Interval = "month" | "year";
+
+/** Percent saved by paying yearly instead of twelve months, rounded. */
+export function yearlySavingPercent(plan: Plan): number {
+  if (!plan.yearlyPrice) return 0;
+  return Math.round((1 - plan.yearlyPrice / (plan.price * 12)) * 100);
+}
+
+/** "$14.99", with cents. */
+export function formatPrice(amount: number): string {
+  return amount === 0 ? "$0" : `$${amount.toFixed(2)}`;
+}

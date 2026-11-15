@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, ArrowUpRight, Undo2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Undo2 } from "lucide-react";
 import type { WeeklyRead, WeeklyReadKind } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -84,45 +84,18 @@ export function WeeklyReadCard({ items, current }: { items: WeeklyRead[]; curren
           animate="center"
           exit="exit"
           transition={spring.ui}
-          className="mt-5 grid gap-6 @5xl:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)] @5xl:gap-10"
+          className="mt-5"
         >
           <div className="min-w-0">
             <h2 id="weekly-read-title" className="text-headline text-balance">
               {read.title}
             </h2>
             <p className="mt-3 max-w-prose text-body text-ink-2">{read.body}</p>
-            <p className="mt-3 text-caption text-muted-foreground">General information from the pages linked here, not medical advice. {read.kind === "pregnancy_week" ? "Your midwife or doctor knows what fits you." : read.kind === "planning" ? "Your doctor knows what fits you." : "Your pediatrician knows what fits your child."}</p>
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-caption font-semibold tracking-wide text-muted-foreground uppercase">Read on</h3>
-            <ul className="mt-2 flex flex-col gap-2">
-              {read.sources.map((s) => (
-                <li key={s.url}>
-                  <a
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener"
-                    className="lift press group flex min-h-11 items-center gap-3 rounded-2xl bg-card px-4 py-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-label text-foreground">{pageTitle(s.title)}</span>
-                    </span>
-                    <ArrowUpRight aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-fast) group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
         </motion.div>
       </AnimatePresence>
     </section>
   );
-}
-
-/** "NHS: Week 12 of pregnancy" reads as "Week 12 of pregnancy" under the publisher. */
-function pageTitle(title: string): string {
-  const i = title.indexOf(":");
-  return i >= 0 ? title.slice(i + 1).trim() : title;
 }
 
 function NavButton({ label, onClick, side }: { label?: string; onClick: () => void; side: "prev" | "next" }) {

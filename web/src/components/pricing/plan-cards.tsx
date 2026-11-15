@@ -4,13 +4,13 @@ import { useState, useTransition } from "react";
 import { Check, CircleCheck, CreditCard } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PaidTier, Tier, UpgradeIntent } from "@/lib/api/types";
-import { PLANS, type Plan } from "@/lib/plans";
+import { PLANS, formatPrice, yearlySavingPercent, type Interval, type Plan } from "@/lib/plans";
 import { tierIcon } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const HELP_STEPS = 3;
-const helpLevel: Record<Tier, number> = { free: 1, plus: 2, concierge: 3 };
+const HELP_STEPS = 2;
+const helpLevel: Record<Tier, number> = { free: 1, plus: 2, concierge: 2 };
 
 // Three plans side by side. "Upgrade" starts a Stripe test checkout. When the
 // server has no payments (501 or 503) the buttons fall back to recording intent
@@ -22,6 +22,7 @@ export function PlanCards({ currentTier, requested, memberId }: { currentTier?: 
   const [sending, setSending] = useState<PaidTier>();
   // Payments need a parent to act as; without one, or once the server says no, record intent.
   const [paymentsOff, setPaymentsOff] = useState(!memberId);
+  const [interval, setInterval] = useState<Interval>("year");
   const own = helpLevel[currentTier ?? "free"];
 
   async function recordIntent(tier: PaidTier) {
@@ -37,7 +38,7 @@ export function PlanCards({ currentTier, requested, memberId }: { currentTier?: 
       if (paymentsOff || !memberId) return recordIntent(tier);
       const { data, error, response } = await api.POST("/members/{memberId}/checkout-sessions", {
         params: { path: { memberId } },
-        body: { tier },
+        body: { tier, interval },
       });
       if (data?.url) {
         window.location.assign(data.url);
@@ -55,12 +56,14 @@ export function PlanCards({ currentTier, requested, memberId }: { currentTier?: 
 
   return (
     <div>
+      <IntervalToggle interval={interval} onChange={setInterval} saving={yearlySavingPercent(PLANS.find((p) => p.yearlyPrice) ?? PLANS[0])} />
       {/* Subgrid: the five parts of every card (title, price, level, features, button) share rows, so they line up across tiers. */}
-      <ul className="grid items-stretch gap-4 md:grid-cols-3 md:grid-rows-[repeat(5,auto)] md:gap-x-6 md:gap-y-0">
+      <ul className="grid items-stretch gap-4 mx-auto max-w-4xl md:grid-cols-2 md:grid-rows-[repeat(5,auto)] md:gap-x-6 md:gap-y-0">
         {PLANS.map((plan) => (
           <li key={plan.tier} className={cn("flex md:contents", plan.recommended && "order-first md:order-none")}>
             <PlanCard
               plan={plan}
+              interval={interval}
               isCurrent={(currentTier ?? "free") === plan.tier}
               isAsked={asked === plan.tier}
               busy={pending && sending === plan.tier}
@@ -92,6 +95,7 @@ export function PlanCards({ currentTier, requested, memberId }: { currentTier?: 
 
 function PlanCard({
   plan,
+  interval,
   isCurrent,
   isAsked,
   busy,
@@ -99,6 +103,7 @@ function PlanCard({
   onChoose,
 }: {
   plan: Plan;
+  interval: Interval;
   isCurrent: boolean;
   isAsked: boolean;
   busy: boolean;
@@ -107,6 +112,7 @@ function PlanCard({
 }) {
   const Icon = tierIcon[plan.tier];
   const level = helpLevel[plan.tier];
+  const yearly = interval === "year";
   return (
     <section
       aria-labelledby={`plan-${plan.tier}`}
@@ -138,10 +144,15 @@ function PlanCard({
         </div>
       </div>
 
-      <p className="mt-6 flex items-baseline gap-1">
-        <span className="font-mono text-display tabular-nums">${plan.price}</span>
-        <span className="text-label text-muted-foreground">{plan.price === 0 ? "forever" : "per month"}</span>
-      </p>
+      <div className="mt-6">
+        <p className="flex items-baseline gap-1">
+          <span className="font-mono text-display tabular-nums">{formatPrice(yearly && plan.yearlyPrice ? plan.yearlyPrice : plan.price)}</span>
+          <span className="text-label text-muted-foreground">{plan.price === 0 ? "forever" : yearly && plan.yearlyPrice ? "per year" : "per month"}</span>
+        </p>
+        {yearly && plan.yearlyPrice && (
+          <p className="mt-1 text-label text-muted-foreground">About ${Math.round(plan.yearlyPrice / 12)} a month</p>
+        )}
+      </div>
 
       <div className="mt-4 flex items-center gap-1.5" role="img" aria-label={`Level of help: ${level} of ${HELP_STEPS}`}>
         {Array.from({ length: HELP_STEPS }, (_, i) => (
@@ -182,5 +193,31 @@ function PlanCard({
         ) : null}
       </div>
     </section>
+  );
+}
+
+function IntervalToggle({ interval, onChange, saving }: { interval: Interval; onChange: (i: Interval) => void; saving: number }) {
+  const options: { value: Interval; label: string }[] = [
+    { value: "month", label: "Monthly" },
+    { value: "year", label: `Yearly, save ${saving}%` },
+  ];
+  return (
+    <div role="radiogroup" aria-label="Billing period" className="mx-auto mb-8 flex w-fit max-w-full rounded-full bg-muted p-1">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={interval === o.value}
+          onClick={() => onChange(o.value)}
+          className={cn(
+            "min-h-10 rounded-full px-4 text-label font-medium transition-colors duration-150",
+            interval === o.value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
   );
 }

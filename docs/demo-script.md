@@ -8,5 +8,5 @@ The acceptance test for the hackathon scope in `product.md`. Every step must wor
 4. Mom logs a mood check-in that completes a three-day low pattern. The plan updates and suggests a perinatal therapist from the directory, with the next real open time. She books it privately; it shows on her calendar, and she can move or cancel it.
 5. Switch to the "newborn at home" family. The same engine now shows a completely different plan: postpartum visit, the baby's 2-month vaccines, the father's depression screen, night shifts and a handoff.
 6. Open the health passport: labs, vaccines, care team and clinic in one place.
-7. Open pricing: Free, Plus, Concierge.
+7. Open pricing: Free, Plus.
 8. Show the crisis button: fixed hotlines, no AI.

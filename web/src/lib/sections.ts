@@ -51,6 +51,8 @@ export const sections: Section[] = [
     group: "main",
     tabs: [
       { id: "learn", label: "Paths", href: "/learn", screen: "learn", includes: ["/learn/names"] },
+      { id: "library", label: "Library", href: "/learn/library", screen: "learn" },
+      { id: "quizzes", label: "Quizzes", href: "/learn/quizzes", screen: "learn" },
       { id: "simulator", label: "Practice", href: "/simulator", screen: "simulator", includes: ["/learn/virtual-baby"] },
       { id: "reference", label: "Can I eat this?", href: "/learn/reference", screen: "learn" },
       { id: "questions", label: "Questions", href: "/learn/questions", screen: "learn" },

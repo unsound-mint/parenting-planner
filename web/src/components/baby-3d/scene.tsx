@@ -94,7 +94,6 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
   const dots = useRef<(THREE.Group | null)[]>([]);
   const glows = useRef<(THREE.Group | null)[]>([]);
   const heartGlow = useRef<THREE.Sprite>(null);
-  const dotSize = useRef<number[]>([]);
   const beats = useRef<Beat[]>([]);
   const nextIdle = useRef<Partial<Record<Act, number>>>({});
   const sparkSprites = useRef<(THREE.Sprite | null)[]>([]);
@@ -149,28 +148,23 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       blush: new THREE.MeshStandardMaterial({ color: BLUSH, roughness: 0.9, transparent: true, opacity: 0.55, depthWrite: false }),
       ink: new THREE.MeshStandardMaterial({ color: INK, roughness: 0.6 }),
       dot: new THREE.MeshStandardMaterial({ color: "#FFFDF9", emissive: "#F4CD6A", emissiveIntensity: 0.9, roughness: 0.4 }),
-      dotOn: new THREE.MeshStandardMaterial({ color: "#C4603A", emissive: "#A04828", emissiveIntensity: 0.5, roughness: 0.4 }),
       hit: new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
     }),
     [wrinkles],
   );
   const halo = useMemo(() => haloTexture(), []);
   const spark = useMemo(() => sparkTexture(), []);
-  useEffect(() => {
-    if (!accent?.me) return;
-    mat.dotOn.color.set(accent.me);
-    mat.dotOn.emissive.set(accent.me);
-    invalidate();
-  }, [accent, mat, invalidate]);
+  const ring = useMemo(() => ringTexture(), []);
   useEffect(
     () => () => {
       Object.values(geo).forEach((g) => g.dispose());
       Object.values(mat).forEach((m) => m.dispose());
       halo.dispose();
       spark.dispose();
+      ring.dispose();
       wrinkles.dispose();
     },
-    [geo, mat, halo, spark, wrinkles],
+    [geo, mat, halo, spark, ring, wrinkles],
   );
 
   // A new week: the dots pulse once and the camera eases back to the whole baby.
@@ -294,12 +288,7 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       d.position.set(x, y + bob, z);
       const pulse = pulsing ? 1 + 0.8 * Math.sin(Math.PI * Math.min(1, Math.max(0, (since - i * 0.08) / 0.9))) : 1;
       // Much smaller on a tiny embryo, so four dots do not swallow it.
-      // While the selected part moves, its dot shrinks out of the way.
-      const acting = selected === i && beats.current.some((bt) => bt.act === TAP[area] && now >= bt.at);
-      const want = selected === i ? (acting ? 0.35 : 1.25) : 1;
-      const was = dotSize.current[i] ?? want;
-      dotSize.current[i] = reducedMotion ? want : was + (want - was) * (1 - Math.exp(-dt * 12));
-      glows.current[i]?.scale.setScalar(pulse * dotSize.current[i] * (0.28 + 0.72 * cur.scale));
+      glows.current[i]?.scale.setScalar(pulse * (0.28 + 0.72 * cur.scale));
     });
 
     // New-feature sparkles: a quick twinkle that grows, turns and fades.
@@ -401,9 +390,13 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
               glows.current[i] = g;
             }}
           >
-            <mesh geometry={geo.dot} material={selected === i ? mat.dotOn : mat.dot} scale={0.05} />
-            <sprite scale={0.36}>
-              <spriteMaterial map={halo} color={selected === i ? accent?.mid || "#E8A07C" : "#F4CD6A"} transparent depthWrite={false} opacity={1} />
+            {/* Selected: an open ring in the parent's accent, so the part it marks stays in view. */}
+            <mesh geometry={geo.dot} material={mat.dot} scale={0.05} visible={selected !== i} />
+            <sprite scale={0.36} visible={selected !== i}>
+              <spriteMaterial map={halo} color="#F4CD6A" transparent depthWrite={false} opacity={1} />
+            </sprite>
+            <sprite scale={0.2} visible={selected === i}>
+              <spriteMaterial map={ring} color={accent?.me || "#C4603A"} transparent depthWrite={false} depthTest={false} />
             </sprite>
           </group>
           <mesh
@@ -597,6 +590,26 @@ function wrinkleTexture() {
   t.generateMipmaps = true;
   t.minFilter = THREE.LinearMipmapLinearFilter;
   t.needsUpdate = true;
+  return t;
+}
+
+/** An open ring with a soft outer glow, for the selected hotspot. */
+function ringTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d")!;
+  g.strokeStyle = "rgba(255,255,255,0.35)";
+  g.lineWidth = 16;
+  g.beginPath();
+  g.arc(64, 64, 50, 0, Math.PI * 2);
+  g.stroke();
+  g.strokeStyle = "#fff";
+  g.lineWidth = 7;
+  g.beginPath();
+  g.arc(64, 64, 50, 0, Math.PI * 2);
+  g.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
 

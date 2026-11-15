@@ -1759,6 +1759,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/library-reads/{topicId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Mark a library topic read, or save it for later
+         * @description The acting parent's own state for one topic. read true sets readAt
+         *     the first time (kept on later calls), read false clears it. saved
+         *     true saves the topic, saved false unsaves it. A field left out is
+         *     left alone. Mother and partner; a grandparent or nanny gets 404, and
+         *     so does an unknown topic id.
+         */
+        put: operations["updateLibraryRead"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/quiz-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The acting parent's quiz deck retakes, newest first
+         * @description Retakes of quiz decks (one deck per learning path), the acting
+         *     parent's own only, newest first, the last 200. Mother and partner; a
+         *     grandparent or nanny gets 404.
+         */
+        get: operations["listQuizAttempts"];
+        put?: never;
+        /**
+         * Record a retake of a quiz deck
+         * @description A parent retakes a deck after answering it once on Learn (those first
+         *     answers stay as they were, for the couple to compare). The server
+         *     grades the choices against the catalog, so the score cannot be made
+         *     up, and stores which questions were missed. 400 unknown_question for
+         *     a question that is not in the deck or a choice that is not in the
+         *     question; 404 for a deck (path id) not in the family's paths.
+         */
+        post: operations["createQuizAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/library-topics/{topicId}": {
         parameters: {
             query?: never;
@@ -6093,7 +6148,7 @@ export interface components {
          */
         Tier: "free" | "plus" | "concierge";
         /** @enum {string} */
-        PaidTier: "plus" | "concierge";
+        PaidTier: "plus";
         /**
          * @description daycare = a center; nanny = care at home; family = a relative or a home-based family daycare.
          * @enum {string}
@@ -7288,6 +7343,20 @@ export interface components {
          */
         LibraryEvidence: "guideline" | "research" | "contested" | "theory" | "folk";
         LibraryTopicSummary: {
+            /** @description The library stages the topic's age span touches, in life order. */
+            stages: components["schemas"]["LibraryStage"][];
+            /** @description Estimated reading time at 200 words a minute. */
+            minutes: number;
+            /**
+             * Format: date-time
+             * @description When the acting parent first opened it. Per parent; the other parent's state is never included.
+             */
+            readAt?: string;
+            /**
+             * Format: date-time
+             * @description Set while the acting parent has it saved for later.
+             */
+            savedAt?: string;
             id: string;
             title: string;
             /** @description How parents ask it, the most common first. Search matches these. */
@@ -7307,7 +7376,64 @@ export interface components {
             /** @description The topic has urgent signs; the UI links the fixed Urgent help screen. */
             urgent: boolean;
         };
+        LibraryReadInput: {
+            read?: boolean;
+            saved?: boolean;
+        };
+        LibraryRead: {
+            topicId: string;
+            /** Format: date-time */
+            readAt?: string;
+            /** Format: date-time */
+            savedAt?: string;
+        };
+        QuizAttemptInput: {
+            /** @description The learning path id. */
+            deckId: string;
+            answers: {
+                questionId: string;
+                choiceId: string;
+            }[];
+        };
+        QuizAttempt: {
+            /** Format: uuid */
+            id: string;
+            deckId: string;
+            score: number;
+            total: number;
+            /** @description Question ids answered wrong in this attempt. */
+            missed: string[];
+            /** Format: date-time */
+            takenAt: string;
+        };
+        QuizAttemptList: {
+            items: components["schemas"]["QuizAttempt"][];
+        };
+        /**
+         * @description A stage filter of the Learn library. newborn is the first year, toddler 1 to 3, preschool 3 to 6, school 6 and up.
+         * @enum {string}
+         */
+        LibraryStage: "planning" | "pregnancy" | "newborn" | "toddler" | "preschool" | "school";
+        /**
+         * @description An article or quiz we plan to write, shown as "Coming soon" so the
+         *     library shows its future size honestly. It has no body on purpose:
+         *     it is not guidance and never opens.
+         */
+        LibraryUpcoming: {
+            id: string;
+            title: string;
+            /** @description One line on what it will cover. */
+            summary: string;
+            /** @description A topic category as in LibraryTopicSummary, plus birth, money and work. */
+            category: string;
+            stages: components["schemas"]["LibraryStage"][];
+            minutes: number;
+            /** @description article or quiz (a plain string, since an enum with "article" would rename GuideKind's generated constants). */
+            format: string;
+        };
         LibraryTopicList: {
+            /** @description Planned articles and quizzes, the same for every family. Titles only, never body text. */
+            upcoming: components["schemas"]["LibraryUpcoming"][];
             /** @description Where the family is, for example "Week 25 of pregnancy" or "4 years old". */
             position: string;
             items: components["schemas"]["LibraryTopicSummary"][];
@@ -8828,7 +8954,13 @@ export interface components {
         };
         CheckoutSessionInput: {
             tier: components["schemas"]["PaidTier"];
+            interval?: components["schemas"]["BillingInterval"];
         };
+        /**
+         * @description How often the subscription is billed. Defaults to month.
+         * @enum {string}
+         */
+        BillingInterval: "month" | "year";
         /**
          * @description As Stripe reports it.
          * @enum {string}
@@ -14502,6 +14634,180 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LibraryTopicList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateLibraryRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                topicId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LibraryReadInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LibraryRead"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listQuizAttempts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizAttemptList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    createQuizAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuizAttemptInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizAttempt"];
+                };
+            };
+            /** @description Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
             /** @description Error */

@@ -1,4 +1,4 @@
-import type { LearningPath, Lesson, LessonRead, Parent } from "@/lib/api/types";
+import type { LearningPath, Lesson, LessonRead, Parent, QuizQuestion, QuizResult } from "@/lib/api/types";
 import { daysUntilInstant } from "@/lib/format";
 
 // Pure helpers for Learn: which path opens first, what state each lesson is in
@@ -83,6 +83,26 @@ export const minutesWord = (n: number) => `${n} ${n === 1 ? "minute" : "minutes"
 /** Replace a lesson inside the path list, returning new arrays so React sees the change. */
 export function withLesson(paths: LearningPath[], lessonId: string, change: (l: Lesson) => Lesson): LearningPath[] {
   return paths.map((p) => (p.lessons.some((l) => l.id === lessonId) ? { ...p, lessons: p.lessons.map((l) => (l.id === lessonId ? change(l) : l)) } : p));
+}
+
+/** Store the acting parent's quiz answer and what the API revealed with it (right choice, why, the partner's pick). */
+export function withQuizResult(paths: LearningPath[], q: QuizQuestion, memberId: string, choiceId: string, r: QuizResult): LearningPath[] {
+  return withLesson(paths, q.lessonId, (l) => ({
+    ...l,
+    quiz: l.quiz.map((x) =>
+      x.id !== q.id
+        ? x
+        : {
+            ...x,
+            correctChoiceId: r.correctChoiceId,
+            explanation: r.explanation,
+            answers: [
+              { memberId, choiceId, correct: r.correct, answeredAt: new Date().toISOString() },
+              ...(r.partnerAnswer ? [r.partnerAnswer] : x.answers.filter((a) => a.memberId !== memberId)),
+            ],
+          },
+    ),
+  }));
 }
 
 /** Store a read on a lesson: the acting parent's read replaces theirs, the other parent's stays. */

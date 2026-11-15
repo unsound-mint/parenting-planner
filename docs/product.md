@@ -29,8 +29,7 @@ Why they come back tomorrow: the plan changes as the data and the stage change, 
 | Tier | Price | What is in it |
 | --- | --- | --- |
 | Free | $0 | Stage guide, health passport, crisis and help contacts |
-| Plus | ~$29/mo | AI weekly plan for both parents, full data hub, pattern insights, partner layer |
-| Concierge | ~$99/mo | Plus a human care navigator and one psychologist session a month |
+| Plus | $14.99/mo or $119.99/yr | AI weekly plan for both parents, full data hub, pattern insights, partner layer |
 | Marketplace | take rate | Bookings with providers in the ecosystem |
 
 At a blended $300 to $600 a year, $100M ARR needs roughly 170k to 400k paying families, about 5% to 11% of one year's US births, retained across a 9-year journey.
