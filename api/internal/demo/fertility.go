@@ -115,7 +115,7 @@ func (s *seeder) fertility(maya, daniel uuid.UUID) {
 	}
 	visit, err := s.q.CreateCalendarEvent(s.ctx, store.CreateCalendarEventParams{
 		FamilyID: s.fam, OwnerMemberID: maya, Visibility: "family", Kind: "appointment",
-		Title: "Preconception visit with Dr. Okafor", StartsAt: day(6).Add(10 * time.Hour),
+		Title: "Preconception visit with Dr. Okafor", StartsAt: atHour(day(4), 10),
 	})
 	if err != nil {
 		s.err = err

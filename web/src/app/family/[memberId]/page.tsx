@@ -6,14 +6,13 @@ import { familyNow } from "@/lib/clock";
 import { dayKey, daysUntilInstant, formatClock, formatShortDate } from "@/lib/format";
 import { inLossSupport } from "@/lib/loss";
 import { LATE_PREGNANCY_WEEK } from "@/lib/schedule";
-import { familyPeople } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { BabyHome } from "@/components/baby/baby-home";
 import { BabyHomeSwitch } from "@/components/family/baby-home-switch";
 import { LossSupport } from "@/components/loss/loss-support";
 import { Rise } from "@/components/joy/rise";
 import type { Mood } from "@/components/joy/mood-face";
-import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
+import { PageFrame } from "@/components/shell/page";
 import { NamesQuestCard } from "@/components/names/names-quest-card";
 import { NextPaperworkCard } from "@/components/paperwork/next-paperwork-card";
 import { See3DLink } from "@/components/baby-3d/see-3d-link";
@@ -30,22 +29,19 @@ import { bagByPerson, journalPrompt, journalStarters, pickMission, pickReads } f
 import { TogetherCard } from "@/components/week/together-card";
 import { TwoOfYou } from "@/components/week/two-of-you";
 import { WeekMission } from "@/components/week/week-mission";
-import { WeekThanks } from "@/components/week/week-thanks";
 
 // This week: one hero (the baby's size in pregnancy, what is happening now in
 // other stages, with the 3D baby and "Share this week" under it), then two
-// rows: reads and "Tonight, together"; the quick journal and the calm list of
-// practical things. A third row holds what the two of you do this week: the
-// names quest before the birth or the next paperwork step after it, with one
-// suggested thank-you under it; one mission; and the "For the two of you" links (labor
-// coach late in pregnancy, virtual baby, Compatibility Lab, money), grouped in
-// one list rather than a card each. Everything is the family's live data.
+// independent column stacks. Left: reads, the quick journal, and the names
+// quest before the birth or the next paperwork step after it. Right: "Talk
+// about it tonight", the calm list of practical things, one mission, and the
+// "For the two of you" links (labor coach late in pregnancy, virtual baby,
+// Compatibility Lab). Everything is the family's live data.
 //
 // Each fact has one place: the hero owns the baby and the stage; the calm list
 // owns plan items, the next visit (with its questions) and the hospital bag;
 // mood is only the journal's faces. The plan page ("See all") has the rest.
-// DOM order is the phone order (hero, journal, reads, together, calm list,
-// then the third row); from a wide column the cells are placed by grid position.
+// Thanks live on People and money has its own nav entry.
 export default function WeekPage({ params }: PageProps<"/family/[memberId]">) {
   return (
     <Suspense fallback={<WeekFallback />}>
@@ -89,7 +85,7 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const sizeWeek = (w: number) => optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week: w } } }));
 
   const beforeBirth = ["pregnancy", "planning", "trying"].includes(family.stage);
-  const [{ data: plan }, { data: checkins }, { data: patterns }, questions, card, start, end, stageNow, paths, together, bag, birthPlan, shifts, missions, thanks, lab] =
+  const [{ data: plan }, { data: checkins }, { data: patterns }, questions, card, start, end, stageNow, paths, together, bag, birthPlan, shifts, missions, lab] =
     await Promise.all([
       api.GET("/members/{memberId}/plan", path),
       api.GET("/members/{memberId}/mood-checkins", path),
@@ -108,7 +104,6 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       pregnant ? optional(api.GET("/members/{memberId}/birth-plan", path)) : undefined,
       late ? optional(api.GET("/members/{memberId}/shifts", path)) : undefined,
       !loss ? optional(api.GET("/members/{memberId}/missions", path)) : undefined,
-      !loss && partner ? optional(api.GET("/members/{memberId}/thanks/suggestions", path)) : undefined,
       // The lab compares two parents' answers, before the birth.
       !loss && partner && beforeBirth ? optional(api.GET("/members/{memberId}/lab", path)) : undefined,
     ]);
@@ -170,9 +165,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const hasReads = !!paths && pickReads(paths.items, memberId).reads.length > 0;
   const togetherCard =
     partner && together && (together.nudge || together.prompts.length > 0) ? (
-      <TogetherCard memberId={memberId} partner={partner} nudge={together.nudge} prompts={together.prompts} className="h-full" />
+      <TogetherCard memberId={memberId} partner={partner} nudge={together.nudge} prompts={together.prompts} />
     ) : null;
-  const second = hasReads || togetherCard ? "@5xl:row-start-2" : "@5xl:row-start-1";
 
   // Sharing needs the week card's picture: the size in pregnancy, the stage's "now" otherwise.
   const shareLine = pregnant ? (card?.size ? pregnancyShareLine(week, card.size.comparison) : undefined) : stageNow?.headline;
@@ -185,23 +179,26 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
     ) : undefined;
 
   const mission = missions && pickMission(missions.items) ? missions.items : undefined;
-  const thank = thanks?.items[0];
   // Names are for before the birth (the quest answers 409 after it); paperwork is for the first weeks.
   const namesQuest = beforeBirth && !!partner;
   const paperwork = family.stage === "postpartum";
-  const firstCell = namesQuest || paperwork || !!thank;
   const twoOfYou = (
     <TwoOfYou
       memberId={memberId}
       labor={late ? family : undefined}
       virtualBaby={pregnant}
       labLine={lab && partner ? labLine(lab.cards, partner.displayName) : undefined}
-      money
       together={!!partner}
-      after={(mission ? 1 : 0) + (firstCell ? 1 : 0)}
     />
   );
+  // The right stack has content when any of its cards can: TwoOfYou always has a row in pregnancy.
+  const right = !!togetherCard || !!calm || !!mission || pregnant || !!(lab && partner);
 
+  // Two column stacks, so a tall card on one side never stretches or pushes the
+  // other. On a phone the stacks are display: contents and the order-* classes
+  // put every card in one column: hero, journal, reads, together, calm list, rest.
+  const stack = "contents @5xl:flex @5xl:min-w-0 @5xl:flex-col @5xl:gap-7";
+  const cell = (order: string) => cn("min-w-0 @5xl:order-none", order);
   return (
     <PageFrame className="gap-6 @4xl:gap-7">
       <Rise i={0}>
@@ -212,52 +209,52 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
         )}
       </Rise>
 
-      <div className="grid min-w-0 gap-6 @4xl:gap-7 @5xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <Rise i={3} className={cn("min-w-0 @5xl:col-start-1", second, !calm && "@5xl:col-span-2")}>
-          {journal}
-        </Rise>
-        {hasReads && (
-          <Rise i={1} className={cn("min-w-0 @5xl:col-start-1 @5xl:row-start-1", !togetherCard && "@5xl:col-span-2")}>
-            <ReadTogether memberId={memberId} paths={paths.items} me={parent} partner={partner} now={now} closedNudgeIds={together?.closedNudgeIds} />
+      <div className={cn("flex min-w-0 flex-col gap-6 @5xl:grid @5xl:items-start @5xl:gap-7", right && "@5xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]")}>
+        <div className={stack}>
+          {hasReads && (
+            <Rise i={1} className={cell("order-2")}>
+              <ReadTogether memberId={memberId} paths={paths.items} me={parent} partner={partner} now={now} closedNudgeIds={together?.closedNudgeIds} />
+            </Rise>
+          )}
+          <Rise i={3} className={cell("order-1")}>
+            {journal}
           </Rise>
-        )}
-        {togetherCard && (
-          <Rise i={2} className={cn("min-w-0 @5xl:row-start-1", hasReads ? "@5xl:col-start-2" : "@5xl:col-span-2")}>
-            {togetherCard}
-          </Rise>
-        )}
-        {calm && (
-          <Rise i={4} className={cn("min-w-0 @5xl:col-start-2", second)}>
-            {calm}
-          </Rise>
+          {namesQuest && (
+            <Suspense fallback={null}>
+              <Rise i={5} className={cell("order-5 empty:hidden")}>
+                <NamesQuestCard memberId={memberId} parents={family.parents} />
+              </Rise>
+            </Suspense>
+          )}
+          {paperwork && (
+            <Suspense fallback={null}>
+              <Rise i={5} className={cell("order-5 empty:hidden")}>
+                <NextPaperworkCard memberId={memberId} />
+              </Rise>
+            </Suspense>
+          )}
+        </div>
+        {right && (
+          <div className={stack}>
+            {togetherCard && (
+              <Rise i={2} className={cell("order-3")}>
+                {togetherCard}
+              </Rise>
+            )}
+            {calm && (
+              <Rise i={4} className={cell("order-4")}>
+                {calm}
+              </Rise>
+            )}
+            {mission && (
+              <Rise i={6} className={cell("order-6")}>
+                <WeekMission memberId={memberId} items={mission} people={family.parents} />
+              </Rise>
+            )}
+            <div className={cell("order-7 empty:hidden")}>{twoOfYou}</div>
+          </div>
         )}
       </div>
-
-      <PageGrid cols={3}>
-        {firstCell && (
-          <Rise i={5} className="min-w-0">
-            <Stack>
-              {namesQuest && (
-                <Suspense fallback={null}>
-                  <NamesQuestCard memberId={memberId} parents={family.parents} />
-                </Suspense>
-              )}
-              {paperwork && (
-                <Suspense fallback={null}>
-                  <NextPaperworkCard memberId={memberId} />
-                </Suspense>
-              )}
-              {thank && <WeekThanks memberId={memberId} suggestion={thank} people={familyPeople(family)} />}
-            </Stack>
-          </Rise>
-        )}
-        {mission && (
-          <Rise i={6} className="min-w-0">
-            <WeekMission memberId={memberId} items={mission} people={family.parents} className="h-full" />
-          </Rise>
-        )}
-        {twoOfYou}
-      </PageGrid>
     </PageFrame>
   );
 }

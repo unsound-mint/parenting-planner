@@ -14,6 +14,7 @@ var dose = regexp.MustCompile(`(?i)\d\s?(mg|mcg|ml|tablet|capsule|pill)s?\b`)
 // medicine text carries no dose and never claims safety for the reader.
 func TestSafetyReferenceIsSourcedAndCalm(t *testing.T) {
 	checked := time.Date(2026, time.November, 14, 0, 0, 0, 0, time.UTC)
+	rechecked := checked.AddDate(0, 0, 1)
 	valid := map[SafetyStatus]bool{StatusOK: true, StatusLimit: true, StatusAvoid: true, StatusAsk: true}
 	seen := map[string]bool{}
 	for _, e := range SafetyReference() {
@@ -31,9 +32,13 @@ func TestSafetyReferenceIsSourcedAndCalm(t *testing.T) {
 			t.Errorf("%s: no source", e.ID)
 		}
 		for _, s := range e.Sources {
-			if u, err := url.Parse(s.URL); err != nil || u.Scheme != "https" || s.Title == "" || !s.CheckedAt.Equal(checked) {
+			if u, err := url.Parse(s.URL); err != nil || u.Scheme != "https" || s.Title == "" || (!s.CheckedAt.Equal(checked) && !s.CheckedAt.Equal(rechecked)) {
 				t.Errorf("%s: bad source %+v", e.ID, s)
 			}
+		}
+		// The Reference screen has a breastfeeding mode; no entry may lack advice for it.
+		if e.Breast == nil {
+			t.Errorf("%s: no breastfeeding advice", e.ID)
 		}
 		advice := []SafetyAdvice{e.Preg}
 		if e.Breast != nil {

@@ -12,7 +12,8 @@ import type { GrowthHotspot } from "@/lib/api/types";
 export type Area = GrowthHotspot["area"];
 export type Vec3 = [number, number, number];
 
-export type Params = {
+/** Body proportions, blended between whole-body keyframes (KEYS). */
+type Shape = {
   headR: number;
   /** Spine circle radius and the angles (degrees) of the neck and the bottom. */
   spineR: number;
@@ -30,7 +31,41 @@ export type Params = {
   ears: number;
 };
 
-type Key = [week: number, p: Params];
+/** Stage features, each 0 to 1 and each on its own week track (TRACKS). */
+type Features = {
+  /** Embryo red (0) to opaque peach (1). */
+  skin: number;
+  /** Somite bumps along the back of the early embryo. */
+  somites: number;
+  /** The early heart bulge under the chest. */
+  heart: number;
+  /** The yolk sac on its stalk in front of the belly. */
+  yolk: number;
+  /** Dark eye spots on the sides of the head, before the lids form. */
+  eyeSpot: number;
+  /** How far the eyes still sit on the sides (1) rather than the front (0). */
+  eyeSide: number;
+  /** Fused, closed eyelids. */
+  lids: number;
+  /** Open eyes with a catchlight. */
+  eyeOpen: number;
+  /** Nose and mouth. */
+  face: number;
+  /** Ears low on the neck (0) to their place on the head (1). */
+  earLift: number;
+  /** Hand paddles (0.4) to separate fingers and toes (1). */
+  digits: number;
+  /** The near hand drifts up to the mouth. */
+  thumb: number;
+  /** Eyebrows and head hair. */
+  hair: number;
+  /** Baby fat: round cheeks and blush. */
+  fat: number;
+};
+
+export type Params = Shape & Features;
+
+type Key = [week: number, p: Shape];
 
 // Tuned by eye against the NHS descriptions: a curled embryo with a tail at 4
 // to 8, limb buds at 6, a big head around 12, then longer limbs and a fuller
@@ -48,7 +83,44 @@ const KEYS: Key[] = [
   [40, { headR: 0.285, spineR: 0.255, neckDeg: 108, bottomDeg: 232, tailDeg: 232, chestR: 0.24, bellyR: 0.275, bottomR: 0.235, armLen: 0.36, legLen: 0.43, limbR: 0.1, ears: 1 }],
 ];
 
+
+// What changes besides size, each on its own [week, value] track so a feature
+// can turn on at its own week. Timings follow the NHS week-by-week pages and
+// common embryology timelines: somites and the heart bulge in weeks 4 to 6,
+// eye pigment around 6, paddles then fingers 8 to 10, lids fused around 10 and
+// open again about 26 to 28, eyebrows and hair from about 22, fat in the third
+// trimester. Rounded to what reads on a toy, not exact to the day.
+const TRACKS: Record<keyof Features, [week: number, v: number][]> = {
+  skin: [[4, 0], [10, 0.15], [20, 0.45], [28, 0.7], [36, 1]],
+  somites: [[4, 1], [6, 0.8], [8, 0.25], [9.5, 0]],
+  heart: [[4, 1], [7, 0.9], [9, 0.35], [11, 0]],
+  yolk: [[4, 1], [8, 0.8], [10, 0.3], [11.5, 0]],
+  eyeSpot: [[5, 0], [6, 0.8], [8, 1], [9.5, 0]],
+  eyeSide: [[4, 1], [7, 0.85], [10, 0.4], [14, 0]],
+  lids: [[8, 0], [10, 1], [26, 1], [28, 0]],
+  eyeOpen: [[26, 0], [28, 1]],
+  face: [[7, 0], [10, 0.7], [13, 1]],
+  earLift: [[9, 0], [13, 0.6], [20, 1]],
+  digits: [[6, 0], [8, 0.4], [10, 1]],
+  thumb: [[12, 0], [16, 0.8], [24, 1], [32, 0.35], [40, 0.15]],
+  hair: [[20, 0], [24, 0.45], [32, 0.8], [40, 1]],
+  fat: [[22, 0], [28, 0.3], [34, 0.75], [40, 1]],
+};
+
 const smooth = (t: number) => t * t * (3 - 2 * t);
+const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+
+function track(keys: [number, number][], w: number): number {
+  if (w <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [w1, b] = keys[i];
+    if (w <= w1) {
+      const [w0, a] = keys[i - 1];
+      return a + (b - a) * smooth((w - w0) / (w1 - w0));
+    }
+  }
+  return keys[keys.length - 1][1];
+}
 
 /** Keyframe blend for any week, fractional weeks included (the morph passes through them). */
 export function params(week: number): Params {
@@ -57,16 +129,20 @@ export function params(week: number): Params {
   while (i < KEYS.length - 2 && KEYS[i + 1][0] <= w) i++;
   const [w0, a] = KEYS[i];
   const [w1, b] = KEYS[i + 1];
-  return mix(a, b, smooth(Math.min(1, Math.max(0, (w - w0) / (w1 - w0)))));
+  const shape = mix(a, b, smooth(clamp01((w - w0) / (w1 - w0))));
+  const features = {} as Features;
+  for (const k of Object.keys(TRACKS) as (keyof Features)[]) features[k] = track(TRACKS[k], w);
+  return { ...shape, ...features };
 }
 
-export function mix(a: Params, b: Params, t: number): Params {
-  const out = {} as Params;
-  for (const k of Object.keys(a) as (keyof Params)[]) out[k] = a[k] + (b[k] - a[k]) * t;
+
+export function mix<T extends Record<keyof T, number>>(a: T, b: T, t: number): T {
+  const out = {} as T;
+  for (const k of Object.keys(a) as (keyof T)[]) out[k] = (a[k] + (b[k] - a[k]) * t) as T[keyof T];
   return out;
 }
 
-export type Tone = "skin" | "ink" | "blush";
+export type Tone = "skin" | "ink" | "blush" | "shine" | "hair" | "yolk";
 
 /** One ellipsoid (or a face arc when arc is set): center, radii, and its local axes. */
 export type Part = {
@@ -75,8 +151,8 @@ export type Part = {
   /** Unit vectors for the part's local x, y and z. */
   basis: [Vec3, Vec3, Vec3];
   tone: Tone;
-  /** Face lines: a half torus whose ring radius is radii[0]. */
-  arc?: boolean;
+  /** Face lines: a half torus whose ring radius is radii[0] and tube radius radii[1]. */
+  arc?: "lid" | "smile";
 };
 
 export type Layout = {
@@ -87,7 +163,8 @@ export type Layout = {
 };
 
 // Fixed counts so the scene can keep one mesh per slot across weeks.
-export const BODY_RINGS = 36;
+// Enough rings that the embryo's somite bumps read as bumps, not aliasing.
+export const BODY_RINGS = 72;
 export const TAIL_RINGS = 14;
 export const CAP_RINGS = 7;
 export const TUBE_RINGS = BODY_RINGS + TAIL_RINGS + 2 * CAP_RINGS;
@@ -95,7 +172,7 @@ export const TUBE_RINGS = BODY_RINGS + TAIL_RINGS + 2 * CAP_RINGS;
 export const TUBE_SIDES = 36;
 
 /** One cross-section of the body tube: center, radius, and the in-plane direction to the back. */
-export type Ring = { c: Vec3; r: number; out: Vec3 };
+export type Ring = { c: Vec3; r: number; out: Vec3; /** Extra radius on the back side only (somites). */ bump: number };
 
 const v = {
   add: (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
@@ -157,21 +234,23 @@ export function layout(p: Params): Layout {
   const rings: Ring[] = [];
   for (let i = 0; i < BODY_RINGS; i++) {
     const t = torsoAt(i / (BODY_RINGS - 1));
-    rings.push({ c: t.c, r: t.r, out: t.out });
+    // Somites: a row of small bumps down the back of the early embryo.
+    const bump = p.somites * 0.12 * Math.max(0, Math.sin(i * 1.15)) ** 2;
+    rings.push({ c: t.c, r: t.r, out: t.out, bump });
   }
   // The embryo's tail continues past the bottom, spiralling in and thinning; at
   // zero span every tail ring sits on the bottom, so the end stays round.
   const tailAt = (s: number): Vec3 => spine(p.bottomDeg + tailSpan * s, p.spineR * (1 - 0.35 * s * taper));
   for (let i = 1; i <= TAIL_RINGS; i++) {
     const s = i / TAIL_RINGS;
-    rings.push({ c: tailAt(s), r: p.bottomR * (1 - 0.82 * s * taper), out: outAt(p.bottomDeg + tailSpan * s) });
+    rings.push({ c: tailAt(s), r: p.bottomR * (1 - 0.82 * s * taper), out: outAt(p.bottomDeg + tailSpan * s), bump: 0 });
   }
   const startT = v.mul(downAt(p.neckDeg), -1);
   const endT = tailSpan > 0.5 ? v.norm(v.sub(tailAt(1), tailAt(0.97))) : downAt(p.bottomDeg);
   const cap = (end: Ring, dir: Vec3): Ring[] =>
     Array.from({ length: CAP_RINGS }, (_, k) => {
       const u = (k + 1) / CAP_RINGS;
-      return { c: v.add(end.c, v.mul(dir, end.r * u)), r: end.r * Math.sqrt(Math.max(0, 1 - u * u)), out: end.out };
+      return { c: v.add(end.c, v.mul(dir, end.r * u)), r: end.r * Math.sqrt(Math.max(0, 1 - u * u)), out: end.out, bump: 0 };
     });
   const tube = [...cap(rings[0], startT).reverse(), ...rings, ...cap(rings[rings.length - 1], endT)];
 
@@ -180,58 +259,111 @@ export function layout(p: Params): Layout {
   const headDir = v.norm(lin([0.75, neck.out], [-0.6, neck.down]));
   const head = v.add(neck.c, v.mul(headDir, p.headR * 0.78 + neck.r * 0.25));
   const headUp = headDir;
-  parts.push({ pos: head, radii: [p.headR, p.headR * 0.97, p.headR], basis: [[1, 0, 0], [0, 1, 0], Z], tone: "skin" });
+  const hr = p.headR;
+  parts.push({ pos: head, radii: [hr, hr * 0.97, hr], basis: [[1, 0, 0], [0, 1, 0], Z], tone: "skin" });
 
+  // Every part below is pushed at every week, scaled to zero while its feature
+  // is off, so the scene keeps one mesh per slot.
   // Face: toward the front of the curl, turned toward the camera so it can be seen.
   const forward = v.norm(lin([1, v.cross(headUp, Z)], [-0.15, headUp]));
   const faceDir = v.norm(lin([0.55, forward], [0.83, Z]));
   const side = v.norm(v.cross(headUp, faceDir));
-  const onHead = (d: Vec3, lift = 1) => v.add(head, v.mul(v.norm(d), p.headR * lift));
-  const eyeDir = (sgn: number) => lin([1, faceDir], [0.36 * sgn, side], [0.1, headUp]);
+  const down = v.mul(headUp, -1);
+  const onHead = (d: Vec3, lift = 1) => v.add(head, v.mul(v.norm(d), hr * lift));
+  // Embryo eyes sit on the sides of the head and move round to the front.
+  const eyeDir = (sgn: number) => v.norm(lin([1 - 0.6 * p.eyeSide, faceDir], [(0.36 + 0.75 * p.eyeSide) * sgn, side], [0.1, headUp]));
+  const brows = clamp01(p.hair * 2.2);
+  const blush = Math.max(p.fat, 0.45 * clamp01((p.skin - 0.35) / 0.3));
   for (const sgn of [-1, 1]) {
-    const d = v.norm(eyeDir(sgn));
-    parts.push({ pos: onHead(d, 0.995), radii: [p.headR * 0.12, p.headR * 0.025, 0], basis: facing(d, headUp), tone: "ink", arc: true });
+    const d = eyeDir(sgn);
+    const lid = hr * p.lids;
+    parts.push({ pos: onHead(d, 0.995), radii: [lid * 0.12, lid * 0.025, 0], basis: facing(d, headUp), tone: "ink", arc: "lid" });
+    // One dark disc: the eye spot of the embryo, later the open eye.
+    const pupil = hr * (0.11 * p.eyeSpot + 0.095 * p.eyeOpen);
+    parts.push({ pos: onHead(d, 0.975), radii: [pupil * 0.92, pupil, pupil * 0.45], basis: facing(d, headUp), tone: "ink" });
+    const shine = hr * 0.032 * p.eyeOpen;
+    parts.push(sphere(onHead(lin([1, d], [0.045, headUp], [0.03 * sgn, side]), 1.01), shine, "shine"));
+    const browDir = v.norm(lin([1, d], [0.3, headUp]));
+    parts.push({ pos: onHead(browDir, 0.995), radii: [hr * 0.13 * brows, hr * 0.02 * brows, 0], basis: facing(browDir, down), tone: "hair", arc: "lid" });
+    // Baby fat: a round cheek under the blush.
     const cheek = v.norm(lin([1, faceDir], [0.55 * sgn, side], [-0.22, headUp]));
-    parts.push({ pos: onHead(cheek, 0.94), radii: [p.headR * 0.16, p.headR * 0.11, p.headR * 0.1], basis: facing(cheek, headUp), tone: "blush" });
+    parts.push({ pos: onHead(cheek, 0.83), radii: [hr * 0.26 * p.fat, hr * 0.22 * p.fat, hr * 0.22 * p.fat], basis: facing(cheek, headUp), tone: "skin" });
+    parts.push({ pos: onHead(cheek, 0.94 + 0.08 * p.fat), radii: [hr * 0.16 * blush, hr * 0.11 * blush, hr * 0.1 * blush], basis: facing(cheek, headUp), tone: "blush" });
   }
   const mouthDir = v.norm(lin([1, faceDir], [-0.3, headUp]));
-  parts.push({ pos: onHead(mouthDir, 0.995), radii: [p.headR * 0.07, p.headR * 0.022, 0], basis: facing(mouthDir, headUp), tone: "ink", arc: true });
+  const mouth = hr * p.face;
+  parts.push({ pos: onHead(mouthDir, 0.995), radii: [mouth * 0.07, mouth * 0.022, 0], basis: facing(mouthDir, headUp), tone: "ink", arc: "smile" });
+  const noseDir = v.norm(lin([1, faceDir], [-0.08, headUp]));
+  parts.push({ pos: onHead(noseDir, 0.97), radii: [hr * 0.085 * p.face, hr * 0.065 * p.face, hr * 0.075 * p.face], basis: facing(noseDir, headUp), tone: "skin" });
 
-  // Ears on both sides, small and round; only the camera side ever shows much.
-  const earDir = (sgn: number) => v.norm(lin([sgn, side], [-0.35, faceDir], [-0.08, headUp]));
+  // Hair: a sphere that always pokes 3% out of the crown; as it grows and sinks
+  // in, the patch it leaves on the head spreads from a tuft to a full cap.
+  const capR = p.hair > 0.01 ? hr * (0.35 + 0.5 * p.hair) : 0;
+  const crown = v.norm(lin([1, headUp], [-0.6, forward], [0.05, Z]));
+  parts.push(sphere(v.add(head, v.mul(crown, hr * 1.03 - capR)), capR, "hair"));
+  const curlDir = v.norm(lin([1, headUp], [0.3, forward], [0.15, Z]));
+  const curl = hr * clamp01((p.hair - 0.2) / 0.5);
+  parts.push({ pos: onHead(curlDir, 1.04), radii: [curl * 0.05, curl * 0.12, curl * 0.05], basis: alongY(lin([1, curlDir], [0.6, forward])), tone: "hair" });
+
+  // Ears on both sides, small and round; they start low by the neck and rise.
+  const earDir = (sgn: number) => v.norm(lin([sgn, side], [-0.35, faceDir], [-0.08 - 0.55 * (1 - p.earLift), headUp]));
   for (const sgn of [-1, 1]) {
     const d = earDir(sgn);
-    const er = p.headR * 0.2 * p.ears;
+    const er = hr * 0.2 * p.ears;
     parts.push({ pos: onHead(d, 0.93), radii: [er, er * 1.15, er * 0.55], basis: facing(d, headUp), tone: "skin" });
   }
 
+  // The embryo's heart bulge under the chest, and the yolk sac on its stalk.
+  const chest = torsoAt(0.26);
+  parts.push(sphere(v.add(chest.c, v.mul(chest.front, chest.r * 0.62)), chest.r * 0.72 * p.heart));
+  const belly = torsoAt(0.62);
+  const yr = 0.075 * p.yolk;
+  const stalkFrom = v.add(belly.c, v.mul(belly.front, belly.r * 0.8));
+  const sac = v.add(belly.c, lin([belly.r + 0.05 + yr, belly.front], [0.07, Z], [0.03, belly.down]));
+  parts.push({ ...segment(stalkFrom, sac, 0.016 * p.yolk), tone: "yolk" }, sphere(sac, yr, "yolk"));
+
   // Arms fold up so the hands rest by the chin; legs tuck, knees toward the chest.
+  // Limb buds show from about week 6; the near hand drifts to the mouth mid-pregnancy.
   const shoulder = torsoAt(0.14);
   const hip = torsoAt(0.86);
+  const limbR = p.limbR > 0.001 ? p.limbR : 0;
+  const fingers = clamp01((p.digits - 0.4) / 0.6);
+  const paddle = clamp01(p.digits / 0.4);
+  const mouthPt = onHead(mouthDir, 1.1);
   const limbs: { hand: Vec3; elbow: Vec3; knee: Vec3; foot: Vec3 }[] = [];
   for (const sgn of [1, -1]) {
     const zs: Vec3 = [0, 0, sgn];
     const s0 = v.add(shoulder.c, lin([shoulder.r * 0.55, zs], [shoulder.r * 0.35, shoulder.front]));
     const elbow = v.add(s0, v.mul(v.norm(lin([0.6, shoulder.down], [0.7, shoulder.front], [0.3, zs])), p.armLen * 0.5));
-    const hand = v.add(elbow, v.mul(v.norm(lin([-0.85, shoulder.down], [0.45, shoulder.front], [-0.15, zs])), p.armLen * 0.5));
-    if (p.limbR > 0.001) {
-      parts.push(segment(s0, elbow, p.limbR), segment(elbow, hand, p.limbR * 0.92), sphere(hand, p.limbR * 1.3));
-    } else {
-      parts.push(sphere(s0, 0), sphere(s0, 0), sphere(s0, 0));
+    const rest = v.add(elbow, v.mul(v.norm(lin([-0.85, shoulder.down], [0.45, shoulder.front], [-0.15, zs])), p.armLen * 0.5));
+    const hand = sgn === 1 ? v.add(rest, v.mul(v.sub(mouthPt, rest), 0.7 * p.thumb)) : rest;
+    const along = v.norm(v.sub(hand, elbow));
+    const hb = alongY(along);
+    const hs = limbR * 1.3;
+    parts.push(
+      segment(s0, elbow, limbR),
+      segment(elbow, hand, limbR * 0.92),
+      // A round bud, then a flat paddle, then a palm with fingers.
+      { pos: hand, radii: [hs * (1 + 0.18 * paddle), hs, hs * (1 - 0.3 * paddle)], basis: hb, tone: "skin" },
+    );
+    const fr = limbR * fingers;
+    for (let j = 0; j < 4; j++) {
+      const f = lin([1, hand], [hs * 0.95, along], [(j - 1.5) * limbR * 0.48, hb[0]]);
+      parts.push({ pos: f, radii: [fr * 0.25, fr * 0.45, fr * 0.24], basis: hb, tone: "skin" });
     }
+    parts.push({ pos: lin([1, hand], [hs * 0.3, along], [hs * 1.05, hb[0]]), radii: [fr * 0.34, fr * 0.48, fr * 0.32], basis: alongY(lin([0.6, along], [1, hb[0]])), tone: "skin" });
+
     const h0 = v.add(hip.c, lin([hip.r * 0.5, zs], [hip.r * 0.3, hip.front]));
     const knee = v.add(h0, v.mul(v.norm(lin([1, hip.front], [-0.35, hip.down], [0.4, zs])), p.legLen * 0.5));
     const foot = v.add(knee, v.mul(v.norm(lin([0.95, hip.down], [-0.1, hip.front], [0.05, zs])), p.legLen * 0.5));
-    const lr = p.limbR * 1.15;
-    if (lr > 0.001) {
-      const toe = v.norm(lin([1, hip.front], [0.2, hip.down]));
-      parts.push(
-        segment(h0, knee, lr),
-        segment(knee, foot, lr * 0.85),
-        { pos: foot, radii: [lr * 1.05, lr * 1.6, lr * 0.95], basis: alongY(toe), tone: "skin" },
-      );
-    } else {
-      parts.push(sphere(h0, 0), sphere(h0, 0), sphere(h0, 0));
+    const lr = limbR * 1.15;
+    const toe = v.norm(lin([1, hip.front], [0.2, hip.down]));
+    const fb = alongY(toe);
+    parts.push(segment(h0, knee, lr), segment(knee, foot, lr * 0.85), { pos: foot, radii: [lr * 1.05, lr * 1.6, lr * 0.95], basis: fb, tone: "skin" });
+    const tr = lr * 0.2 * fingers;
+    for (let j = 0; j < 5; j++) {
+      // Big toe first, on the inner side; the rest step down in size.
+      parts.push(sphere(lin([1, foot], [lr * (1.45 - 0.06 * j), toe], [(j - 2) * lr * 0.3 * -sgn, fb[2]]), tr * (j === 0 ? 1.3 : 1 - 0.06 * j)));
     }
     limbs.push({ hand, elbow, knee, foot });
   }

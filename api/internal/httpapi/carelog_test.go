@@ -25,6 +25,7 @@ func newbornFamily(c *testutil.Client, t *testing.T) carePeople {
 		`DELETE FROM voice_notes WHERE family_id = $1`,
 		`DELETE FROM handoffs WHERE family_id = $1`,
 		`DELETE FROM care_log_entries WHERE family_id = $1`,
+		`DELETE FROM shifts WHERE family_id = $1`,
 	} {
 		if _, err := c.Pool.Exec(t.Context(), q, p.fam.Id); err != nil {
 			t.Fatal(err)
