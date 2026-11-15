@@ -8,6 +8,7 @@ import { familyNow } from "@/lib/clock";
 import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { JournalAndCare } from "@/components/care/journal-and-care";
+import { MoodHistory } from "@/components/care/mood-history";
 import { CareTeamCard, FindHelpCard, RecoveryCard, ScreeningCard } from "@/components/care/care-rows";
 import { shortName } from "@/components/care/names";
 import { recommend } from "@/components/directory/recommend";
@@ -100,6 +101,10 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           now={now.toISOString()}
         />
       )}
+
+      <div className="mt-4 min-w-0">
+        <MoodHistory memberId={memberId} now={now.toISOString()} />
+      </div>
 
       <Rise i={3} className="mt-4 grid min-w-0 items-start gap-6 @4xl:grid-cols-2 @7xl:grid-cols-3">
         {passport.data && <CareTeamCard memberId={memberId} team={team} />}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Lightbulb, MessageCircle, PersonStanding, Smile, Sprout, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
@@ -26,6 +27,7 @@ const domains: { id: MilestoneDomain; label: string; icon: LucideIcon }[] = [
 // unticked line is never called a delay: it only means "watch for it and bring it
 // to the next check-up". The CDC page is linked in the closing sentence.
 export function MilestoneCard({ memberId, childId, checklist }: { memberId: string; childId: string; checklist: MilestoneChecklist }) {
+  const router = useRouter();
   const [items, setItems] = useState(checklist.items);
   const seen = items.filter((m) => m.observed).length;
   const age = ageLabel(checklist.checklistAgeMonths);
@@ -43,6 +45,8 @@ export function MilestoneCard({ memberId, childId, checklist }: { memberId: stri
       return;
     }
     setItems((all) => all.map((x) => (x.id === m.id ? data : x)));
+    // The firsts timeline beside this card reads the same observations.
+    router.refresh();
   }
 
   return (

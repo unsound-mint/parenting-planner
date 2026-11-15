@@ -41,6 +41,10 @@ export const milestoneMocks = {
     childId: ctx.path.childId,
     checklistAgeMonths: 48,
     items: CHECKLIST.map(item),
+    recorded: CHECKLIST.filter((m) => m.seen !== undefined)
+      .sort((a, b) => (a.seen ?? 0) - (b.seen ?? 0))
+      .reverse()
+      .map((m) => ({ id: m.id, domain: m.domain, text: m.text, observedOn: dayOf(m.seen ?? 0), checklistAgeMonths: 48 })),
     source,
   })),
   // Echoes the new value; nothing is stored, so a reload shows the seed again.

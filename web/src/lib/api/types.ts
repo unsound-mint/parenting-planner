@@ -91,6 +91,7 @@ export type Task = S["Task"];
 export type AppointmentQuestion = S["AppointmentQuestion"];
 export type Milestone = S["Milestone"];
 export type MilestoneChecklist = S["MilestoneChecklist"];
+export type RecordedMilestone = S["RecordedMilestone"];
 export type WeeklyRead = S["WeeklyRead"];
 export type WeeklyReadKind = S["WeeklyReadKind"];
 export type WeeklyReadList = S["WeeklyReadList"];

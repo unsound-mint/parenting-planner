@@ -78,6 +78,7 @@ func (q *Queries) GetMilestoneChild(ctx context.Context, arg GetMilestoneChildPa
 const listChildMilestoneObservations = `-- name: ListChildMilestoneObservations :many
 SELECT milestone_id, observed_on FROM child_milestones
 WHERE family_id = $1 AND child_id = $2
+ORDER BY observed_on DESC, milestone_id
 `
 
 type ListChildMilestoneObservationsParams struct {
@@ -141,4 +142,30 @@ func (q *Queries) RemoveChildMilestoneObservation(ctx context.Context, arg Remov
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const setChildMilestoneObservedOn = `-- name: SetChildMilestoneObservedOn :exec
+INSERT INTO child_milestones (family_id, child_id, milestone_id, observed_on, set_by_member_id)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (child_id, milestone_id) DO UPDATE SET observed_on = EXCLUDED.observed_on, set_by_member_id = EXCLUDED.set_by_member_id
+`
+
+type SetChildMilestoneObservedOnParams struct {
+	FamilyID      uuid.UUID
+	ChildID       uuid.UUID
+	MilestoneID   string
+	ObservedOn    time.Time
+	SetByMemberID uuid.NullUUID
+}
+
+// Moves an observation to the day the parent says it was seen, or records it on that day.
+func (q *Queries) SetChildMilestoneObservedOn(ctx context.Context, arg SetChildMilestoneObservedOnParams) error {
+	_, err := q.db.Exec(ctx, setChildMilestoneObservedOn,
+		arg.FamilyID,
+		arg.ChildID,
+		arg.MilestoneID,
+		arg.ObservedOn,
+		arg.SetByMemberID,
+	)
+	return err
 }
