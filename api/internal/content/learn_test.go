@@ -19,8 +19,8 @@ func corePaths(t *testing.T) ([]LearnPath, string) {
 
 func TestLearnCatalogIsCompleteAndSourced(t *testing.T) {
 	core, _ := corePaths(t)
-	if len(core) != 8 {
-		t.Errorf("learn_paths.json has %d paths, want 8", len(core))
+	if len(core) != 11 {
+		t.Errorf("learn_paths.json has %d paths, want 11", len(core))
 	}
 	lessons, questions := 0, 0
 	for _, p := range learnPaths {
@@ -50,8 +50,8 @@ func TestLearnCatalogIsCompleteAndSourced(t *testing.T) {
 			coreQuestions += len(l.Quiz)
 		}
 	}
-	if coreLessons != 32 || coreQuestions != 74 {
-		t.Errorf("learn_paths.json has %d lessons, %d questions; want 32, 74", coreLessons, coreQuestions)
+	if coreLessons != 44 || coreQuestions != 98 {
+		t.Errorf("learn_paths.json has %d lessons, %d questions; want 44, 98", coreLessons, coreQuestions)
 	}
 }
 
@@ -117,7 +117,7 @@ func TestLessonsFitTheirStage(t *testing.T) {
 	for _, p := range core {
 		isCore[p.ID] = true
 	}
-	for stage, want := range map[string]int{"pregnancy": 32, "planning": 8, "postpartum": 19, "preschool": 2} {
+	for stage, want := range map[string]int{"pregnancy": 32, "planning": 8, "postpartum": 19, "toddler": 6, "preschool": 6, "school_age": 6} {
 		n := 0
 		for _, p := range LearnPathsFor(State{Stage: stage}) {
 			if isCore[p.ID] {
@@ -166,5 +166,19 @@ func TestNutritionPathsJoinTheCatalog(t *testing.T) {
 	}
 	if q := questionsByID["everyday-habits-q1"]; q.Source.URL != "https://www.fda.gov/food/consumers/advice-about-eating-fish" {
 		t.Errorf("fish question cites %s", q.Source.URL)
+	}
+}
+
+// Parents of toddlers, preschoolers and school-age children get at least six
+// lessons each.
+func TestEveryChildStageHasSixLessons(t *testing.T) {
+	for _, stage := range []string{"toddler", "preschool", "school_age"} {
+		n := 0
+		for _, p := range LearnPathsFor(State{Stage: stage}) {
+			n += len(p.Lessons)
+		}
+		if n < 6 {
+			t.Errorf("%s has %d lessons, want at least 6", stage, n)
+		}
 	}
 }
