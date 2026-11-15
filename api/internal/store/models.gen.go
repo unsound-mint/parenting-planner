@@ -451,6 +451,13 @@ type LiveEvent struct {
 	At              time.Time
 }
 
+type ManualCompletion struct {
+	FamilyID    uuid.UUID
+	MemberID    uuid.UUID
+	ManualID    string
+	CompletedAt time.Time
+}
+
 type Member struct {
 	ID             uuid.UUID
 	FamilyID       uuid.UUID
