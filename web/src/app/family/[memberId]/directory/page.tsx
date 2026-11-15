@@ -16,6 +16,7 @@ import { firstOpenings, openingLabel } from "@/components/directory/openings";
 import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { familyNow } from "@/lib/clock";
+import { cn } from "@/lib/utils";
 
 // Provider directory: synthetic providers with real open times stored per
 // family. The parent's booked visits first, then picks for the family's
@@ -109,7 +110,8 @@ async function Directory({
               <h2 id="picks-heading" className="text-title font-semibold">
                 Suggested for you now
               </h2>
-              <ul className="mt-3 grid gap-4 @3xl:grid-cols-2 @7xl:grid-cols-3">
+              {/* Two picks (a visit is already booked) fill two columns instead of leaving a third one empty. */}
+              <ul className={cn("mt-3 grid gap-4 @3xl:grid-cols-2", picks.length !== 2 && "@7xl:grid-cols-3")}>
                 {picks.map((r) => (
                   <ProviderCard key={r.provider.id} provider={r.provider} href={`${base}/${r.provider.id}`} first={r.first} reason={r.reason} featured now={now} />
                 ))}
