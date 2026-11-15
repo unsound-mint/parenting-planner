@@ -32,6 +32,7 @@ tags:
   - name: thanks
   - name: calendar
   - name: simulator
+  - name: manuals
   - name: learn
   - name: together
   - name: virtualbaby
@@ -4900,6 +4901,71 @@ paths:
                 $ref: "#/components/schemas/Error"
         "501":
           description: Not implemented yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/manuals:
+    get:
+      operationId: listManuals
+      tags: [manuals]
+      summary: Hands-on care manuals with the acting person's completions
+      description: |
+        Step-by-step manuals (swaddle, burp, safe sleep) for the Practice tab.
+        Any family member practises for themselves; completedAt is their own.
+        Sources are listed on the public sources page, not in this response.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManualList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/manuals/{manualId}/completion:
+    put:
+      operationId: completeManual
+      tags: [manuals]
+      summary: The acting person finished a manual's self-check
+      description: Records the first completion; calling it again keeps the original time. 404 for an unknown manual.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: manualId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Manual"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
           content:
             application/json:
               schema:
@@ -14242,6 +14308,71 @@ components:
             $ref: "#/components/schemas/SimulatorScenario"
         roundsCompleted:
           type: integer
+
+    ManualList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Manual"
+
+    Manual:
+      type: object
+      required: [id, title, summary, minutes, steps, check]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        minutes:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ManualStep"
+        check:
+          type: array
+          description: Self-check questions shown after the last step.
+          items:
+            $ref: "#/components/schemas/ManualCheck"
+        completedAt:
+          type: string
+          format: date-time
+          description: When the acting person first finished the self-check.
+
+    ManualStep:
+      type: object
+      required: [scene, title, text]
+      properties:
+        scene:
+          type: string
+          description: Illustration key the web app draws, e.g. swaddle-left.
+        title:
+          type: string
+        text:
+          type: string
+        watch:
+          type: string
+          description: Safety note for this step, when there is one.
+
+    ManualCheck:
+      type: object
+      required: [id, prompt, choices, correctChoice]
+      properties:
+        id:
+          type: string
+        prompt:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: "#/components/schemas/SimulatorChoice"
+        correctChoice:
+          type: string
 
     SimulatorRoundInput:
       type: object

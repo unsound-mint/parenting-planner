@@ -158,6 +158,7 @@ export type CalendarEventUpdate = S["CalendarEventUpdate"];
 export type CalendarVisibility = S["CalendarVisibility"];
 export type GuideAudience = S["GuideAudience"];
 export type SimulatorChoice = S["SimulatorChoice"];
+export type Manual = S["Manual"];
 export type LearningPathList = S["LearningPathList"];
 export type LearningPath = S["LearningPath"];
 export type PathProgress = S["PathProgress"];

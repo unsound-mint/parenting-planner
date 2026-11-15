@@ -6,6 +6,6 @@ package content
 func SourceRoots() []any {
 	return []any{
 		guides, library, sizeSources, growthWeeks, stageNow, familyHub,
-		weeklyReads, safetyReference, learnPaths, PracticeQuestions(), PracticeScenarios(),
+		weeklyReads, safetyReference, learnPaths, PracticeQuestions(), PracticeScenarios(), manuals,
 	}
 }

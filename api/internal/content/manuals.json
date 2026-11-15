@@ -1,0 +1,67 @@
+{
+  "about": "Hands-on care manuals for the Practice tab. Each step is our own plain wording of the cited pages, opened on their checkedAt date. A step's scene names the illustration the web app draws. The self-check questions repeat what the steps teach; they never assess the baby.",
+  "sources": {
+    "aap-swaddling": {"title": "AAP HealthyChildren: Swaddling: Is it Safe for Your Baby?", "url": "https://www.healthychildren.org/English/ages-stages/baby/diapers-clothing/Pages/Swaddling-Is-it-Safe.aspx", "checkedAt": "2026-11-15"},
+    "kidshealth-burping": {"title": "Nemours KidsHealth: Burping Your Baby", "url": "https://kidshealth.org/en/parents/burping.html", "checkedAt": "2026-11-15"},
+    "nichd-environment": {"title": "NICHD Safe to Sleep: Safe Sleep Environment", "url": "https://safetosleep.nichd.nih.gov/reduce-risk/safe-sleep-environment", "checkedAt": "2026-11-15"},
+    "nhs-sids": {"title": "NHS: Sudden infant death syndrome (SIDS)", "url": "https://www.nhs.uk/conditions/sudden-infant-death-syndrome-sids/", "checkedAt": "2026-11-15"}
+  },
+  "manuals": [
+    {
+      "id": "swaddle",
+      "title": "How to swaddle",
+      "summary": "A snug wrap that leaves the hips free, in six folds.",
+      "minutes": 3,
+      "sources": ["aap-swaddling"],
+      "steps": [
+        {"scene": "swaddle-spread", "title": "Lay the blanket out", "text": "Spread a thin blanket flat like a diamond and fold the top corner down."},
+        {"scene": "swaddle-place", "title": "Place the baby", "text": "Lay your baby face up, with their shoulders just below the folded edge."},
+        {"scene": "swaddle-left", "title": "First side", "text": "Straighten the left arm, bring the left corner across the body and tuck it under the right arm."},
+        {"scene": "swaddle-right", "title": "Second side", "text": "Tuck the right arm down, then fold the right corner over the body and tuck it under the left side."},
+        {"scene": "swaddle-bottom", "title": "Bottom, loosely", "text": "Fold or twist the bottom loosely and tuck it under one side, so the legs can bend up and out.", "watch": "Legs held straight and wrapped tight can harm the hips. Keep the bottom roomy."},
+        {"scene": "swaddle-check", "title": "Check the fit", "text": "Slide two or three fingers between the chest and the blanket. The hips should move freely.", "watch": "Stop swaddling as soon as your baby shows any sign of trying to roll over. Some start around 2 months."}
+      ],
+      "check": [
+        {"id": "hips", "prompt": "How should the legs sit in a swaddle?", "choices": [{"id": "a", "text": "Straight and wrapped snug"}, {"id": "b", "text": "Free to bend up and out"}], "correct": "b"},
+        {"id": "fit", "prompt": "How snug around the chest?", "choices": [{"id": "a", "text": "Two or three fingers fit underneath"}, {"id": "b", "text": "As tight as it will go"}], "correct": "a"},
+        {"id": "stop", "prompt": "When do you stop swaddling?", "choices": [{"id": "a", "text": "At 6 months"}, {"id": "b", "text": "As soon as baby tries to roll"}], "correct": "b"}
+      ]
+    },
+    {
+      "id": "burp",
+      "title": "How to burp",
+      "summary": "Three holds to try, and when to reach for them.",
+      "minutes": 2,
+      "sources": ["kidshealth-burping"],
+      "steps": [
+        {"scene": "burp-when", "title": "When to burp", "text": "Pause every 60 to 90 mL from a bottle, or when you switch breasts, and always once the feed is done."},
+        {"scene": "burp-shoulder", "title": "Hold 1: over the shoulder", "text": "Hold your baby upright, chin resting on your shoulder, one hand under them. Pat the back with the other."},
+        {"scene": "burp-lap", "title": "Hold 2: sitting on your lap", "text": "Sit your baby on your knee, cradle the chin in your palm with the heel of your hand on the chest, and pat the back.", "watch": "Hold the chin, not the throat."},
+        {"scene": "burp-belly", "title": "Hold 3: belly down", "text": "Lay your baby tummy down across your lap with the head higher than the chest, and pat the back gently."},
+        {"scene": "burp-after", "title": "No burp? Switch", "text": "If nothing comes after a few minutes, change holds and try again, then carry on feeding. Keep baby upright 10 to 15 minutes after."}
+      ],
+      "check": [
+        {"id": "often", "prompt": "Bottle feeding: when do you pause to burp?", "choices": [{"id": "a", "text": "Every 60 to 90 mL"}, {"id": "b", "text": "Only when the bottle is empty"}], "correct": "a"},
+        {"id": "chin", "prompt": "Sitting hold: where does your hand go?", "choices": [{"id": "a", "text": "Around the throat"}, {"id": "b", "text": "Cradling the chin"}], "correct": "b"}
+      ]
+    },
+    {
+      "id": "safe-sleep",
+      "title": "Set up safe sleep",
+      "summary": "Back to sleep, a bare firm crib, close to you.",
+      "minutes": 2,
+      "sources": ["nichd-environment", "nhs-sids"],
+      "steps": [
+        {"scene": "sleep-surface", "title": "Firm and flat", "text": "Use a crib, bassinet or play yard with a firm, flat, level mattress and only a fitted sheet.", "watch": "Sofas, armchairs and memory foam are not safe places for a baby to sleep."},
+        {"scene": "sleep-empty", "title": "Nothing else in it", "text": "Take out pillows, blankets, soft toys and bumpers. A bare crib is the safest one."},
+        {"scene": "sleep-back", "title": "On the back, feet to foot", "text": "Lay your baby on their back for every sleep, with their feet at the bottom of the crib.", "watch": "If they roll before they can roll both ways, turn them back onto their back."},
+        {"scene": "sleep-room", "title": "In your room", "text": "Keep the crib in your room, near your bed, for every sleep for at least the first 6 months."}
+      ],
+      "check": [
+        {"id": "position", "prompt": "Which way up for sleep?", "choices": [{"id": "a", "text": "On the back"}, {"id": "b", "text": "On the side"}, {"id": "c", "text": "On the tummy"}], "correct": "a"},
+        {"id": "crib", "prompt": "What goes in the crib?", "choices": [{"id": "a", "text": "A soft blanket and a toy"}, {"id": "b", "text": "Only a fitted sheet"}], "correct": "b"},
+        {"id": "where", "prompt": "Where does the crib go for the first 6 months?", "choices": [{"id": "a", "text": "In your room"}, {"id": "b", "text": "In the nursery"}], "correct": "a"}
+      ]
+    }
+  ]
+}

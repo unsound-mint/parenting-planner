@@ -9,6 +9,7 @@ import { skillIcon, skillLabel } from "@/lib/visuals";
 import { SkillBars } from "@/components/simulator/skill-bars";
 import { StartRoundButton } from "@/components/simulator/start-round-button";
 import { PageFrame } from "@/components/shell/page";
+import { ManualsSection } from "@/components/manuals/manuals-section";
 
 // Practice: short scenarios that train one skill each. Scores are the
 // person's own; the round ends with a shift they can commit to.
@@ -23,13 +24,23 @@ export default function SimulatorPage({ params }: PageProps<"/family/[memberId]/
 async function Simulator({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
-  const [{ data: progress, response }, { data: family }] = await Promise.all([
+  const [{ data: progress, response }, { data: family }, { data: manuals }] = await Promise.all([
     api.GET("/members/{memberId}/simulator", { params: { path: { memberId } } }),
     api.GET("/family"),
+    api.GET("/members/{memberId}/manuals", { params: { path: { memberId } } }),
   ]);
-  if (!progress || response.status === 501 || response.status === 404) notFound();
   // The nav hides it in pregnancy loss support (layout.tsx); a direct visit gets the same.
   if (family && inLossSupport(family)) notFound();
+  // After birth the scenario rounds close (the API answers 404) but the hands-on manuals stay.
+  if ((family?.stage === "postpartum" || family?.stage === "infant") && manuals && !progress) {
+    return (
+      <PageFrame>
+        <h1 className="sr-only">Practice</h1>
+        <ManualsSection manuals={manuals.items} memberId={memberId} />
+      </PageFrame>
+    );
+  }
+  if (!progress || response.status === 501 || response.status === 404) notFound();
 
   const weak = progress.weakSpots;
   const headline =
@@ -60,6 +71,8 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
             <StartRoundButton memberId={memberId} mode="practice" label="Practice now" />
           </div>
         )}
+
+        {manuals && <ManualsSection manuals={manuals.items} memberId={memberId} />}
 
         <section aria-labelledby="scenarios-title" className="flex flex-col gap-3">
           <h2 id="scenarios-title" className="text-title">

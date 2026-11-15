@@ -2770,6 +2770,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/members/{memberId}/manuals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Hands-on care manuals with the acting person's completions
+         * @description Step-by-step manuals (swaddle, burp, safe sleep) for the Practice tab.
+         *     Any family member practises for themselves; completedAt is their own.
+         *     Sources are listed on the public sources page, not in this response.
+         */
+        get: operations["listManuals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/members/{memberId}/manuals/{manualId}/completion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The acting person finished a manual's self-check
+         * @description Records the first completion; calling it again keeps the original time. 404 for an unknown manual.
+         */
+        put: operations["completeManual"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/members/{memberId}/simulator-rounds": {
         parameters: {
             query?: never;
@@ -8047,6 +8089,37 @@ export interface components {
             weakSpots: components["schemas"]["SimulatorSkill"][];
             scenarios: components["schemas"]["SimulatorScenario"][];
             roundsCompleted: number;
+        };
+        ManualList: {
+            items: components["schemas"]["Manual"][];
+        };
+        Manual: {
+            id: string;
+            title: string;
+            summary: string;
+            minutes: number;
+            steps: components["schemas"]["ManualStep"][];
+            /** @description Self-check questions shown after the last step. */
+            check: components["schemas"]["ManualCheck"][];
+            /**
+             * Format: date-time
+             * @description When the acting person first finished the self-check.
+             */
+            completedAt?: string;
+        };
+        ManualStep: {
+            /** @description Illustration key the web app draws, e.g. swaddle-left. */
+            scene: string;
+            title: string;
+            text: string;
+            /** @description Safety note for this step, when there is one. */
+            watch?: string;
+        };
+        ManualCheck: {
+            id: string;
+            prompt: string;
+            choices: components["schemas"]["SimulatorChoice"][];
+            correctChoice: string;
         };
         SimulatorRoundInput: {
             mode: components["schemas"]["SimulatorMode"];
@@ -16868,6 +16941,105 @@ export interface operations {
             };
             /** @description Not implemented yet */
             501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listManuals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualList"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    completeManual: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The acting person. There is no login, so the UI says who is using
+                 *     the app; the API checks that this person belongs to the session's
+                 *     family. Usually a parent (mother or partner). A grandparent or nanny
+                 *     id (family.caregivers) is accepted only where the operation says so:
+                 *     operations written for parents return 404 for a caregiver id, and
+                 *     operations open to caregivers return 403 forbidden when their role
+                 *     or permissions do not allow the action.
+                 */
+                memberId: components["parameters"]["MemberId"];
+                manualId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Manual"];
+                };
+            };
+            /** @description Error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
