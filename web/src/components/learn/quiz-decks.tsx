@@ -69,7 +69,8 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
             {all} questions from your paths in {decks.length} decks. Answer at your pace; the ones you miss come back for review with the reason.
           </p>
         </Rise>
-        <Rise as="ul" i={1} className="grid min-w-0 gap-4 @xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4">
+        <Rise i={1}>
+        <ul className="grid min-w-0 gap-4 @xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4">
           {decks.map((d) => {
             const t = tally(d, me);
             return (
@@ -87,6 +88,7 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
               </li>
             );
           })}
+        </ul>
         </Rise>
       </>
     );

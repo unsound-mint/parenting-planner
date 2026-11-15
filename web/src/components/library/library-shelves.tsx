@@ -189,7 +189,7 @@ function Chips<T extends string>({
   mark?: T;
 }) {
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2" role="group" aria-label={label}>
+    <div className="-mx-1 flex min-w-0 items-center gap-2 overflow-x-auto px-1 [scrollbar-width:none] @4xl:flex-wrap @4xl:overflow-visible" role="group" aria-label={label}>
       <span className="w-14 shrink-0 text-caption font-semibold text-ink-2">{label}</span>
       {options.map(([v, text]) => {
         const on = value === v;
@@ -200,7 +200,7 @@ function Chips<T extends string>({
             aria-pressed={on}
             onClick={() => onChange(on ? null : v)}
             className={cn(
-              "press inline-flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-label transition-colors duration-(--duration-fast)",
+              "press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-label transition-colors duration-(--duration-fast)",
               on ? "bg-me text-white" : "bg-card/80 text-ink-2 hover:bg-card",
             )}
           >
