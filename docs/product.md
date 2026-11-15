@@ -29,17 +29,16 @@ Why they come back tomorrow: the plan changes as the data and the stage change, 
 | Tier | Price | What is in it |
 | --- | --- | --- |
 | Free | $0 | Stage guide, health passport, crisis and help contacts |
-| Plus | ~$29/mo | AI weekly plan for both parents, full data hub, pattern insights, partner layer |
-| Concierge | ~$99/mo | Plus a human care navigator and one psychologist session a month |
+| Plus | $14.99/mo or $119.99/yr | Weekly plan for both parents, full data hub, pattern insights, partner layer |
 | Marketplace | take rate | Bookings with providers in the ecosystem |
 
-At a blended $300 to $600 a year, $100M ARR needs roughly 170k to 400k paying families, about 5% to 11% of one year's US births, retained across a 9-year journey.
+On Plus alone ($120 to $180 a year), $100M ARR needs roughly 560k to 830k paying families, 15% to 23% of one year's US births. Marketplace bookings are an upside we have not sized. Working: [business-case.md](business-case.md).
 
 ## Product principles
 
 1. **Data in, personal action out.** Every recommendation names which data triggered it and which guideline it follows, with the source and the date it was checked.
-2. **Private by default.** Diaries and session notes belong to the person who wrote them. Partner, psychologist and AI see only what that person shares, item by item.
-3. **Guide, not doctor.** The AI explains, plans, reminds and prepares questions. It never diagnoses. Urgent symptoms and self-harm go to fixed screens with hotlines, never generated text.
+2. **Private by default.** Diaries and session notes belong to the person who wrote them. Partner and psychologist see only what that person shares, item by item.
+3. **Guide, not doctor.** The plan explains, reminds and prepares questions. It never diagnoses. Urgent symptoms and self-harm go to fixed screens with hotlines, never generated text.
 4. **Both parents, separately and together.** Each parent has their own screen; the family plan connects them.
 
 ## Hackathon scope
@@ -54,11 +53,11 @@ Later milestones (Phase 0 to 4) are the roadmap after the hackathon, not demo sc
 
 The demo has no login (contest rule): visitors get a fresh copy of the demo family and switch between its people. Web only.
 
-## Open decisions (Dayana)
+## Decisions at submission
 
-- [ ] Final product name (`web/src/lib/product.ts` and the README title)
-- [ ] Track: Skills (learning to raise a healthy child) or Money. Pick one and write the one-sentence pain statement.
-- [ ] Prices and tier contents
-- [ ] The four demo families: who they are and what in their data drives a visibly different plan
-- [ ] Competitor check on Nanit, Tinyhood, Oath Care, Juniper and Mae before the deck claims nobody does this
-- [ ] Captain who submits
+- Track: Skills. Parents learn newborn care and how to split it by practising, not only reading.
+- Prices as built in `web/src/lib/plans.ts`: Free and Plus ($14.99 a month or $119.99 a year); Concierge is dropped. Checkout runs in Stripe test mode. `plans.ts` and the Stripe prices must match this before submission.
+- Working name: Parenting Planner (`web/src/lib/product.ts`).
+- Four demo families: planning, 25 weeks pregnant, newborn, preschooler (`web/src/lib/demo-families.ts`).
+- Not checked before the deck: Nanit, Tinyhood, Oath Care, Juniper and Mae. Do not claim nobody does this until they are.
+- The plan comes from the rules engine. AI is optional and off by default.

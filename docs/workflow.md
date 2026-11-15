@@ -38,3 +38,7 @@ Claude creates issues with `gh issue create` using a template (Backend task for 
 | Nov 15, 08:00 | Feature freeze, only fixes |
 | Nov 15, 10:00 | Deck final, demo rehearsed on production |
 | Nov 15, 11:00 | Captain submits (deck PDF, live link, repo link); 1 hour buffer |
+
+## After submission
+
+Judges open the production link between the 12:00 deadline and the 15:00 finalist announcement, and it must stay up until the final ends. `main` deploys on every push, so after 11:00 merge only fixes you have clicked through on production, and merge nothing after the 12:00 submission until the final is over.

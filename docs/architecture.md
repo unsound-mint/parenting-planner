@@ -34,7 +34,7 @@ No login, by contest rule. `POST /api/demo/sessions` copies a synthetic family a
 
 ## Personalization
 
-`internal/plan` loads only the data the viewing parent may see (`internal/access`), builds `rules.Facts`, and `rules.Plan` returns items with status, due date, a reason based on the family's data, and a source. The AI layer will sit on top of these items: it ranks and explains them, and never adds medical actions the engine did not produce.
+`internal/plan` loads only the data the viewing parent may see (`internal/access`), builds `rules.Facts`, and `rules.Plan` returns items with status, due date, a reason based on the family's data, and a source. An optional AI layer (`internal/aiplan`, off by default) can reword these items; it never adds medical actions the engine did not produce, and the rule-based plan is what the product relies on.
 
 ## Requests inside the API
 
@@ -42,7 +42,18 @@ The generated router validates every request against `openapi.yaml` (400 `invali
 
 ## Modules
 
-Each module is a Go package that owns its tables and its endpoints in the contract. Built: family and members, plan, wellbeing (mood check-ins). Planned: diary, health records (passport, labs, vaccines, growth), care team and providers, bookings, planner (AI), billing. `api/AGENTS.md` has the recipe for adding one.
+Each module is a Go package that owns its tables and its endpoints in the contract; `ls api/internal` lists them. Built, by area:
+
+- Family: `family`, `demo`, `invitations`, `friends`, `account`, `admin`, `analytics`.
+- Plan and rules: `rules`, `plan`, `journey`, `tasks`, `calendar`, `appointments`, `leave`, `money`, `insurance`.
+- Health: `wellbeing`, `screening`, `diary`, `care`, `recovery`, `fertility`, `passport`, `health`, `milestones`.
+- Baby and care at home: `carelog`, `shifts`, `loadmap`, `supplies`, `childcare`, `birth`.
+- Learning: `learn`, `simulator`, `virtualbaby`, `couplelab`, `missions`, `badges`.
+- Keepsakes: `story`, `storybook`, `postcard`, `capsule`, `portraits`.
+- Help and billing: `directory`, `offers`, `billing`, `upgrade`.
+- Optional AI: `ai`, `aiplan`. Off unless `ANTHROPIC_API_KEY` is set; the rules engine does not depend on it.
+
+Only the child passport endpoint still answers 501. `api/AGENTS.md` has the recipe for adding one.
 
 Tables, owners, visibility, and which screen uses each table: `docs/data-model.md` (ER diagram of main plus the tables in open PRs).
 
