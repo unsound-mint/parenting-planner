@@ -166,7 +166,8 @@ func organization(title, raw string) string {
 		}
 	}
 	if parts := strings.FieldsFunc(title, func(r rune) bool { return r == ':' || r == ',' || r == '(' || r == '|' }); len(parts) > 0 {
-		if short := strings.TrimSpace(parts[0]); short != "" {
+		// A long first phrase is a title, not a publisher name: use the host instead.
+		if short := strings.TrimSpace(parts[0]); short != "" && (len(short) <= 28 || host == "") {
 			return short
 		}
 	}
