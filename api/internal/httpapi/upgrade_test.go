@@ -34,10 +34,10 @@ func TestUpgradeIntentIsStoredPerFamily(t *testing.T) {
 	}
 
 	// A second request replaces the first; the tier itself stays free (no billing).
-	c.Post(upgradePath, httpapi.UpgradeIntentInput{Tier: httpapi.PaidTierConcierge}, http.StatusCreated, nil)
+	c.Post(upgradePath, httpapi.UpgradeIntentInput{Tier: httpapi.PaidTierPlus}, http.StatusCreated, nil)
 	c.Get("/api/family", http.StatusOK, &fam)
-	if fam.UpgradeRequest == nil || fam.UpgradeRequest.Tier != httpapi.PaidTierConcierge {
-		t.Errorf("family upgrade request = %+v, want concierge", fam.UpgradeRequest)
+	if fam.UpgradeRequest == nil || fam.UpgradeRequest.Tier != httpapi.PaidTierPlus {
+		t.Errorf("family upgrade request = %+v, want plus", fam.UpgradeRequest)
 	}
 	if fam.Tier == nil || *fam.Tier != httpapi.TierFree {
 		t.Errorf("tier = %v, want free", fam.Tier)
