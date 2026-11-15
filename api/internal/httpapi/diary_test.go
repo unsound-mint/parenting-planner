@@ -43,6 +43,7 @@ func TestDiaryValidation(t *testing.T) {
 func TestDiaryEntriesFollowTheSharingRulesAndAreEncrypted(t *testing.T) {
 	c := testutil.New(t)
 	fam := c.StartDemo("pregnancy")
+	clearDiary(c, t, fam)
 	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
 	var made httpapi.DiaryEntry
 	c.Post(diaryPath(mom), entry("I cried in the car today.", "private"), http.StatusCreated, &made)
@@ -210,7 +211,9 @@ func TestDiaryIsAuditedAndScoped(t *testing.T) {
 // cannot be opened. They are left out; the rest of the diary still loads.
 func TestDiaryLeavesOutEntriesSealedWithAnotherKey(t *testing.T) {
 	c := testutil.New(t)
-	mom := testutil.Parent(t, c.StartDemo("pregnancy"), httpapi.ParentRoleMother)
+	fam := c.StartDemo("pregnancy")
+	clearDiary(c, t, fam)
+	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 	var old httpapi.DiaryEntry
 	c.Post(diaryPath(mom), entry("Written before the restart.", "private"), http.StatusCreated, &old)
 	c.Post(diaryPath(mom), entry("Written after the restart.", "private"), http.StatusCreated, nil)
@@ -361,4 +364,12 @@ func TestDiaryFirstsAreMarkedByTheAuthorAndFollowTheEntry(t *testing.T) {
 		t.Error("first: false unmarks it")
 	}
 	c.Patch(diaryPath(jake)+"/"+e.Id.String(), map[string]any{"visibility": "partner", "first": true}, http.StatusNotFound, nil)
+}
+
+// clearDiary removes the seeded entries, for tests that count what a family's diary holds.
+func clearDiary(c *testutil.Client, t *testing.T, fam httpapi.Family) {
+	t.Helper()
+	if _, err := c.Pool.Exec(t.Context(), "DELETE FROM diary_entries WHERE family_id = $1", fam.Id); err != nil {
+		t.Fatal(err)
+	}
 }

@@ -53,8 +53,8 @@ func TestUnansweredQuestionsCarryOverToTheNextVisit(t *testing.T) {
 		t.Errorf("order = %+v", l.Items)
 	}
 	// Filter by the appointment they are now under.
-	if f := aqList(c, mom.Id, "?appointmentId="+next); len(f.Items) != 3 {
-		t.Errorf("3 questions are under the next visit, got %d", len(f.Items))
+	if f := aqList(c, mom.Id, "?appointmentId="+next); len(f.Items) != 4 {
+		t.Errorf("4 questions are under the next visit, got %d", len(f.Items))
 	}
 
 	// Answering stops the carry-over and the response says where it is.
@@ -113,7 +113,10 @@ func TestCreatingAQuestion(t *testing.T) {
 
 func TestNoUpcomingAppointmentIsAConflict(t *testing.T) {
 	c := testutil.New(t)
-	fam := c.StartDemo("preschool") // no appointments at all
+	fam := c.StartDemo("preschool")
+	if _, err := c.Pool.Exec(t.Context(), "DELETE FROM calendar_events WHERE family_id = $1", fam.Id); err != nil { // no appointments at all
+		t.Fatal(err)
+	}
 	mom := testutil.Parent(t, fam, httpapi.ParentRoleMother)
 	c.Post(aqPath(mom.Id), map[string]any{"text": "x", "visibility": "private"}, http.StatusConflict, nil)
 	if l := aqList(c, mom.Id, ""); len(l.Items) != 0 || len(l.Appointments) != 0 {
