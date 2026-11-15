@@ -266,7 +266,7 @@ func (s *Server) GetStageNow(ctx context.Context, req GetStageNowRequestObject) 
 	case "pregnancy":
 		return GetStageNow409JSONResponse(errNowPregnant), nil
 	case "planning", "trying":
-		line, _ = content.NowForPlanning(fam.Stage)
+		line, _ = content.NowForPlanning(fam.Stage, s.today(ctx))
 	default:
 		kids, err := s.q.ListChildren(ctx, familyID)
 		if err != nil {

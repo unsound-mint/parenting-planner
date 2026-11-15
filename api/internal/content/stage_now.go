@@ -27,12 +27,26 @@ type NowLine struct {
 	PlayIdea string
 	Note     string
 	Sources  []Source
+	// playIdeas is the period's whole "Try today" pool, PlayIdea first. The
+	// lookups pick one by week, so the line changes every week inside a period
+	// that lasts months.
+	playIdeas []string
+}
+
+// forWeek returns the line with the play idea of week n (any count that moves
+// by one each week: week of life, or calendar week for planning).
+func (l NowLine) forWeek(n int) NowLine {
+	if k := len(l.playIdeas); k > 0 {
+		l.PlayIdea = l.playIdeas[(n%k+k)%k]
+	}
+	return l
 }
 
 type nowEntry struct {
 	Headline   string   `json:"headline"`
 	Detail     string   `json:"detail"`
 	PlayIdea   string   `json:"playIdea"`
+	PlayIdeas  []string `json:"playIdeas"`
 	Sources    []string `json:"sources"`
 	Week       int      `json:"week"`
 	FromMonths int      `json:"fromMonths"`
@@ -71,6 +85,7 @@ func loadStageNow() stageNowData {
 	}
 	line := func(e nowEntry, stage, period, note string) NowLine {
 		l := NowLine{Stage: stage, Period: period, Headline: e.Headline, Detail: e.Detail, PlayIdea: e.PlayIdea, Note: note}
+		l.playIdeas = append([]string{e.PlayIdea}, e.PlayIdeas...)
 		for _, id := range e.Sources {
 			s, ok := f.Sources[id]
 			if !ok {
@@ -100,12 +115,17 @@ func loadStageNow() stageNowData {
 
 // NowForChild returns the line for a child born on birth, seen on today.
 // The first 12 weeks are looked up by week of life, later ages by completed
-// months; a child older than the last range gets the last entry.
+// months; a child older than the last range gets the last entry. Inside a
+// period longer than a week the play idea rotates by week of life.
 func NowForChild(birth, today time.Time) NowLine {
 	days := int(today.Sub(birth).Hours() / 24)
 	if days < WeeksOfLife*7 {
 		return stageNow.weeks[max(days, 0)/7]
 	}
+	return nowForMonths(birth, today).forWeek(days / 7)
+}
+
+func nowForMonths(birth, today time.Time) NowLine {
 	months := (today.Year()-birth.Year())*12 + int(today.Month()-birth.Month())
 	if today.Day() < birth.Day() {
 		months--
@@ -120,7 +140,16 @@ func NowForChild(birth, today time.Time) NowLine {
 }
 
 // NowForPlanning returns the planning line; stage is "planning" or "trying".
-func NowForPlanning(stage string) (NowLine, bool) {
+// There is no week to count from, so the play idea rotates by calendar week
+// on the family's clock (which "Skip ahead a week" moves).
+func NowForPlanning(stage string, today time.Time) (NowLine, bool) {
 	l, ok := stageNow.planning[stage]
-	return l, ok
+	return l.forWeek(CalendarWeek(today)), ok
+}
+
+// CalendarWeek counts whole weeks since Monday 1970-01-05, so it moves by one
+// every Monday. Rotations with no pregnancy week or child age use it.
+func CalendarWeek(today time.Time) int {
+	monday := time.Date(1970, time.January, 5, 0, 0, 0, 0, time.UTC)
+	return int(today.Sub(monday).Hours()/24) / 7
 }

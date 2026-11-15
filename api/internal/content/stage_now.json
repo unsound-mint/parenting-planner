@@ -1,7 +1,8 @@
 {
  "notes": {
   "child": "Every child grows at their own pace. If you are not seeing something, mention it to your pediatrician.",
-  "planning": "Your doctor can tell you what fits your own health."
+  "planning": "Your doctor can tell you what fits your own health.",
+  "playIdeas": "playIdeas rotate the 'Try today' line week by week inside a period (stage_now.go). Child ideas paraphrase the activity lists on the entry's own CDC milestone pages (reopened 2026-11-15); planning ideas are our own writing with no health claims."
  },
  "sources": {
   "cdc-2m": {
@@ -523,7 +524,17 @@
    "fromMonths": 36,
    "toMonths": 41,
    "stage": "preschool",
-   "period": "3 years"
+   "period": "3 years",
+   "playIdeas": [
+    "Play a counting game with stairs, toes or spoons as you go about the day.",
+    "Let them help make dinner by washing fruit or stirring.",
+    "Give a two step request, like getting shoes and then a coat.",
+    "Sing a simple song or rhyme together, like Itsy Bitsy Spider.",
+    "Squish, roll and pinch playdough together.",
+    "Play opposites: crouch down and say small, stand tall and say big.",
+    "Go to the park and let them choose what to play, then follow their lead.",
+    "Hunt for matching things around the house or in a book."
+   ]
   },
   {
    "headline": "Three and a half: stories and make-believe.",
@@ -536,7 +547,16 @@
    "fromMonths": 42,
    "toMonths": 47,
    "stage": "preschool",
-   "period": "3.5 years"
+   "period": "3.5 years",
+   "playIdeas": [
+    "Play a matching game, or a round of tic-tac-toe.",
+    "Take a trip to the library and let them pick the books.",
+    "Read together and ask what they think happens next.",
+    "Play hide and seek or follow the leader.",
+    "Color and draw shapes together with crayons and paper.",
+    "Squish, roll and pinch playdough together.",
+    "Play opposites: fast and slow, quiet and loud."
+   ]
   },
   {
    "headline": "4 years: a storyteller.",
@@ -548,7 +568,17 @@
    "fromMonths": 48,
    "toMonths": 53,
    "stage": "preschool",
-   "period": "4 years"
+   "period": "4 years",
+   "playIdeas": [
+    "Take a trip to the library and let them pick the books.",
+    "Read together and ask what they think happens next.",
+    "Play tag, follow the leader or hide and seek.",
+    "Play a matching game, or a round of tic-tac-toe.",
+    "Count the things you see on a walk, and name their colors and shapes.",
+    "Play dress-up or pretend cooking, and join in.",
+    "Let them help with a small chore, like setting out spoons.",
+    "Play red light, green light."
+   ]
   },
   {
    "headline": "Four and a half: nearly five.",
@@ -561,7 +591,16 @@
    "fromMonths": 54,
    "toMonths": 59,
    "stage": "preschool",
-   "period": "4.5 years"
+   "period": "4.5 years",
+   "playIdeas": [
+    "Play I Spy, or hot and cold with a hidden toy.",
+    "Ask them to tell you the story of a picture book in their own words.",
+    "Use time words today: what did we do yesterday, what happens tomorrow?",
+    "Let them pour their own water or help make the bed, even if it is not perfect.",
+    "Talk about how a character in a book is feeling.",
+    "Play tag, follow the leader or hide and seek.",
+    "Count the things you see on a walk, and name their colors and shapes."
+   ]
   },
   {
    "headline": "5 years: rules, rhymes and counting.",
@@ -573,7 +612,16 @@
    "fromMonths": 60,
    "toMonths": 71,
    "stage": "school_age",
-   "period": "5 years"
+   "period": "5 years",
+   "playIdeas": [
+    "Play I Spy, or hot and cold with a hidden toy.",
+    "Ask them to tell you the story of a picture book in their own words.",
+    "Use time words today: what did we do yesterday, what happens tomorrow?",
+    "Let them pour their own water or help make the bed, even if it is not perfect.",
+    "Talk about how a character in a book is feeling.",
+    "Visit a playground and try the swings or the monkey bars.",
+    "Set out paper and crayons for a drawing project together."
+   ]
   },
   {
    "headline": "6 years: friends start to matter more.",
@@ -634,7 +682,15 @@
     "whg-preconception",
     "nichd-preconception"
    ],
-   "period": "Planning"
+   "period": "Planning",
+   "playIdeas": [
+    "Take a walk together and trade one hope and one worry about becoming parents.",
+    "Look at the next few months on your calendars and mark the busy stretches.",
+    "Ask a friend who is a parent what surprised them most.",
+    "Look through old family photos together and tell the stories behind them.",
+    "Write down three things you want to keep doing as a couple once a baby comes.",
+    "Make a short playlist of songs you would want to share with a kid one day."
+   ]
   },
   "trying": {
    "headline": "While you try, keep the good habits going together.",
@@ -644,7 +700,14 @@
     "cdc-planning",
     "whg-preconception"
    ],
-   "period": "Trying"
+   "period": "Trying",
+   "playIdeas": [
+    "Plan a small date this week that has nothing to do with trying.",
+    "Each name one thing that would make this month feel lighter, then do one of them.",
+    "Keep one shared note for questions to ask your doctor as they come up.",
+    "Ask each other how trying feels this week, and listen without fixing.",
+    "Spend an evening on a hobby you share, phones away."
+   ]
   }
  }
 }

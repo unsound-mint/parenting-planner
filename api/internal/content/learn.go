@@ -107,6 +107,8 @@ type Choice struct{ ID, Text string }
 type TalkPrompt struct {
 	ID, Text         string
 	WeekFrom, WeekTo int
+	// Stages is set on prompts for stages other than pregnancy; those have no weeks.
+	Stages []string
 }
 
 var (
@@ -132,6 +134,7 @@ func init() {
 	for _, p := range coupleTalkPrompts {
 		coupleTalkPromptsByID[p.ID] = p
 	}
+	pregnancyLeads = pickPregnancyLeads()
 }
 
 const choiceIDs = "abcdefgh"
@@ -264,10 +267,11 @@ func loadPathFile(name string, data []byte) []LearnPath {
 func loadTalkPrompts() []TalkPrompt {
 	var t struct {
 		Prompts []struct {
-			ID    string `json:"id"`
-			Kind  string `json:"kind"`
-			Weeks [2]int `json:"weeks"`
-			Text  string `json:"text"`
+			ID     string   `json:"id"`
+			Kind   string   `json:"kind"`
+			Weeks  [2]int   `json:"weeks"`
+			Stages []string `json:"stages"`
+			Text   string   `json:"text"`
 		} `json:"prompts"`
 	}
 	if err := json.Unmarshal(talkPromptsJSON, &t); err != nil {
@@ -277,7 +281,7 @@ func loadTalkPrompts() []TalkPrompt {
 	for _, p := range t.Prompts {
 		// Journal prompts are for the journal composer, not the couple card.
 		if p.Kind == "couple" {
-			prompts = append(prompts, TalkPrompt{ID: p.ID, Text: p.Text, WeekFrom: p.Weeks[0], WeekTo: p.Weeks[1]})
+			prompts = append(prompts, TalkPrompt{ID: p.ID, Text: p.Text, WeekFrom: p.Weeks[0], WeekTo: p.Weeks[1], Stages: p.Stages})
 		}
 	}
 	return prompts
@@ -330,26 +334,88 @@ func LessonByID(id string) (Lesson, bool) {
 // LessonPromptPrefix marks a talk prompt that comes from a lesson.
 const LessonPromptPrefix = "lesson:"
 
-// CoupleTalkPrompts returns the pool prompts whose window covers the week,
-// latest-opening first. Outside pregnancy the pool (written for pregnancy
-// weeks) is not used.
-func CoupleTalkPrompts(s State) []TalkPrompt {
-	out := []TalkPrompt{}
-	if s.Stage != "pregnancy" || !s.HasWeek {
-		return out
+// CoupleTalkPrompts returns this week's pool prompts in the order to offer
+// them. In pregnancy that is the prompts whose window covers the gestational
+// week; in other stages the prompts written for the stage. The list is
+// rotated by week (the gestational week, else the calendar week of today on
+// the family's clock) so the first prompt changes every week; a prompt whose
+// window opened this week leads, since it is the newest thing to talk about.
+// TestTalkPromptsChangeEveryWeek guards this.
+func CoupleTalkPrompts(s State, today time.Time) []TalkPrompt {
+	switch {
+	case s.Stage == "pregnancy" && s.HasWeek:
+		return pregnancyTalkPrompts(s.Week)
+	case s.Stage != "pregnancy":
+		out := []TalkPrompt{}
+		for _, p := range coupleTalkPrompts {
+			if slices.Contains(p.Stages, s.Stage) {
+				out = append(out, p)
+			}
+		}
+		return rotate(out, CalendarWeek(today))
 	}
+	return []TalkPrompt{}
+}
+
+// pregnancyTalkPrompts rotates the week's window by the week and puts the
+// week's lead (pregnancyLeads) first.
+func pregnancyTalkPrompts(week int) []TalkPrompt {
+	out := rotate(pregnancyWindow(week), week)
+	if i := slices.IndexFunc(out, func(p TalkPrompt) bool { return p.ID == pregnancyLeads[week] }); i > 0 {
+		lead := out[i]
+		out = append([]TalkPrompt{lead}, slices.Delete(out, i, i+1)...)
+	}
+	return out
+}
+
+func pregnancyWindow(week int) []TalkPrompt {
+	out := []TalkPrompt{}
 	for _, p := range coupleTalkPrompts {
-		if p.WeekFrom <= s.Week && s.Week <= p.WeekTo {
+		if len(p.Stages) == 0 && p.WeekFrom <= week && week <= p.WeekTo {
 			out = append(out, p)
 		}
 	}
-	slices.SortStableFunc(out, func(a, b TalkPrompt) int {
-		if a.WeekFrom != b.WeekFrom {
-			return b.WeekFrom - a.WeekFrom
-		}
-		return strings.Compare(a.ID, b.ID)
-	})
 	return out
+}
+
+// pregnancyLeads is the first prompt of each pregnancy week, picked once in
+// week order: the prompt in the week's window that led longest ago (or never),
+// in rotation order, so one that opens this week leads first. Windows open and
+// close, so the plain rotation alone would flip back and forth between the
+// same few prompts.
+var pregnancyLeads map[int]string
+
+func pickPregnancyLeads() map[int]string {
+	leads := map[int]string{}
+	ledIn := map[string]int{}
+	for week := firstPregnancyWeek; week <= lastPregnancyWeek; week++ {
+		rotated := rotate(pregnancyWindow(week), week)
+		if len(rotated) == 0 {
+			continue
+		}
+		lead, oldest := "", week
+		for _, p := range rotated {
+			at, ok := ledIn[p.ID]
+			if !ok {
+				at = -1
+			}
+			if at < oldest {
+				lead, oldest = p.ID, at
+			}
+		}
+		leads[week], ledIn[lead] = lead, week
+	}
+	return leads
+}
+
+// rotate sorts the prompts by id and starts the list at week mod its length.
+func rotate(out []TalkPrompt, week int) []TalkPrompt {
+	if len(out) == 0 {
+		return out
+	}
+	slices.SortStableFunc(out, func(a, b TalkPrompt) int { return strings.Compare(a.ID, b.ID) })
+	k := (week%len(out) + len(out)) % len(out)
+	return append(out[k:], out[:k]...)
 }
 
 // TalkPromptText resolves a prompt id (pool id or lesson:<id>) to its text and
