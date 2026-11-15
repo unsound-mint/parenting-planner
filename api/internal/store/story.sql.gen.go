@@ -106,10 +106,16 @@ func (q *Queries) ListStoryChildVaccineDays(ctx context.Context, arg ListStoryCh
 }
 
 const listStoryDiaryEntriesVisibleToParent = `-- name: ListStoryDiaryEntriesVisibleToParent :many
-SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries
-WHERE family_id = $1 AND visibility IN ('partner', 'family') AND written_at <= $2
-ORDER BY written_at, id
-LIMIT 60
+SELECT e.id, e.family_id, e.owner_member_id, e.visibility, e.written_at, e.body_sealed, e.agenda_topic, e.created_at, e.mood, e.is_first FROM diary_entries e
+WHERE e.family_id = $1 AND e.visibility IN ('partner', 'family') AND e.id IN (
+  SELECT picked.id FROM (
+    SELECT d.id, row_number() OVER (PARTITION BY date_trunc('month', d.written_at) ORDER BY d.is_first DESC, d.written_at, d.id) AS n
+    FROM diary_entries d
+    WHERE d.family_id = $1 AND d.visibility IN ('partner', 'family') AND d.written_at <= $2
+  ) picked
+  WHERE picked.n <= 4
+)
+ORDER BY e.written_at, e.id
 `
 
 type ListStoryDiaryEntriesVisibleToParentParams struct {
@@ -120,6 +126,8 @@ type ListStoryDiaryEntriesVisibleToParentParams struct {
 // Mirrors access.CanParentRead, narrowed for the shared book: only entries
 // their author shared with the partner or the family. A private entry never
 // appears, not even to its author. Written before now only.
+// A few lines per month (firsts before the rest), so a family that has written
+// for years gets every month in its book instead of only its first 60 entries.
 func (q *Queries) ListStoryDiaryEntriesVisibleToParent(ctx context.Context, arg ListStoryDiaryEntriesVisibleToParentParams) ([]DiaryEntry, error) {
 	rows, err := q.db.Query(ctx, listStoryDiaryEntriesVisibleToParent, arg.FamilyID, arg.Now)
 	if err != nil {

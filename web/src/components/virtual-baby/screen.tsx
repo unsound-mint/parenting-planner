@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { ease, spring } from "@/components/joy/motion";
 import { Avatar } from "@/components/joy/partner-chip";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { VirtualBabyFigure, type Reaction } from "./baby";
 import {
   activeSession,
@@ -489,7 +488,6 @@ function FeedbackCard({ moment, parents, memberId, onNext, busy, last }: { momen
       </div>
       <p className="max-w-prose text-body text-ink-2">{moment.feedback.why}</p>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SourceLine sources={[moment.feedback.source]} />
         <button type="button" onClick={onNext} disabled={busy} autoFocus className={cn(BTN, "bg-me text-white")}>
           {last ? "See what you practiced" : "Carry on"}
         </button>
@@ -610,7 +608,6 @@ function Summary({ session, parents, memberId, justNow = false, onAgain }: { ses
                     </span>
                   </summary>
                   <p className="mt-2 text-label font-normal text-ink-2">{m.feedback.why}</p>
-                  <SourceLine sources={[m.feedback.source]} className="mt-2" />
                 </details>
               </li>
             ))}

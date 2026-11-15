@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Check } from "lucide-react";
 import type { Lesson, Parent, QuizQuestion } from "@/lib/api/types";
 import { Avatar, PartnerChip } from "@/components/joy/partner-chip";
-import { SourceLine } from "@/components/joy/source-line";
 import { SoftCard } from "@/components/joy/soft-card";
 import { ease, spring } from "@/components/joy/motion";
 import { roleAccent } from "@/lib/visuals";
@@ -135,7 +134,6 @@ export function QuizCard({ lesson, couple, nextLesson, onAnswer, onOpenLesson }:
                 className="flex flex-col gap-3 rounded-2xl bg-muted px-4 py-3.5"
               >
                 <p className="text-body text-ink-2">{q.explanation}</p>
-                <SourceLine sources={[lesson.source]} />
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   {last ? (
                     nextLesson ? (

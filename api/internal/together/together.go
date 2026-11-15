@@ -240,7 +240,7 @@ func prompts(me, other uuid.UUID, st content.State, reads []store.LessonRead, ta
 			add(content.LessonPromptPrefix+l.ID, l.TalkPrompt, l.ID)
 		}
 	}
-	for _, p := range content.CoupleTalkPrompts(st) {
+	for _, p := range content.CoupleTalkPrompts(st, now) {
 		add(p.ID, p.Text, "")
 	}
 	for _, path := range content.LearnPathsFor(st) {

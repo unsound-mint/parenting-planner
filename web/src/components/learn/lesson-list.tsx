@@ -7,7 +7,6 @@ import Link from "next/link";
 import { Check, LifeBuoy, MessageCircleHeart } from "lucide-react";
 import type { LearningPath, Lesson, Parent } from "@/lib/api/types";
 import { Avatar } from "@/components/joy/partner-chip";
-import { SourceLine } from "@/components/joy/source-line";
 import { ease, spring } from "@/components/joy/motion";
 import { useFamilyNow } from "@/components/shell/family-clock";
 import { roleAccent } from "@/lib/visuals";
@@ -184,7 +183,6 @@ export function Reader({
         </Link>
       )}
 
-      <SourceLine sources={[lesson.source, ...lesson.extraSources]} />
 
       {lesson.talkPrompt && (
         <div className="max-w-prose rounded-2xl bg-them-soft px-4 py-4 md:px-5">

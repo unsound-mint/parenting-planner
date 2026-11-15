@@ -3,7 +3,6 @@ import type { FertilityEntry, FertilityOverview } from "@/lib/api/types";
 import { daysBetween, relativeDays } from "@/lib/fertility";
 import { formatShortDate } from "@/lib/format";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { CycleRing } from "./cycle-ring";
 
 /** What the ring and the headline say today; shared with the This week card. */
@@ -69,11 +68,10 @@ export function CycleHero({ overview, entries, today }: { overview: FertilityOve
           <p className="flex max-w-xl items-start gap-2 rounded-2xl bg-card p-3.5 text-label font-normal">
             <Stethoscope className="mt-0.5 size-4 shrink-0" aria-hidden />
             <span>
-              You have been trying for {c.monthsTrying} months. ACOG suggests an evaluation after {c.thresholdMonths === 6 ? "6 months when you are older than 35" : "1 year of regular unprotected sex"}. Ask your doctor, and bring this chart.
+              You have been trying for {c.monthsTrying} months. An evaluation is suggested after {c.thresholdMonths === 6 ? "6 months when you are older than 35" : "1 year of regular unprotected sex"}. Ask your doctor, and bring this chart.
             </span>
           </p>
         )}
-        <SourceLine sources={overview.sources} />
       </div>
     </SoftCard>
   );

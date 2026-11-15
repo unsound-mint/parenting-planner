@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { BenefitsFinder } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-import { SourceLine } from "@/components/joy/source-line";
 import { duration, ease, spring, tap } from "@/components/joy/motion";
 
 type Answers = Record<string, boolean>;
@@ -98,7 +97,6 @@ export function BenefitsFinderCard({ finder, memberId }: { finder: BenefitsFinde
               <p className="mt-1 text-label">
                 <span className="font-medium">Where to apply:</span> {p.where}
               </p>
-              <SourceLine sources={[p.source, ...p.moreSources]} className="mt-2" />
             </motion.li>
           );
         })}
@@ -110,7 +108,6 @@ export function BenefitsFinderCard({ finder, memberId }: { finder: BenefitsFinde
           <a href={finder.finderSource.url} target="_blank" rel="noopener" className="mt-1 inline-flex min-h-11 items-center gap-1 text-label font-medium underline underline-offset-3 md:min-h-0">
             Open the benefit finder <ExternalLink aria-hidden className="size-3.5" />
           </a>
-          <SourceLine sources={[finder.finderSource]} className="mt-1" />
         </div>
       </div>
     </section>

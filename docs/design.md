@@ -17,7 +17,7 @@ So the product is now a joyful journey for both parents, not a list of due items
 
 1. One hero per screen, at most two rows under it. The hero is the baby, the path or the composer, not a status sentence.
 2. No empty screens. Never "Nothing yet": show a starter (chips, a suggested first entry, a sample the user can take over) or a preview mock.
-3. Health facts may carry a quiet inline source link (`SourceLink` or `SourceLine`, never a date or a footer list). Crisis and urgent screens carry none. The AI never diagnoses.
+3. Cards speak in our own words and never cite: no source links, "Sources" chips or "According to the CDC" lead-ins. Every source and its checked date is listed once on the public `/sources` page ("How we check health guidance"), linked from `SiteFooter` at the end of every page. The AI never diagnoses.
 4. Status colours: on track (leaf), upcoming (slate), due (ochre), overdue (clay). Overdue is never red. Red (`urgent`) is only for urgent symptoms and the crisis path.
 5. Urgent help sits in the frame of every family screen. It opens a fixed screen with hotlines, never generated text, and never animates (no press, no transition, never inside `Rise`).
 6. Two parents, two accents. `me` is the acting person, `them` the other parent; each person also keeps a fixed colour (`mom`, `partner`, caregivers neutral) for avatars and ownership.
@@ -130,7 +130,7 @@ Shared building blocks for the joyful screens live in `web/src/components/joy/`:
 | `Rise` | Staggered entrance wrapper; `i` is the position in reading order. Server-safe, CSS only. |
 | `SoftCard` | The card surface: `tone` plain, sun, leaf, me or them; `hero` for the one hero or composer. |
 | `MoodFace`, `MoodPicker` | One blob, five faces and colours (mood 1 to 5, as in the API). The picker is controlled. |
-| `SourceLine` | "NHS Start for Life · WHO · checked 2026-11-14", from the API's `Source` objects. |
+| `SiteFooter` | The quiet last line: how we check health guidance, Privacy (inside a family), not medical advice. |
 | `PartnerChip`, `Avatar` | A person's initial in their colour, alone or with a short note ("Jake saved it for you"). |
 | `motion.ts` | `ease`, `duration`, `stagger`, `spring` and `tap` for Motion components. |
 

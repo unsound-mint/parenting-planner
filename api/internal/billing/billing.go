@@ -145,6 +145,10 @@ func CreateCheckout(ctx context.Context, cfg Config, familyID, memberID uuid.UUI
 	form.Set("line_items[0][price_data][unit_amount]", strconv.Itoa(t.cents))
 	form.Set("line_items[0][price_data][recurring][interval]", "month")
 	form.Set("line_items[0][price_data][product_data][name]", t.name)
+	// Managed Payments (on by default for new Stripe accounts) rejects a
+	// product without a tax code: txcd_10103000 is software as a service for
+	// personal use.
+	form.Set("line_items[0][price_data][product_data][tax_code]", "txcd_10103000")
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.apiBase()+"/v1/checkout/sessions", strings.NewReader(form.Encode()))
 	if err != nil {

@@ -3,10 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { HeartHandshake, Pause, Play, Vibrate } from "lucide-react";
-import { LABOR_SOURCES } from "@/lib/labor";
 import { cn } from "@/lib/utils";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 
 // Guided breathing, the signature motion of this page. One clock drives
 // everything: the elapsed time since Start picks the phase, and each phase sets
@@ -252,16 +250,6 @@ export function BreathingGuide({ birthParent, isBirthParent, week }: { birthPare
           <p className="text-caption text-muted-foreground">
             What the evidence says: Cochrane reviews found that relaxation, massage and continuous support from someone you trust may ease labor pain or help the birth go well. The reviews rate the evidence as low quality, so use what helps you.
           </p>
-          <SourceLine
-            sources={[
-              LABOR_SOURCES.eohuBreathing,
-              LABOR_SOURCES.lothian,
-              LABOR_SOURCES.nhsSigns,
-              LABOR_SOURCES.cochraneRelax,
-              LABOR_SOURCES.cochraneMassage,
-              LABOR_SOURCES.cochraneSupport,
-            ]}
-          />
         </div>
       </div>
     </SoftCard>

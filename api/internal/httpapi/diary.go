@@ -61,12 +61,16 @@ func (s *Server) ListDiaryEntries(ctx context.Context, req ListDiaryEntriesReque
 	case kind == errNotFound:
 		return ListDiaryEntries404JSONResponse(errNoMember), nil
 	}
-	rows, err := diary.List(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, s.now(ctx))
+	limit := 0
+	if req.Params.Limit != nil {
+		limit = *req.Params.Limit
+	}
+	page, err := diary.List(ctx, s.pool, s.cfg.Diary, familyID, req.MemberId, s.now(ctx), req.Params.Before, limit, req.Params.First != nil && *req.Params.First)
 	if err != nil {
 		return nil, err
 	}
-	out := DiaryEntryList{Items: make([]DiaryEntry, 0, len(rows))}
-	for _, r := range rows {
+	out := DiaryEntryList{Items: make([]DiaryEntry, 0, len(page.Entries)), NextBefore: page.NextBefore}
+	for _, r := range page.Entries {
 		out.Items = append(out.Items, diaryEntryOut(r, req.MemberId))
 	}
 	return ListDiaryEntries200JSONResponse(out), nil

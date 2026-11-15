@@ -20,8 +20,12 @@ import (
 
 const entity = "diary_entry"
 
-// ListWindow is how far back the list looks.
-const ListWindow = 30 * 24 * time.Hour
+// PageSize is how many entries one list call returns when the caller does not
+// say; MaxPageSize is the contract's maximum.
+const (
+	PageSize    = 60
+	MaxPageSize = 100
+)
 
 var ErrNoEntry = errors.New("no such diary entry")
 
@@ -84,15 +88,39 @@ func Create(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, ac
 	return out, err
 }
 
-func List(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, viewer uuid.UUID, now time.Time) ([]Entry, error) {
-	var out []Entry
+// Page is one page of the diary, newest first. NextBefore is set when older
+// entries exist: pass it as before to read them.
+type Page struct {
+	Entries    []Entry
+	NextBefore *time.Time
+}
+
+// List reads up to limit entries written before before (now when nil), only
+// the ones marked as a first when firstsOnly.
+func List(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, viewer uuid.UUID, now time.Time, before *time.Time, limit int, firstsOnly bool) (Page, error) {
+	if limit <= 0 || limit > MaxPageSize {
+		limit = PageSize
+	}
+	// The first page has no upper bound: an entry saved this instant (the demo clock
+	// stands still in tests) must be on it.
+	until := now.AddDate(100, 0, 0)
+	if before != nil {
+		until = *before
+	}
+	var out Page
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
+		// One extra row says whether an older page exists without a count query.
 		rows, err := q.ListDiaryEntriesVisibleToParent(ctx, store.ListDiaryEntriesVisibleToParentParams{
-			FamilyID: familyID, ViewerID: viewer, Since: now.Add(-ListWindow),
+			FamilyID: familyID, ViewerID: viewer, Before: until, FirstsOnly: firstsOnly, PageSize: int32(limit + 1),
 		})
 		if err != nil {
 			return err
+		}
+		if len(rows) > limit {
+			rows = rows[:limit]
+			last := rows[limit-1].WrittenAt
+			out.NextBefore = &last
 		}
 		for _, r := range rows {
 			e, err := open(key, r)
@@ -104,7 +132,7 @@ func List(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, familyID, view
 			if err != nil {
 				return err
 			}
-			out = append(out, e)
+			out.Entries = append(out.Entries, e)
 		}
 		return access.Audit(ctx, q, familyID, viewer, access.ActionRead, entity, "")
 	})

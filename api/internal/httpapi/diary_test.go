@@ -75,13 +75,71 @@ func TestDiaryEntriesFollowTheSharingRulesAndAreEncrypted(t *testing.T) {
 	if err := c.Pool.QueryRow(context.Background(), `SELECT count(*) FROM diary_entries WHERE family_id = $1 AND position(convert_to('cried', 'UTF8') in body_sealed) > 0`, fam.Id).Scan(&plain); err != nil || plain != 0 {
 		t.Errorf("the entry text must not be stored in the clear: %d %v", plain, err)
 	}
-	// Only the last 30 days.
-	if _, err := c.Pool.Exec(context.Background(), `UPDATE diary_entries SET written_at = $2 WHERE id = $1`, made.Id, testutil.Now.AddDate(0, 0, -31)); err != nil {
+	// Old entries stay readable: a year back is still listed.
+	if _, err := c.Pool.Exec(context.Background(), `UPDATE diary_entries SET written_at = $2 WHERE id = $1`, made.Id, testutil.Now.AddDate(-1, 0, 0)); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := diaryBodies(c, mom)["I cried in the car today."]; ok {
-		t.Error("entries older than 30 days must not be listed")
+	if _, ok := diaryBodies(c, mom)["I cried in the car today."]; !ok {
+		t.Error("an entry from a year ago must still be listed")
 	}
+}
+
+// A diary kept for years is read a page at a time, newest first, and every page
+// follows the same sharing rules; first=true reads only the firsts.
+func TestDiaryPagesOverYearsKeepTheSharingRules(t *testing.T) {
+	c := testutil.New(t)
+	fam := c.StartDemo("pregnancy")
+	clearDiary(c, t, fam)
+	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
+	var seed httpapi.DiaryEntry
+	c.Post(diaryPath(mom), entry("seed", "private"), http.StatusCreated, &seed)
+	// 400 daily entries going back more than a year: every third shared, every fiftieth a first.
+	if _, err := c.Pool.Exec(context.Background(), `
+INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, body_sealed, is_first)
+SELECT d.family_id, d.owner_member_id, CASE WHEN g % 3 = 0 THEN 'partner' ELSE 'private' END,
+       $2::timestamptz - make_interval(days => g), d.body_sealed, g % 50 = 0
+FROM diary_entries d, generate_series(1, 400) g WHERE d.id = $1`, seed.Id, testutil.Now); err != nil {
+		t.Fatal(err)
+	}
+	walk := func(p httpapi.Parent, query string) (n, pages int) {
+		before := ""
+		for {
+			var l httpapi.DiaryEntryList
+			c.Get(diaryPath(p)+"?limit=100"+query+before, http.StatusOK, &l)
+			pages++
+			if len(l.Items) > 100 {
+				t.Fatalf("page of %d is over the limit", len(l.Items))
+			}
+			for i, e := range l.Items {
+				if i > 0 && e.WrittenAt.After(l.Items[i-1].WrittenAt) {
+					t.Fatal("not newest first")
+				}
+				if p.Id == jake.Id && e.Visibility == httpapi.VisibilityPrivate {
+					t.Fatal("a private entry leaked into the partner's page")
+				}
+			}
+			n += len(l.Items)
+			if l.NextBefore == nil {
+				return n, pages
+			}
+			before = "&before=" + l.NextBefore.UTC().Format(time.RFC3339Nano)
+		}
+	}
+	if n, pages := walk(mom, ""); n != 401 || pages != 5 {
+		t.Errorf("Mom reads all 401 entries in 5 pages, got %d in %d", n, pages)
+	}
+	if n, _ := walk(jake, ""); n != 133 {
+		t.Errorf("Jake reads only the 133 shared entries, got %d", n)
+	}
+	if n, _ := walk(mom, "&first=true"); n != 8 {
+		t.Errorf("first=true reads the 8 firsts, got %d", n)
+	}
+	var def httpapi.DiaryEntryList
+	c.Get(diaryPath(mom), http.StatusOK, &def)
+	if len(def.Items) != 60 || def.NextBefore == nil {
+		t.Errorf("default page is 60 with a cursor, got %d", len(def.Items))
+	}
+	c.Get(diaryPath(mom)+"?limit=101", http.StatusBadRequest, nil)
 }
 
 func keys(m map[string]httpapi.DiaryEntry) []string {

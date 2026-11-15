@@ -20,6 +20,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/guidance-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every guideline the app's health and family content is checked against
+         * @description One deduplicated list (by URL) of the sources behind rules, guides, lessons and reference cards, grouped by topic. Cards no longer show their sources; this list backs the public "How we check health guidance" page. No session needed.
+         */
+        get: operations["listGuidanceSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/sessions": {
         parameters: {
             query?: never;
@@ -4116,10 +4136,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Diary entries from the last 30 days that the acting parent may see
+         * A page of the diary entries the acting parent may see
          * @description Their own entries plus the other parent's entries shared with them.
-         *     Newest first. The other parent's agendaTopic is never returned: the
-         *     agenda belongs to its author. Caregivers get 404. Audited.
+         *     Newest first, one page at a time so a diary kept for years stays
+         *     quick: at most `limit` entries written before `before` (default
+         *     now). When older entries exist, `nextBefore` is the value to send
+         *     as `before` for the next page. The other parent's agendaTopic is
+         *     never returned: the agenda belongs to its author. Caregivers get
+         *     404. Audited.
          */
         get: operations["listDiaryEntries"];
         put?: never;
@@ -6315,6 +6339,19 @@ export interface components {
             note: string;
             /** @description Pages the text paraphrases, each opened on its checked date. The first is the page to link. */
             sources: components["schemas"]["Source"][];
+        };
+        GuidanceSource: {
+            /** @enum {string} */
+            topic: "pregnancy" | "newborn" | "child" | "nutrition" | "mental_health" | "family";
+            /** @example NHS */
+            organization: string;
+            title: string;
+            url: string;
+            /**
+             * Format: date
+             * @description The latest date someone confirmed the guideline still says this.
+             */
+            checkedAt: string;
         };
         Source: {
             title: string;
@@ -9215,6 +9252,11 @@ export interface components {
         DiaryEntryList: {
             /** @description Newest first. */
             items: components["schemas"]["DiaryEntry"][];
+            /**
+             * Format: date-time
+             * @description Present when older entries exist; send it as `before` to read the next page.
+             */
+            nextBefore?: string;
         };
         /**
          * @description epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
@@ -10051,6 +10093,28 @@ export interface operations {
                     "application/json": {
                         /** @example ok */
                         status: string;
+                    };
+                };
+            };
+        };
+    };
+    listGuidanceSources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sources, sorted by topic, then organization, then title. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["GuidanceSource"][];
                     };
                 };
             };
@@ -20356,7 +20420,14 @@ export interface operations {
     };
     listDiaryEntries: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only entries written strictly before this time. Omit for the newest page. */
+                before?: string;
+                /** @description true reads only entries marked as a first, so a family can review its firsts over the years. */
+                first?: boolean;
+                /** @description Page size. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /**

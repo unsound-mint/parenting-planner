@@ -1,5 +1,5 @@
 {
- "about": "Couple and journal prompts mapped to pregnancy weeks. Our own writing, no health claims, so no sources.",
+ "about": "Couple and journal prompts. Prompts with weeks are mapped to pregnancy weeks; prompts with stages serve those stages after or before pregnancy and rotate by calendar week (learn.go CoupleTalkPrompts). Our own writing, no health claims, so no sources.",
  "prompts": [
   {
    "id": "p01",
@@ -352,6 +352,346 @@
    ],
    "text": "One line for this week: how are you, really?",
    "privateByDefault": true
+  },
+  {
+   "id": "sa01",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "What is one thing from your own childhood you want your kid to have too?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa02",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "Where do you each picture us living when the baby is two? Same place, or somewhere new?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa03",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "How do we want to handle money once there are three of us: one shared budget, or separate pots plus a shared one?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa04",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "What would a perfect ordinary Sunday look like for us as a family of three?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa05",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "Which friends or relatives do we want close by in the first year?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa06",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "What are you each a little scared of about becoming parents? Just listen, no fixing.",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa07",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "Who in our lives is a parent we admire, and what do they do that we like?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sa08",
+   "kind": "couple",
+   "stages": [
+    "planning",
+    "trying"
+   ],
+   "text": "What is one trip or project we want to do as two before a baby arrives?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb01",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "What was the best small moment with the baby this week, for each of you?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb02",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "Which night or morning task feels heaviest right now? Could we swap it for a week?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb03",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "What is one thing the other did this week that made your day easier?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb04",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "When did you last get an hour just for yourself? Plan one for each of you this week.",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb05",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "Who has offered help that we have not taken up yet? Pick one thing to say yes to.",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb06",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "What does the baby do now that they did not do a month ago?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb07",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "Which visits or plans this week can we skip without guilt?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sb08",
+   "kind": "couple",
+   "stages": [
+    "postpartum",
+    "infant"
+   ],
+   "text": "What do we want to remember about this stage? Write down one line each.",
+   "privateByDefault": false
+  },
+  {
+   "id": "sc01",
+   "kind": "couple",
+   "stages": [
+    "toddler"
+   ],
+   "text": "What made the little one laugh hardest this week?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sc02",
+   "kind": "couple",
+   "stages": [
+    "toddler"
+   ],
+   "text": "Which rule do we want to hold the same way, both of us? Agree on the words you will use.",
+   "privateByDefault": false
+  },
+  {
+   "id": "sc03",
+   "kind": "couple",
+   "stages": [
+    "toddler"
+   ],
+   "text": "What is one routine that is working well right now, and what makes it work?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sc04",
+   "kind": "couple",
+   "stages": [
+    "toddler"
+   ],
+   "text": "When did each of you feel most patient this week, and when least?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sc05",
+   "kind": "couple",
+   "stages": [
+    "toddler"
+   ],
+   "text": "What new word or trick from this week do we want to write down?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sc06",
+   "kind": "couple",
+   "stages": [
+    "toddler"
+   ],
+   "text": "Which weekend outing would all of us enjoy?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd01",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "What question from our child this week surprised you most?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd02",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "Which friend does our child talk about most? What do they like about them?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd03",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "What is one chore our child could take over, and how will we cheer it on?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd04",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "When was the last calm bedtime, and what made it work?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd05",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "What do we each want our child to remember from this year?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd06",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "Which worry of theirs came up this week, and how did we each answer it?",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd07",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "Plan one small tradition for this month: a walk, a pancake morning, a library day.",
+   "privateByDefault": false
+  },
+  {
+   "id": "sd08",
+   "kind": "couple",
+   "stages": [
+    "preschool"
+   ],
+   "text": "What did you each love doing at this age? Could we try it with them?",
+   "privateByDefault": false
+  },
+  {
+   "id": "se01",
+   "kind": "couple",
+   "stages": [
+    "school_age"
+   ],
+   "text": "What did our child say about school or friends this week that stuck with you?",
+   "privateByDefault": false
+  },
+  {
+   "id": "se02",
+   "kind": "couple",
+   "stages": [
+    "school_age"
+   ],
+   "text": "Which activity seems to light them up, and which feels like a chore to them?",
+   "privateByDefault": false
+  },
+  {
+   "id": "se03",
+   "kind": "couple",
+   "stages": [
+    "school_age"
+   ],
+   "text": "How are screens fitting into our week? Is there anything we want to change together?",
+   "privateByDefault": false
+  },
+  {
+   "id": "se04",
+   "kind": "couple",
+   "stages": [
+    "school_age"
+   ],
+   "text": "What is one thing our child did on their own this week that we can praise?",
+   "privateByDefault": false
+  },
+  {
+   "id": "se05",
+   "kind": "couple",
+   "stages": [
+    "school_age"
+   ],
+   "text": "When does each of us get one-on-one time with them? Plan one for this week.",
+   "privateByDefault": false
+  },
+  {
+   "id": "se06",
+   "kind": "couple",
+   "stages": [
+    "school_age"
+   ],
+   "text": "What small goal is our child working toward, and how can we each help?",
+   "privateByDefault": false
   }
  ]
 }
