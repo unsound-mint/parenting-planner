@@ -78,13 +78,21 @@ async function Directory({
   const counts: Partial<Record<ProviderType, number>> = {};
   for (const p of everyone) if (fits(p)) counts[p.type] = (counts[p.type] ?? 0) + 1;
   const hasVisits = upcoming.length > 0;
+  // Unfiltered, the list leaves out the picks above so no one shows twice; once a
+  // filter is on (often a link from the plan), every match shows, picks included.
+  const filtering = !!(type || mode || state);
+  const picked = new Set(picks.map((r) => r.provider.id));
+  const listed = filtering ? shown : shown.filter((p) => !picked.has(p.id));
+  // Four columns on a wide screen, unless three fill the last row and four would not.
+  const cols = listed.length % 4 !== 0 && listed.length % 4 < 3 && listed.length % 3 === 0 ? "@[84rem]:grid-cols-3" : "@[84rem]:grid-cols-4";
 
   return (
     <PageFrame>
       <Rise as="header" i={0}>
-        <h1 className="max-w-3xl text-headline text-balance md:text-[2.75rem] md:leading-[1.1]">{headline(picks, failed, now)}</h1>
-        <p className="mt-2 max-w-prose text-body text-ink-2">
-          These providers and their open times are made up for this demo. A booking stays here and on your calendar; nothing is sent to anyone.
+        <h1 className="text-headline">Find help</h1>
+        <p className="mt-1.5 max-w-prose text-body text-ink-2">{subtitle(picks, failed, now)}</p>
+        <p className="mt-2 max-w-prose text-caption text-muted-foreground">
+          Demo providers and times. A booking stays here and on your calendar; nothing is sent to anyone.
         </p>
       </Rise>
 
@@ -121,22 +129,22 @@ async function Directory({
 
           <Rise as="section" i={3} aria-labelledby="all-heading" className="border-t border-line pt-6">
             <h2 id="all-heading" className="flex items-baseline gap-2 text-title font-semibold">
-              Everyone
-              <span className="font-mono text-label font-normal text-muted-foreground">{shown.length === everyone.length ? everyone.length : `${shown.length} of ${everyone.length}`}</span>
+              {filtering || picks.length === 0 ? "Everyone" : "Everyone else"}
+              <span className="font-mono text-label font-normal text-muted-foreground">{listed.length}</span>
             </h2>
             <div className="mt-3">
               <DirectoryFilters base={base} type={type} state={state} mode={mode} states={states} counts={counts} />
             </div>
-            {shown.length === 0 ? (
+            {listed.length === 0 ? (
               <Empty icon={SearchX} title="No one matches these filters." hint="Try another type, any state or any way of meeting.">
                 <Link href={base} className="text-label font-semibold text-primary underline-offset-4 hover:underline">
                   Show everyone
                 </Link>
               </Empty>
             ) : (
-              <ul className="mt-4 grid items-stretch gap-3 @3xl:grid-cols-2 @7xl:grid-cols-3">
-                {shown.map((p) => (
-                  <ProviderCard key={p.id} provider={p} href={`${base}/${p.id}`} first={openings.get(p.id)} now={now} />
+              <ul className={cn("mt-4 grid items-stretch gap-3 @3xl:grid-cols-2 @6xl:grid-cols-3", cols)}>
+                {listed.map((p) => (
+                  <ProviderCard key={p.id} provider={p} href={`${base}/${p.id}`} first={openings.get(p.id)} reason={filtering && picked.has(p.id) ? "Suggested for you above" : undefined} now={now} />
                 ))}
               </ul>
             )}
@@ -152,10 +160,10 @@ async function Directory({
 /** "tomorrow at 10:00 AM", "Mon at 4:00 PM" inside a sentence. */
 const inSentence = (label: string) => label.replace(/^(Today|Tomorrow)/, (m) => m.toLowerCase()).replace(/,? (\d{1,2}:\d{2})/, " at $1");
 
-function headline(picks: Recommendation[], failed: boolean, now: Date): string {
+function subtitle(picks: Recommendation[], failed: boolean, now: Date): string {
   if (failed) return "We could not load the directory.";
   const first = picks.map((r) => r.first?.startsAt).filter((s): s is string => !!s).sort()[0];
-  if (!first) return "Find someone who can help.";
+  if (!first) return "Doulas, lactation help, therapists and more, with real open times.";
   if (picks[0].pattern && picks[0].first) return `Someone to talk to, free ${inSentence(openingLabel(picks[0].first.startsAt, now))}.`;
   return `${countWord(picks.length)} good ${picks.length === 1 ? "fit" : "fits"} for right now, the first free ${inSentence(openingLabel(first, now))}.`;
 }
