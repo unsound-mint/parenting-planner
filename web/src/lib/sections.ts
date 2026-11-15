@@ -8,7 +8,7 @@ import { canOpen, type Role, type Screen } from "@/lib/roles";
 // sections is an edit here, not a route move.
 
 export type SectionTab = {
-  /** Key that the family layout can hide on its own (see hiddenTabs in layout.tsx). */
+  /** Key that the family layout can hide on its own (the hidden.push lines in layout.tsx). */
   id: string;
   label: string;
   /** Path under /family/<memberId>. */

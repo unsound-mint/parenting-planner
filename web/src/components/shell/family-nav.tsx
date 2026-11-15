@@ -17,18 +17,23 @@ import { cn } from "@/lib/utils";
 const PHONE_SLOTS = 6;
 
 type NavProps = { memberId: string; role: Role; hidden?: string[]; childName?: string };
-type Item = { section: Section; href: string };
+// A section with one tab open to this person (a caregiver's Plan is only the calendar) is named after that tab.
+type Item = { section: Section; href: string; name: string };
 
 // hidden: screens whose endpoint refuses this person (403, 404) or is not built and has no
-// preview mock, plus tab ids that do not apply at this stage (hiddenTabs in layout.tsx).
+// preview mock, plus tab ids that do not apply at this stage (see layout.tsx).
 function useNav({ memberId, role, hidden = [] }: NavProps) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
-  const visible: Item[] = visibleSections(role, hidden).map(({ section, tabs }) => ({ section, href: base + tabs[0].href }));
+  const visible: Item[] = visibleSections(role, hidden).map(({ section, tabs }) => ({
+    section,
+    href: base + tabs[0].href,
+    name: section.group === "main" && section.tabs.length > 1 && tabs.length === 1 ? tabs[0].label : section.label,
+  }));
   const current = tabFor(relativePath(pathname, memberId))?.section.id;
   const isActive = (item: Item) => item.section.id === current;
   const label = (item: Item, phone = false) =>
-    item.section.id === "week" && isCaregiver(role) ? "Baby's care" : phone ? (item.section.short ?? item.section.label) : item.section.label;
+    item.section.id === "week" && isCaregiver(role) ? "Baby's care" : phone && item.name === item.section.label ? (item.section.short ?? item.name) : item.name;
   return { pathname, visible, isActive, label };
 }
 
