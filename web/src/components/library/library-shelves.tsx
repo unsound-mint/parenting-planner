@@ -82,7 +82,7 @@ export function LibraryShelves({ memberId, items, stage, position }: { memberId:
               {total.ready} to read now, <em className="text-me">{total.soon} coming soon</em>
             </h1>
             <p className="mt-3 max-w-prose text-body text-ink-2">
-              Sorted for where you are: {position}. Every article cites the pages it comes from; coming-soon titles show what we are writing next and do not open yet.
+              Sorted for where you are: {position}. Coming-soon titles show what we are writing next; they open once they are written and checked.
             </p>
           </div>
           <div className="relative max-w-3xl">
