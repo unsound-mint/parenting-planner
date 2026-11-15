@@ -32,7 +32,7 @@ async function Simulator({ params }: { params: Promise<{ memberId: string }> }) 
   // The nav hides it in pregnancy loss support (layout.tsx); a direct visit gets the same.
   if (family && inLossSupport(family)) notFound();
   // After birth the scenario rounds close (the API answers 404) but the hands-on manuals stay.
-  if (family?.stage === "newborn" && manuals && !progress) {
+  if ((family?.stage === "postpartum" || family?.stage === "infant") && manuals && !progress) {
     return (
       <PageFrame>
         <h1 className="sr-only">Practice</h1>

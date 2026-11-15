@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import { ArrowLeft, ArrowRight, Check, Eye, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
@@ -19,9 +20,9 @@ import { ManualScene } from "./scenes";
  * the manual as done for this person (PUT .../completion). The check explains
  * a wrong tap in place and never scores.
  */
-export function ManualPlayer({ manual, memberId }: { manual: Manual; memberId: string }) {
+export function ManualPlayer({ manual, memberId, initialStep = 0 }: { manual: Manual; memberId: string; initialStep?: number }) {
   const steps = manual.steps.length;
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(initialStep);
   const [dir, setDir] = useState(1);
   const atCheck = index === steps;
 
@@ -151,6 +152,7 @@ function Dots({ total, index, onPick }: { total: number; index: number; onPick: 
 function SelfCheck({ manual, memberId, onRestart }: { manual: Manual; memberId: string; onRestart: () => void }) {
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [doneAt, setDoneAt] = useState(manual.completedAt);
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const allRight = manual.check.every((q) => picked[q.id] === q.correctChoice);
 
@@ -164,6 +166,8 @@ function SelfCheck({ manual, memberId, onRestart }: { manual: Manual; memberId: 
         return;
       }
       setDoneAt(data.completedAt);
+      // The Practice cards read completion on the server; refresh so "Practised" shows on the way back.
+      router.refresh();
     });
   }
 

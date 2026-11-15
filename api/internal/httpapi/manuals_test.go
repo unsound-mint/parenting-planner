@@ -34,8 +34,9 @@ func TestManualCompletionIsPerPerson(t *testing.T) {
 	if list.Items[0].CompletedAt == nil {
 		t.Fatal("mother's completion missing")
 	}
-	c.Get(partner+"/manuals", http.StatusOK, &list)
-	if list.Items[0].CompletedAt != nil {
+	var theirs httpapi.ManualList // fresh: an omitted completedAt would keep the old value
+	c.Get(partner+"/manuals", http.StatusOK, &theirs)
+	if theirs.Items[0].CompletedAt != nil {
 		t.Fatal("partner sees the mother's completion")
 	}
 }

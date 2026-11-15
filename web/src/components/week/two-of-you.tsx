@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Baby, ChevronRight, HeartHandshake, type LucideIcon } from "lucide-react";
+import { Baby, ChevronRight, HandHeart, HeartHandshake, type LucideIcon } from "lucide-react";
 import type { Family } from "@/lib/api/types";
 import { Rise } from "@/components/joy/rise";
 import { LaborCoachLink } from "@/components/labor/labor-coach-link";
@@ -15,6 +15,7 @@ export function TwoOfYou({
   memberId,
   labor,
   virtualBaby,
+  swaddle,
   labLine,
   together,
   className,
@@ -23,6 +24,8 @@ export function TwoOfYou({
   /** The family, to add the labor coach row (it gates itself on pregnancy and loss). */
   labor?: Pick<Family, "stage" | "pregnancyLoss" | "gestationalWeek">;
   virtualBaby?: boolean;
+  /** Late pregnancy and newborn: the hands-on swaddle manual on Practice. */
+  swaddle?: boolean;
   /** The lab's live line ("Sam answered a card and is waiting for you"); undefined hides the lab. */
   labLine?: string;
   /** Two parents: the heading says so. */
@@ -32,6 +35,7 @@ export function TwoOfYou({
   const base = `/family/${memberId}`;
   const links: { key: string; href: string; icon: LucideIcon; title: string; line: string }[] = [];
   if (virtualBaby) links.push({ key: "vb", href: `${base}/learn/virtual-baby`, icon: Baby, title: "Practice with a virtual baby", line: "One evening of feeds and cries, or the 48-hour challenge" });
+  if (swaddle) links.push({ key: "swaddle", href: `${base}/simulator/manuals/swaddle`, icon: HandHeart, title: "Practice: how to swaddle", line: "Six folds with a blanket and a doll, hips free" });
   if (labLine) links.push({ key: "lab", href: `${base}/learn/lab`, icon: HeartHandshake, title: "Parenting Compatibility Lab", line: labLine });
   if (links.length === 0 && !labor) return null;
   return (

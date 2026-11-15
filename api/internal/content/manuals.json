@@ -16,7 +16,7 @@
       "steps": [
         {"scene": "swaddle-spread", "title": "Lay the blanket out", "text": "Spread a thin blanket flat like a diamond and fold the top corner down."},
         {"scene": "swaddle-place", "title": "Place the baby", "text": "Lay your baby face up, with their shoulders just below the folded edge."},
-        {"scene": "swaddle-left", "title": "First side", "text": "Straighten the left arm, bring the left corner across the body and tuck it under the right arm and back."},
+        {"scene": "swaddle-left", "title": "First side", "text": "Straighten the left arm, bring the left corner across the body and tuck it under the right arm."},
         {"scene": "swaddle-right", "title": "Second side", "text": "Tuck the right arm down, then fold the right corner over the body and tuck it under the left side."},
         {"scene": "swaddle-bottom", "title": "Bottom, loosely", "text": "Fold or twist the bottom loosely and tuck it under one side, so the legs can bend up and out.", "watch": "Legs held straight and wrapped tight can harm the hips. Keep the bottom roomy."},
         {"scene": "swaddle-check", "title": "Check the fit", "text": "Slide two or three fingers between the chest and the blanket. The hips should move freely.", "watch": "Stop swaddling as soon as your baby shows any sign of trying to roll over. Some start around 2 months."}
@@ -35,7 +35,7 @@
       "sources": ["kidshealth-burping"],
       "steps": [
         {"scene": "burp-when", "title": "When to burp", "text": "Pause every 60 to 90 mL from a bottle, or when you switch breasts, and always once the feed is done."},
-        {"scene": "burp-shoulder", "title": "Hold 1: over the shoulder", "text": "Hold your baby upright, chin resting on your shoulder, one hand under them. Pat or rub the back with the other."},
+        {"scene": "burp-shoulder", "title": "Hold 1: over the shoulder", "text": "Hold your baby upright, chin resting on your shoulder, one hand under them. Pat the back with the other."},
         {"scene": "burp-lap", "title": "Hold 2: sitting on your lap", "text": "Sit your baby on your knee, cradle the chin in your palm with the heel of your hand on the chest, and pat the back.", "watch": "Hold the chin, not the throat."},
         {"scene": "burp-belly", "title": "Hold 3: belly down", "text": "Lay your baby tummy down across your lap with the head higher than the chest, and pat the back gently."},
         {"scene": "burp-after", "title": "No burp? Switch", "text": "If nothing comes after a few minutes, change holds and try again, then carry on feeding. Keep baby upright 10 to 15 minutes after."}

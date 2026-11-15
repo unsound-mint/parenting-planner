@@ -66,8 +66,6 @@ func (s *Server) CompleteManual(ctx context.Context, req CompleteManualRequestOb
 	return CompleteManual200JSONResponse(item), nil
 }
 
-var errNotFoundManual = Error{Code: "manual_not_found", Message: "That manual does not exist."}
-
 func manualOut(m content.Manual) Manual {
 	out := Manual{Id: m.ID, Title: m.Title, Summary: m.Summary, Minutes: m.Minutes,
 		Steps: make([]ManualStep, 0, len(m.Steps)), Check: make([]ManualCheck, 0, len(m.Check))}

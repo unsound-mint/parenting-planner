@@ -82,6 +82,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const week = family.stage === "pregnancy" && !loss ? family.gestationalWeek : undefined;
   const pregnant = week != null;
   const late = pregnant && week >= LATE_PREGNANCY_WEEK;
+  // The swaddle manual on Practice: worth a row from late pregnancy through the newborn weeks.
+  const swaddle = (late || (family.stage === "postpartum" || family.stage === "infant")) && !loss;
   const sizeWeek = (w: number) => optional(api.GET("/members/{memberId}/pregnancy-weeks/{week}", { params: { path: { memberId, week: w } } }));
 
   const beforeBirth = ["pregnancy", "planning", "trying"].includes(family.stage);
@@ -193,12 +195,13 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
       memberId={memberId}
       labor={late ? family : undefined}
       virtualBaby={pregnant}
+      swaddle={swaddle}
       labLine={lab && partner ? labLine(lab.cards, partner.displayName) : undefined}
       together={!!partner}
     />
   );
   // The right stack has content when any of its cards can: TwoOfYou always has a row in pregnancy.
-  const right = !!togetherCard || !!calm || !!mission || pregnant || !!(lab && partner);
+  const right = !!togetherCard || !!calm || !!mission || pregnant || swaddle || !!(lab && partner);
 
   // Two column stacks, so a tall card on one side never stretches or pushes the
   // other. On a phone the stacks are display: contents and the order-* classes

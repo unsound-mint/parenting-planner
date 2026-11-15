@@ -207,7 +207,8 @@ var (
 	errNoSession = Error{Code: "no_session", Message: "start a demo first"}
 	errNoMember  = Error{Code: "not_found", Message: "no such parent in this family"}
 	// errForbidden is for a person who is in the family but may not do this.
-	errForbidden = Error{Code: "forbidden", Message: "this person may not do that"}
+	errForbidden      = Error{Code: "forbidden", Message: "this person may not do that"}
+	errNotFoundManual = Error{Code: "manual_not_found", Message: "no such manual"}
 	// Payments (billing.go).
 	errPaymentsUnavailable = Error{Code: "payments_unavailable", Message: "payments are not set up on this server"}
 	errAlreadySubscribed   = Error{Code: "already_subscribed", Message: "the family already has this plan"}
