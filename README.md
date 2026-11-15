@@ -80,4 +80,4 @@ This is a planning aid, not medical advice. It does not diagnose. The demo famil
 
 ## Team
 
-Built with two teammates, one on backend and deploy, one on product. I did the frontend and the API contract. MIT licence, see [LICENSE](LICENSE).
+Built with two teammates. I worked across the whole stack: frontend, API, database and the API contract. MIT licence, see [LICENSE](LICENSE).
