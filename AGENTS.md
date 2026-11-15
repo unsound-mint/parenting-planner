@@ -23,7 +23,7 @@ Touching another owner's area is fine for small changes; mention it in the PR so
 
 - The live site must work with no sign-up or login. Visitors pick a demo family and get their own seeded copy (httpOnly cookie `pp_session`). Do not add auth.
 - Core value must be real: plans, rule results, check-ins, diary sharing and bookings are computed from database state, never hardcoded UI.
-- Health guidance: every rule carries a source and a checked date; the AI never diagnoses; crisis and urgent-symptom paths are fixed screens, never generated text. Diaries are private to their author unless shared per entry.
+- Health guidance: every rule carries a source and a checked date, shown on the public `/sources` page, never on cards; the AI never diagnoses; crisis and urgent-symptom paths are fixed screens, never generated text. Diaries are private to their author unless shared per entry.
 - The repo is public. Never commit secrets, `.env*`, `private/` or real personal data. Demo data is synthetic.
 
 ## Code conventions

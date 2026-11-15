@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Lock, Phone, RotateCcw, Settings2, Undo2 } from "lucide-react";
-import { checkRule, clock, FORGOTTEN_MS, LABOR_SOURCES, MIN_COUNTED_MS, NICHD_RULE, PRETERM_BEFORE_WEEK, urgentPattern, withIntervals, type CallRule } from "@/lib/labor";
+import { checkRule, clock, FORGOTTEN_MS, MIN_COUNTED_MS, NICHD_RULE, PRETERM_BEFORE_WEEK, urgentPattern, withIntervals, type CallRule } from "@/lib/labor";
 import { cn } from "@/lib/utils";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { spring } from "@/components/joy/motion";
 import { helpHref } from "@/components/shell/urgent-help-link";
 import { RhythmBars } from "./rhythm-bars";
@@ -266,7 +265,6 @@ function CallCard({
             ? `${check.count} in a row · ${Math.floor(check.runMin)} of ${rule.forMin} min`
             : `Counts from the first close pair; taps under ${MIN_COUNTED_MS / 1000} s are not counted`}
         </p>
-        <SourceLine className="mt-2" sources={[LABOR_SOURCES.nichdStart]} />
       </div>
 
       <p className="text-label font-normal text-ink-2">Your care team&apos;s instructions come first. Call any time you are worried, whatever the timer shows.</p>
@@ -275,7 +273,7 @@ function CallCard({
       <div className={cn("rounded-2xl border-2 p-4", urgent ? "border-urgent" : "border-line")}>
         {urgent && (
           <p className="mb-3 text-label font-semibold text-urgent">
-            NHS says to call your maternity unit straight away if a contraction lasts longer than 2 minutes or you have 6 or more in 10 minutes.
+            Call your maternity unit straight away if a contraction lasts longer than 2 minutes or you have 6 or more in 10 minutes.
           </p>
         )}
         <p className="text-label font-semibold">Call now, don&apos;t wait for the timer, if there is</p>
@@ -293,7 +291,6 @@ function CallCard({
           <span aria-hidden className="size-1.75 rounded-full bg-white" />
           Open Urgent help
         </a>
-        <SourceLine className="mt-3" sources={[LABOR_SOURCES.cdcHearHer, LABOR_SOURCES.nhsSigns]} />
       </div>
     </SoftCard>
   );

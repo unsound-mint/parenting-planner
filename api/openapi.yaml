@@ -57,6 +57,7 @@ tags:
   - name: badges
   - name: fertility
   - name: childcare
+  - name: guidance
 paths:
   /healthz:
     get:
@@ -74,6 +75,30 @@ paths:
                   status:
                     type: string
                     example: ok
+
+  /guidance-sources:
+    get:
+      operationId: listGuidanceSources
+      tags: [guidance]
+      security: []
+      summary: Every guideline the app's health and family content is checked against
+      description: >
+        One deduplicated list (by URL) of the sources behind rules, guides, lessons and
+        reference cards, grouped by topic. Cards no longer show their sources; this list
+        backs the public "How we check health guidance" page. No session needed.
+      responses:
+        "200":
+          description: Sources, sorted by topic, then organization, then title.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GuidanceSource"
 
   /demo/sessions:
     post:
@@ -11213,6 +11238,24 @@ components:
           items:
             $ref: "#/components/schemas/Source"
 
+    GuidanceSource:
+      type: object
+      required: [topic, organization, title, url, checkedAt]
+      properties:
+        topic:
+          type: string
+          enum: [pregnancy, newborn, child, nutrition, mental_health, family]
+        organization:
+          type: string
+          example: NHS
+        title:
+          type: string
+        url:
+          type: string
+        checkedAt:
+          type: string
+          format: date
+          description: The latest date someone confirmed the guideline still says this.
     Source:
       type: object
       required: [title, url, checkedAt]

@@ -4,7 +4,6 @@ import type { Person } from "@/lib/roles";
 import { formatLongDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Avatar, PartnerChip } from "@/components/joy/partner-chip";
-import { SourceLine } from "@/components/joy/source-line";
 import { SizeIllustration, StageMascot } from "@/components/illustrations";
 
 export const momentIcon: Record<StoryMomentKind, LucideIcon> = {
@@ -89,7 +88,6 @@ export function MomentCard({ moment, people, childName }: { moment: StoryMoment;
         <div className="flex min-w-0 flex-col gap-1.5">
           <DateLine moment={moment} extra={<span className="rounded-full bg-muted px-2 py-0.5 text-ink-2">Week {moment.week}</span>} />
           <h4 className="text-title">{moment.title}</h4>
-          {moment.sources && <SourceLine sources={moment.sources} />}
         </div>
       </article>
     );
@@ -150,7 +148,6 @@ export function MomentCard({ moment, people, childName }: { moment: StoryMoment;
       )}
       {moment.kind === "handoff" && moment.count && moment.count > 1 ? <p className="font-mono text-caption text-muted-foreground">{moment.count} times</p> : null}
       <People people={people} />
-      {moment.sources && <SourceLine sources={moment.sources} />}
     </article>
   );
 }
