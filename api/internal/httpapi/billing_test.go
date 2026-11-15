@@ -120,6 +120,32 @@ func TestPaymentsUnavailableWithoutKeys(t *testing.T) {
 	}
 }
 
+func TestCheckoutYearlyAndOfferedIntervals(t *testing.T) {
+	stripe, srv := newFakeStripe(t)
+	c := billingClient(t, srv.URL)
+	fam := c.StartDemo("pregnancy")
+	m := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
+
+	var cs httpapi.CheckoutSession
+	c.Post(m+"/checkout-sessions", map[string]any{"tier": "plus", "interval": "year"}, http.StatusCreated, &cs)
+	for k, want := range map[string]string{
+		"line_items[0][price_data][unit_amount]":         "11999",
+		"line_items[0][price_data][recurring][interval]": "year",
+		"metadata[interval]":                             "year",
+		"subscription_data[metadata][interval]":          "year",
+	} {
+		if got := stripe.lastForm.Get(k); got != want {
+			t.Errorf("form %s = %q, want %q", k, got, want)
+		}
+	}
+
+	var e httpapi.Error
+	c.Post(m+"/checkout-sessions", map[string]any{"tier": "concierge"}, http.StatusBadRequest, &e)
+	if e.Code != "invalid_request" {
+		t.Errorf("concierge: code %q", e.Code)
+	}
+}
+
 func TestCheckoutUnlocksBothParents(t *testing.T) {
 	stripe, srv := newFakeStripe(t)
 	c := billingClient(t, srv.URL)
@@ -139,8 +165,9 @@ func TestCheckoutUnlocksBothParents(t *testing.T) {
 		"cancel_url":                             "https://parenting.example/pricing",
 		"metadata[family_id]":                    fam.Id.String(),
 		"subscription_data[metadata][family_id]": fam.Id.String(),
-		"line_items[0][price_data][unit_amount]": "2900",
+		"line_items[0][price_data][unit_amount]": "1499",
 		"line_items[0][price_data][recurring][interval]":    "month",
+		"metadata[interval]":                                "month",
 		"line_items[0][price_data][product_data][tax_code]": "txcd_10103000",
 	} {
 		if form.Get(k) != want {
@@ -193,7 +220,7 @@ func TestStripeWebhookIsVerifiedAndIdempotent(t *testing.T) {
 	fam := c.StartDemo("pregnancy")
 	mother := "/api/members/" + testutil.Parent(t, fam, httpapi.ParentRoleMother).Id.String()
 	var cs httpapi.CheckoutSession
-	c.Post(mother+"/checkout-sessions", map[string]any{"tier": "concierge"}, http.StatusCreated, &cs)
+	c.Post(mother+"/checkout-sessions", map[string]any{"tier": "plus"}, http.StatusCreated, &cs)
 	// Event ids must be unique across runs: stripe_events outlives the test family.
 	evt := "evt_" + fam.Id.String()
 	completed := map[string]any{
@@ -212,7 +239,7 @@ func TestStripeWebhookIsVerifiedAndIdempotent(t *testing.T) {
 	var receipt httpapi.WebhookReceipt
 	b, _ := json.Marshal(completed)
 	c.PostWithHeaders("/api/billing/stripe-webhook", map[string]string{"Stripe-Signature": billing.SignatureHeader(b, webhookSecret, testutil.Now.Unix())}, json.RawMessage(b), http.StatusOK, &receipt)
-	if !receipt.Received || *familyTier(c).Tier != httpapi.TierConcierge {
+	if !receipt.Received || *familyTier(c).Tier != httpapi.TierPlus {
 		t.Fatalf("after completed: receipt %+v tier %v", receipt, *familyTier(c).Tier)
 	}
 

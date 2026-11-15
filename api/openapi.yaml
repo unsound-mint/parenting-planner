@@ -10763,7 +10763,7 @@ components:
 
     PaidTier:
       type: string
-      enum: [plus, concierge]
+      enum: [plus]
 
     ChildcareKind:
       type: string
@@ -15496,6 +15496,13 @@ components:
       properties:
         tier:
           $ref: "#/components/schemas/PaidTier"
+        interval:
+          $ref: "#/components/schemas/BillingInterval"
+
+    BillingInterval:
+      type: string
+      description: How often the subscription is billed. Defaults to month.
+      enum: [month, year]
 
     CheckoutSessionStatus:
       type: string
