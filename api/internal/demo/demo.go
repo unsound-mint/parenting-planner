@@ -73,6 +73,9 @@ func start(ctx context.Context, pool *pgxpool.Pool, key crypt.Key, t Template, s
 		if err := seedCouple(ctx, q, key, t, id, today); err != nil {
 			return err
 		}
+		if err := seedDiary(ctx, q, key, t, id, today); err != nil {
+			return err
+		}
 		// Every family, from a template or a visitor's own details, gets its
 		// own copy of the partner offers for the admin panel to edit.
 		if err := offers.Seed(ctx, q, id, today); err != nil {
@@ -435,6 +438,7 @@ func seedAppointments(ctx context.Context, q *store.Queries, familyID, mom, part
 		{past, "Is the back pain normal at this stage?", "partner", nil},
 		{past, "When do we sign up for the birth class?", "family", ptr(atHour(today.AddDate(0, 0, -14), 11))},
 		{next, "When should I schedule the glucose screening?", "private", nil},
+		{next, "My vitamin D came back at 24 ng/mL, below the lab's range. What should we do about it?", "private", nil},
 		{next, "Which vaccines does Jake need before the birth?", "family", nil},
 	} {
 		createdAt := today.AddDate(0, 0, -1)

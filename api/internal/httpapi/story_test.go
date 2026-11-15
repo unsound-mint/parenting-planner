@@ -108,6 +108,7 @@ func TestStoryOfAPregnancyAtWeek25(t *testing.T) {
 func TestStoryJournalHoldsOnlySharedLines(t *testing.T) {
 	c := testutil.New(t)
 	fam := c.StartDemo("pregnancy")
+	clearDiary(c, t, fam)
 	mom, jake := testutil.Parent(t, fam, httpapi.ParentRoleMother), testutil.Parent(t, fam, httpapi.ParentRolePartner)
 	c.Post(diaryPath(mom), entry("Emily's private worry.", "private"), http.StatusCreated, nil)
 	c.Post(diaryPath(mom), entry("We heard the heartbeat together.", "partner"), http.StatusCreated, nil)
