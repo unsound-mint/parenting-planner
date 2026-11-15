@@ -574,7 +574,7 @@ function catmull(pts: Vec3[], t: number): Vec3 {
 
 /** The head-down turn, as an angle around z (radians). */
 // Not a full half turn: lying diagonally head down still says "head down" and keeps the face readable.
-export const turnAngle = (p: Params) => p.turn * Math.PI * 0.62;
+export const turnAngle = (p: Params) => p.turn * Math.PI * 0.72;
 
 /** p turned by angle around z, the axis the body curls around. */
 export function rotZ(p: Vec3, angle: number): Vec3 {
