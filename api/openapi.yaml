@@ -823,8 +823,19 @@ paths:
     get:
       operationId: listMoodCheckins
       tags: [wellbeing]
-      summary: Check-ins from the last 30 days that the acting parent may see
-      description: Their own check-ins plus the other parent's check-ins shared with them.
+      summary: Check-ins from the last 30 days (or since a day) that the acting parent may see
+      description: |
+        Their own check-ins plus the other parent's check-ins shared with them.
+        Without `since` the window is the last 30 days. With `since` it starts
+        at the beginning of that day on the family's clock, for the history
+        view (a month, six months, a year). A day after today returns nothing.
+      parameters:
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
       responses:
         "200":
           description: OK
@@ -6429,8 +6440,13 @@ paths:
       description: |
         Mother or partner only (404 for a caregiver). Idempotent: setting
         the value it already has returns the milestone unchanged.
-        `observedOn` is today in the family's clock when ticking. 404 for an
-        unknown milestone id or a child not in the family.
+        `observedOn` is today in the family's clock when ticking, unless the
+        body names the day it was seen; sending `observedOn` for a milestone
+        already ticked moves it to that day. `observed: false` removes it.
+        Any milestone from the child's current or an earlier checklist can be
+        set, so a parent can fix or remove one recorded months ago. 400 for a
+        day after today or before the child's birth. 404 for an unknown
+        milestone id, one from a later checklist, or a child not in the family.
       parameters:
         - $ref: "#/components/parameters/MemberId"
         - name: childId
@@ -15397,16 +15413,37 @@ components:
           format: date
           description: Set when observed.
 
+    RecordedMilestone:
+      type: object
+      required: [id, domain, text, observedOn, checklistAgeMonths]
+      properties:
+        id:
+          type: string
+        domain:
+          $ref: "#/components/schemas/MilestoneDomain"
+        text:
+          type: string
+        observedOn:
+          type: string
+          format: date
+        checklistAgeMonths:
+          type: integer
+          description: The CDC checklist the milestone belongs to, in months.
+
     MilestoneInput:
       type: object
       required: [observed]
       properties:
         observed:
           type: boolean
+        observedOn:
+          type: string
+          format: date
+          description: The day it was seen; defaults to today. Ignored when observed is false.
 
     MilestoneChecklist:
       type: object
-      required: [childId, checklistAgeMonths, items, source]
+      required: [childId, checklistAgeMonths, items, recorded, source]
       properties:
         childId:
           type: string
@@ -15418,6 +15455,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Milestone"
+        recorded:
+          type: array
+          description: |
+            Every milestone a parent ticked for this child, from any checklist
+            age, newest observation first: the child's timeline of firsts.
+          items:
+            $ref: "#/components/schemas/RecordedMilestone"
         source:
           $ref: "#/components/schemas/Source"
 

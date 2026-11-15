@@ -394,8 +394,11 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Check-ins from the last 30 days that the acting parent may see
+         * Check-ins from the last 30 days (or since a day) that the acting parent may see
          * @description Their own check-ins plus the other parent's check-ins shared with them.
+         *     Without `since` the window is the last 30 days. With `since` it starts
+         *     at the beginning of that day on the family's clock, for the history
+         *     view (a month, six months, a year). A day after today returns nothing.
          */
         get: operations["listMoodCheckins"];
         put?: never;
@@ -3529,8 +3532,13 @@ export interface paths {
          * A parent ticks or unticks a milestone
          * @description Mother or partner only (404 for a caregiver). Idempotent: setting
          *     the value it already has returns the milestone unchanged.
-         *     `observedOn` is today in the family's clock when ticking. 404 for an
-         *     unknown milestone id or a child not in the family.
+         *     `observedOn` is today in the family's clock when ticking, unless the
+         *     body names the day it was seen; sending `observedOn` for a milestone
+         *     already ticked moves it to that day. `observed: false` removes it.
+         *     Any milestone from the child's current or an earlier checklist can be
+         *     set, so a parent can fix or remove one recorded months ago. 400 for a
+         *     day after today or before the child's birth. 404 for an unknown
+         *     milestone id, one from a later checklist, or a child not in the family.
          */
         put: operations["setChildMilestone"];
         post?: never;
@@ -8730,8 +8738,22 @@ export interface components {
              */
             observedOn?: string;
         };
+        RecordedMilestone: {
+            id: string;
+            domain: components["schemas"]["MilestoneDomain"];
+            text: string;
+            /** Format: date */
+            observedOn: string;
+            /** @description The CDC checklist the milestone belongs to, in months. */
+            checklistAgeMonths: number;
+        };
         MilestoneInput: {
             observed: boolean;
+            /**
+             * Format: date
+             * @description The day it was seen; defaults to today. Ignored when observed is false.
+             */
+            observedOn?: string;
         };
         MilestoneChecklist: {
             /** Format: uuid */
@@ -8739,6 +8761,11 @@ export interface components {
             /** @description Which CDC checklist this is, in months (2, 4, 6, 9, 12, 15, 18, 24, 30, 36, 48 or 60). */
             checklistAgeMonths: number;
             items: components["schemas"]["Milestone"][];
+            /**
+             * @description Every milestone a parent ticked for this child, from any checklist
+             *     age, newest observation first: the child's timeline of firsts.
+             */
+            recorded: components["schemas"]["RecordedMilestone"][];
             source: components["schemas"]["Source"];
         };
         ChildPassport: {
@@ -11028,7 +11055,9 @@ export interface operations {
     };
     listMoodCheckins: {
         parameters: {
-            query?: never;
+            query?: {
+                since?: string;
+            };
             header?: never;
             path: {
                 /**

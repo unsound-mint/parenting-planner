@@ -41,7 +41,12 @@ func (s *Server) ListMoodCheckins(ctx context.Context, req ListMoodCheckinsReque
 	case kind == errNotFound:
 		return ListMoodCheckins404JSONResponse(errNoMember), nil
 	}
-	rows, err := wellbeing.ListMoodCheckins(ctx, s.pool, familyID, req.MemberId, s.now(ctx))
+	since := s.now(ctx).Add(-wellbeing.ListWindow)
+	if req.Params.Since != nil {
+		// The start of that day, on the same UTC day boundary as s.today.
+		since = dateOf(req.Params.Since.Time)
+	}
+	rows, err := wellbeing.ListMoodCheckins(ctx, s.pool, familyID, req.MemberId, since)
 	if err != nil {
 		return nil, err
 	}

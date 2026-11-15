@@ -73,3 +73,15 @@ func SourceURL(months int) string {
 func SourceTitle(months int) string {
 	return "CDC: Milestones by " + AgeLabel(months)
 }
+
+// Find returns a milestone from any checklist and the checklist age it belongs to.
+func Find(id string) (Item, int, bool) {
+	for _, age := range Ages {
+		for _, item := range catalog[age] {
+			if item.ID == id {
+				return item, age, true
+			}
+		}
+	}
+	return Item{}, 0, false
+}
