@@ -167,6 +167,7 @@ export type LessonRead = S["LessonRead"];
 export type QuizQuestion = S["QuizQuestion"];
 export type QuizAnswer = S["QuizAnswer"];
 export type QuizResult = S["QuizResult"];
+export type QuizAttempt = S["QuizAttempt"];
 export type PartnerNudge = S["PartnerNudge"];
 export type TalkPrompt = S["TalkPrompt"];
 export type Together = S["Together"];

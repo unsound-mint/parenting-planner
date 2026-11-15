@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, CircleHelp, GraduationCap, type LucideIcon } from "lucide-react";
+import { Bookmark, BookOpen, CircleHelp, GraduationCap, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Format, LibraryItem } from "./catalogue";
 
@@ -9,9 +9,10 @@ const formatWord: Record<Format, string> = { article: "Article", lesson: "Lesson
 /**
  * One library entry as a compact tile: format, title, one line, length and
  * state. Coming-soon tiles are dashed, muted and not links: they carry no
- * text to read, only what is planned.
+ * text to read, only what is planned. A topic tile carries a bookmark to
+ * save it for later when onSave is given.
  */
-export function LibraryCard({ item }: { item: LibraryItem }) {
+export function LibraryCard({ item, onSave }: { item: LibraryItem; onSave?: (item: LibraryItem) => void }) {
   const Icon = formatIcon[item.format];
   const body = (
     <>
@@ -23,7 +24,7 @@ export function LibraryCard({ item }: { item: LibraryItem }) {
         <Badge item={item} />
       </div>
       <p className={cn("line-clamp-2 text-title text-balance", item.soon && "text-ink-2")}>{item.title}</p>
-      <p className="line-clamp-2 text-label font-normal text-ink-2">{item.line}</p>
+      <p className={cn("line-clamp-2 text-label font-normal text-ink-2", onSave && item.topicId && "pr-9")}>{item.line}</p>
     </>
   );
   if (!item.href) {
@@ -34,13 +35,27 @@ export function LibraryCard({ item }: { item: LibraryItem }) {
     );
   }
   return (
-    <li className="min-w-0">
+    <li className="relative min-w-0">
       <Link
         href={item.href}
         className="press flex h-full min-w-0 flex-col gap-1.5 rounded-3xl border border-line bg-card p-4 transition-colors duration-(--duration-fast) hover:border-line-2"
       >
         {body}
       </Link>
+      {onSave && item.topicId && (
+        <button
+          type="button"
+          onClick={() => onSave(item)}
+          aria-pressed={item.saved}
+          aria-label={item.saved ? `Remove ${item.title} from saved` : `Save ${item.title} for later`}
+          className={cn(
+            "press absolute right-2 bottom-2 grid size-10 place-items-center rounded-full transition-colors duration-(--duration-fast)",
+            item.saved ? "text-me hover:bg-me-soft" : "text-muted-foreground hover:bg-muted hover:text-ink-2",
+          )}
+        >
+          <Bookmark className={cn("size-4.5", item.saved && "fill-current")} aria-hidden />
+        </button>
+      )}
     </li>
   );
 }
@@ -54,7 +69,7 @@ function Badge({ item }: { item: LibraryItem }) {
         ? { label: "Reading", className: "bg-me-soft text-me" }
         : item.now
           ? { label: "For now", className: "bg-sun text-ink-2" }
-          : item.state === "new"
+          : item.state === "new" && !item.topicId
             ? { label: "New", className: "bg-me-soft text-me" }
             : null;
   if (!tag) return null;

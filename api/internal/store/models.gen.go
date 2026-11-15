@@ -440,6 +440,14 @@ type LessonRead struct {
 	FinishedAt pgtype.Timestamptz
 }
 
+type LibraryRead struct {
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	TopicID  string
+	ReadAt   pgtype.Timestamptz
+	SavedAt  pgtype.Timestamptz
+}
+
 type LiveEvent struct {
 	ID              int64
 	FamilyID        uuid.UUID
@@ -670,6 +678,17 @@ type QuizAnswer struct {
 	QuestionID string
 	ChoiceID   string
 	AnsweredAt time.Time
+}
+
+type QuizAttempt struct {
+	ID       uuid.UUID
+	FamilyID uuid.UUID
+	MemberID uuid.UUID
+	DeckID   string
+	Score    int32
+	Total    int32
+	Missed   []string
+	TakenAt  time.Time
 }
 
 type RecoveryCheckin struct {

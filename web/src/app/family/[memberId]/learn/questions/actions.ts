@@ -10,8 +10,20 @@ import type { LibraryTopic } from "@/lib/api/types";
 
 export async function loadTopic(memberId: string, topicId: string): Promise<LibraryTopic | null> {
   const api = await serverApi();
-  const { data } = await api.GET("/members/{memberId}/library-topics/{topicId}", { params: { path: { memberId, topicId } } });
+  const path = { params: { path: { memberId, topicId } } };
+  const [{ data }] = await Promise.all([
+    api.GET("/members/{memberId}/library-topics/{topicId}", path),
+    // Opening a topic is reading it: the library shows it as Read from now on.
+    api.PUT("/members/{memberId}/library-reads/{topicId}", { ...path, body: { read: true } }),
+  ]);
   return data ?? null;
+}
+
+/** Save a topic for later, or unsave it. Returns the saved state the API holds, or null on failure. */
+export async function saveTopic(memberId: string, topicId: string, saved: boolean): Promise<boolean | null> {
+  const api = await serverApi();
+  const { data } = await api.PUT("/members/{memberId}/library-reads/{topicId}", { params: { path: { memberId, topicId } }, body: { saved } });
+  return data ? !!data.savedAt : null;
 }
 
 export type AskTo = "appointment" | "psychologist";

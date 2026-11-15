@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/unsound-mint/parenting-planner/api/internal/content"
+	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
 
 var errNoLibraryTopic = Error{Code: "not_found", Message: "no such topic in the library"}
@@ -28,8 +29,20 @@ func (s *Server) ListLibraryTopics(ctx context.Context, req ListLibraryTopicsReq
 	entries, position := content.Library(state)
 	soon := content.Upcoming()
 	out := LibraryTopicList{Position: position, Items: make([]LibraryTopicSummary, 0, len(entries)), Upcoming: make([]LibraryUpcoming, 0, len(soon))}
+	reads, err := s.q.ListLibraryReads(ctx, store.ListLibraryReadsParams{FamilyID: familyID, MemberID: req.MemberId})
+	if err != nil {
+		return nil, err
+	}
+	byTopic := make(map[string]store.LibraryRead, len(reads))
+	for _, r := range reads {
+		byTopic[r.TopicID] = r
+	}
 	for _, e := range entries {
-		out.Items = append(out.Items, librarySummaryOut(e))
+		sum := librarySummaryOut(e)
+		if r, ok := byTopic[e.ID]; ok {
+			sum.ReadAt, sum.SavedAt = tsOut(r.ReadAt), tsOut(r.SavedAt)
+		}
+		out.Items = append(out.Items, sum)
 	}
 	for _, u := range soon {
 		out.Upcoming = append(out.Upcoming, LibraryUpcoming{

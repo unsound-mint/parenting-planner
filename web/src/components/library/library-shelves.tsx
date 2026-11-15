@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Search, X } from "lucide-react";
+import { ArrowRight, Bookmark, Search, X } from "lucide-react";
 import { Rise } from "@/components/joy/rise";
 import { SoftCard } from "@/components/joy/soft-card";
 import type { LibraryStage } from "@/lib/api/types";
@@ -12,15 +12,16 @@ import {
   counts,
   type Format,
   formatLabels,
-  type Length,
-  lengthLabels,
-  lengthOf,
   type LibraryItem,
+  type Show,
+  showLabels,
+  shows,
   shelvesOf,
   stageLabels,
   stageOrder,
 } from "./catalogue";
 import { LibraryCard } from "./library-card";
+import { useSavable } from "./use-savable";
 import { categoryOf, words } from "./visuals";
 
 const SHELF = 6;
@@ -31,21 +32,23 @@ export const tileGrid = "grid min-w-0 gap-3 @xl:grid-cols-2 @4xl:grid-cols-3 @7x
 
 /**
  * The Learn library: a hero with honest counts and the search, filter chips
- * for stage, format and length, then one shelf per topic with six tiles and
+ * for stage, format and what to show (your stage, not read yet, saved), then
+ * the saved shelf and one shelf per topic with six tiles and
  * "See all". Filtering swaps the shelves for one counted result list (a page
  * at a time, never an endless scroll). Typing filters instantly, unanimated.
  */
-export function LibraryShelves({ memberId, items, stage, position }: { memberId: string; items: LibraryItem[]; stage: LibraryStage; position: string }) {
+export function LibraryShelves({ memberId, items: initial, stage, position }: { memberId: string; items: LibraryItem[]; stage: LibraryStage; position: string }) {
   const [query, setQuery] = useState("");
   const [stages, setStages] = useState<LibraryStage | null>(null);
   const [format, setFormat] = useState<Format | null>(null);
-  const [length, setLength] = useState<Length | null>(null);
+  const [show, setShow] = useState<Show | null>(null);
+  const [items, save] = useSavable(memberId, initial);
   const [shown, setShown] = useState(RESULTS);
 
   const total = counts(items);
   const shelves = useMemo(() => shelvesOf(items, stage), [items, stage]);
   const terms = words(query);
-  const filtering = terms.length > 0 || stages !== null || format !== null || length !== null;
+  const filtering = terms.length > 0 || stages !== null || format !== null || show !== null;
   const results = useMemo(
     () =>
       filtering
@@ -54,7 +57,7 @@ export function LibraryShelves({ memberId, items, stage, position }: { memberId:
               (i) =>
                 (stages === null || i.stages.includes(stages)) &&
                 (format === null || i.format === format) &&
-                (length === null || lengthOf(i.minutes) === length) &&
+                (show === null || shows(i, show, stage)) &&
                 terms.every((q) => i.words.some((w) => w.startsWith(q))),
             ),
             stages ?? stage,
@@ -62,14 +65,17 @@ export function LibraryShelves({ memberId, items, stage, position }: { memberId:
         : [],
     // terms is derived from query on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filtering, items, stages, format, length, query, stage],
+    [filtering, items, stages, format, show, query, stage],
   );
   const found = counts(results);
+  const saved = items.filter((i) => i.saved);
+  const savedUnread = saved.filter((i) => i.state !== "read").length;
+
   const reset = () => {
     setQuery("");
     setStages(null);
     setFormat(null);
-    setLength(null);
+    setShow(null);
   };
 
   return (
@@ -107,7 +113,7 @@ export function LibraryShelves({ memberId, items, stage, position }: { memberId:
           <div className="flex flex-col gap-2 @4xl:flex-row @4xl:flex-wrap @4xl:items-center @4xl:gap-x-6">
             <Chips label="Stage" options={stageOrder.map((s) => [s, stageLabels[s]] as const)} value={stages} onChange={(v) => (setStages(v), setShown(RESULTS))} mark={stage} />
             <Chips label="Format" options={(Object.keys(formatLabels) as Format[]).map((f) => [f, formatLabels[f]] as const)} value={format} onChange={(v) => (setFormat(v), setShown(RESULTS))} />
-            <Chips label="Length" options={(Object.keys(lengthLabels) as Length[]).map((l) => [l, lengthLabels[l]] as const)} value={length} onChange={(v) => (setLength(v), setShown(RESULTS))} />
+            <Chips label="Show" options={(Object.keys(showLabels) as Show[]).map((v) => [v, showLabels[v]] as const)} value={show} onChange={(v) => (setShow(v), setShown(RESULTS))} />
           </div>
         </SoftCard>
       </Rise>
@@ -122,7 +128,7 @@ export function LibraryShelves({ memberId, items, stage, position }: { memberId:
               Clear filters
             </button>
           </div>
-          {results.length > 0 && <ul className={tileGrid}>{results.slice(0, shown).map((i) => <LibraryCard key={i.id} item={i} />)}</ul>}
+          {results.length > 0 && <ul className={tileGrid}>{results.slice(0, shown).map((i) => <LibraryCard key={i.id} item={i} onSave={save} />)}</ul>}
           {results.length > shown && (
             <button type="button" onClick={() => setShown((n) => n + RESULTS)} className="press min-h-11 w-fit rounded-full border border-line-2 px-4 text-label text-ink-2 hover:bg-muted">
               Show {Math.min(RESULTS, results.length - shown)} more of {results.length - shown}
@@ -130,13 +136,45 @@ export function LibraryShelves({ memberId, items, stage, position }: { memberId:
           )}
         </Rise>
       ) : (
-        shelves.map((s, n) => <Shelf key={s.category} memberId={memberId} category={s.category} items={s.items} i={Math.min(n + 1, 4)} />)
+        <>
+          {saved.length > 0 && (
+            <Rise as="section" i={1} aria-labelledby="shelf-saved" className="flex min-w-0 flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-sun text-ink-2">
+                  <Bookmark className="size-4.5" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <h2 id="shelf-saved" className="text-headline">
+                    Saved for later
+                  </h2>
+                  <p className="text-caption text-muted-foreground">
+                    {saved.length} saved{savedUnread > 0 && `, ${savedUnread} not read yet`}
+                  </p>
+                </div>
+                {saved.length > SHELF && (
+                  <button type="button" onClick={() => setShow("saved")} className="press ml-auto inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3 text-label text-me hover:bg-me-soft">
+                    See all {saved.length}
+                    <ArrowRight className="size-4" aria-hidden />
+                  </button>
+                )}
+              </div>
+              <ul className={cn(tileGrid, "@max-xl:[&>li:nth-child(n+4)]:hidden")}>
+                {saved.slice(0, SHELF).map((it) => (
+                  <LibraryCard key={it.id} item={it} onSave={save} />
+                ))}
+              </ul>
+            </Rise>
+          )}
+          {shelves.map((s, n) => (
+            <Shelf key={s.category} memberId={memberId} category={s.category} items={s.items} i={Math.min(n + (saved.length ? 2 : 1), 4)} onSave={save} />
+          ))}
+        </>
       )}
     </>
   );
 }
 
-function Shelf({ memberId, category, items, i }: { memberId: string; category: string; items: LibraryItem[]; i: number }) {
+function Shelf({ memberId, category, items, i, onSave }: { memberId: string; category: string; items: LibraryItem[]; i: number; onSave: (item: LibraryItem) => void }) {
   const { label, icon: Icon } = categoryOf(category);
   const c = counts(items);
   return (
@@ -167,7 +205,7 @@ function Shelf({ memberId, category, items, i }: { memberId: string; category: s
       {/* Three tiles on a phone, six from two columns up: a shelf is a taste, See all is the list. */}
       <ul className={cn(tileGrid, "@max-xl:[&>li:nth-child(n+4)]:hidden")}>
         {items.slice(0, SHELF).map((it) => (
-          <LibraryCard key={it.id} item={it} />
+          <LibraryCard key={it.id} item={it} onSave={onSave} />
         ))}
       </ul>
     </Rise>
