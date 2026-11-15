@@ -131,21 +131,80 @@ export function pickQuiz(paths: LearningPath[], me: string): QuizPick | undefine
 
 // ---------- Journal ----------
 
-/** The quick journal's question, by stage. UI copy, not health content. */
-export function journalPrompt(stage: Stage, week?: number): string {
-  if (stage === "pregnancy") return (week ?? 0) >= 24 ? "How are you feeling about the birth this week?" : "How are you feeling this week?";
-  if (stage === "planning" || stage === "trying") return "How are you feeling about all this today?";
-  if (stage === "postpartum" || stage === "infant") return "How are you holding up today?";
-  return "How was today, for you?";
+/**
+ * A number that moves by one every week: the gestational week in pregnancy,
+ * otherwise whole weeks since Monday 1970-01-05 on the family's clock (the
+ * same count as content.CalendarWeek in the API), so "Skip ahead a week" turns it.
+ */
+export function rotationWeek(now: Date, gestationalWeek?: number): number {
+  if (gestationalWeek != null) return gestationalWeek;
+  return Math.floor((now.getTime() - Date.UTC(1970, 0, 5)) / (7 * 24 * 3600 * 1000));
 }
 
-/** Starter lines to tap instead of typing. The API serves no journal prompts yet, so these are short UI copy per stage. */
-export function journalStarters(stage: Stage, partnerName?: string): string[] {
+function pick<T>(items: readonly T[], n: number): T {
+  return items[((n % items.length) + items.length) % items.length];
+}
+
+// UI copy, not health content. Each stage has a few questions so the journal
+// asks something new every week.
+const prompts: Record<"pregnancy" | "late" | "planning" | "baby" | "child", readonly string[]> = {
+  pregnancy: [
+    "How are you feeling this week?",
+    "What surprised you about this week?",
+    "What are you looking forward to right now?",
+    "What is on your mind tonight?",
+  ],
+  late: [
+    "How are you feeling about the birth this week?",
+    "What would make the coming weeks easier?",
+    "What do you want to remember about these last weeks?",
+    "How are you sleeping, and what helps?",
+  ],
+  planning: [
+    "How are you feeling about all this today?",
+    "What did you two talk about this week?",
+    "What are you hoping for this month?",
+    "What felt good this week?",
+  ],
+  baby: [
+    "How are you holding up today?",
+    "What was the best moment this week?",
+    "What is new with the baby this week?",
+    "What would help you most right now?",
+  ],
+  child: [
+    "How was today, for you?",
+    "What made you laugh together this week?",
+    "What was hard this week, and what helped?",
+    "What did they say this week that you want to keep?",
+  ],
+};
+
+function poolOf(stage: Stage, week?: number): keyof typeof prompts {
+  if (stage === "pregnancy") return (week ?? 0) >= 24 ? "late" : "pregnancy";
+  if (stage === "planning" || stage === "trying") return "planning";
+  if (stage === "postpartum" || stage === "infant") return "baby";
+  return "child";
+}
+
+/** The quick journal's question for this week: by stage, rotating weekly (see rotationWeek). */
+export function journalPrompt(stage: Stage, rotation: number, week?: number): string {
+  return pick(prompts[poolOf(stage, week)], rotation);
+}
+
+const starters: Record<keyof typeof prompts, readonly string[]> = {
+  pregnancy: ["Kicks kept me up, happily", "Nervous about the not-knowing", "Craving something odd", "Felt the baby move", "Tired but glad"],
+  late: ["Kicks kept me up, happily", "Nervous about the not-knowing", "The bag is nearly packed", "Ready to meet you", "Counting the days"],
+  planning: ["Excited and a little scared", "Wondering if we are ready", "A good talk tonight", "Feeling hopeful", "Needed a quiet day"],
+  baby: ["Running on very little sleep", "A small win today", "A big smile today", "Found a rhythm, for now", "Needed a break"],
+  child: ["A good moment with them today", "Feeling stretched thin", "So many questions today", "Proud of them", "A slow, nice evening"],
+};
+
+/** Starter lines to tap instead of typing: two from the stage's pool, rotating weekly, then one about the other parent. UI copy. */
+export function journalStarters(stage: Stage, rotation: number, partnerName?: string, week?: number): string[] {
   const close = partnerName ? `Felt close to ${partnerName} today` : "Had a quiet good moment today";
-  if (stage === "pregnancy") return ["Kicks kept me up, happily", "Nervous about the not-knowing", close];
-  if (stage === "planning" || stage === "trying") return ["Excited and a little scared", "Wondering if we are ready", close];
-  if (stage === "postpartum" || stage === "infant") return ["Running on very little sleep", "A small win today", close];
-  return ["A good moment with them today", "Feeling stretched thin", close];
+  const pool = starters[poolOf(stage, week)];
+  return [pick(pool, rotation), pick(pool, rotation + 1), close];
 }
 
 // ---------- Hospital bag ----------

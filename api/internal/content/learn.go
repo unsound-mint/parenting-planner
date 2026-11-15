@@ -114,6 +114,8 @@ type Choice struct{ ID, Text string }
 type TalkPrompt struct {
 	ID, Text         string
 	WeekFrom, WeekTo int
+	// Stages is set on prompts for stages other than pregnancy; those have no weeks.
+	Stages []string
 }
 
 var (
@@ -271,10 +273,11 @@ func loadPathFile(name string, data []byte) []LearnPath {
 func loadTalkPrompts() []TalkPrompt {
 	var t struct {
 		Prompts []struct {
-			ID    string `json:"id"`
-			Kind  string `json:"kind"`
-			Weeks [2]int `json:"weeks"`
-			Text  string `json:"text"`
+			ID     string   `json:"id"`
+			Kind   string   `json:"kind"`
+			Weeks  [2]int   `json:"weeks"`
+			Stages []string `json:"stages"`
+			Text   string   `json:"text"`
 		} `json:"prompts"`
 	}
 	if err := json.Unmarshal(talkPromptsJSON, &t); err != nil {
@@ -284,7 +287,7 @@ func loadTalkPrompts() []TalkPrompt {
 	for _, p := range t.Prompts {
 		// Journal prompts are for the journal composer, not the couple card.
 		if p.Kind == "couple" {
-			prompts = append(prompts, TalkPrompt{ID: p.ID, Text: p.Text, WeekFrom: p.Weeks[0], WeekTo: p.Weeks[1]})
+			prompts = append(prompts, TalkPrompt{ID: p.ID, Text: p.Text, WeekFrom: p.Weeks[0], WeekTo: p.Weeks[1], Stages: p.Stages})
 		}
 	}
 	return prompts
@@ -337,26 +340,63 @@ func LessonByID(id string) (Lesson, bool) {
 // LessonPromptPrefix marks a talk prompt that comes from a lesson.
 const LessonPromptPrefix = "lesson:"
 
-// CoupleTalkPrompts returns the pool prompts whose window covers the week,
-// latest-opening first. Outside pregnancy the pool (written for pregnancy
-// weeks) is not used.
-func CoupleTalkPrompts(s State) []TalkPrompt {
-	out := []TalkPrompt{}
-	if s.Stage != "pregnancy" || !s.HasWeek {
-		return out
+// CoupleTalkPrompts returns this week's pool prompts in the order to offer
+// them. In pregnancy that is the prompts whose window covers the gestational
+// week; in other stages the prompts written for the stage. The list is
+// rotated by week (the gestational week, else the calendar week of today on
+// the family's clock) so the first prompt changes every week; a prompt whose
+// window opened this week leads, since it is the newest thing to talk about.
+// TestTalkPromptsChangeEveryWeek guards this.
+func CoupleTalkPrompts(s State, today time.Time) []TalkPrompt {
+	switch {
+	case s.Stage == "pregnancy" && s.HasWeek:
+		return pregnancyTalkPrompts(s.Week)
+	case s.Stage != "pregnancy":
+		out := []TalkPrompt{}
+		for _, p := range coupleTalkPrompts {
+			if slices.Contains(p.Stages, s.Stage) {
+				out = append(out, p)
+			}
+		}
+		return rotate(out, CalendarWeek(today))
 	}
+	return []TalkPrompt{}
+}
+
+// pregnancyTalkPrompts rotates the week's window by the week. Windows open and
+// close, so the plain rotation can repeat last week's lead; then the next
+// prompt leads instead.
+func pregnancyTalkPrompts(week int) []TalkPrompt {
+	out := []TalkPrompt{}
 	for _, p := range coupleTalkPrompts {
-		if p.WeekFrom <= s.Week && s.Week <= p.WeekTo {
+		if len(p.Stages) == 0 && p.WeekFrom <= week && week <= p.WeekTo {
 			out = append(out, p)
 		}
 	}
-	slices.SortStableFunc(out, func(a, b TalkPrompt) int {
-		if a.WeekFrom != b.WeekFrom {
-			return b.WeekFrom - a.WeekFrom
+	if len(out) == 0 {
+		return out
+	}
+	out = rotate(out, week)
+	if i := slices.IndexFunc(out, func(p TalkPrompt) bool { return p.WeekFrom == week }); i > 0 {
+		fresh := out[i]
+		out = append([]TalkPrompt{fresh}, slices.Delete(out, i, i+1)...)
+	}
+	if len(out) > 1 && week > firstPregnancyWeek {
+		if last := pregnancyTalkPrompts(week - 1); len(last) > 0 && last[0].ID == out[0].ID {
+			out = append(out[1:], out[0])
 		}
-		return strings.Compare(a.ID, b.ID)
-	})
+	}
 	return out
+}
+
+// rotate sorts the prompts by id and starts the list at week mod its length.
+func rotate(out []TalkPrompt, week int) []TalkPrompt {
+	if len(out) == 0 {
+		return out
+	}
+	slices.SortStableFunc(out, func(a, b TalkPrompt) int { return strings.Compare(a.ID, b.ID) })
+	k := (week%len(out) + len(out)) % len(out)
+	return append(out[k:], out[:k]...)
 }
 
 // TalkPromptText resolves a prompt id (pool id or lesson:<id>) to its text and

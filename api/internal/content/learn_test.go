@@ -106,9 +106,6 @@ func TestTalkPromptsHaveUniqueIDs(t *testing.T) {
 	if len(coupleTalkPrompts) == 0 || len(coupleTalkPromptsByID) != len(coupleTalkPrompts) {
 		t.Errorf("%d prompts, %d ids", len(coupleTalkPrompts), len(coupleTalkPromptsByID))
 	}
-	if got := CoupleTalkPrompts(State{Stage: "pregnancy", Week: 25, HasWeek: true}); len(got) == 0 || got[0].WeekFrom < got[len(got)-1].WeekFrom {
-		t.Errorf("week 25 prompts not latest-opening first: %+v", got)
-	}
 }
 
 func TestLessonsFitTheirStage(t *testing.T) {
