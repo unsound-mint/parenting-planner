@@ -109,6 +109,7 @@ export function ScreeningsCard({ person, memberId }: { person: PassportPerson; m
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-body font-medium">{s.name}</p>
+                      {s.summary && <p className="mt-0.5 text-label text-muted-foreground">{s.summary}</p>}
                       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-caption text-muted-foreground">
                         {formatLongDate(s.takenOn)}
                         {showVisibility && <VisibilityPicker value={s.visibility} onChange={(v) => share(s, v)} disabled={save.pending} />}

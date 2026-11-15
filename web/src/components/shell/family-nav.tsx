@@ -3,85 +3,62 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, BookHeart, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, PiggyBank, Route, Settings, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
-import { canOpen, isCaregiver, type Role } from "@/lib/roles";
+import { Ellipsis, X } from "lucide-react";
+import { isCaregiver, type Role } from "@/lib/roles";
+import { relativePath, tabFor, visibleSections, type Section } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 
-type Group = "main" | "more" | "account";
-type Item = {
-  href: string;
-  screen: string;
-  label: string;
-  icon: LucideIcon;
-  group: Group;
-  /** Phone tab label when the full one does not fit. */
-  short?: string;
-  /** Shown only when this screen is not in the nav: the screen that normally links to it is missing. */
-  fallbackFor?: string;
-  /** Other routes that live inside this screen and keep it highlighted. */
-  includes?: string[];
-};
-
-// Three daily screens, then the records, then Privacy and Settings. Plan, Journey, Practice and Find
-// help are reached from inside a screen (This week, Learn, Journal and care, People), so they appear here only as a fallback when that screen is missing:
-// caregivers cannot open Learn or People, and Learn is hidden in loss support.
+// Five sections (This week, Plan, Learn, Health, Family), then Privacy and Settings.
+// The sections and their tabs live in lib/sections.ts; a section links to the first
+// tab this person can open and stays highlighted on every page inside it.
 // Each role sees only the screens canOpen() allows (lib/roles.ts).
-const items: Item[] = [
-  { href: "", screen: "", label: "This week", icon: Sprout, group: "main" },
-  { href: "/learn", screen: "learn", label: "Learn", icon: BookOpen, group: "main" },
-  { href: "/journey", screen: "journey", label: "Journey", icon: Route, group: "main", fallbackFor: "learn" },
-  { href: "/care", screen: "care", label: "Journal and care", short: "Journal", icon: NotebookPen, group: "main", includes: ["/directory"] },
-  { href: "/story", screen: "story", label: "Our story", short: "Story", icon: BookHeart, group: "main" },
-  { href: "/calendar", screen: "calendar", label: "Calendar", icon: CalendarDays, group: "more" },
-  { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "more" },
-  { href: "/passport", screen: "passport", label: "Baby passport", short: "Passport", icon: IdCard, group: "more" },
-  { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
-  { href: "/money", screen: "money", label: "Money", icon: PiggyBank, group: "more" },
-  { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more", fallbackFor: "learn" },
-  { href: "/privacy", screen: "privacy", label: "Privacy", icon: ShieldCheck, group: "account" },
-  { href: "/settings", screen: "settings", label: "Settings", icon: Settings, group: "account" },
-];
 
-// The phone bar holds four tabs at 390 px: the daily screens and More.
-const PHONE_SLOTS = 4;
+// The phone bar holds six tabs at 390 px: the five sections and More.
+const PHONE_SLOTS = 6;
 
 type NavProps = { memberId: string; role: Role; hidden?: string[]; childName?: string };
+// A section with one tab open to this person (a caregiver's Plan is only the calendar) is named after that tab.
+type Item = { section: Section; href: string; name: string };
 
-// hidden: screens whose endpoint refuses this person (403, 404) or is not built and has no preview mock.
-function useNav({ memberId, role, hidden = [], childName }: NavProps) {
+// hidden: screens whose endpoint refuses this person (403, 404) or is not built and has no
+// preview mock, plus tab ids that do not apply at this stage (see layout.tsx).
+function useNav({ memberId, role, hidden = [] }: NavProps) {
   const pathname = usePathname();
   const base = `/family/${memberId}`;
-  const allowed = (item: Item) => canOpen(role, item.screen) && !hidden.includes(item.screen);
-  const visible = items.filter((item) => allowed(item) && (!item.fallbackFor || !items.some((i) => i.screen === item.fallbackFor && allowed(i))));
-  const isActive = (item: Item) =>
-    item.href === "" ? pathname === base : [item.href, ...(item.includes ?? [])].some((h) => pathname.startsWith(base + h));
-  // Past toddler age the Baby screen is the child's own: it carries their name.
-  const label = (item: Item) => (item.href === "" && isCaregiver(role) ? "Baby's care" : item.screen === "baby" && childName ? childName : item.label);
-  return { pathname, base, visible, isActive, label };
+  const visible: Item[] = visibleSections(role, hidden).map(({ section, tabs }) => ({
+    section,
+    href: base + tabs[0].href,
+    name: section.group === "main" && section.tabs.length > 1 && tabs.length === 1 ? tabs[0].label : section.label,
+  }));
+  const current = tabFor(relativePath(pathname, memberId))?.section.id;
+  const isActive = (item: Item) => item.section.id === current;
+  const label = (item: Item, phone = false) =>
+    item.section.id === "week" && isCaregiver(role) ? "Baby's care" : phone && item.name === item.section.label ? (item.section.short ?? item.name) : item.name;
+  return { pathname, visible, isActive, label };
 }
 
-/** The desktop side nav: the daily group, a rule, then the records. */
+/** The desktop side nav: the five sections, a rule, then Privacy and Settings. */
 export function FamilyNav(props: NavProps) {
-  const { base, visible, isActive, label } = useNav(props);
+  const { visible, isActive, label } = useNav(props);
   return (
     <nav aria-label="Family" className="flex flex-col">
-      {(["main", "more", "account"] as const).map((g) => {
-        const group = visible.filter((i) => i.group === g);
+      {(["main", "account"] as const).map((g) => {
+        const group = visible.filter((i) => i.section.group === g);
         return group.length ? (
           <div key={g} className="flex flex-col gap-1 border-line not-first:mt-2.5 not-first:border-t not-first:pt-2.5">
             {group.map((item) => {
               const active = isActive(item);
               return (
                 <Link
-                  key={item.href}
-                  href={base + item.href}
+                  key={item.section.id}
+                  href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "press flex min-h-11 items-center gap-3 rounded-xl px-3 text-body font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                     active ? "bg-me-soft text-ink" : "text-ink-2 hover:bg-muted",
                   )}
                 >
-                  <item.icon className={cn("size-5 shrink-0", active && "text-me")} strokeWidth={1.7} aria-hidden />
+                  <item.section.icon className={cn("size-5 shrink-0", active && "text-me")} strokeWidth={1.7} aria-hidden />
                   {label(item)}
                 </Link>
               );
@@ -94,17 +71,17 @@ export function FamilyNav(props: NavProps) {
 }
 
 /**
- * The phone tab bar, floating at the bottom: This week, Learn, Journal, More.
- * More opens the rest in a panel above the bar. Rendered outside the page column
+ * The phone tab bar, floating at the bottom: the sections and More.
+ * More opens the rest (Privacy, Settings) in a panel above the bar. Rendered outside the page column
  * so `fixed` anchors to the viewport; PageFrame leaves room for it.
  */
 export function FamilyTabBar(props: NavProps) {
-  const { pathname, base, visible, isActive, label } = useNav(props);
+  const { pathname, visible, isActive, label } = useNav(props);
   // Open for one path only, so the panel closes after navigating.
   const [openAt, setOpenAt] = useState<string | null>(null);
   const moreOpen = openAt === pathname;
   const fits = visible.length <= PHONE_SLOTS;
-  const bar = fits ? visible : visible.filter((i) => i.group === "main").slice(0, PHONE_SLOTS - 1);
+  const bar = fits ? visible : visible.filter((i) => i.section.group === "main").slice(0, PHONE_SLOTS - 1);
   const more = fits ? [] : visible.filter((i) => !bar.includes(i));
   const moreActive = more.some(isActive);
 
@@ -129,9 +106,9 @@ export function FamilyTabBar(props: NavProps) {
         >
           <div className="grid grid-cols-3 gap-1">
             {more.map((item) => (
-              <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={cn(tab(isActive(item)), "min-h-16")}>
-                <item.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
-                {item.short ?? label(item)}
+              <Link key={item.section.id} href={item.href} aria-current={isActive(item) ? "page" : undefined} className={cn(tab(isActive(item)), "min-h-16")}>
+                <item.section.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
+                {label(item, true)}
               </Link>
             ))}
           </div>
@@ -139,9 +116,9 @@ export function FamilyTabBar(props: NavProps) {
       )}
       <div className="pointer-events-auto flex gap-1 rounded-3xl border border-line bg-card/95 p-2 shadow-[0_8px_24px_rgb(60_40_20/0.10)] backdrop-blur-md">
         {bar.map((item) => (
-          <Link key={item.href} href={base + item.href} aria-current={isActive(item) ? "page" : undefined} className={tab(isActive(item))}>
-            <item.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
-            {item.short ?? label(item)}
+          <Link key={item.section.id} href={item.href} aria-current={isActive(item) ? "page" : undefined} className={tab(isActive(item))}>
+            <item.section.icon className="size-5.5 shrink-0" strokeWidth={1.7} aria-hidden />
+            {label(item, true)}
           </Link>
         ))}
         {more.length > 0 && (

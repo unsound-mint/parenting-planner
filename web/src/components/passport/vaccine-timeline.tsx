@@ -98,6 +98,7 @@ export function VaccineTimeline({ vaccines: doses, edit }: { vaccines: VaccineDo
                         ) : (
                           <p className="font-mono text-caption text-muted-foreground">
                             <span className="sr-only">{word[v.status]}, </span>
+                            {v.status === "upcoming" && "by "}
                             {formatLongDate(when(v))}
                           </p>
                         )}

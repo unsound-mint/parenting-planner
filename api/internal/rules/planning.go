@@ -73,7 +73,7 @@ var planningRules = []Rule{
 			if !tryingForABaby(f) || f.MotherRubella != "not immune" || f.everVaccinated(Mother, "mmr") {
 				return Result{}, false
 			}
-			return Result{Status: Due, Reason: "Because guidelines say MMR is not given during pregnancy, and your blood test shows no immunity to rubella with no MMR on record. Your doctor can go over the timing with you."}, true
+			return Result{Status: Due, Reason: f.mmrReason()}, true
 		},
 	},
 	{
@@ -107,4 +107,13 @@ func (f Facts) lastTetanusDose(r Role) (time.Time, bool) {
 		}
 	}
 	return last, found
+}
+
+// mmrReason names the data behind the MMR item: the lab and its date.
+func (f Facts) mmrReason() string {
+	lab := "your blood test"
+	if !f.MotherRubellaOn.IsZero() {
+		lab = "your lab result on " + f.MotherRubellaOn.Format("Jan 2")
+	}
+	return "Because " + lab + " shows you are not immune to rubella and there is no MMR on record, and guidelines say MMR is not given during pregnancy. Your doctor can go over the timing with you."
 }
