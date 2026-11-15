@@ -8,7 +8,6 @@ import { api } from "@/lib/api/client";
 import type { Milestone, MilestoneChecklist, MilestoneDomain } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { SourceLink } from "@/components/joy/source-line";
 
 /** The CDC names its lists "by 2 months", "by 1 year", "by 30 months", "by 4 years". */
 function ageLabel(months: number): string {
@@ -109,8 +108,7 @@ export function MilestoneCard({ memberId, childId, checklist }: { memberId: stri
       </div>
 
       <p className="mt-5 border-t border-border pt-4 text-label text-muted-foreground">
-        Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis. The list follows the{" "}
-        <SourceLink source={checklist.source}>CDC milestones by {age}</SourceLink>.
+        Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis.
       </p>
     </section>
   );

@@ -1,7 +1,5 @@
 import { Activity, Armchair, TrendingUp } from "lucide-react";
-import { LABOR_SOURCES } from "@/lib/labor";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 
 // Practice (Braxton Hicks) or labor: what the cited pages say tells them apart,
 // as three pictures side by side. Explains, never decides: the timer and the
@@ -79,7 +77,6 @@ export function RealOrPractice() {
       <p className="rounded-2xl bg-muted/70 p-4 text-label">
         You don&apos;t have to be sure. Time a few with the timer, and if you are unsure or worried, call. Your care team&apos;s instructions come first.
       </p>
-      <SourceLine sources={[LABOR_SOURCES.nichdStart, LABOR_SOURCES.nhsSigns]} />
     </SoftCard>
   );
 }

@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Baby, Car, Check, GraduationCap, MapPinned, NotebookPen, PhoneCall, type LucideIcon } from "lucide-react";
-import type { BirthPlan, Source, Task } from "@/lib/api/types";
-import { LABOR_SOURCES } from "@/lib/labor";
+import type { BirthPlan, Task } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 
 // Prepare for birth: a short list with timing. Each item reads its state from
 // data that already exists (the shared plan's tasks, the birth plan) and says
@@ -21,7 +19,6 @@ type Item = {
   when: string;
   detail: string;
   state: { done: boolean; note: string; href?: string };
-  sources?: Source[];
 };
 
 const findTask = (tasks: Task[], re: RegExp) => tasks.find((t) => t.kind === "task" && re.test(t.title));
@@ -63,7 +60,6 @@ export function BirthPrep({
       when: "by wk 36",
       detail: plan?.preferencesNote ?? "Pain relief you want to try first, who is in the room, skin to skin. Learn the options now, not mid-contraction.",
       state: plan?.preferencesNote ? { done: true, note: "Written. Bring a printed copy." } : { done: false, note: "Talk it through tonight" },
-      sources: [LABOR_SOURCES.nichdPain],
     },
     {
       id: "perineal",
@@ -72,7 +68,6 @@ export function BirthPrep({
       when: "last 4 weeks",
       detail: `Done for at least the last four weeks of pregnancy, it meant less perineal trauma needing stitches, mostly fewer episiotomies, for a first vaginal birth. Tears were no different. ${birthParent}'s choice; ask the midwife or OB how.`,
       state: { done: false, note: "Optional" },
-      sources: [LABOR_SOURCES.cochranePerineal],
     },
     ...(bagHasCarSeat
       ? []
@@ -84,7 +79,6 @@ export function BirthPrep({
             when: "by wk 36",
             detail: "In the back seat, never the front. Check the install against the seat's manual.",
             state: taskState(findTask(tasks, /car seat/i), memberId, "Add it to your plan"),
-            sources: [LABOR_SOURCES.cdcCarSeat],
           } satisfies Item,
         ]),
     {
@@ -102,7 +96,6 @@ export function BirthPrep({
       when: "by wk 37",
       detail: "The labor desk first, then your OB or midwife. Ask them now what their own rule for calling is, and set it in the timer.",
       state: plan?.contacts.length ? { done: true, note: `${plan.contacts.length} numbers in the call card`, href: "#hospital" } : { done: false, note: "Ask at your next visit" },
-      sources: [LABOR_SOURCES.nichdStart],
     },
   ];
   const done = items.filter((i) => i.state.done).length;
@@ -139,7 +132,6 @@ export function BirthPrep({
                   <span className={item.state.done ? "text-leaf" : "text-muted-foreground"}>{item.state.note}</span>
                 )}
               </p>
-              {item.sources && <SourceLine className="mt-1" sources={item.sources} />}
             </div>
           </li>
         ))}

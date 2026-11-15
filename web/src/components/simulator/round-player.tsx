@@ -14,7 +14,6 @@ import { ShiftCard } from "@/components/schedule/shift-card";
 import { SkillBars } from "@/components/simulator/skill-bars";
 import { StartRoundButton } from "@/components/simulator/start-round-button";
 import { PageFrame } from "@/components/shell/page";
-import { SourceLink } from "@/components/joy/source-line";
 
 // Plays one round: a question, a tap, feedback at once, then the next. The
 // last screen scores the round and offers the one commit action.
@@ -199,11 +198,6 @@ function QuestionCard({
               {given.correct ? "Right" : "Not quite"}
             </p>
             <p className="text-body">{given.explanation}</p>
-            {given.source && (
-              <p className="text-caption">
-                <SourceLink source={given.source} />
-              </p>
-            )}
             <div>
               <Button ref={nextRef} type="button" onClick={onNext} disabled={busy} className="h-11 gap-2 px-4 text-label">
                 {isLast ? "See result" : "Next question"}

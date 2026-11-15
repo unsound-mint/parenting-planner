@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import type { RightsCard } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { SourceLine } from "@/components/joy/source-line";
 import { duration, ease } from "@/components/joy/motion";
 
 type State = { title: string; text: string; source: RightsCard["source"] };
@@ -78,7 +77,6 @@ export function RightsAcademy({ cards, state, memberId, showLeavePlanner }: { ca
           <div className="min-w-0">
             <p className="font-medium">{state.title}</p>
             <p className="text-ink-2">{state.text}</p>
-            <SourceLine sources={[state.source]} className="mt-1" />
           </div>
         </div>
         {showLeavePlanner && (
@@ -110,7 +108,6 @@ function RightsBody({ card }: { card: RightsCard }) {
         </ul>
         <p className="mt-3 text-label text-muted-foreground">{card.howToAsk}</p>
       </div>
-      <SourceLine sources={[card.source]} />
       <div className="rounded-2xl bg-leaf-soft p-4">
         <button type="button" onClick={() => setShowNote((s) => !s)} aria-expanded={showNote} className="press min-h-11 w-full text-left text-title outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
           A note you can send: {card.note.subject.toLowerCase()}

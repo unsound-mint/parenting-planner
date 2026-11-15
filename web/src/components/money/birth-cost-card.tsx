@@ -8,7 +8,6 @@ import type { BirthCostPlan, BirthCostScenario } from "@/lib/api/types";
 import { dollars, toCents, toDollarsField } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { CountUp } from "./motion";
 
 const field = "h-11 w-full min-w-0 rounded-xl border border-line-2 bg-card pl-6 pr-3 font-mono text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:h-9 md:text-label";
@@ -143,7 +142,6 @@ export function BirthCostCard({ memberId, initial }: { memberId: string; initial
           <p>{plan.enrollment.summary}</p>
         </Fold>
       </div>
-      <SourceLine sources={plan.sources} />
       <p className="text-caption text-muted-foreground">
         The range is our own: 70 to 130 percent of the average total in the first source, run through your plan. Your bill can fall outside it.
       </p>

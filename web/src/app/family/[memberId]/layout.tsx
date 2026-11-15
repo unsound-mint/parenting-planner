@@ -18,6 +18,7 @@ import { showsLaborCoach } from "@/components/labor/labor-coach-link";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
 import { FamilyClockProvider } from "@/components/shell/family-clock";
+import { SiteFooter } from "@/components/shell/site-footer";
 
 // Frame for every family screen: navigation, the role switch and the urgent
 // help entry, which must stay visible on every screen (docs/design.md, rule 5).
@@ -148,6 +149,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
         <FamilyClockProvider daysAhead={family.demoDaysAhead ?? 0}>
           <ViewTransition>{children}</ViewTransition>
         </FamilyClockProvider>
+        <SiteFooter memberId={memberId} className="mx-4 mt-auto mb-6 md:mx-8" />
       </div>
       <FamilyTabBar {...navProps} />
     </div>

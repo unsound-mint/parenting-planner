@@ -7,7 +7,6 @@ import { HeartHandshake, Lock } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { PreconceptionChecklist, PreconceptionGroup, PreconceptionItem } from "@/lib/api/types";
 import { duration, ease, stagger } from "@/components/joy/motion";
-import { SourceLine } from "@/components/joy/source-line";
 import { cn } from "@/lib/utils";
 
 const groupTitle: Record<PreconceptionGroup, string> = {
@@ -98,7 +97,6 @@ export function ReadinessList({ memberId, initial, partnerName, name }: Props) {
                   <div className="min-w-0 flex-1">
                     <p className={cn("text-label transition-colors duration-(--duration-base)", item.done ? "text-muted-foreground" : "text-ink")}>{item.title}</p>
                     <p className="mt-0.5 text-caption font-normal text-muted-foreground">{item.detail}</p>
-                    <SourceLine sources={[item.source]} className="mt-1.5" />
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {item.partnerDone && partnerName && (

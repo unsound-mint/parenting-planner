@@ -2,7 +2,6 @@ import { Sparkles } from "lucide-react";
 import type { Family, PregnancyWeek, StageNow } from "@/lib/api/types";
 import { SizeIllustration, StageMascot } from "@/components/illustrations";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { formatShortDate, givenName, stageLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ARC_H, ARC_W, GrowthArc, arcPoint } from "./growth-arc";
@@ -117,7 +116,6 @@ export function PregnancyHero({
       {card?.development && (
         <div className={cn("flex flex-wrap items-center gap-x-4.5 gap-y-2", size ? "mt-5" : "mt-auto pt-8")}>
           <p className="max-w-[60ch] rounded-2xl bg-leaf-soft px-3 py-1.5 text-label font-medium text-leaf">{card.development}</p>
-          {size && <SourceLine sources={size.sources} />}
         </div>
       )}
       {actions && <div className="mt-5 flex flex-wrap items-center gap-2.5">{actions}</div>}
@@ -154,7 +152,6 @@ export function StageHero({ family, now, stageNow, actions }: { family: Family; 
             </p>
             <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
               <p className="text-label font-normal text-muted-foreground">{stageNow.note}</p>
-              <SourceLine sources={stageNow.sources} />
             </div>
           </div>
         </>

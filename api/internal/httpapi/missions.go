@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 	"github.com/unsound-mint/parenting-planner/api/internal/badges"
+	"github.com/unsound-mint/parenting-planner/api/internal/content"
 	"github.com/unsound-mint/parenting-planner/api/internal/missions"
 	"github.com/unsound-mint/parenting-planner/api/internal/store"
 )
@@ -87,7 +88,7 @@ func (s *Server) ListMissions(ctx context.Context, req ListMissionsRequestObject
 		return nil, err
 	}
 	stage := missions.StageOf(st)
-	items, err := missions.List(ctx, s.pool, familyID, stage)
+	items, err := missions.List(ctx, s.pool, familyID, stage, content.CalendarWeek(s.today(ctx)))
 	if err != nil {
 		return nil, err
 	}
