@@ -3206,6 +3206,132 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /members/{memberId}/library-reads/{topicId}:
+    put:
+      operationId: updateLibraryRead
+      tags: [content]
+      summary: Mark a library topic read, or save it for later
+      description: |
+        The acting parent's own state for one topic. read true sets readAt
+        the first time (kept on later calls), read false clears it. saved
+        true saves the topic, saved false unsaves it. A field left out is
+        left alone. Mother and partner; a grandparent or nanny gets 404, and
+        so does an unknown topic id.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+        - name: topicId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 100
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LibraryReadInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LibraryRead"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /members/{memberId}/quiz-attempts:
+    get:
+      operationId: listQuizAttempts
+      tags: [learn]
+      summary: The acting parent's quiz deck retakes, newest first
+      description: |
+        Retakes of quiz decks (one deck per learning path), the acting
+        parent's own only, newest first, the last 200. Mother and partner; a
+        grandparent or nanny gets 404.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizAttemptList"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createQuizAttempt
+      tags: [learn]
+      summary: Record a retake of a quiz deck
+      description: |
+        A parent retakes a deck after answering it once on Learn (those first
+        answers stay as they were, for the couple to compare). The server
+        grades the choices against the catalog, so the score cannot be made
+        up, and stores which questions were missed. 400 unknown_question for
+        a question that is not in the deck or a choice that is not in the
+        question; 404 for a deck (path id) not in the family's paths.
+      parameters:
+        - $ref: "#/components/parameters/MemberId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizAttemptInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizAttempt"
+        "400":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /members/{memberId}/library-topics/{topicId}:
     get:
       operationId: getLibraryTopic
@@ -12780,6 +12906,14 @@ components:
           type: integer
           description: Estimated reading time at 200 words a minute.
           minimum: 1
+        readAt:
+          type: string
+          format: date-time
+          description: When the acting parent first opened it. Per parent; the other parent's state is never included.
+        savedAt:
+          type: string
+          format: date-time
+          description: Set while the acting parent has it saved for later.
         id:
           type: string
         title:
@@ -12807,6 +12941,82 @@ components:
         urgent:
           type: boolean
           description: The topic has urgent signs; the UI links the fixed Urgent help screen.
+
+    LibraryReadInput:
+      type: object
+      minProperties: 1
+      properties:
+        read:
+          type: boolean
+        saved:
+          type: boolean
+
+    LibraryRead:
+      type: object
+      required: [topicId]
+      properties:
+        topicId:
+          type: string
+        readAt:
+          type: string
+          format: date-time
+        savedAt:
+          type: string
+          format: date-time
+
+    QuizAttemptInput:
+      type: object
+      required: [deckId, answers]
+      properties:
+        deckId:
+          type: string
+          maxLength: 80
+          description: The learning path id.
+        answers:
+          type: array
+          minItems: 1
+          maxItems: 60
+          items:
+            type: object
+            required: [questionId, choiceId]
+            properties:
+              questionId:
+                type: string
+                maxLength: 80
+              choiceId:
+                type: string
+                maxLength: 8
+
+    QuizAttempt:
+      type: object
+      required: [id, deckId, score, total, missed, takenAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        deckId:
+          type: string
+        score:
+          type: integer
+        total:
+          type: integer
+        missed:
+          type: array
+          description: Question ids answered wrong in this attempt.
+          items:
+            type: string
+        takenAt:
+          type: string
+          format: date-time
+
+    QuizAttemptList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizAttempt"
 
     LibraryStage:
       type: string
