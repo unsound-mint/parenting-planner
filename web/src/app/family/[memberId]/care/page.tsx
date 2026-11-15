@@ -93,6 +93,7 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           partner={partner}
           starters={startersFor(fam.stage, partner?.name)}
           entries={diary.data.items}
+          entriesNext={diary.data.nextBefore}
           agenda={agenda.data}
           slots={slots.data}
           brief={brief.data}
