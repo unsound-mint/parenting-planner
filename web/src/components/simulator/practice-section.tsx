@@ -11,8 +11,11 @@ import { StartRoundButton } from "./start-round-button";
  * ("Practice the first night home"). Only invitations here; scores stay on the
  * simulator page, private to each parent, and never become points on Learn.
  */
-export function PracticeSection({ progress, memberId }: { progress: SimulatorProgress; memberId: string }) {
-  if (progress.scenarios.length === 0) return null;
+export function PracticeSection({ progress, memberId, lead }: { progress: SimulatorProgress; memberId: string; /** A full-width card above the rounds (Virtual Baby on Learn). */ lead?: React.ReactNode }) {
+  const n = progress.scenarios.length;
+  if (n === 0) return lead ?? null;
+  // Rows fill: four as 2x2 then four across, three or six in threes, so no card sits alone in a row.
+  const cols = n === 1 ? "" : n === 2 ? "@3xl:grid-cols-2" : n === 3 ? "@3xl:grid-cols-3" : n % 4 === 0 ? "@3xl:grid-cols-2 @7xl:grid-cols-4" : "@3xl:grid-cols-2 @7xl:grid-cols-3";
   return (
     <section aria-labelledby="practice-title" className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -29,12 +32,14 @@ export function PracticeSection({ progress, memberId }: { progress: SimulatorPro
           </Link>
         )}
       </div>
-      <ul className="grid gap-4 @3xl:grid-cols-2 @7xl:grid-cols-3">
+      {lead}
+      <ul className={`grid gap-4 ${cols}`}>
         {progress.scenarios.map((s) => (
           <li key={s.id} className="min-w-0">
             <SoftCard className="flex h-full flex-col gap-3">
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                {s.skills.map((k) => {
+                {/* A scenario can list the same skill more than once (duplicate React keys, repeated icons); show each once. */}
+                {[...new Set(s.skills)].map((k) => {
                   const Icon = skillIcon[k];
                   return (
                     <span key={k} title={skillLabel[k]} className="flex size-9 items-center justify-center rounded-full bg-muted">

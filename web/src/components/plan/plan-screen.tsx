@@ -38,6 +38,7 @@ export function PlanScreen({
   dueOn,
   trackWeeks = false,
   weekTasks = [],
+  guides,
 }: {
   initial: Task[];
   people: Person[];
@@ -51,6 +52,8 @@ export function PlanScreen({
   trackWeeks?: boolean;
   /** The weekly card's tasks for the current week; empty while that endpoint has no data. */
   weekTasks?: string[];
+  /** Guides that end in a step for the plan, shown under the shared plan tab (rendered on the server). */
+  guides?: React.ReactNode;
 }) {
   const now = useFamilyNow();
   const [tasks, setTasks] = useState(initial);
@@ -202,6 +205,7 @@ export function PlanScreen({
         {active === "task" && (
           <SharedPlan tasks={plan} ctx={ctx} offersToMe={offersToMe} now={now} weekOf={trackWeeks ? dueOn : undefined} suggestions={weekTasks} onAdd={(title, dueOn) => add(title, { dueOn })} />
         )}
+        {active === "task" && guides}
         {active === "paperwork" && (
           <>
             <PaperworkTimeline tasks={paperwork} ctx={ctx} highlightId={focusTask} />
