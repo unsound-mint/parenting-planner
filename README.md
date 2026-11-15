@@ -2,7 +2,7 @@
 
 Two parents, one plan. A weekly plan for each parent, worked out from the family's own records and current health guidelines, from planning a pregnancy to a child's ninth birthday.
 
-Built in two days for Business Cup 2.0 (Zimran, Skills track) by a team of three. It did not reach the final. I now keep it as a portfolio piece: about 100k lines of Go and TypeScript, 207 merged pull requests, a rules engine with cited sources, and a live demo.
+Built in 24 hours for Business Cup 2.0 (Zimran, Skills track) by a team of three. It did not reach the final. I now keep it as a portfolio piece: about 100k lines of Go and TypeScript, 207 merged pull requests, a rules engine with cited sources, and a live demo.
 
 **Live demo: https://parenting.unsoundmint.com** (no sign-up, no login)
 
@@ -80,4 +80,4 @@ This is a planning aid, not medical advice. It does not diagnose. The demo famil
 
 ## Team
 
-Denis Andreyev (frontend, API contract), Sofia (backend, deploy), Dayana (product). MIT licence, see [LICENSE](LICENSE).
+Built with two teammates, one on backend and deploy, one on product. I did the frontend and the API contract. MIT licence, see [LICENSE](LICENSE).
