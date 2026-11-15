@@ -140,7 +140,8 @@ func TestCheckoutUnlocksBothParents(t *testing.T) {
 		"metadata[family_id]":                    fam.Id.String(),
 		"subscription_data[metadata][family_id]": fam.Id.String(),
 		"line_items[0][price_data][unit_amount]": "2900",
-		"line_items[0][price_data][recurring][interval]": "month",
+		"line_items[0][price_data][recurring][interval]":    "month",
+		"line_items[0][price_data][product_data][tax_code]": "txcd_10103000",
 	} {
 		if form.Get(k) != want {
 			t.Errorf("form %s = %q, want %q", k, form.Get(k), want)
