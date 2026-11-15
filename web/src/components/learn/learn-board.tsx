@@ -137,9 +137,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     }
   }
 
-  // The rail's quiz: the lesson to read next, else the first open lesson with a question left.
   const opened = path.lessons.find((l) => l.id === openId);
-  // When every open question is answered, the first answered one stays, so the comparison with the partner is still there.
 
   const mine = progressOf(path, me.id);
   const theirs = progressOf(path, them?.id);
