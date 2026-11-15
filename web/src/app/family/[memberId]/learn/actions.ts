@@ -1,7 +1,7 @@
 "use server";
 
 import { serverApi } from "@/lib/api/server";
-import type { CoupleTalk, LessonRead, QuizResult } from "@/lib/api/types";
+import type { CoupleTalk, LessonRead, QuizAttempt, QuizResult } from "@/lib/api/types";
 
 // Learn's writes go through the server, not the browser client, so that while
 // the endpoints still answer 501 the preview mock store they change is the one
@@ -25,5 +25,11 @@ export async function saveQuizAnswer(memberId: string, questionId: string, choic
 export async function saveCoupleTalk(memberId: string, promptId: string): Promise<Result<CoupleTalk>> {
   const api = await serverApi();
   const { data } = await api.POST("/members/{memberId}/couple-talks", { params: { path: { memberId } }, body: { promptId } });
+  return data ? { ok: true, data } : { ok: false };
+}
+
+export async function saveQuizAttempt(memberId: string, deckId: string, answers: { questionId: string; choiceId: string }[]): Promise<Result<QuizAttempt>> {
+  const api = await serverApi();
+  const { data } = await api.POST("/members/{memberId}/quiz-attempts", { params: { path: { memberId } }, body: { deckId, answers } });
   return data ? { ok: true, data } : { ok: false };
 }

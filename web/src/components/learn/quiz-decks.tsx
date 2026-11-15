@@ -8,9 +8,10 @@ import { ArrowLeft, Check, RotateCcw } from "lucide-react";
 import { saveQuizAnswer } from "@/app/family/[memberId]/learn/actions";
 import { Rise } from "@/components/joy/rise";
 import { SoftCard } from "@/components/joy/soft-card";
-import type { LearningPath, Lesson, QuizQuestion } from "@/lib/api/types";
+import type { LearningPath, Lesson, QuizAttempt, QuizQuestion } from "@/lib/api/types";
 import { type Couple, withQuizResult } from "./model";
 import { QuizCard } from "./quiz-card";
+import { QuizRetake } from "./quiz-retake";
 
 type Deck = { path: LearningPath; questions: { q: QuizQuestion; lesson: Lesson }[] };
 
@@ -34,7 +35,22 @@ function tally(d: Deck, me: string) {
  * (docs/design.md, no scores or streaks). A deck opens to its next open
  * question and a review list of the ones you missed, with the why.
  */
-export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { memberId: string; couple: Couple; initialPaths: LearningPath[]; initialDeck?: string }) {
+export function QuizDecks({
+  memberId,
+  couple,
+  initialPaths,
+  initialAttempts,
+  initialDeck,
+}: {
+  memberId: string;
+  couple: Couple;
+  initialPaths: LearningPath[];
+  initialAttempts: QuizAttempt[];
+  initialDeck?: string;
+}) {
+  const [attempts, setAttempts] = useState(initialAttempts);
+  const [retaking, setRetaking] = useState(false);
+  const lastOf = (id: string) => attempts.find((a) => a.deckId === id);
   const router = useRouter();
   const [paths, setPaths] = useState(initialPaths);
   const [deckId, setDeckId] = useState<string | null>(initialDeck ?? null);
@@ -57,6 +73,7 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
   const openLesson = (l: Lesson) => router.push(`/family/${memberId}/learn?path=${encodeURIComponent(l.pathId)}&lesson=${encodeURIComponent(l.id)}`);
   const choose = (id: string | null) => {
     setDeckId(id);
+    setRetaking(false);
     window.history.replaceState(null, "", id ? `?deck=${encodeURIComponent(id)}` : window.location.pathname);
   };
 
@@ -84,6 +101,11 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
                   <span className="text-label font-normal text-ink-2">
                     {t.open === t.total ? "Not started" : `${t.right} right${t.missed ? `, ${t.missed} to review` : ""}${t.open ? `, ${t.open} open` : ""}`}
                   </span>
+                  {lastOf(d.path.id) && (
+                    <span className="text-caption text-muted-foreground">
+                      Last retake: {lastOf(d.path.id)!.score} of {lastOf(d.path.id)!.total}
+                    </span>
+                  )}
                 </button>
               </li>
             );
@@ -97,7 +119,10 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
   const t = tally(deck, me);
   const quizLesson = deck.path.lessons.find((l) => l.quiz.some((q) => !mineOf(q, me)));
   const after = quizLesson && deck.path.lessons.slice(deck.path.lessons.indexOf(quizLesson) + 1).find((l) => l.quiz.some((q) => !mineOf(q, me)));
-  const missed = deck.questions.filter(({ q }) => mineOf(q, me)?.correct === false);
+  // After a retake, review follows the latest attempt; before it, the first answers.
+  const latest = lastOf(deck.path.id);
+  const missed = deck.questions.filter(({ q }) => (latest ? latest.missed.includes(q.id) : mineOf(q, me)?.correct === false));
+  const history = attempts.filter((a) => a.deckId === deck.path.id).slice(0, 6);
 
   return (
     <>
@@ -117,13 +142,31 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
       </Rise>
       <div className="grid min-w-0 items-start gap-6 @5xl:grid-cols-2">
         <Rise i={1} className="min-w-0">
-          {quizLesson ? (
+          {retaking ? (
+            <QuizRetake
+              memberId={memberId}
+              deckId={deck.path.id}
+              questions={deck.questions.map(({ q }) => q)}
+              onCancel={() => setRetaking(false)}
+              onDone={(a) => {
+                setAttempts((list) => [a, ...list]);
+                setRetaking(false);
+              }}
+            />
+          ) : quizLesson ? (
             <QuizCard key={quizLesson.id} lesson={quizLesson} couple={couple} nextLesson={after} onAnswer={answer} onOpenLesson={openLesson} />
           ) : (
-            <SoftCard tone="leaf" className="flex flex-col gap-2">
+            <SoftCard tone="leaf" className="flex flex-col gap-3">
               <Check className="size-6 text-leaf" aria-hidden />
-              <p className="text-title">Every question in this deck is answered</p>
-              <p className="text-label font-normal text-ink-2">{missed.length ? "Read the reasons beside it, then reread the lesson they come from." : "All of them right. Try another deck."}</p>
+              <p className="text-title">{latest ? `Last retake: ${latest.score} of ${latest.total} right` : "Every question in this deck is answered"}</p>
+              <p className="text-label font-normal text-ink-2">
+                {missed.length ? "Read the reasons beside it, then take the deck again to see what stuck." : "Take it again in a week or two to see what stuck."}
+              </p>
+              <button type="button" onClick={() => setRetaking(true)} className="press inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-me px-4.5 text-label font-semibold text-white">
+                <RotateCcw className="size-4" aria-hidden />
+                Retake this deck
+              </button>
+              {history.length > 0 && <History items={history} />}
             </SoftCard>
           )}
         </Rise>
@@ -154,6 +197,31 @@ export function QuizDecks({ memberId, couple, initialPaths, initialDeck }: { mem
         </Rise>
       </div>
     </>
+  );
+}
+
+/** The last retakes as small columns, oldest on the left, each labelled with its score and day. */
+function History({ items }: { items: QuizAttempt[] }) {
+  const day = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-caption font-semibold text-ink-2">Your retakes</p>
+      <ol className="flex items-end gap-3" aria-label="Your retakes, oldest first">
+        {[...items].reverse().map((a) => (
+          <li key={a.id} className="flex flex-col items-center gap-1" aria-label={`${a.score} of ${a.total} on ${day.format(new Date(a.takenAt))}`}>
+            <span className="relative flex h-12 w-6 items-end overflow-hidden rounded-md bg-card" aria-hidden>
+              <span className="w-full rounded-md bg-leaf" style={{ height: `${(a.score / Math.max(1, a.total)) * 100}%` }} />
+            </span>
+            <span className="font-mono text-caption text-ink-2" aria-hidden>
+              {a.score}/{a.total}
+            </span>
+            <span className="text-caption text-muted-foreground" aria-hidden>
+              {day.format(new Date(a.takenAt))}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 

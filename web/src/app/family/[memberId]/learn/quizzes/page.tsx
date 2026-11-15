@@ -28,7 +28,8 @@ async function Quizzes({ params, searchParams }: { params: Promise<{ memberId: s
   const { deck } = await searchParams;
   await requireParent(memberId);
   const api = await serverApi();
-  const [family, paths] = await Promise.all([api.GET("/family"), api.GET("/members/{memberId}/learning-paths", { params: { path: { memberId } } })]);
+  const path = { params: { path: { memberId } } };
+  const [family, paths, attempts] = await Promise.all([api.GET("/family"), api.GET("/members/{memberId}/learning-paths", path), api.GET("/members/{memberId}/quiz-attempts", path)]);
   if (family.response.status === 401) redirect("/");
   if (!family.data || !paths.data) notFound();
   if (inLossSupport(family.data)) notFound();
@@ -37,7 +38,7 @@ async function Quizzes({ params, searchParams }: { params: Promise<{ memberId: s
   const them = family.data.parents.find((p) => p.id !== memberId);
   return (
     <PageFrame className="gap-8">
-      <QuizDecks key={memberId} memberId={memberId} couple={{ me, them }} initialPaths={paths.data.items} initialDeck={typeof deck === "string" ? deck : undefined} />
+      <QuizDecks key={memberId} memberId={memberId} couple={{ me, them }} initialPaths={paths.data.items} initialAttempts={attempts.data?.items ?? []} initialDeck={typeof deck === "string" ? deck : undefined} />
     </PageFrame>
   );
 }
