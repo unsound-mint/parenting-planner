@@ -1,10 +1,13 @@
 package content
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 )
+
+var citedOrg = regexp.MustCompile(`\b(NHS|CDC|AAP|ACOG|WHO|NICE|NICHD|NIMH|American Academy|Mayo|March of Dimes|HealthyChildren|womenshealth)\b`)
 
 func TestEveryWeekMonthAndYearHasARead(t *testing.T) {
 	for kind, r := range WeeklyReadKinds() {
@@ -28,6 +31,11 @@ func TestEveryWeekMonthAndYearHasARead(t *testing.T) {
 			// Our voice: no em dashes, no exclamation marks.
 			if strings.ContainsAny(read.Title+read.Body, "—!") {
 				t.Errorf("%s %d: em dash or exclamation mark", kind, n)
+			}
+			// The app speaks in its own voice: sources live in the sources list
+			// and on the sources page, never named in the body.
+			if org := citedOrg.FindString(read.Body); org != "" {
+				t.Errorf("%s %d: body names %q; state the advice directly", kind, n, org)
 			}
 		}
 	}
