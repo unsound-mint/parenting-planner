@@ -7,14 +7,12 @@ import { serverApi } from "@/lib/api/server";
 import { optional } from "@/components/today/slots";
 import { requireParent } from "@/lib/guard";
 import { countWord } from "@/lib/format";
-import { lessonAction, lessonsFor } from "@/lib/learn";
 import { inLossSupport } from "@/lib/loss";
 import { hasOlderChild, isPlanning } from "@/lib/stage";
 import { WeeklyReadCard } from "@/components/learn/weekly-read";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame } from "@/components/shell/page";
 import { helpHref } from "@/components/shell/urgent-help-link";
-import { LessonCard } from "@/components/learn/lesson-card";
 import { LearnBoard } from "@/components/learn/learn-board";
 import type { Talked } from "@/components/learn/lesson-list";
 import { JourneyStrip } from "@/components/journey/journey-strip";
@@ -23,13 +21,12 @@ import { CapsuleLink } from "@/components/capsule/capsule-link";
 import { StickerShelf } from "@/components/missions/sticker-shelf";
 import { PracticeSection } from "@/components/simulator/practice-section";
 import { VirtualBabyEntry } from "@/components/virtual-baby/entry-card";
-import { NamesQuestCard } from "@/components/names/names-quest-card";
 
 // Learn: the one place to learn and prepare together. Learning paths with both
-// parents' progress, lessons that open in place, a quiz to compare answers and
-// a talk prompt; then hands-on practice (the simulator's scenarios) and short
-// guides that end in one step. Journey and Practice keep their own routes for
-// deep links; Learn presents them.
+// parents' progress, lessons as cards that open into a reading sheet, a quiz to
+// compare answers and a talk prompt; then hands-on practice (Virtual Baby and
+// the simulator's scenarios). Guides that end in a plan step live on Plan.
+// Journey and Practice keep their own routes for deep links; Learn presents them.
 export default function LearnPage({ params, searchParams }: PageProps<"/family/[memberId]/learn">) {
   return (
     <Suspense fallback={<Fallback />}>
@@ -58,16 +55,12 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, paths, together, journey, simulator, guides, plan, tasks, questions, weekly, stickers] = await Promise.all([
+  const [family, paths, together, journey, simulator, weekly, stickers] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/learning-paths", path),
     optional(api.GET("/members/{memberId}/together", path)),
     optional(api.GET("/members/{memberId}/journey", path)),
     api.GET("/members/{memberId}/simulator", path),
-    api.GET("/members/{memberId}/guides", { params: { path: { memberId }, query: { kind: "article" } } }),
-    api.GET("/members/{memberId}/plan", path),
-    optional(api.GET("/members/{memberId}/tasks", path)),
-    optional(api.GET("/members/{memberId}/appointment-questions", path)),
     optional(api.GET("/members/{memberId}/weekly-reads", path)),
     optional(api.GET("/members/{memberId}/stickers", path)),
   ]);
@@ -90,11 +83,6 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
   const stage = { stage: paths.data?.stage ?? family.data.stage };
   const practice = simulator.data && !isPlanning(stage) && !hasOlderChild(stage) ? simulator.data : undefined;
 
-  // A guide whose step is "practice this" points at the Practice section above it, so it is left out when that section shows.
-  const steps = (guides.data ? lessonsFor(guides.data.items, plan.data?.items ?? []) : []).filter((g) => !(practice && lessonAction(g).kind === "practice"));
-  const onlyFor = (audience: string[]) => (audience.length === 1 && audience[0] === "partner" ? "For partners" : audience.length === 1 && audience[0] === "mother" ? "For mothers" : undefined);
-  const taskTitles = new Set((tasks?.items ?? []).map((t) => t.title));
-  const asked = new Set((questions?.items ?? []).filter((q) => q.authorId === memberId).map((q) => q.text));
   const one = (v: string | string[] | undefined) => (typeof v === "string" ? v : undefined);
 
   return (
@@ -157,37 +145,14 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
       )}
 
       {/* Virtual Baby (its own route) is for every parent, planning included, so it sits outside the practice gate.
-          The names quest is open before the birth only (the API answers 409 after); loss support never reaches here. */}
-      <Rise i={3} className="grid gap-4 @4xl:grid-cols-2 @7xl:grid-cols-3">
-        <VirtualBabyEntry memberId={memberId} />
-        {["planning", "trying", "pregnancy"].includes(family.data.stage) && (
-          <Suspense fallback={null}>
-            <NamesQuestCard memberId={memberId} parents={family.data.parents} />
-          </Suspense>
-        )}
-      </Rise>
-
-      {practice && (
-        <Rise i={4}>
-          <PracticeSection progress={practice} memberId={memberId} />
+          With practice it leads that section; alone it is one full-width card. */}
+      {practice ? (
+        <Rise i={3}>
+          <PracticeSection progress={practice} memberId={memberId} lead={<VirtualBabyEntry memberId={memberId} />} />
         </Rise>
-      )}
-
-      {steps.length > 0 && (
-        <Rise as="section" i={5} aria-labelledby="steps-title" className="flex flex-col gap-4">
-          <div>
-            <h2 id="steps-title" className="text-headline">
-              Read it, then do one thing
-            </h2>
-            <p className="mt-1 text-label font-normal text-muted-foreground">Short guides for this week, each ending in a step for your plan or your next visit.</p>
-          </div>
-          <ul className="grid gap-4 @3xl:grid-cols-2 @7xl:grid-cols-3">
-            {steps.map((g) => {
-              const action = lessonAction(g);
-              const done = action.kind === "task" ? taskTitles.has(action.title) : action.kind === "question" ? asked.has(action.text) : false;
-              return <LessonCard key={g.id} memberId={memberId} guide={g} action={action} done={done} audience={onlyFor(g.audience)} />;
-            })}
-          </ul>
+      ) : (
+        <Rise i={3}>
+          <VirtualBabyEntry memberId={memberId} />
         </Rise>
       )}
     </PageFrame>

@@ -5,6 +5,7 @@ import { familyPeople, isCaregiver } from "@/lib/roles";
 import { hasOlderChild, isPlanning } from "@/lib/stage";
 import { optional } from "@/components/today/slots";
 import { PlanScreen } from "@/components/plan/plan-screen";
+import { PlanGuides } from "@/components/plan/plan-guides";
 
 // "Plan": the family's owned tasks in one place. The shared plan, US paperwork
 // and the hospital bags are all tasks (one model, told apart by kind). These are
@@ -20,13 +21,18 @@ export default function PlanPage({ params }: PageProps<"/family/[memberId]/plan"
 async function Plan({ params }: { params: Promise<{ memberId: string }> }) {
   const { memberId } = await params;
   const api = await serverApi();
-  const [{ data: family }, { data: tasks }, { data: leave }, { data: calls }] = await Promise.all([
+  const path = { params: { path: { memberId } } };
+  const [{ data: family }, { data: tasks }, { data: leave }, { data: calls }, guides, rulePlan, questions] = await Promise.all([
     api.GET("/family"),
     // 501 until the backend lands: no data, no screen (the nav entry is hidden too).
     api.GET("/members/{memberId}/tasks", { params: { path: { memberId } } }),
     // Leave and insurance calls are extra tabs: when they are not available the tab is simply not offered.
     api.GET("/members/{memberId}/leave-plan", { params: { path: { memberId } } }),
     api.GET("/members/{memberId}/insurance-calls", { params: { path: { memberId } } }),
+    // "Read it, then do one thing" under the shared plan: guides whose step lands in the plan or the visit list.
+    optional(api.GET("/members/{memberId}/guides", { params: { path: { memberId }, query: { kind: "article" } } })),
+    optional(api.GET("/members/{memberId}/plan", path)),
+    optional(api.GET("/members/{memberId}/appointment-questions", path)),
   ]);
   const people = family ? familyPeople(family) : [];
   const self = people.find((p) => p.id === memberId);
@@ -56,6 +62,7 @@ async function Plan({ params }: { params: Promise<{ memberId: string }> }) {
       dueOn={family.dueDate}
       trackWeeks={trackWeeks}
       weekTasks={card?.tasks}
+      guides={guides && <PlanGuides memberId={memberId} guides={guides.items} rulePlan={rulePlan?.items ?? []} tasks={tasks.items} questions={questions?.items ?? []} />}
     />
   );
 }

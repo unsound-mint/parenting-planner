@@ -34,7 +34,8 @@ export function ReadTogether({
   const { path, reads } = pickReads(paths, me.id);
   const quiz = pickQuiz(paths, me.id);
   if (!path || reads.length === 0) return null;
-  const href = (lessonId: string) => `/family/${memberId}/learn#${lessonId}`;
+  // ?lesson= opens that lesson in Learn's reading sheet (LearnBoard).
+  const href = (lessonId: string) => `/family/${memberId}/learn?lesson=${encodeURIComponent(lessonId)}`;
   // With the partner's answers in, the strip is a nudge to compare: the parent
   // can close it. The id is the one the server gives its own quiz nudge, so
   // closing either one closes both; the next quiz has a new id.

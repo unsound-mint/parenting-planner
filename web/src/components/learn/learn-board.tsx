@@ -10,7 +10,8 @@ import { ease, spring } from "@/components/joy/motion";
 import { roleAccent } from "@/lib/visuals";
 import { Burst } from "./celebrate";
 import { ParentProgress } from "./dots";
-import { LessonList, type Talked } from "./lesson-list";
+import { LessonGrid, type Talked } from "./lesson-list";
+import { LessonSheet } from "./lesson-sheet";
 import { PathCover } from "./path-cover";
 import { PathList } from "./path-list";
 import { QuizCard } from "./quiz-card";
@@ -32,7 +33,7 @@ type Props = {
 
 /**
  * Learn's interactive part: the path list, the open path (cover, both
- * parents' dots, lessons that open in place) and the rail with the quiz and a
+ * parents' dots, lesson cards that open a reading sheet) and the rail with the quiz and a
  * talk prompt. Reads, answers and talks are saved through server actions and
  * applied here at once, so the dots fill while the request runs.
  */
@@ -77,21 +78,21 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     });
   }
 
-  function toggle(lesson: Lesson) {
-    const opening = openId !== lesson.id;
-    setOpenId(opening ? lesson.id : undefined);
-    syncUrl(lesson.pathId, opening ? lesson.id : undefined);
+  function open(lesson: Lesson) {
+    if (lesson.locked) return;
+    setOpenId(lesson.id);
+    syncUrl(lesson.pathId, lesson.id);
     // Opening a lesson starts it, once. Never send finished:false for a lesson
     // already finished: the API reads that as "undo".
-    if (opening && !lesson.locked && !readOf(lesson, me.id)) {
+    if (!readOf(lesson, me.id)) {
       setPaths((ps) => withLesson(ps, lesson.id, (l) => putRead(l, { memberId: me.id, lessonId: l.id, startedAt: new Date().toISOString() })));
       void saveLessonRead(memberId, lesson.id, false);
     }
   }
 
-  function openLesson(lesson: Lesson) {
-    if (openId !== lesson.id) toggle(lesson);
-    requestAnimationFrame(() => find(`#lesson-${lesson.id}`)?.scrollIntoView({ behavior: scrollBehavior(), block: "nearest" }));
+  function close() {
+    setOpenId(undefined);
+    syncUrl(path.id);
   }
 
   async function mark(lesson: Lesson, finished: boolean) {
@@ -157,11 +158,11 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
     }
   }
 
-  // The quiz follows the open lesson, else the one to read next, else the first open lesson with a question left.
-  const open = path.lessons.find((l) => l.id === openId);
+  // The rail's quiz: the lesson to read next, else the first open lesson with a question left.
+  const opened = path.lessons.find((l) => l.id === openId);
   const unanswered = (l: Lesson) => !l.locked && l.quiz.some((q) => !q.answers.some((a) => a.memberId === me.id));
   // When every open question is answered, the first answered one stays, so the comparison with the partner is still there.
-  const quizLesson = [open, nextLesson(path, me), ...path.lessons.filter(unanswered), ...path.lessons].find((l) => l && !l.locked && l.quiz.length > 0);
+  const quizLesson = [nextLesson(path, me), ...path.lessons.filter(unanswered), ...path.lessons].find((l) => l && !l.locked && l.quiz.length > 0);
   const quizNext = quizLesson && path.lessons.slice(path.lessons.indexOf(quizLesson) + 1).find(unanswered);
 
   const mine = progressOf(path, me.id);
@@ -225,24 +226,25 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
           </motion.section>
         </AnimatePresence>
 
-        <LessonList
-          key={path.id}
+        <LessonGrid key={path.id} path={path} couple={couple} openId={openId} onOpen={open} stagger={switched} />
+        <LessonSheet
           path={path}
+          lesson={opened}
           couple={couple}
-          openId={openId}
           justFinished={justFinished}
+          pathParty={party ? path.title : undefined}
           talked={talked}
           helpHref={helpHref}
-          onToggle={toggle}
+          onClose={close}
+          onOpen={open}
           onMark={mark}
           onTalked={talk}
-          stagger={switched}
-          pathParty={party}
+          onAnswer={answer}
         />
       </Rise>
 
       <Rise i={3} className="flex min-w-0 flex-col gap-6 @4xl:col-start-2 @4xl:grid @4xl:grid-cols-2 @4xl:items-start @7xl:sticky @7xl:top-4 @7xl:col-start-3 @7xl:row-start-1 @7xl:flex @7xl:items-stretch">
-        {quizLesson && <QuizCard key={quizLesson.id} lesson={quizLesson} couple={couple} nextLesson={quizNext} onAnswer={answer} onOpenLesson={openLesson} />}
+        {quizLesson && <QuizCard key={quizLesson.id} lesson={quizLesson} couple={couple} nextLesson={quizNext} onAnswer={answer} onOpenLesson={open} />}
         <TalkCard key={path.id} lessons={path.lessons.filter((l) => l.id !== openId)} couple={couple} talked={talked} onTalked={talk} />
       </Rise>
     </div>
