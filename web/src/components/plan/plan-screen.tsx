@@ -194,7 +194,7 @@ export function PlanScreen({
               >
                 <t.icon aria-hidden className="hidden size-4 sm:block" />
                 {t.label}
-                {t.open > 0 && <span className="rounded-full bg-secondary px-1.5 font-mono text-caption text-secondary-foreground">{t.open}</span>}
+                {t.open > 0 && <span className="font-mono text-caption text-muted-foreground">{t.open}</span>}
               </button>
             );
           })}

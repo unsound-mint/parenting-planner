@@ -83,10 +83,11 @@ export function AreaRow({ area, n, memberId, people, self, takers, others, busy,
           </span>
           <ChevronDown aria-hidden className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-200", open && "rotate-180")} />
         </button>
+        {/* Quiet on purpose: several areas can offer this at once, and the bars are the first read. */}
         {handover.length > 0 && (
-          <Button variant="outline" size="sm" aria-expanded={choosing} disabled={busy} className="press min-h-11 shrink-0 gap-1.5 px-4" onClick={() => setChoosing((c) => !c)}>
+          <Button variant="ghost" size="sm" aria-expanded={choosing} aria-label={`Hand over ${area.label.toLowerCase()}`} disabled={busy} className="press min-h-11 shrink-0 gap-1.5 px-3 text-muted-foreground hover:text-foreground" onClick={() => setChoosing((c) => !c)}>
             <ArrowRightLeft aria-hidden className="size-4" />
-            Hand over this area
+            Hand over
           </Button>
         )}
       </div>

@@ -101,8 +101,9 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         <header className="flex flex-col gap-3">
           <h1 className="text-headline text-balance">{headline}</h1>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label font-normal text-muted-foreground">
-            {isCaregiver(me.role) ? `${roleLabel[me.role]} view · ` : ""}
-            {familyContext(family)}
+            {isCaregiver(me.role) && <span>{roleLabel[me.role]} view</span>}
+            {/* The top bar already says who and how old from sm up, as on People. */}
+            <span className="empty:hidden sm:hidden">{familyContext(family)}</span>
             {onDuty && <OnDutyChip person={onDuty} since={care.latest.onDuty!.since} isMe={onDuty.id === memberId} />}
           </p>
           {passport?.data && (
