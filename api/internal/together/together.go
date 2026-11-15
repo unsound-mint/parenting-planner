@@ -245,7 +245,7 @@ func prompts(me, other uuid.UUID, st content.State, reads []store.LessonRead, ta
 	}
 	for _, path := range content.LearnPathsFor(st) {
 		for _, l := range path.Lessons {
-			if s := l.StateOf(st); s.Timing == content.TimingNow && !s.Locked {
+			if s := l.StateOf(st); s.Timing == content.TimingNow {
 				add(content.LessonPromptPrefix+l.ID, l.TalkPrompt, l.ID)
 			}
 		}

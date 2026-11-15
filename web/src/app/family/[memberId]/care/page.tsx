@@ -71,6 +71,18 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
   const picks = recommend(providers.data?.items ?? [], firstOpenings(openTimes.data?.items ?? []), patterns.data?.items[0], fam.stage, upcoming.map((b) => b.providerId), nextVisit ? 2 : 3);
   const latest = (screenings.data?.items ?? []).filter((r) => r.authorId === memberId)[0];
 
+  // The care cards run down the rail under the brief, beside the entries; a row of three below
+  // left an orphan card and a blank strip next to the entries.
+  const cards = (
+    <>
+      {passport.data && <CareTeamCard memberId={memberId} team={team} />}
+      {recovery.response.ok && me.role === "mother" && <RecoveryCard memberId={memberId} />}
+      {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
+      {inPlanningJournal(fam) && <FertilityLinkCard memberId={memberId} />}
+      {providers.data && openTimes.data && <FindHelpCard memberId={memberId} picks={picks} next={nextVisit} now={now} />}
+    </>
+  );
+
   return (
     <PageFrame>
       <Rise as="header" i={0}>
@@ -82,9 +94,12 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
       </Rise>
 
       {!diary.data ? (
-        <p role="status" className="rounded-3xl border border-line bg-card p-6 text-label text-muted-foreground">
-          Your journal is not loading right now. Nothing is lost; try again in a moment.
-        </p>
+        <>
+          <p role="status" className="rounded-3xl border border-line bg-card p-6 text-label text-muted-foreground">
+            Your journal is not loading right now. Nothing is lost; try again in a moment.
+          </p>
+          <div className="grid min-w-0 items-start gap-6 @4xl:grid-cols-2">{cards}</div>
+        </>
       ) : (
         <JournalAndCare
           memberId={memberId}
@@ -93,21 +108,15 @@ async function Care({ params }: { params: Promise<{ memberId: string }> }) {
           partner={partner}
           starters={startersFor(fam.stage, partner?.name)}
           entries={diary.data.items}
+          entriesNext={diary.data.nextBefore}
           agenda={agenda.data}
           slots={slots.data}
           brief={brief.data}
           checkins={checkins.data?.items ?? []}
           now={now.toISOString()}
+          rail={cards}
         />
       )}
-
-      <Rise i={3} className="mt-4 grid min-w-0 items-start gap-6 @4xl:grid-cols-2 @7xl:grid-cols-3">
-        {passport.data && <CareTeamCard memberId={memberId} team={team} />}
-        {recovery.response.ok && me.role === "mother" && <RecoveryCard memberId={memberId} />}
-        {questionnaires.data && <ScreeningCard memberId={memberId} latest={latest} questionnaires={questionnaires.data.items} />}
-        {inPlanningJournal(fam) && <FertilityLinkCard memberId={memberId} />}
-        {providers.data && openTimes.data && <FindHelpCard memberId={memberId} picks={picks} next={nextVisit} now={now} />}
-      </Rise>
     </PageFrame>
   );
 }

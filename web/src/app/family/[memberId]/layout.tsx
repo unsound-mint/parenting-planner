@@ -13,6 +13,8 @@ import { DemoClock } from "@/components/shell/demo-clock";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { LiveUpdates } from "@/components/shell/live-updates";
 import { FamilyNav, FamilyTabBar } from "@/components/shell/family-nav";
+import { SectionTabs } from "@/components/shell/section-tabs";
+import { showsLaborCoach } from "@/components/labor/labor-coach-link";
 import { RoleSwitch } from "@/components/shell/role-switch";
 import { UrgentHelpLink } from "@/components/shell/urgent-help-link";
 import { FamilyClockProvider } from "@/components/shell/family-clock";
@@ -69,6 +71,11 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
     ...(invitations ? { people: invitations.response.status } : {}),
   });
+
+  // Tabs whose page exists only at some stages (ids in lib/sections.ts), matching each page's own notFound or redirect:
+  // Getting ready for birth only in pregnancy, Recovery only once a baby is on record and not past toddler age.
+  if (!showsLaborCoach(family)) hidden.push("hospital");
+  if (family.children.length === 0 || hasOlderChild(family)) hidden.push("recovery");
 
   const navProps = { memberId, role: person.role, hidden, childName: hasOlderChild(family) ? family.children[0]?.name : undefined };
   const context = familyContext(family);
@@ -137,6 +144,7 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
             <UrgentHelpLink memberId={memberId} />
           </div>
         </header>
+        <SectionTabs {...navProps} />
         <LiveUpdates memberId={memberId} />
         <FamilyClockProvider daysAhead={family.demoDaysAhead ?? 0}>
           <ViewTransition>{children}</ViewTransition>

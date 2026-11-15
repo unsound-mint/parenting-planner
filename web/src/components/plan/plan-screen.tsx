@@ -263,6 +263,11 @@ function SharedPlan({
   const done = rest.filter((t) => t.done);
   const groups = weekOf ? weekGroups(open, weekOf, now) : undefined;
   const cards = weekOf && hasWeeklyCard(weekOf, now) ? unplannedSuggestions(suggestions, tasks) : [];
+  // Three columns leave a hole when the cells come out one short of a full row (Open and Done only,
+  // or four week groups and Done): then the first cell of the last row spans two columns.
+  const cells = (waiting.length > 0 ? 1 : 0) + (groups ? groups.length : 1) + (done.length > 0 ? 1 : 0);
+  const wide = (i: number) => (cells % 3 === 2 && i === cells - 2 ? "@7xl:col-span-2" : undefined);
+  const first = waiting.length > 0 ? 1 : 0;
   return (
     // Cells side by side on wide screens in time order: waiting, this week, next week, and so on; done last.
     <PageGrid cols={3}>
@@ -279,8 +284,8 @@ function SharedPlan({
         </section>
       )}
       {groups ? (
-        groups.map((g) => (
-          <section key={g.key} aria-labelledby={`${g.key}-title`}>
+        groups.map((g, i) => (
+          <section key={g.key} aria-labelledby={`${g.key}-title`} className={wide(first + i)}>
             <WeekHeading group={g} id={`${g.key}-title`} />
             {g.tasks.length > 0 || (g.current && cards.length > 0) ? (
               <ul className="mt-1 divide-y divide-border">
@@ -308,7 +313,7 @@ function SharedPlan({
           </section>
         ))
       ) : (
-        <section aria-labelledby="open-title">
+        <section aria-labelledby="open-title" className={wide(first)}>
           <h2 id="open-title" className="text-title">
             Open
           </h2>

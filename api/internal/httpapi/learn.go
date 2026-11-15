@@ -14,7 +14,6 @@ import (
 
 var (
 	errUnknownLesson   = Error{Code: "unknown_lesson", Message: "no such lesson for this family"}
-	errLessonLocked    = Error{Code: "lesson_locked", Message: "this lesson opens later in the pregnancy"}
 	errUnknownQuestion = Error{Code: "not_found", Message: "no such quiz question for this family"}
 	errUnknownChoice   = Error{Code: "invalid_request", Message: "this choice is not in the question"}
 	errAlreadyAnswered = Error{Code: "already_answered", Message: "you already answered this question"}
@@ -85,8 +84,6 @@ func (s *Server) UpdateLessonRead(ctx context.Context, req UpdateLessonReadReque
 	switch {
 	case errors.Is(err, learn.ErrUnknownLesson):
 		return UpdateLessonRead404JSONResponse(errUnknownLesson), nil
-	case errors.Is(err, learn.ErrLocked):
-		return UpdateLessonRead409JSONResponse(errLessonLocked), nil
 	case err != nil:
 		return nil, err
 	}
@@ -114,8 +111,6 @@ func (s *Server) CreateQuizAnswer(ctx context.Context, req CreateQuizAnswerReque
 	switch {
 	case errors.Is(err, learn.ErrUnknownQuestion):
 		return CreateQuizAnswer404JSONResponse(errUnknownQuestion), nil
-	case errors.Is(err, learn.ErrLocked):
-		return CreateQuizAnswer409JSONResponse(errLessonLocked), nil
 	case errors.Is(err, learn.ErrUnknownChoice):
 		return CreateQuizAnswer400JSONResponse(errUnknownChoice), nil
 	case errors.Is(err, learn.ErrAlreadyAnswered):
@@ -148,13 +143,13 @@ func learningPathOut(p learn.PathView) LearningPath {
 func lessonOut(l learn.LessonView) Lesson {
 	out := Lesson{
 		Id: l.ID, PathId: l.PathID, Title: l.Title, Body: l.Body, Minutes: l.Minutes,
-		Audience: make([]GuideAudience, 0, len(l.Audience)), Locked: l.State.Locked, Timing: LessonTiming(l.State.Timing),
+		Audience: make([]GuideAudience, 0, len(l.Audience)), Timing: LessonTiming(l.State.Timing),
 		Source: sourceOut(l.Source), ExtraSources: make([]Source, 0, len(l.ExtraSources)), UrgentHelpLink: l.UrgentHelpLink,
 		Reads: make([]LessonRead, 0, len(l.Reads)), Quiz: make([]QuizQuestion, 0, len(l.Quiz)),
 	}
 	if l.State.InPregnancy {
-		from, to, unlocks := l.WeekFrom, l.WeekTo, l.UnlocksAtWeek()
-		out.WeekFrom, out.WeekTo, out.UnlocksAtWeek = &from, &to, &unlocks
+		from, to := l.WeekFrom, l.WeekTo
+		out.WeekFrom, out.WeekTo = &from, &to
 	}
 	for _, a := range l.Audience {
 		out.Audience = append(out.Audience, GuideAudience(a))

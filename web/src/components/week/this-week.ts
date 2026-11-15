@@ -98,7 +98,7 @@ const weight: Record<ReadState, number> = { started: 4, partner_read: 3, partner
 export function pickReads(paths: LearningPath[], me: string, count = 3): { path?: LearningPath; reads: ReadPick[] } {
   const open = paths.flatMap((p) =>
     p.lessons
-      .filter((l) => !l.locked && !l.reads.some((r) => r.memberId === me && r.finishedAt))
+      .filter((l) => !l.reads.some((r) => r.memberId === me && r.finishedAt))
       .map((l) => ({ path: p, lesson: l, state: stateOf(l, me) })),
   );
   const score = (x: (typeof open)[number]) => weight[x.state] * 10 + (x.lesson.timing === "now" ? 5 : x.lesson.timing === "upcoming" ? 2 : 0);
@@ -118,7 +118,7 @@ export type QuizPick = { lesson: Lesson; questions: QuizQuestion[]; partnerAnswe
  * open lesson in its window.
  */
 export function pickQuiz(paths: LearningPath[], me: string): QuizPick | undefined {
-  const lessons = paths.flatMap((p) => p.lessons).filter((l) => !l.locked && l.quiz.length > 0);
+  const lessons = paths.flatMap((p) => p.lessons).filter((l) => l.quiz.length > 0);
   const unanswered = (l: Lesson) => l.quiz.some((q) => !q.answers.some((a) => a.memberId === me));
   for (const l of lessons) {
     if (!unanswered(l)) continue;

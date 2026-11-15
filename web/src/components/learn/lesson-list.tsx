@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ReadCover } from "@/components/week/read-cover";
 import "@/components/week/week.css";
 import Link from "next/link";
-import { Check, LifeBuoy, Lock, MessageCircleHeart } from "lucide-react";
+import { Check, LifeBuoy, MessageCircleHeart } from "lucide-react";
 import type { LearningPath, Lesson, Parent } from "@/lib/api/types";
 import { Avatar } from "@/components/joy/partner-chip";
 import { ease, spring } from "@/components/joy/motion";
@@ -54,7 +54,6 @@ const chips: Record<LessonState, { text: string; tone: string }> = {
   reading: { text: "Started", tone: "bg-me-soft text-me" },
   next: { text: "Read next", tone: "bg-me text-white" },
   open: { text: "New", tone: "bg-card text-ink-2" },
-  later: { text: "Later", tone: "bg-card/80 text-muted-foreground" },
 };
 
 function LessonTile({ lesson, n, index, state, couple, open, onOpen, stagger }: { lesson: Lesson; n: number; index: number; state: LessonState; couple: Couple; open: boolean; onOpen: (l: Lesson) => void; stagger?: boolean }) {
@@ -62,25 +61,25 @@ function LessonTile({ lesson, n, index, state, couple, open, onOpen, stagger }: 
   const { me, them } = couple;
   const theirs = readOf(lesson, them?.id);
   const writtenFor = onlyFor(lesson);
-  const later = state === "later";
-  const chip = later ? { ...chips.later, text: lesson.unlocksAtWeek ? `Opens in week ${lesson.unlocksAtWeek}` : "Opens later" } : chips[state];
+  // Reading ahead is fine: an unread lesson before its window only says which week suits it.
+  const ahead = state === "open" && lesson.timing === "upcoming" && lesson.weekFrom;
+  const chip = ahead ? { text: `Best around week ${lesson.weekFrom}`, tone: "bg-card text-ink-2" } : chips[state];
 
   const meta: string[] = [];
-  if (!later && writtenFor && writtenFor !== me.role) meta.push(`For ${writtenFor === "partner" ? "partners" : "mothers"}`);
-  if (!later && them && theirs?.finishedAt) meta.push(`${them.displayName} read it ${agoWords(theirs.finishedAt, now)}`);
-  else if (!later && them && theirs) meta.push(`${them.displayName} is reading it`);
+  if (writtenFor && writtenFor !== me.role) meta.push(`For ${writtenFor === "partner" ? "partners" : "mothers"}`);
+  if (them && theirs?.finishedAt) meta.push(`${them.displayName} read it ${agoWords(theirs.finishedAt, now)}`);
+  else if (them && theirs) meta.push(`${them.displayName} is reading it`);
   else if (state === "next" && lesson.timing === "now") meta.push("Best read this week");
 
   const body = (
     <>
-      <span className={cn("relative block w-28 shrink-0 self-stretch overflow-hidden @2xl:h-28 @2xl:w-auto @7xl:h-30", later && "opacity-55 grayscale-[.4]")}>
+      <span className={"relative block w-28 shrink-0 self-stretch overflow-hidden @2xl:h-28 @2xl:w-auto @7xl:h-30"}>
         <ReadCover pathId={lesson.pathId} lessonId={lesson.id} index={index} />
         <span className={cn("absolute top-2.5 left-2.5 hidden items-center gap-1 rounded-full px-2.5 py-0.5 text-caption font-semibold shadow-[0_1px_2px_rgb(0_0_0/0.06)] @2xl:inline-flex", chip.tone)}>
           {state === "done" && <Check className="size-3.5" strokeWidth={2.6} aria-hidden />}
-          {later && <Lock className="size-3" aria-hidden />}
           {chip.text}
         </span>
-        {!later && <span className="pp-wk-curl" aria-hidden />}
+        {<span className="pp-wk-curl" aria-hidden />}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1.5 px-4 py-3.5 @2xl:px-4.5 @2xl:pt-3.5 @2xl:pb-4">
         <span className="flex items-center gap-2 font-mono text-caption text-muted-foreground">
@@ -92,7 +91,7 @@ function LessonTile({ lesson, n, index, state, couple, open, onOpen, stagger }: 
             {chip.text}
           </span>
         </span>
-        <span className={cn("text-title text-pretty", later && "text-ink-2")}>{lesson.title}</span>
+        <span className={"text-title text-pretty"}>{lesson.title}</span>
         <span className="mt-auto flex min-h-6 items-center gap-2 pt-1">
           <span className="flex items-center -space-x-1">
             <Who person={me} lesson={lesson} />
@@ -106,8 +105,8 @@ function LessonTile({ lesson, n, index, state, couple, open, onOpen, stagger }: 
 
   const shell = cn(
     "flex h-full w-full min-w-0 overflow-hidden rounded-3xl border text-left @2xl:flex-col",
-    later ? "border-dashed border-line-2 bg-transparent" : "border-line bg-card",
-    !later && (state === "next" || state === "reading") && "border-me-mid shadow-[0_10px_26px_rgb(160_72_40/0.08)]",
+    "border-line bg-card",
+    (state === "next" || state === "reading") && "border-me-mid shadow-[0_10px_26px_rgb(160_72_40/0.08)]",
     open && "border-me ring-2 ring-me/30",
   );
 
@@ -119,15 +118,9 @@ function LessonTile({ lesson, n, index, state, couple, open, onOpen, stagger }: 
       transition={{ duration: 0.32, ease: ease.out, delay: stagger ? (n - 1) * 0.04 : 0 }}
       className="flex min-w-0"
     >
-      {later ? (
-        <div className={shell} aria-label={`${lesson.title}, not open yet`}>
-          {body}
-        </div>
-      ) : (
-        <button type="button" onClick={() => onOpen(lesson)} aria-haspopup="dialog" className={cn(shell, "pp-wk-read lift press group outline-none focus-visible:ring-3 focus-visible:ring-ring/50")}>
-          {body}
-        </button>
-      )}
+      <button type="button" onClick={() => onOpen(lesson)} aria-haspopup="dialog" className={cn(shell, "pp-wk-read lift press group outline-none focus-visible:ring-3 focus-visible:ring-ring/50")}>
+        {body}
+      </button>
     </motion.li>
   );
 }
