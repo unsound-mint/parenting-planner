@@ -6,7 +6,6 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { SizeIllustration, StageMascot } from "@/components/illustrations";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { spring } from "@/components/joy/motion";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
@@ -84,7 +83,6 @@ export function PostcardCard({
               <p className="font-mono text-caption tracking-widest text-mom uppercase">{card.period}</p>
               <h2 className="text-display text-balance">{card.headline}</h2>
               {card.detail && <p className="max-w-prose text-body text-ink-2">{card.detail}</p>}
-              <SourceLine sources={[card.source]} />
             </div>
           </div>
 

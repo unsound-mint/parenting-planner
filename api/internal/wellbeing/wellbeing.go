@@ -52,12 +52,14 @@ func CreateMoodCheckin(ctx context.Context, pool *pgxpool.Pool, familyID, actor 
 	return out, err
 }
 
-func ListMoodCheckins(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, now time.Time) ([]store.MoodCheckin, error) {
+// ListMoodCheckins returns the check-ins viewer may read recorded at or after
+// since. Callers pass now minus ListWindow unless the parent asked for a longer history.
+func ListMoodCheckins(ctx context.Context, pool *pgxpool.Pool, familyID, viewer uuid.UUID, since time.Time) ([]store.MoodCheckin, error) {
 	var out []store.MoodCheckin
 	err := pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		rows, err := q.ListMoodCheckinsVisibleToParent(ctx, store.ListMoodCheckinsVisibleToParentParams{
-			FamilyID: familyID, ViewerID: viewer, Since: now.Add(-ListWindow),
+			FamilyID: familyID, ViewerID: viewer, Since: since,
 		})
 		if err != nil {
 			return err

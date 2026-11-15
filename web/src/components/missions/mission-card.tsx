@@ -7,7 +7,6 @@ import type { Mission } from "@/lib/api/types";
 import { StickerArt } from "@/components/illustrations";
 import { Avatar } from "@/components/joy/partner-chip";
 import { ease, spring } from "@/components/joy/motion";
-import { SourceLine } from "@/components/joy/source-line";
 import { formatLongDate, formatShortDate } from "@/lib/format";
 import type { Person } from "@/lib/roles";
 import { cn } from "@/lib/utils";
@@ -112,7 +111,6 @@ export function MissionCard({ mission, memberId, people, onSwapped, onChange, cl
         </div>
       </div>
       <p className="text-body text-ink-2">{m.why}</p>
-      {m.source && <SourceLine sources={[m.source]} />}
 
       <div className="mt-auto min-h-11">
         <AnimatePresence mode="popLayout" initial={false}>

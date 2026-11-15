@@ -50,7 +50,6 @@ export async function GET(request: Request, { params }: Params) {
   let eyebrow = "";
   let headline = "";
   let art: React.ReactNode;
-  let source: { title: string; checkedAt: string } | undefined;
 
   if (family.stage === "pregnancy" && family.gestationalWeek != null) {
     const week = Math.min(Math.max(family.gestationalWeek, 4), 40);
@@ -60,14 +59,12 @@ export async function GET(request: Request, { params }: Params) {
     art = SHAPES[shape](variant);
     eyebrow = `Week ${week}`;
     headline = `About the size of ${data.size.comparison}`;
-    source = data.size.sources[0];
   } else if (family.stage !== "pregnancy") {
     const { data } = await api.GET("/members/{memberId}/now", path);
     if (!data) return new Response("No card for this stage", { status: 409, headers: noStore });
     const Shape = MASCOT_SHAPES[STAGE_SHAPE[family.stage as Stage]];
     art = <Shape />;
     headline = data.headline;
-    source = data.sources[0];
   } else {
     return new Response("No card yet", { status: 409, headers: noStore });
   }
@@ -99,9 +96,7 @@ export async function GET(request: Request, { params }: Params) {
           {/* eslint-disable-next-line @next/next/no-img-element -- Satori draws a plain img, not next/image */}
           <img src={picture} width={780} height={598} alt="" />
           <div style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "space-between", fontSize: 26, color: C.muted }}>
-            <div style={{ display: "flex", fontFamily: "JetBrains Mono", fontSize: 21 }}>
-              {source ? `${source.title.split(/[:,(]| [-–] /)[0].trim()} · checked ${source.checkedAt}` : ""}
-            </div>
+            <div style={{ display: "flex" }} />
             <div style={{ display: "flex", color: C.ink }}>{nickname ? `For ${nickname}` : PRODUCT_NAME}</div>
           </div>
         </div>

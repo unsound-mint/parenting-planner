@@ -8,7 +8,6 @@ import { formatShortDate } from "@/lib/format";
 import { StageMascot } from "@/components/illustrations";
 import { Rise } from "@/components/joy/rise";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { PageFrame, PageGrid, Stack } from "@/components/shell/page";
 import { RecoveryComposer } from "@/components/recovery/recovery-composer";
 import { PainTrend, RecoveryEntries } from "@/components/recovery/recovery-entries";
@@ -99,7 +98,7 @@ async function Recovery({ params }: { params: Promise<{ memberId: string }> }) {
               </div>
               <p className="text-label text-ink-2">
                 Around <span className="font-mono">{formatShortDate(check.opensOn)}</span> to <span className="font-mono">{formatShortDate(check.closesOn)}</span>
-                {check.status === "overdue" ? ". If you have not had it yet, it is not too late to book." : ". Ask your OB or midwife for the appointment."} ACOG says no later than{" "}
+                {check.status === "overdue" ? ". If you have not had it yet, it is not too late to book." : ". Ask your OB or midwife for the appointment."} The latest is{" "}
                 <span className="font-mono">{formatShortDate(check.latestOn)}</span>.
               </p>
               <ul className="flex list-disc flex-col gap-2 pl-5 text-label">
@@ -107,7 +106,6 @@ async function Recovery({ params }: { params: Promise<{ memberId: string }> }) {
                   <li key={p}>{p}</li>
                 ))}
               </ul>
-              <SourceLine sources={guidance.sources} />
             </SoftCard>
           </Rise>
           {isMother && (

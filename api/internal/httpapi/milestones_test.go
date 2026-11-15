@@ -49,7 +49,7 @@ func TestMilestoneChecklistAndObservations(t *testing.T) {
 		t.Fatal("second parent cannot see the observation")
 	}
 	c.Put(path+id, map[string]bool{"observed": false}, http.StatusOK, nil)
-	c.Put(path+"/4y-movement-catch", map[string]bool{"observed": true}, http.StatusNotFound, nil)
+	c.Put(path+"/no-such-milestone", map[string]bool{"observed": true}, http.StatusNotFound, nil)
 	if len(fam.Caregivers) > 0 {
 		c.Get("/api/members/"+fam.Caregivers[0].Id.String()+child, http.StatusNotFound, nil)
 	}

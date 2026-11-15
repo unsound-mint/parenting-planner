@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Lightbulb, MessageCircle, PersonStanding, Smile, Sprout, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { Milestone, MilestoneChecklist, MilestoneDomain } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { SourceLink } from "@/components/joy/source-line";
 
 /** The CDC names its lists "by 2 months", "by 1 year", "by 30 months", "by 4 years". */
 function ageLabel(months: number): string {
@@ -26,6 +26,7 @@ const domains: { id: MilestoneDomain; label: string; icon: LucideIcon }[] = [
 // unticked line is never called a delay: it only means "watch for it and bring it
 // to the next check-up". The CDC page is linked in the closing sentence.
 export function MilestoneCard({ memberId, childId, checklist }: { memberId: string; childId: string; checklist: MilestoneChecklist }) {
+  const router = useRouter();
   const [items, setItems] = useState(checklist.items);
   const seen = items.filter((m) => m.observed).length;
   const age = ageLabel(checklist.checklistAgeMonths);
@@ -43,6 +44,8 @@ export function MilestoneCard({ memberId, childId, checklist }: { memberId: stri
       return;
     }
     setItems((all) => all.map((x) => (x.id === m.id ? data : x)));
+    // The firsts timeline beside this card reads the same observations.
+    router.refresh();
   }
 
   return (
@@ -105,8 +108,7 @@ export function MilestoneCard({ memberId, childId, checklist }: { memberId: stri
       </div>
 
       <p className="mt-5 border-t border-border pt-4 text-label text-muted-foreground">
-        Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis. The list follows the{" "}
-        <SourceLink source={checklist.source}>CDC milestones by {age}</SourceLink>.
+        Bring the ones you have not seen to the next check-up. Children get there at their own pace, and this is not a diagnosis.
       </p>
     </section>
   );

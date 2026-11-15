@@ -12,7 +12,6 @@ import { formatShortDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { OwnerAvatar } from "./owner";
 import { useFamilyNow } from "@/components/shell/family-clock";
-import { SourceLink } from "@/components/joy/source-line";
 
 /** What a row needs from the screen: who is who, and the four things a person can do. */
 export type TaskCtx = {
@@ -171,9 +170,6 @@ export function TaskDetail({ task }: { task: Task }) {
   return (
     <div className="mt-2 flex flex-col gap-1.5 text-label text-muted-foreground">
       {task.detail && <p className="max-w-prose text-body text-foreground">{task.detail}</p>}
-      {task.source && (
-        <SourceLink source={task.source} className="w-fit text-caption" />
-      )}
     </div>
   );
 }

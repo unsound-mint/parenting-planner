@@ -1,6 +1,7 @@
 import { PRODUCT_NAME } from "@/lib/product";
 import { FamilyPicker } from "@/components/landing/family-picker";
 import { HowToTry } from "@/components/landing/how-to-try";
+import { SiteFooter } from "@/components/shell/site-footer";
 
 // Landing page. In ten seconds a judge must see what the app does and be in a
 // family, with no sign-up. The jury guide below says which screens to open in
@@ -24,6 +25,7 @@ export default function Home() {
         </p>
       </section>
       <HowToTry />
+      <SiteFooter />
     </main>
   );
 }

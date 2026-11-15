@@ -7,7 +7,6 @@ import type { WeeklyRead, WeeklyReadKind } from "@/lib/api/types";
 import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { spring } from "@/components/joy/motion";
-import { shortSource } from "@/components/joy/source-line";
 
 const unit: Record<WeeklyReadKind, string> = {
   planning: "For now",
@@ -106,7 +105,6 @@ export function WeeklyReadCard({ items, current }: { items: WeeklyRead[]; curren
                     className="lift press group flex min-h-11 items-center gap-3 rounded-2xl bg-card px-4 py-3 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block font-mono text-caption text-muted-foreground">{shortSource(s.title)}</span>
                       <span className="block text-label text-foreground">{pageTitle(s.title)}</span>
                     </span>
                     <ArrowUpRight aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-fast) group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

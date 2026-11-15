@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
+import { Lock, Star } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { AgendaSuggestion, AgendaTopic, DiaryEntry, MoodCheckin, PsychologistAgenda, PsychologistSlots, SessionBrief, Visibility } from "@/lib/api/types";
@@ -41,6 +41,8 @@ export function JournalAndCare({
   checkins,
   now,
   rail,
+  history,
+  lead,
 }: {
   memberId: string;
   name: string;
@@ -58,6 +60,10 @@ export function JournalAndCare({
   now: string;
   /** Care cards (care team, recovery, questionnaire, Find help) stacked under the brief, so the rail runs beside the entries instead of a half-empty row below. */
   rail?: React.ReactNode;
+  /** The mood over time card, under the entries in the wide column. */
+  history?: React.ReactNode;
+  /** The questionnaire and Find help: under the entries while the journal is short (under four entries), so the two columns carry the same weight; in the rail after that. */
+  lead?: React.ReactNode;
 }) {
   const router = useRouter();
   // Local copies so every change shows at once; a new server render resets them.
@@ -272,6 +278,8 @@ export function JournalAndCare({
     return { label: `From your journal, ${formatMonth(at)} ${formatDayNumber(at)}`, href: e ? `#entry-${e.id}` : undefined };
   };
 
+  const short4 = entries.length < 4;
+
   return (
     <div className="grid min-w-0 items-start gap-6 @5xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] @5xl:gap-7">
       <Rise i={1} className="flex min-w-0 flex-col gap-3">
@@ -290,10 +298,16 @@ export function JournalAndCare({
         <MoodChart memberId={memberId} now={now} entries={entries} checkins={checkins} onJump={jump} />
 
         {entries.length === 0 ? (
-          <p className="mt-3 flex items-center gap-3 rounded-3xl border border-dashed border-line-2 px-5 py-4 text-label font-normal text-ink-2">
-            <Lock className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-            Your entries gather here, newest first. Each one stays yours until you share it.
-          </p>
+          <div className="mt-3 grid gap-3 rounded-3xl border border-dashed border-line-2 px-5 py-4 text-label font-normal text-ink-2 @3xl:grid-cols-2">
+            <p className="flex items-start gap-3">
+              <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+              Your entries gather here, newest first. Each one stays yours until you share it.
+            </p>
+            <p className="flex items-start gap-3">
+              <Star className="mt-0.5 size-4 shrink-0 fill-butter text-ink-2" aria-hidden />
+              Star an entry as a first: the first smile, the first night out. Months later, Firsts lists every one by date.
+            </p>
+          </div>
         ) : (
           <JournalArchive
             memberId={memberId}
@@ -324,6 +338,10 @@ export function JournalAndCare({
             )}
           />
         )}
+        <div className="mt-3 flex min-w-0 flex-col gap-6">
+          {history}
+          {short4 && lead && <div className="grid min-w-0 items-start gap-6 @4xl:grid-cols-2">{lead}</div>}
+        </div>
       </Rise>
 
       <Rise i={2} className="flex min-w-0 flex-col gap-6">
@@ -351,6 +369,7 @@ export function JournalAndCare({
         )}
         {agenda?.noteDue && <SessionNoteCard memberId={memberId} booking={agenda.noteDue} />}
         {rail}
+        {!short4 && lead}
       </Rise>
     </div>
   );

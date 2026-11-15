@@ -20,6 +20,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/guidance-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every guideline the app's health and family content is checked against
+         * @description One deduplicated list (by URL) of the sources behind rules, guides, lessons and reference cards, grouped by topic. Cards no longer show their sources; this list backs the public "How we check health guidance" page. No session needed.
+         */
+        get: operations["listGuidanceSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/sessions": {
         parameters: {
             query?: never;
@@ -374,8 +394,11 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Check-ins from the last 30 days that the acting parent may see
+         * Check-ins from the last 30 days (or since a day) that the acting parent may see
          * @description Their own check-ins plus the other parent's check-ins shared with them.
+         *     Without `since` the window is the last 30 days. With `since` it starts
+         *     at the beginning of that day on the family's clock, for the history
+         *     view (a month, six months, a year). A day after today returns nothing.
          */
         get: operations["listMoodCheckins"];
         put?: never;
@@ -3509,8 +3532,13 @@ export interface paths {
          * A parent ticks or unticks a milestone
          * @description Mother or partner only (404 for a caregiver). Idempotent: setting
          *     the value it already has returns the milestone unchanged.
-         *     `observedOn` is today in the family's clock when ticking. 404 for an
-         *     unknown milestone id or a child not in the family.
+         *     `observedOn` is today in the family's clock when ticking, unless the
+         *     body names the day it was seen; sending `observedOn` for a milestone
+         *     already ticked moves it to that day. `observed: false` removes it.
+         *     Any milestone from the child's current or an earlier checklist can be
+         *     set, so a parent can fix or remove one recorded months ago. 400 for a
+         *     day after today or before the child's birth. 404 for an unknown
+         *     milestone id, one from a later checklist, or a child not in the family.
          */
         put: operations["setChildMilestone"];
         post?: never;
@@ -6320,6 +6348,19 @@ export interface components {
             /** @description Pages the text paraphrases, each opened on its checked date. The first is the page to link. */
             sources: components["schemas"]["Source"][];
         };
+        GuidanceSource: {
+            /** @enum {string} */
+            topic: "pregnancy" | "newborn" | "child" | "nutrition" | "mental_health" | "family";
+            /** @example NHS */
+            organization: string;
+            title: string;
+            url: string;
+            /**
+             * Format: date
+             * @description The latest date someone confirmed the guideline still says this.
+             */
+            checkedAt: string;
+        };
         Source: {
             title: string;
             url: string;
@@ -8669,8 +8710,22 @@ export interface components {
              */
             observedOn?: string;
         };
+        RecordedMilestone: {
+            id: string;
+            domain: components["schemas"]["MilestoneDomain"];
+            text: string;
+            /** Format: date */
+            observedOn: string;
+            /** @description The CDC checklist the milestone belongs to, in months. */
+            checklistAgeMonths: number;
+        };
         MilestoneInput: {
             observed: boolean;
+            /**
+             * Format: date
+             * @description The day it was seen; defaults to today. Ignored when observed is false.
+             */
+            observedOn?: string;
         };
         MilestoneChecklist: {
             /** Format: uuid */
@@ -8678,6 +8733,11 @@ export interface components {
             /** @description Which CDC checklist this is, in months (2, 4, 6, 9, 12, 15, 18, 24, 30, 36, 48 or 60). */
             checklistAgeMonths: number;
             items: components["schemas"]["Milestone"][];
+            /**
+             * @description Every milestone a parent ticked for this child, from any checklist
+             *     age, newest observation first: the child's timeline of firsts.
+             */
+            recorded: components["schemas"]["RecordedMilestone"][];
             source: components["schemas"]["Source"];
         };
         ChildPassport: {
@@ -10037,6 +10097,28 @@ export interface operations {
             };
         };
     };
+    listGuidanceSources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sources, sorted by topic, then organization, then title. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["GuidanceSource"][];
+                    };
+                };
+            };
+        };
+    };
     createDemoSession: {
         parameters: {
             query?: never;
@@ -10945,7 +11027,9 @@ export interface operations {
     };
     listMoodCheckins: {
         parameters: {
-            query?: never;
+            query?: {
+                since?: string;
+            };
             header?: never;
             path: {
                 /**
