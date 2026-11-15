@@ -61,6 +61,16 @@ type Features = {
   hair: number;
   /** Baby fat: round cheeks and blush. */
   fat: number;
+  /** Fine body hair (lanugo): a soft fuzz on the skin. */
+  lanugo: number;
+  /** Vernix: the creamy coating that gives the skin a paler, satin look. */
+  vernix: number;
+  /** Thin, wrinkly skin before the fat fills it out. */
+  wrinkle: number;
+  /** The umbilical cord. */
+  cord: number;
+  /** Turning head down late in pregnancy, 0 head up to 1 head down. */
+  turn: number;
 };
 
 export type Params = Shape & Features;
@@ -105,6 +115,11 @@ const TRACKS: Record<keyof Features, [week: number, v: number][]> = {
   thumb: [[12, 0], [16, 0.8], [24, 1], [32, 0.35], [40, 0.15]],
   hair: [[20, 0], [24, 0.45], [32, 0.8], [40, 1]],
   fat: [[22, 0], [28, 0.3], [34, 0.75], [40, 1]],
+  lanugo: [[20, 0], [23, 1], [32, 0.7], [38, 0.1]],
+  vernix: [[18, 0], [21, 1], [36, 0.7], [40, 0.4]],
+  wrinkle: [[20, 0], [23, 0.9], [28, 0.6], [34, 0.1], [38, 0]],
+  cord: [[6, 0], [9, 1]],
+  turn: [[30, 0], [36, 1]],
 };
 
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -158,8 +173,28 @@ export type Part = {
 export type Layout = {
   /** TUBE_RINGS rings from the neck cap to the tail cap. */
   tube: Ring[];
+  /** CORD_RINGS rings from the belly, round behind the baby. */
+  cord: Ring[];
   parts: Part[];
   anchors: Record<Area, { pos: Vec3; normal: Vec3 }>;
+  /** Where each newly formed feature sits, for the sparkle when a week adds it. */
+  marks: Record<Mark, Vec3>;
+};
+
+export type Mark = "eyes" | "nose" | "hands" | "feet" | "ears" | "crown" | "cheeks" | "cord";
+
+/** Which mark lights up when a feature grows into a new week. */
+export const FEATURE_MARK: Partial<Record<keyof Params, Mark[]>> = {
+  eyeSpot: ["eyes"],
+  lids: ["eyes"],
+  eyeOpen: ["eyes"],
+  face: ["nose"],
+  digits: ["hands", "feet"],
+  ears: ["ears"],
+  earLift: ["ears"],
+  hair: ["crown"],
+  fat: ["cheeks"],
+  cord: ["cord"],
 };
 
 // Fixed counts so the scene can keep one mesh per slot across weeks.
@@ -172,7 +207,18 @@ export const TUBE_RINGS = BODY_RINGS + TAIL_RINGS + 2 * CAP_RINGS;
 export const TUBE_SIDES = 36;
 
 /** One cross-section of the body tube: center, radius, and the in-plane direction to the back. */
-export type Ring = { c: Vec3; r: number; out: Vec3; /** Extra radius on the back side only (somites). */ bump: number };
+export type Ring = {
+  c: Vec3;
+  r: number;
+  /** The cross-section spans out and side (Z for the body, which curls in the x-y plane). */
+  out: Vec3;
+  side?: Vec3;
+  /** Extra radius on the back side only (somites). */
+  bump: number;
+};
+
+export const CORD_RINGS = 56;
+export const CORD_SIDES = 12;
 
 const v = {
   add: (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
@@ -439,26 +485,91 @@ export function layout(p: Params, m: Motion = STILL): Layout {
     legs: surface(near.knee, lr * 1.15, lin([1, Z], [0.4, v.sub(near.knee, hip.c)])),
     movement: surface(near.foot, lr * 1.4, lin([1, Z], [0.5, hip.down])),
   };
-  return { tube, parts, anchors };
+  // Cord: from the belly, a loose loop in front of the knees and under the
+  // bottom, then round behind the baby toward the placenta, out of sight.
+  const cordR = 0.024 * p.cord;
+  const navel = torsoAt(0.68);
+  const low = torsoAt(0.9);
+  const path = [
+    v.add(navel.c, v.mul(navel.front, navel.r * 0.8)),
+    lin([1, navel.c], [navel.r + 0.1, navel.front], [0.17, Z], [0.02, navel.down]),
+    lin([1, low.c], [low.r + 0.1, low.front], [0.26, Z], [0.12, low.down]),
+    lin([1, low.c], [low.r + 0.1, low.down], [0.14, Z], [0.05, low.out]),
+    lin([1, low.c], [low.r * 0.9, low.out], [-0.2, Z], [0.05, low.down]),
+    lin([1, torsoAt(0.6).c], [-0.12, Z]),
+  ];
+  const cord: Ring[] = [];
+  for (let i = 0; i < CORD_RINGS; i++) {
+    const t = i / (CORD_RINGS - 1);
+    const c = catmull(path, t);
+    const tangent = v.norm(v.sub(catmull(path, Math.min(1, t + 0.01)), catmull(path, Math.max(0, t - 0.01))));
+    const out = v.norm(v.cross(tangent, Math.abs(tangent[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0]));
+    const side = v.cross(tangent, out);
+    // The cord's twist: its center winds in a small helix around the path.
+    const a = t * 34;
+    const twist = lin([Math.cos(a) * cordR * 0.45, out], [Math.sin(a) * cordR * 0.45, side]);
+    // Round start; the far end runs into the body, out of sight.
+    const end = Math.min(1, i / 2);
+    cord.push({ c: v.add(c, twist), r: cordR * Math.sqrt(end), out, side, bump: 0 });
+  }
+
+  const cheekMark = onHead(lin([1, faceDir], [0.55, side], [-0.22, headUp]), 1.05);
+  const marks: Layout["marks"] = {
+    eyes: onHead(eyeDir(1), 1.06),
+    nose: onHead(noseDir, 1.08),
+    hands: near.hand,
+    feet: near.foot,
+    ears: onHead(earDir(1), 1.05),
+    crown: onHead(crown, 1.06),
+    cheeks: cheekMark,
+    cord: path[2],
+  };
+  return { tube, cord, parts, anchors, marks };
 }
 
-/** Center and size of everything, for framing: the model is scaled so its largest extent is 1. */
-export function bounds({ parts, tube }: Pick<Layout, "parts" | "tube">): { center: Vec3; size: number } {
+/** A point along a Catmull-Rom curve through pts, t in [0, 1]. */
+function catmull(pts: Vec3[], t: number): Vec3 {
+  const n = pts.length - 1;
+  const f = Math.min(n - 1e-6, Math.max(0, t * n));
+  const i = Math.floor(f);
+  const u = f - i;
+  const p0 = pts[Math.max(0, i - 1)];
+  const [p1, p2] = [pts[i], pts[i + 1]];
+  const p3 = pts[Math.min(n, i + 2)];
+  const u2 = u * u;
+  const u3 = u2 * u;
+  return [0, 1, 2].map((k) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * u + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * u2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * u3)) as Vec3;
+}
+
+/** The head-down turn, as an angle around z (radians). */
+// Not a full half turn: lying diagonally head down still says "head down" and keeps the face readable.
+export const turnAngle = (p: Params) => p.turn * Math.PI * 0.62;
+
+/** p turned by angle around z, the axis the body curls around. */
+export function rotZ(p: Vec3, angle: number): Vec3 {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return [p[0] * c - p[1] * s, p[0] * s + p[1] * c, p[2]];
+}
+
+/**
+ * Center and size of the body after the head-down turn by rot, for framing:
+ * the model is scaled so its largest extent is 1. The center is in the turned frame.
+ */
+export function bounds({ parts, tube }: Pick<Layout, "parts" | "tube">, rot = 0): { center: Vec3; size: number } {
   const lo: Vec3 = [Infinity, Infinity, Infinity];
   const hi: Vec3 = [-Infinity, -Infinity, -Infinity];
-  for (const ring of tube) {
+  const add = (c: Vec3, r: number) => {
+    const q = rotZ(c, rot);
     for (let i = 0; i < 3; i++) {
-      lo[i] = Math.min(lo[i], ring.c[i] - ring.r);
-      hi[i] = Math.max(hi[i], ring.c[i] + ring.r);
+      lo[i] = Math.min(lo[i], q[i] - r);
+      hi[i] = Math.max(hi[i], q[i] + r);
     }
-  }
+  };
+  for (const ring of tube) add(ring.c, ring.r);
   for (const p of parts) {
     if (p.tone !== "skin" || p.radii[0] === 0) continue;
-    const r = Math.max(...p.radii);
-    for (let i = 0; i < 3; i++) {
-      lo[i] = Math.min(lo[i], p.pos[i] - r);
-      hi[i] = Math.max(hi[i], p.pos[i] + r);
-    }
+    add(p.pos, Math.max(...p.radii));
   }
   return { center: [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2], size: Math.max(hi[0] - lo[0], hi[1] - lo[1]) };
 }
