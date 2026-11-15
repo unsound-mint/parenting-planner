@@ -120,11 +120,6 @@ func (s *Server) CreateCalendarEvent(ctx context.Context, req CreateCalendarEven
 	return CreateCalendarEvent201JSONResponse(calendarEventOut(e)), nil
 }
 
-// STUB for #229 and #253: the contract is in openapi.yaml, the implementation is
-// not written yet. Replace each stub with a real handler (copy wellbeing.go),
-// remove its 501 from openapi.yaml and replace its test. The web shows an
-// empty state on 501.
-
 func apiDate(t time.Time) openapi_types.Date { return openapi_types.Date{Time: t} }
 func (s *Server) UpdateCalendarEvent(ctx context.Context, req UpdateCalendarEventRequestObject) (UpdateCalendarEventResponseObject, error) {
 	family, actor, kind, err := s.actingPerson(ctx, req.MemberId)

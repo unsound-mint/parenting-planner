@@ -146,7 +146,6 @@ const CribDoneDaysAgo = 2
 // SeedBabyTasks adds the newborn family's shared tasks.
 func SeedBabyTasks(ctx context.Context, q *store.Queries, familyID, mother, partner uuid.UUID, today time.Time) error {
 	_, err := SeedTasks(ctx, q, familyID, []SeedTask{
-		{Title: "Book the 2-month checkup", DueDays: 6, Owner: mother, Creator: mother},
 		{Title: "Call the insurer about the baby's coverage", DueDays: 9, Owner: partner, Creator: mother},
 		{Title: "Buy the next size of diapers", DueDays: 3, Owner: partner, Creator: mother},
 		{Title: "Order a sleep sack", DueDays: 10, Owner: mother, Creator: mother},

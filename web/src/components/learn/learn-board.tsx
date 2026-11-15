@@ -16,7 +16,7 @@ import { PathCover } from "./path-cover";
 import { PathList } from "./path-list";
 import { QuizCard } from "./quiz-card";
 import { TalkCard } from "./talk-card";
-import { bothFinished, heroPath, minutesLeft, minutesWord, nextLesson, progressOf, putRead, readOf, withLesson, type Couple } from "./model";
+import { bothFinished, heroPath, minutesLeft, minutesWord, nextLesson, progressOf, putRead, readOf, withLesson, withQuizResult, type Couple } from "./model";
 
 const scrollBehavior = (): ScrollBehavior => (window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 
@@ -119,25 +119,7 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
       toast.error("Could not save your answer. Please try again.");
       return false;
     }
-    const r = res.data;
-    setPaths((ps) =>
-      withLesson(ps, q.lessonId, (l) => ({
-        ...l,
-        quiz: l.quiz.map((x) =>
-          x.id !== q.id
-            ? x
-            : {
-                ...x,
-                correctChoiceId: r.correctChoiceId,
-                explanation: r.explanation,
-                answers: [
-                  { memberId: me.id, choiceId, correct: r.correct, answeredAt: new Date().toISOString() },
-                  ...(r.partnerAnswer ? [r.partnerAnswer] : x.answers.filter((a) => a.memberId !== me.id)),
-                ],
-              },
-        ),
-      })),
-    );
+    setPaths((ps) => withQuizResult(ps, q, me.id, choiceId, res.data));
     return true;
   }
 

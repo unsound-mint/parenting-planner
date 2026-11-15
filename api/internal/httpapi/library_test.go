@@ -35,6 +35,17 @@ func TestLibraryPutsEachFamilysNowFirst(t *testing.T) {
 		if !found {
 			t.Errorf("%s: %s is not marked now", tc.template, tc.nowTopic)
 		}
+		// Every topic carries its stages and reading time for the library's filters,
+		// and coming-soon entries come with the list, titles only.
+		for _, it := range l.Items {
+			if len(it.Stages) == 0 || it.Minutes < 1 {
+				t.Errorf("%s: %s has stages %v, minutes %d", tc.template, it.Id, it.Stages, it.Minutes)
+				break
+			}
+		}
+		if len(l.Upcoming) < 50 || l.Upcoming[0].Title == "" || len(l.Upcoming[0].Stages) == 0 {
+			t.Errorf("%s: %d coming-soon entries", tc.template, len(l.Upcoming))
+		}
 	}
 }
 

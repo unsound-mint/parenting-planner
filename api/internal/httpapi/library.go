@@ -26,9 +26,16 @@ func (s *Server) ListLibraryTopics(ctx context.Context, req ListLibraryTopicsReq
 		return nil, err
 	}
 	entries, position := content.Library(state)
-	out := LibraryTopicList{Position: position, Items: make([]LibraryTopicSummary, 0, len(entries))}
+	soon := content.Upcoming()
+	out := LibraryTopicList{Position: position, Items: make([]LibraryTopicSummary, 0, len(entries)), Upcoming: make([]LibraryUpcoming, 0, len(soon))}
 	for _, e := range entries {
 		out.Items = append(out.Items, librarySummaryOut(e))
+	}
+	for _, u := range soon {
+		out.Upcoming = append(out.Upcoming, LibraryUpcoming{
+			Id: u.ID, Title: u.Title, Summary: u.Summary, Category: u.Category,
+			Stages: stagesOut(u.Stages), Minutes: u.Minutes, Format: u.Format,
+		})
 	}
 	return ListLibraryTopics200JSONResponse(out), nil
 }
@@ -59,7 +66,7 @@ func (s *Server) GetLibraryTopic(ctx context.Context, req GetLibraryTopicRequest
 	sum := librarySummaryOut(e)
 	out := LibraryTopic{
 		Id: sum.Id, Title: sum.Title, Questions: sum.Questions, Category: sum.Category, Evidence: sum.Evidence,
-		Ages: sum.Ages, Now: sum.Now, Soon: sum.Soon, Urgent: sum.Urgent,
+		Ages: sum.Ages, Now: sum.Now, Soon: sum.Soon, Urgent: sum.Urgent, Stages: sum.Stages, Minutes: sum.Minutes,
 		WhatToKnow: e.WhatToKnow, EvidenceNote: e.EvidenceNote,
 		WhatToDo: make([]LibraryStep, 0, len(e.WhatToDo)), Sources: make([]Source, 0, len(e.Sources)),
 		Related: make([]LibraryTopicSummary, 0, len(e.Related)),
@@ -85,5 +92,14 @@ func librarySummaryOut(e content.LibraryEntry) LibraryTopicSummary {
 	return LibraryTopicSummary{
 		Id: e.ID, Title: e.Title, Questions: e.Questions, Category: e.Category,
 		Evidence: LibraryEvidence(e.Evidence), Ages: e.Ages, Now: e.Now, Soon: e.Soon, Urgent: e.Urgent,
+		Stages: stagesOut(content.TopicStages(e.LibraryTopic)), Minutes: content.TopicMinutes(e.LibraryTopic),
 	}
+}
+
+func stagesOut(in []string) []LibraryStage {
+	out := make([]LibraryStage, len(in))
+	for i, s := range in {
+		out[i] = LibraryStage(s)
+	}
+	return out
 }

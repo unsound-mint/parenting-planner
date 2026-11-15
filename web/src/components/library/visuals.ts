@@ -1,6 +1,7 @@
 import {
   Apple,
   Baby,
+  BriefcaseBusiness,
   BookOpen,
   Brain,
   FileText,
@@ -14,6 +15,8 @@ import {
   Smile,
   Sparkles,
   UsersRound,
+  Wallet,
+  Heart,
 } from "lucide-react";
 import type { LibraryEvidence } from "@/lib/api/types";
 
@@ -34,6 +37,10 @@ const categories: Record<string, { label: string; icon: LucideIcon }> = {
   family: { label: "Family", icon: Home },
   decisions: { label: "Decisions", icon: Scale },
   admin: { label: "Paperwork", icon: FileText },
+  // Shelves the coming-soon list adds before any sourced topic exists for them.
+  birth: { label: "Birth", icon: Heart },
+  money: { label: "Money", icon: Wallet },
+  work: { label: "Work", icon: BriefcaseBusiness },
 };
 
 export const categoryOf = (c: string) => categories[c] ?? { label: c.replace(/-/g, " "), icon: BookOpen };

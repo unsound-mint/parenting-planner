@@ -1,17 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, DollarSign, Languages, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { serverApi } from "@/lib/api/server";
 import { requireParent } from "@/lib/guard";
 import { familyNow } from "@/lib/clock";
 import { formatClock, formatDayNumber, formatMonth, formatWeekday } from "@/lib/format";
-import { providerTypeIcon, providerTypeLabel, visitModeIcon, visitModeLabel } from "@/lib/visuals";
+import { providerTypeIcon, providerTypeLabel } from "@/lib/visuals";
 import type { BookingVisibility, ProviderType } from "@/lib/api/types";
 import { PageFrame } from "@/components/shell/page";
 import { Rise } from "@/components/joy/rise";
 import { SoftCard } from "@/components/joy/soft-card";
-import { Chip, NextOpening, initials } from "@/components/directory/provider-card";
+import { ProviderMeta, initials } from "@/components/directory/provider-card";
+import { openingLabel } from "@/components/directory/openings";
 import { SlotPicker } from "@/components/directory/slot-picker";
 import { YourVisits } from "@/components/directory/your-visits";
 
@@ -90,29 +91,13 @@ async function Provider({
               </div>
             </div>
             <p className="max-w-prose text-body text-ink-2">{p.bio || p.summary}</p>
-            <ul className="flex flex-wrap gap-2">
-              <Chip icon={MapPin} label="Location">
+            <div className="flex flex-col gap-1">
+              <p className="flex items-center gap-1.5 text-label text-ink-2">
+                <MapPin className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 {p.city}, <span className="font-mono">{p.state}</span>
-              </Chip>
-              <Chip icon={DollarSign} label="Price per visit">
-                <span className="font-mono">{p.priceUsd}</span>
-                <span className="text-muted-foreground">a visit</span>
-              </Chip>
-              <Chip icon={Clock} label="Visit length">
-                <span className="font-mono">{p.sessionMinutes}</span> min
-              </Chip>
-              {p.visitModes.map((m) => {
-                const Icon = visitModeIcon[m];
-                return (
-                  <Chip key={m} icon={Icon} label="Visits">
-                    {visitModeLabel[m]}
-                  </Chip>
-                );
-              })}
-              <Chip icon={Languages} label="Languages">
-                {p.languages.join(", ")}
-              </Chip>
-            </ul>
+              </p>
+              <ProviderMeta provider={p} minutes />
+            </div>
           </SoftCard>
         </Rise>
 
@@ -127,9 +112,15 @@ async function Provider({
             <h2 id="times-heading" className="text-title font-semibold">
               {move ? `Move your visit on ${formatWeekday(move.startsAt)} ${formatMonth(move.startsAt)} ${formatDayNumber(move.startsAt)}, ${formatClock(move.startsAt)}` : "Open times, next two weeks"}
             </h2>
-            <ul>
-              <NextOpening first={open[0]} now={now} />
-            </ul>
+            <p className="text-label text-muted-foreground">
+              {open[0] ? (
+                <>
+                  First free <span className="font-mono font-semibold text-status-up">{openingLabel(open[0].startsAt, now)}</span>
+                </>
+              ) : (
+                "No open times in the next two weeks"
+              )}
+            </p>
           </div>
           {slots.data ? (
             <SlotPicker key={move?.id ?? "new"} memberId={memberId} providerName={p.name} slots={open} partnerName={partnerName} defaultVisibility={defaultVisibility} move={move} />
