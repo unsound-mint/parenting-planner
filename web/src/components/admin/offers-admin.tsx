@@ -34,7 +34,7 @@ export function OffersAdmin({ initial }: { initial: PartnerOffer[] }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-label text-muted-foreground">Parents see at most three matching offers, labelled &ldquo;Partner offer&rdquo;.</p>
+        <p className="text-label text-muted-foreground">Parents see at most three matching offers, labelled &ldquo;Sample partner offer&rdquo;.</p>
         <Button size="lg" className="h-11 shrink-0 px-4" onClick={() => setEditing("new")} disabled={editing === "new"}>
           <Plus aria-hidden />
           New offer

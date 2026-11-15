@@ -11783,6 +11783,10 @@ components:
         takenOn:
           type: string
           format: date
+        summary:
+          type: string
+          description: The stored result values in words, when the record has any (a preconception panel). Absent for a screening logged without values.
+          example: "Rubella: not immune · Varicella: immune · Hemoglobin 13.1 g/dL"
         visibility:
           $ref: "#/components/schemas/Visibility"
 

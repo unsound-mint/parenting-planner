@@ -67,7 +67,7 @@ func TestPassportShowsTheFamilyFromTheDatabase(t *testing.T) {
 	for _, v := range me.Vaccines {
 		status[v.Name] = v.Status
 	}
-	if status["Flu"] != httpapi.VaccineStatusDone || status["Tdap"] != httpapi.VaccineStatusDue {
+	if status["Flu"] != httpapi.VaccineStatusDone || status["Tdap"] != httpapi.VaccineStatusUpcoming {
 		t.Errorf("mom's vaccines: %+v", me.Vaccines)
 	}
 	certainty := map[string]httpapi.AllergyCertainty{}
