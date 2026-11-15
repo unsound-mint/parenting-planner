@@ -7246,6 +7246,10 @@ export interface components {
          */
         LibraryEvidence: "guideline" | "research" | "contested" | "theory" | "folk";
         LibraryTopicSummary: {
+            /** @description The library stages the topic's age span touches, in life order. */
+            stages: components["schemas"]["LibraryStage"][];
+            /** @description Estimated reading time at 200 words a minute. */
+            minutes: number;
             id: string;
             title: string;
             /** @description How parents ask it, the most common first. Search matches these. */
@@ -7265,7 +7269,31 @@ export interface components {
             /** @description The topic has urgent signs; the UI links the fixed Urgent help screen. */
             urgent: boolean;
         };
+        /**
+         * @description A stage filter of the Learn library. newborn is the first year, toddler 1 to 3, preschool 3 to 6, school 6 and up.
+         * @enum {string}
+         */
+        LibraryStage: "planning" | "pregnancy" | "newborn" | "toddler" | "preschool" | "school";
+        /**
+         * @description An article or quiz we plan to write, shown as "Coming soon" so the
+         *     library shows its future size honestly. It has no body on purpose:
+         *     it is not guidance and never opens.
+         */
+        LibraryUpcoming: {
+            id: string;
+            title: string;
+            /** @description One line on what it will cover. */
+            summary: string;
+            /** @description A topic category as in LibraryTopicSummary, plus birth, money and work. */
+            category: string;
+            stages: components["schemas"]["LibraryStage"][];
+            minutes: number;
+            /** @description article or quiz (a plain string, since an enum with "article" would rename GuideKind's generated constants). */
+            format: string;
+        };
         LibraryTopicList: {
+            /** @description Planned articles and quizzes, the same for every family. Titles only, never body text. */
+            upcoming: components["schemas"]["LibraryUpcoming"][];
             /** @description Where the family is, for example "Week 25 of pregnancy" or "4 years old". */
             position: string;
             items: components["schemas"]["LibraryTopicSummary"][];

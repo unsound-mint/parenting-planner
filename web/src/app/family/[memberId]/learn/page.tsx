@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { MessageCircleQuestion, Pill } from "lucide-react";
+import { Library, MessageCircleQuestion, Pill } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import type { Stage } from "@/lib/api/types";
 import { serverApi } from "@/lib/api/server";
@@ -105,6 +105,13 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
           >
             <MessageCircleQuestion className="size-4" aria-hidden />
             Questions parents ask, and your own
+          </Link>
+          <Link
+            href={`/family/${memberId}/learn/library`}
+            className="press mt-3 ml-2 inline-flex min-h-11 items-center gap-2 rounded-full border border-line-2 bg-card px-4 text-label text-ink-2 transition-colors hover:border-ink-2"
+          >
+            <Library className="size-4" aria-hidden />
+            Browse the library
           </Link>
         </div>
         {journey && <JourneyStrip journey={journey} memberId={memberId} className="@7xl:max-w-[50rem] @7xl:flex-nowrap" />}
