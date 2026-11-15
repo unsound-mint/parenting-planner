@@ -66,15 +66,15 @@ func TestLearningPathsShowBothParentsProgressAtWeek25(t *testing.T) {
 		t.Errorf("your-pregnancy progress = %+v", p.Progress)
 	}
 	pain := findLesson(t, list, "pain-relief")
-	if pain.Locked || pain.Timing != httpapi.LessonTimingUpcoming || *pain.UnlocksAtWeek != 24 || *pain.WeekFrom != 28 || pain.TalkPrompt == nil {
-		t.Errorf("pain-relief = locked %v timing %s", pain.Locked, pain.Timing)
+	if pain.Timing != httpapi.LessonTimingUpcoming || *pain.WeekFrom != 28 || pain.TalkPrompt == nil {
+		t.Errorf("pain-relief timing %s", pain.Timing)
 	}
 	if len(pain.Reads) != 2 || pain.Reads[0].MemberId != mom.Id || pain.Reads[0].FinishedAt != nil || pain.Reads[1].FinishedAt == nil {
 		t.Errorf("pain-relief reads = %+v", pain.Reads)
 	}
 	labor := findLesson(t, list, "how-labor-starts")
-	if !labor.Locked || *labor.UnlocksAtWeek != 26 || !strings.Contains(labor.Source.Url, "nichd.nih.gov") {
-		t.Errorf("how-labor-starts locked %v, unlocks %d, source %s", labor.Locked, *labor.UnlocksAtWeek, labor.Source.Url)
+	if *labor.WeekFrom != 30 || !strings.Contains(labor.Source.Url, "nichd.nih.gov") {
+		t.Errorf("how-labor-starts from week %d, source %s", *labor.WeekFrom, labor.Source.Url)
 	}
 	if l := findLesson(t, list, "warning-signs"); !l.UrgentHelpLink || l.Timing != httpapi.LessonTimingNow {
 		t.Errorf("warning-signs urgent %v timing %s", l.UrgentHelpLink, l.Timing)
@@ -120,10 +120,11 @@ func TestQuizRevealsThePartnersAnswerOnlyAfterYouAnswer(t *testing.T) {
 		t.Helper()
 		c.Post(memberPath(mom.Id)+"/quiz-answers", map[string]any{"questionId": question, "choiceId": choice}, status, nil)
 	}
-	answer("pain-relief-q2", "a", http.StatusConflict)      // one answer each
-	answer("pain-relief-q1", "z", http.StatusBadRequest)    // not a choice
-	answer("no-such-lesson-q1", "a", http.StatusNotFound)   // not in the catalog
-	answer("how-labor-starts-q1", "a", http.StatusConflict) // locked until week 26
+	answer("pain-relief-q2", "a", http.StatusConflict)     // one answer each
+	answer("pain-relief-q1", "z", http.StatusBadRequest)   // not a choice
+	answer("no-such-lesson-q1", "a", http.StatusNotFound)  // not in the catalog
+	answer("how-labor-starts-q1", "a", http.StatusCreated) // a later lesson can be read ahead
+	c.Put(memberPath(mom.Id)+"/lesson-reads/how-labor-starts", map[string]any{"finished": true}, http.StatusOK, nil)
 }
 
 func TestLessonReadsStartFinishAndUndo(t *testing.T) {
@@ -140,7 +141,7 @@ func TestLessonReadsStartFinishAndUndo(t *testing.T) {
 	if r.FinishedAt != nil || r.StartedAt.IsZero() {
 		t.Errorf("finished false must clear the finish: %+v", r)
 	}
-	c.Put(path+"cesarean", map[string]any{"finished": false}, http.StatusConflict, nil) // opens at week 26
+	c.Put(path+"cesarean", map[string]any{"finished": false}, http.StatusOK, nil) // a later lesson can be read ahead
 	c.Put(path+"nope", map[string]any{"finished": true}, http.StatusNotFound, nil)
 
 	var list httpapi.LearningPathList
@@ -284,7 +285,7 @@ func TestLearningForOtherStages(t *testing.T) {
 	for _, p := range list.Items {
 		ids = append(ids, p.Id)
 		for _, l := range p.Lessons {
-			if l.Locked || l.Timing != httpapi.LessonTimingNow || l.WeekFrom != nil {
+			if l.Timing != httpapi.LessonTimingNow || l.WeekFrom != nil {
 				t.Errorf("after birth %s must be open with no weeks", l.Id)
 			}
 		}

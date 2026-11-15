@@ -145,7 +145,8 @@ var (
 	partner = []string{"partner"}
 )
 
-// Brands, products and links are invented; example.com never resolves to a shop.
+// Brands, products and links are invented; example.com never resolves to a shop,
+// so the web labels these "Sample partner offer" and does not render the link.
 var seedOffers = []NewOffer{
 	{PartnerName: "Mossy Diapers", Title: "First box of diapers, half price", Detail: "Soft, fragrance-free diapers delivered before the due date.",
 		URL: "https://example.com/mossy-diapers", Stages: []string{"pregnancy", "postpartum", "infant"}, Audience: both, Active: true},

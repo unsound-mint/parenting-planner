@@ -40,8 +40,7 @@ type Props = {
 export function LearnBoard({ memberId, couple, initialPaths, initialPathId, initialLessonId, talked: initialTalked, helpHref }: Props) {
   const { me, them } = couple;
   const [paths, setPaths] = useState(initialPaths);
-  // A locked lesson cannot be opened, even from a link.
-  const lessonPath = initialLessonId ? initialPaths.find((p) => p.lessons.some((l) => l.id === initialLessonId && !l.locked)) : undefined;
+  const lessonPath = initialLessonId ? initialPaths.find((p) => p.lessons.some((l) => l.id === initialLessonId)) : undefined;
   const [pathId, setPathId] = useState(() => lessonPath?.id ?? initialPaths.find((p) => p.id === initialPathId)?.id ?? heroPath(initialPaths, me)?.id ?? "");
   const [openId, setOpenId] = useState<string | undefined>(lessonPath ? initialLessonId : undefined);
   const [talked, setTalked] = useState(initialTalked);
@@ -79,7 +78,6 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
   }
 
   function open(lesson: Lesson) {
-    if (lesson.locked) return;
     setOpenId(lesson.id);
     syncUrl(lesson.pathId, lesson.id);
     // Opening a lesson starts it, once. Never send finished:false for a lesson
@@ -160,9 +158,9 @@ export function LearnBoard({ memberId, couple, initialPaths, initialPathId, init
 
   // The rail's quiz: the lesson to read next, else the first open lesson with a question left.
   const opened = path.lessons.find((l) => l.id === openId);
-  const unanswered = (l: Lesson) => !l.locked && l.quiz.some((q) => !q.answers.some((a) => a.memberId === me.id));
+  const unanswered = (l: Lesson) => l.quiz.some((q) => !q.answers.some((a) => a.memberId === me.id));
   // When every open question is answered, the first answered one stays, so the comparison with the partner is still there.
-  const quizLesson = [nextLesson(path, me), ...path.lessons.filter(unanswered), ...path.lessons].find((l) => l && !l.locked && l.quiz.length > 0);
+  const quizLesson = [nextLesson(path, me), ...path.lessons.filter(unanswered), ...path.lessons].find((l) => l && l.quiz.length > 0);
   const quizNext = quizLesson && path.lessons.slice(path.lessons.indexOf(quizLesson) + 1).find(unanswered);
 
   const mine = progressOf(path, me.id);

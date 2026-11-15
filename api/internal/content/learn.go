@@ -29,9 +29,6 @@ var learnPathFiles embed.FS
 //go:embed talk_prompts.json
 var talkPromptsJSON []byte
 
-// ReadAheadWeeks is how long before its best-read window a lesson opens.
-const ReadAheadWeeks = 4
-
 // LearnPath is one learning path in reading order.
 type LearnPath struct {
 	ID, Title, Why string
@@ -60,9 +57,6 @@ type Lesson struct {
 	Quiz           []Question
 }
 
-// UnlocksAtWeek is the first week a lesson can be opened in pregnancy.
-func (l Lesson) UnlocksAtWeek() int { return max(MinWeek, l.WeekFrom-ReadAheadWeeks) }
-
 // Timing is where a lesson's window sits relative to the family.
 type Timing string
 
@@ -75,7 +69,6 @@ const (
 // LessonState is a lesson as seen by one family.
 type LessonState struct {
 	Timing Timing
-	Locked bool
 	// InPregnancy is false outside pregnancy, where weeks do not apply.
 	InPregnancy bool
 }
@@ -86,7 +79,7 @@ func (l Lesson) StateOf(s State) LessonState {
 	if s.Stage != "pregnancy" || !s.HasWeek {
 		return LessonState{Timing: TimingNow}
 	}
-	st := LessonState{Timing: TimingNow, InPregnancy: true, Locked: s.Week < l.UnlocksAtWeek()}
+	st := LessonState{Timing: TimingNow, InPregnancy: true}
 	switch {
 	case s.Week < l.WeekFrom:
 		st.Timing = TimingUpcoming

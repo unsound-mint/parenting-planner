@@ -115,6 +115,9 @@ func screeningOut(l store.LabResult) Screening {
 	if l.SubjectChildID.Valid {
 		out.ChildId = &l.SubjectChildID.UUID
 	}
+	if sum := health.ResultSummary(l.Result); sum != "" {
+		out.Summary = &sum
+	}
 	return out
 }
 

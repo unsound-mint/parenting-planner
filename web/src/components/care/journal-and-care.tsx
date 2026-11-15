@@ -40,6 +40,7 @@ export function JournalAndCare({
   brief,
   checkins,
   now,
+  rail,
 }: {
   memberId: string;
   name: string;
@@ -55,6 +56,8 @@ export function JournalAndCare({
   checkins: MoodCheckin[];
   /** The family's clock, ISO. */
   now: string;
+  /** Care cards (care team, recovery, questionnaire, Find help) stacked under the brief, so the rail runs beside the entries instead of a half-empty row below. */
+  rail?: React.ReactNode;
 }) {
   const router = useRouter();
   // Local copies so every change shows at once; a new server render resets them.
@@ -347,6 +350,7 @@ export function JournalAndCare({
           </p>
         )}
         {agenda?.noteDue && <SessionNoteCard memberId={memberId} booking={agenda.noteDue} />}
+        {rail}
       </Rise>
     </div>
   );

@@ -133,6 +133,9 @@ func LoadFacts(ctx context.Context, q *store.Queries, familyID, memberID uuid.UU
 			}
 			if f.MotherRubella == "" && json.Unmarshal(l.Result, &res) == nil {
 				f.MotherRubella = res.Rubella
+				if res.Rubella != "" {
+					f.MotherRubellaOn = l.TakenOn
+				}
 			}
 		}
 		if i, ok := childIdx[l.SubjectChildID.UUID]; ok && l.SubjectChildID.Valid {

@@ -107,11 +107,10 @@ const allLessons = learnPaths.flatMap((p) => p.lessons.map((l) => ({ ...l, pathI
 const lessonById = new Map(allLessons.map((l) => [l.id, l]));
 const questionById = new Map(allLessons.flatMap((l) => l.quiz.map((q) => [q.id, { ...q, lesson: l }] as const)));
 
-function timingOf(l: CatalogLesson, week: number | undefined): { timing: LessonTiming; locked: boolean; unlocksAtWeek?: number } {
-  if (week === undefined) return { timing: "now", locked: false };
-  const unlocksAtWeek = Math.max(4, l.weeks[0] - 4);
+function timingOf(l: CatalogLesson, week: number | undefined): { timing: LessonTiming } {
+  if (week === undefined) return { timing: "now" };
   const timing: LessonTiming = week < l.weeks[0] ? "upcoming" : week > l.weeks[1] ? "past" : "now";
-  return { timing, locked: week < unlocksAtWeek, unlocksAtWeek };
+  return { timing };
 }
 
 async function context(ctx: MockContext<unknown>) {
