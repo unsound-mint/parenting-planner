@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Library, MessageCircleQuestion, Pill } from "lucide-react";
+import { MessageCircleQuestion, Pill } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import type { Stage } from "@/lib/api/types";
 import { serverApi } from "@/lib/api/server";
@@ -14,6 +14,7 @@ import { Rise } from "@/components/joy/rise";
 import { PageFrame } from "@/components/shell/page";
 import { helpHref } from "@/components/shell/urgent-help-link";
 import { LearnBoard } from "@/components/learn/learn-board";
+import { ForYouNow, LibraryEntry } from "@/components/learn/for-you-now";
 import type { Talked } from "@/components/learn/lesson-list";
 import { JourneyStrip } from "@/components/journey/journey-strip";
 import { LabLink } from "@/components/lab/lab-link";
@@ -55,7 +56,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
   await requireParent(memberId);
   const api = await serverApi();
   const path = { params: { path: { memberId } } };
-  const [family, paths, together, journey, simulator, weekly, stickers] = await Promise.all([
+  const [family, paths, together, journey, simulator, weekly, stickers, library] = await Promise.all([
     api.GET("/family"),
     api.GET("/members/{memberId}/learning-paths", path),
     optional(api.GET("/members/{memberId}/together", path)),
@@ -63,6 +64,7 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
     api.GET("/members/{memberId}/simulator", path),
     optional(api.GET("/members/{memberId}/weekly-reads", path)),
     optional(api.GET("/members/{memberId}/stickers", path)),
+    optional(api.GET("/members/{memberId}/library-topics", path)),
   ]);
   if (family.response.status === 401) redirect("/");
   if (!family.data) notFound();
@@ -106,23 +108,23 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
             <MessageCircleQuestion className="size-4" aria-hidden />
             Questions parents ask, and your own
           </Link>
-          <Link
-            href={`/family/${memberId}/learn/library`}
-            className="press mt-3 ml-2 inline-flex min-h-11 items-center gap-2 rounded-full border border-line-2 bg-card px-4 text-label text-ink-2 transition-colors hover:border-ink-2"
-          >
-            <Library className="size-4" aria-hidden />
-            Browse the library
-          </Link>
         </div>
         {journey && <JourneyStrip journey={journey} memberId={memberId} className="@7xl:max-w-[50rem] @7xl:flex-nowrap" />}
       </Rise>
 
-      {weekly && weekly.items.length > 0 && (
-        <Rise i={1}>
-          {/* Keyed on today's read so "Skip a week" (a refresh) lands on the new week. */}
-          <WeeklyReadCard key={`${memberId}-${weekly.items[weekly.current]?.id}`} items={weekly.items} current={weekly.current} />
-        </Rise>
-      )}
+      {/* For you now: this week's read, the next lesson and one quiz deck, each once; the paths follow. */}
+      <Rise as="section" i={1} aria-labelledby="now-title" className="flex min-w-0 flex-col gap-3">
+        <h2 id="now-title" className="text-headline">
+          For you now
+        </h2>
+        <div className="grid min-w-0 items-start gap-4 @7xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          {weekly && weekly.items.length > 0 && (
+            // Keyed on today's read so "Skip a week" (a refresh) lands on the new week.
+            <WeeklyReadCard key={`${memberId}-${weekly.items[weekly.current]?.id}`} items={weekly.items} current={weekly.current} />
+          )}
+          <ForYouNow memberId={memberId} paths={items} me={me} />
+        </div>
+      </Rise>
 
       {them && (
         <Rise i={1} className="grid gap-4 @3xl:grid-cols-2">
@@ -149,6 +151,12 @@ async function Learn({ params, searchParams }: { params: Promise<{ memberId: str
           talked={talked}
           helpHref={helpHref(memberId)}
         />
+      )}
+
+      {library && (
+        <Rise i={3}>
+          <LibraryEntry memberId={memberId} ready={library.items.length + items.reduce((n, p) => n + p.lessons.length, 0)} soon={library.upcoming.length} />
+        </Rise>
       )}
 
       {/* Virtual Baby (its own route) is for every parent, planning included, so it sits outside the practice gate.
