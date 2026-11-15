@@ -38,7 +38,7 @@ export function ReferenceBoard({ memberId, entries, asked, initialMode, helpHref
     { id: "medicine", label: "Medicines", icon: Pill },
     ...topics.map((t) => ({ id: t, label: t, icon: null })),
   ];
-  const shown = entries.filter((e) => (chip === "all" || chip === e.category || chip === e.topic) && matches(e, query));
+  const shown = entries.filter((e) => (mode === "pregnancy" || e.breastfeeding) && (chip === "all" || chip === e.category || chip === e.topic) && matches(e, query));
 
   return (
     <>
