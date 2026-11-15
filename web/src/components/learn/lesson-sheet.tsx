@@ -37,7 +37,7 @@ export function LessonSheet({ path, lesson, couple, justFinished, pathParty, tal
   if (lesson && lesson !== shown) setShown(lesson);
   const l = lesson ?? shown;
   const i = l ? path.lessons.findIndex((x) => x.id === l.id) : -1;
-  const next = i >= 0 ? path.lessons.slice(i + 1).find((x) => !x.locked) : undefined;
+  const next = i >= 0 ? path.lessons[i + 1] : undefined;
   const state = l ? lessonState(l, path, couple.me) : undefined;
 
   return (

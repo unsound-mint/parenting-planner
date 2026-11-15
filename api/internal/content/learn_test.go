@@ -84,19 +84,18 @@ func TestWarningSignAndHotlineLessonsLinkToUrgentHelp(t *testing.T) {
 }
 
 func TestLessonStateFollowsTheWeek(t *testing.T) {
-	l, _ := LessonByID("pain-relief") // window 28 to 36, opens at 24
+	l, _ := LessonByID("pain-relief") // window 28 to 36
 	for _, c := range []struct {
 		st     State
 		timing Timing
-		locked bool
 	}{
-		{State{Stage: "pregnancy", Week: 23, HasWeek: true}, TimingUpcoming, true},
-		{State{Stage: "pregnancy", Week: 24, HasWeek: true}, TimingUpcoming, false},
-		{State{Stage: "pregnancy", Week: 30, HasWeek: true}, TimingNow, false},
-		{State{Stage: "pregnancy", Week: 37, HasWeek: true}, TimingPast, false},
-		{State{Stage: "postpartum"}, TimingNow, false},
+		{State{Stage: "pregnancy", Week: 23, HasWeek: true}, TimingUpcoming},
+		{State{Stage: "pregnancy", Week: 24, HasWeek: true}, TimingUpcoming},
+		{State{Stage: "pregnancy", Week: 30, HasWeek: true}, TimingNow},
+		{State{Stage: "pregnancy", Week: 37, HasWeek: true}, TimingPast},
+		{State{Stage: "postpartum"}, TimingNow},
 	} {
-		if s := l.StateOf(c.st); s.Timing != c.timing || s.Locked != c.locked {
+		if s := l.StateOf(c.st); s.Timing != c.timing {
 			t.Errorf("week %d %s: %+v", c.st.Week, c.st.Stage, s)
 		}
 	}

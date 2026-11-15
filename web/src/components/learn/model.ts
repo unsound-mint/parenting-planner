@@ -3,7 +3,7 @@ import { daysUntilInstant } from "@/lib/format";
 
 // Pure helpers for Learn: which path opens first, what state each lesson is in
 // for the acting parent, and how far each parent is. Everything comes from the
-// API's reads and locks; nothing here is invented for the screen.
+// API's reads; nothing here is invented for the screen.
 
 export type Couple = { me: Parent; them?: Parent };
 
@@ -14,10 +14,8 @@ export type LessonState =
   | "reading"
   /** The one to read next in this path: open, best read now, not finished. */
   | "next"
-  /** Open (unlocked) and not started. */
-  | "open"
-  /** Not open yet: before unlocksAtWeek. */
-  | "later";
+  /** Not started. Any lesson can be read ahead; the week is only a hint. */
+  | "open";
 
 export const readOf = (lesson: Lesson, memberId: string | undefined): LessonRead | undefined =>
   memberId ? lesson.reads.find((r) => r.memberId === memberId) : undefined;
@@ -30,7 +28,7 @@ export const onlyFor = (lesson: Lesson): "mother" | "partner" | undefined =>
 
 /** The lesson the acting parent should read next in a path, or undefined when nothing is left open. */
 export function nextLesson(path: LearningPath, me: Parent): Lesson | undefined {
-  const open = path.lessons.filter((l) => !l.locked && !finishedBy(l, me.id));
+  const open = path.lessons.filter((l) => !finishedBy(l, me.id));
   const forMe = (l: Lesson) => !onlyFor(l) || onlyFor(l) === me.role;
   return (
     open.find((l) => readOf(l, me.id)) ??
@@ -42,7 +40,6 @@ export function nextLesson(path: LearningPath, me: Parent): Lesson | undefined {
 }
 
 export function lessonState(lesson: Lesson, path: LearningPath, me: Parent): LessonState {
-  if (lesson.locked) return "later";
   const read = readOf(lesson, me.id);
   if (read?.finishedAt) return "done";
   if (read) return "reading";
@@ -51,9 +48,9 @@ export function lessonState(lesson: Lesson, path: LearningPath, me: Parent): Les
 
 /** Path to open first: where the acting parent is mid-read, then the one with the most open "now" reads, then the first. */
 export function heroPath(paths: LearningPath[], me: Parent): LearningPath | undefined {
-  const midRead = paths.find((p) => p.lessons.some((l) => !l.locked && l.timing === "now" && readOf(l, me.id) && !finishedBy(l, me.id)));
+  const midRead = paths.find((p) => p.lessons.some((l) => l.timing === "now" && readOf(l, me.id) && !finishedBy(l, me.id)));
   if (midRead) return midRead;
-  const openNow = (p: LearningPath) => p.lessons.filter((l) => !l.locked && l.timing === "now" && !finishedBy(l, me.id)).length;
+  const openNow = (p: LearningPath) => p.lessons.filter((l) => l.timing === "now" && !finishedBy(l, me.id)).length;
   const best = [...paths].sort((a, b) => openNow(b) - openNow(a))[0];
   return best && openNow(best) > 0 ? best : paths.find((p) => nextLesson(p, me)) ?? paths[0];
 }
@@ -74,7 +71,7 @@ export function progressOf(path: LearningPath, memberId: string | undefined): Pr
 
 /** Reading minutes the acting parent has left in the open lessons of a path. */
 export function minutesLeft(path: LearningPath, memberId: string): number {
-  return path.lessons.filter((l) => !l.locked && !finishedBy(l, memberId)).reduce((sum, l) => sum + l.minutes, 0);
+  return path.lessons.filter((l) => !finishedBy(l, memberId)).reduce((sum, l) => sum + l.minutes, 0);
 }
 
 export const bothFinished = (path: LearningPath, couple: Couple) =>
