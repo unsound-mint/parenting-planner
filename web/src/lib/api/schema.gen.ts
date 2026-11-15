@@ -4117,10 +4117,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Diary entries from the last 30 days that the acting parent may see
+         * A page of the diary entries the acting parent may see
          * @description Their own entries plus the other parent's entries shared with them.
-         *     Newest first. The other parent's agendaTopic is never returned: the
-         *     agenda belongs to its author. Caregivers get 404. Audited.
+         *     Newest first, one page at a time so a diary kept for years stays
+         *     quick: at most `limit` entries written before `before` (default
+         *     now). When older entries exist, `nextBefore` is the value to send
+         *     as `before` for the next page. The other parent's agendaTopic is
+         *     never returned: the agenda belongs to its author. Caregivers get
+         *     404. Audited.
          */
         get: operations["listDiaryEntries"];
         put?: never;
@@ -9191,6 +9195,11 @@ export interface components {
         DiaryEntryList: {
             /** @description Newest first. */
             items: components["schemas"]["DiaryEntry"][];
+            /**
+             * Format: date-time
+             * @description Present when older entries exist; send it as `before` to read the next page.
+             */
+            nextBefore?: string;
         };
         /**
          * @description epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
@@ -20341,7 +20350,14 @@ export interface operations {
     };
     listDiaryEntries: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only entries written strictly before this time. Omit for the newest page. */
+                before?: string;
+                /** @description true reads only entries marked as a first, so a family can review its firsts over the years. */
+                first?: boolean;
+                /** @description Page size. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /**

@@ -3,11 +3,16 @@ INSERT INTO diary_entries (family_id, owner_member_id, visibility, written_at, b
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- Mirrors access.CanParentRead: own entries, plus entries shared with the partner or the family.
+-- One page, newest first: entries written before @before (only firsts when @firsts_only),
+-- at most @page_size rows; the caller asks for one more than it shows to learn whether an
+-- older page exists.
 -- name: ListDiaryEntriesVisibleToParent :many
 SELECT * FROM diary_entries
-WHERE family_id = @family_id AND written_at >= @since
+WHERE family_id = @family_id AND written_at < @before
   AND (owner_member_id = @viewer_id OR visibility IN ('partner', 'family'))
-ORDER BY written_at DESC, created_at DESC;
+  AND (NOT @firsts_only::boolean OR is_first)
+ORDER BY written_at DESC, created_at DESC
+LIMIT @page_size;
 
 -- Mirrors access.CanParentRead for a change: only the author, so another parent's shared
 -- entry cannot be found (and does not reveal that it exists). Locks the row.
