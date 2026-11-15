@@ -13,9 +13,9 @@ The contest scores five questions. Where to look for each:
 | Question | Short answer | Evidence |
 | --- | --- | --- |
 | Does it work? (40%) | Yes, on the live link, with no sign-up. Plans, rule results, check-ins, diaries, bookings and the practice rounds are computed from Postgres state, not hardcoded. | [Five-minute tour](#five-minute-tour), [what is real](#what-is-real-and-what-is-preview-data), [architecture](docs/architecture.md), `make check` in CI |
-| What do we sell? (20%) | A weekly plan for each parent, built from the family's own data and current guidelines, plus practice rounds for the newborn skills. They return because the plan changes with the stage, the week and every check-in. | [docs/product.md](docs/product.md), the pricing page (Free, Plus $14.99 a month or $119.99 a year, Concierge) |
+| What do we sell? (20%) | A weekly plan for each parent, built from the family's own data and current guidelines, plus practice rounds for the newborn skills. They return because the plan changes with the stage, the week and every check-in. | [docs/product.md](docs/product.md), the pricing page (Free and Plus, $14.99 a month or $119.99 a year) |
 | Who do we sell to? (15%) | Working US couples, 25 to 45, expecting or raising a child up to age 9, who already pay for nannies, night nurses and sleep consultants. Both parents are users. | [docs/product.md](docs/product.md), pain points with sources in [docs/research.md](docs/research.md) |
-| Why does it make money? (15%) | On Plus alone ($120 to $180 a year) $100M ARR is roughly 560k to 830k paying families, 15% to 23% of one year's US births, so the model depends on keeping families across the nine-year journey and on Concierge and bookings lifting the blend. | [docs/business-case.md](docs/business-case.md): price, lifetime value, acquisition ceiling, size. Sources in [docs/research.md](docs/research.md) |
+| Why does it make money? (15%) | On Plus alone ($120 to $180 a year) $100M ARR is roughly 560k to 830k paying families, 15% to 23% of one year's US births, so the model depends on keeping families across the nine-year journey, with provider bookings as an unsized upside. | [docs/business-case.md](docs/business-case.md): price, lifetime value, acquisition ceiling, size. Sources in [docs/research.md](docs/research.md) |
 | Is it new? (10%) | The closest whole-journey product we found is Maven Clinic, which is sold to employers and centered on women. The other products we checked cover one slice: sleep, development, play kits, a registry. | [docs/business-case.md](docs/business-case.md) and the competitor list in [docs/research.md](docs/research.md). Nanit, Tinyhood, Oath Care, Juniper and Mae are not checked yet. |
 
 Track: Skills. The pain is that new parents learn newborn care and how to split it from reading, then meet the real night with no practice. The Learn section has paths, a practice simulator and a virtual baby.
@@ -30,7 +30,7 @@ Track: Skills. The pain is that new parents learn newborn care and how to split 
 6. **Plan**: Timeline, Calendar and Money and paperwork. **Health**: journal, check-ins, health records, Find help.
 7. Press "Skip a week" in the top bar: the family's demo clock moves seven days and every due date and week of pregnancy is recomputed. Starting a new demo is the reset.
 8. "Urgent help" at the top right is a fixed screen with hotlines, never generated text.
-9. Pricing has Free, Plus and Concierge. Upgrading starts a Stripe checkout in test mode: use the test card shown on the page, no real money moves.
+9. Pricing has Free and Plus. Upgrading starts a Stripe checkout in test mode: use the test card shown on the page, no real money moves.
 
 ![This week screen](docs/img/week.png)
 

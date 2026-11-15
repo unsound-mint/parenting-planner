@@ -12,7 +12,6 @@ The parent pays out of their own pocket (B2C). One subscription covers the famil
 | --- | --- | --- |
 | Free | $0 | `plans.ts` |
 | Plus | $14.99 a month, or $119.99 a year ($10 a month, 33% less than paying monthly) | Denis, Nov 15. `plans.ts` and the Stripe prices are being brought in line |
-| Concierge | $99 a month, $1,188 a year | `plans.ts`, not changed |
 
 Consumer health memberships run from $199 a year to about $3,300 a year (research.md, pricing signal). Plus is priced under that range, closer to Huckleberry's about $120 a year.
 
@@ -20,7 +19,7 @@ Consumer health memberships run from $199 a year to about $3,300 a year (researc
 
 - Median annual renewal for health apps is 54% (RevenueCat 2026, linked in research.md).
 - At 54% renewal the expected paying life is 1 / (1 − 0.54) ≈ 2.2 years. This is arithmetic on a category median, not a measurement of our product.
-- Plus revenue per paying family over that life: about $260 on the annual plan ($119.99 × 2.2) and about $390 on the monthly plan ($179.88 × 2.2, assuming monthly subscribers renew at the same yearly rate, which is optimistic). Concierge: about $2,600.
+- Plus revenue per paying family over that life: about $260 on the annual plan ($119.99 × 2.2) and about $390 on the monthly plan ($179.88 × 2.2, assuming monthly subscribers renew at the same yearly rate, which is optimistic).
 - Why a family should renew: the plan is rebuilt every week from the stage and the family's own data, so the product changes as the child grows. A nine-year journey is the answer to stage churn, but only if the product carries over; we have no renewal data yet.
 
 ## Acquisition cost
@@ -34,7 +33,7 @@ We have not run ads, so any CAC figure would be invented and we do not state one
 
 - 3.6M US births in 2025 and 32.9M US families with children under 18 (research.md, market).
 - $100M ARR on Plus alone ($120 to $180 a year) needs roughly 560k to 830k paying families, about 15% to 23% of one year's births. That is a lot, and it is why the plan keeps families for the whole nine years, not one stage.
-- The earlier 170k to 400k families assumed a blended $250 to $600 a year. That needs a real share of Concierge ($1,188 a year) and marketplace bookings on top of Plus. Treat it as the upside case until we have conversion data.
+- Marketplace bookings with providers are an upside we have not sized. Concierge was dropped, so Plus is the only paid tier.
 
 ## Why this is new
 
