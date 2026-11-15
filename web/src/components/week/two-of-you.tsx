@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Baby, ChevronRight, HeartHandshake, PiggyBank, type LucideIcon } from "lucide-react";
+import { Baby, ChevronRight, HeartHandshake, type LucideIcon } from "lucide-react";
 import type { Family } from "@/lib/api/types";
 import { Rise } from "@/components/joy/rise";
 import { LaborCoachLink } from "@/components/labor/labor-coach-link";
@@ -8,17 +8,15 @@ import { cn } from "@/lib/utils";
 /**
  * The small ways into bigger screens, grouped in one list instead of a card
  * each: the labor coach late in pregnancy, practice with the virtual baby, the
- * Compatibility Lab and money. The page decides which apply to the stage; each
- * row looks like LaborCoachLink, which is used as is.
+ * Compatibility Lab. The page decides which apply to the stage; each row looks
+ * like LaborCoachLink, which is used as is. It sits in the narrow column, one row per link.
  */
 export function TwoOfYou({
   memberId,
   labor,
   virtualBaby,
   labLine,
-  money,
   together,
-  after = 0,
   className,
 }: {
   memberId: string;
@@ -27,46 +25,21 @@ export function TwoOfYou({
   virtualBaby?: boolean;
   /** The lab's live line ("Sam answered a card and is waiting for you"); undefined hides the lab. */
   labLine?: string;
-  money?: boolean;
   /** Two parents: the heading says so. */
   together: boolean;
-  /** How many cards sit before the list in its PageGrid row; the list fills the rest of the row. */
-  after?: number;
   className?: string;
 }) {
   const base = `/family/${memberId}`;
   const links: { key: string; href: string; icon: LucideIcon; title: string; line: string }[] = [];
   if (virtualBaby) links.push({ key: "vb", href: `${base}/learn/virtual-baby`, icon: Baby, title: "Practice with a virtual baby", line: "One evening of feeds and cries, or the 48-hour challenge" });
   if (labLine) links.push({ key: "lab", href: `${base}/learn/lab`, icon: HeartHandshake, title: "Parenting Compatibility Lab", line: labLine });
-  if (money) links.push({ key: "money", href: `${base}/money`, icon: PiggyBank, title: "Money", line: "Your baby budget, birth costs and childcare" });
   if (links.length === 0 && !labor) return null;
-  // The list takes what its row leaves empty (two columns from @4xl, three from @7xl),
-  // and lays its rows side by side when it spans more than one column.
-  const rows = links.length + (labor ? 1 : 0);
-  const span2 = after % 2 === 0 && rows > 1;
-  const span3 = Math.min(3 - (after % 3), rows);
   return (
-    <Rise
-      as="section"
-      i={7}
-      aria-labelledby="two-of-you"
-      className={cn(
-        "flex min-w-0 flex-col gap-3",
-        span2 ? "@4xl:col-span-2" : "@4xl:col-span-1",
-        span3 === 3 ? "@7xl:col-span-3" : span3 === 2 ? "@7xl:col-span-2" : "@7xl:col-span-1",
-        className,
-      )}
-    >
+    <Rise as="section" i={7} aria-labelledby="two-of-you" className={cn("flex min-w-0 flex-col gap-3", className)}>
       <h2 id="two-of-you" className="text-caption font-semibold tracking-[0.08em] text-muted-foreground uppercase">
         {together ? "For the two of you" : "For you"}
       </h2>
-      <ul
-        className={cn(
-          "grid gap-3",
-          span2 && "@4xl:grid-cols-2",
-          span3 === 3 ? "@7xl:grid-cols-3" : span3 === 2 ? "@7xl:grid-cols-2" : "@7xl:grid-cols-1",
-        )}
-      >
+      <ul className="grid gap-3">
         {labor && (
           <li className="empty:hidden">
             <LaborCoachLink memberId={memberId} family={labor} className="h-full" />
