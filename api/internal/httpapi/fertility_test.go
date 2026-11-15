@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/unsound-mint/parenting-planner/api/internal/httpapi"
 	"github.com/unsound-mint/parenting-planner/api/internal/testutil"
@@ -15,7 +14,7 @@ func fertPath(m httpapi.Parent, tail string) string {
 }
 
 func fertDay(offset int) string {
-	return time.Now().UTC().AddDate(0, 0, offset).Format("2006-01-02")
+	return testutil.Now.AddDate(0, 0, offset).Format("2006-01-02")
 }
 
 func planningParents(t *testing.T, c *testutil.Client) (httpapi.Family, httpapi.Parent, httpapi.Parent) {
@@ -184,7 +183,7 @@ func TestFertilityOverviewIsAnEstimate(t *testing.T) {
 	}
 
 	// Trying for 13 months asks for a clinician; it never diagnoses.
-	since := time.Now().UTC().AddDate(0, -13, 0).Format("2006-01-02")
+	since := testutil.Now.AddDate(0, -13, 0).Format("2006-01-02")
 	c.Put(fertPath(maya, "/journey-settings"), map[string]any{"hideBabyContent": false, "fertilityTreatment": false, "previousLoss": false, "tryingSince": since}, http.StatusOK, nil)
 	c.Get(fertPath(maya, "/fertility-overview"), http.StatusOK, &ov)
 	if !ov.Clinician.Suggest {
