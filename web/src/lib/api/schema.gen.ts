@@ -20,6 +20,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/guidance-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every guideline the app's health and family content is checked against
+         * @description One deduplicated list (by URL) of the sources behind rules, guides, lessons and reference cards, grouped by topic. Cards no longer show their sources; this list backs the public "How we check health guidance" page. No session needed.
+         */
+        get: operations["listGuidanceSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/sessions": {
         parameters: {
             query?: never;
@@ -6320,6 +6340,19 @@ export interface components {
             /** @description Pages the text paraphrases, each opened on its checked date. The first is the page to link. */
             sources: components["schemas"]["Source"][];
         };
+        GuidanceSource: {
+            /** @enum {string} */
+            topic: "pregnancy" | "newborn" | "child" | "nutrition" | "mental_health" | "family";
+            /** @example NHS */
+            organization: string;
+            title: string;
+            url: string;
+            /**
+             * Format: date
+             * @description The latest date someone confirmed the guideline still says this.
+             */
+            checkedAt: string;
+        };
         Source: {
             title: string;
             url: string;
@@ -10032,6 +10065,28 @@ export interface operations {
                     "application/json": {
                         /** @example ok */
                         status: string;
+                    };
+                };
+            };
+        };
+    };
+    listGuidanceSources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sources, sorted by topic, then organization, then title. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["GuidanceSource"][];
                     };
                 };
             };

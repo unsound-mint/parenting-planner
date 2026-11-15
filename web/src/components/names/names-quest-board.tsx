@@ -7,7 +7,6 @@ import type { NameCard, NameDeck as Deck, NamesQuest, NameSex, NameVerdict, Pare
 import { api } from "@/lib/api/client";
 import { Avatar } from "@/components/joy/partner-chip";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { Burst } from "@/components/learn/celebrate";
 import { ease, spring } from "@/components/joy/motion";
 import { cn } from "@/lib/utils";
@@ -171,7 +170,6 @@ export function NamesQuestBoard({ memberId, couple, initialQuest, initialDeck }:
           <ListsPanel quest={quest} onToggle={toggleList} sex={sex} pop={pop} onFilter={filter} />
         </div>
 
-        <SourceLine sources={quest.sources} />
       </div>
     </LayoutGroup>
   );

@@ -9,7 +9,6 @@ import type { Person } from "@/lib/roles";
 import { roleAccent } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/joy/partner-chip";
-import { SourceLine } from "@/components/joy/source-line";
 import { duration, ease, spring } from "@/components/joy/motion";
 import { daysFrom, leftWords } from "./days";
 import { Tick } from "./tick";
@@ -126,7 +125,6 @@ function Row({ item, today, people, next, open, onOpen, onToggle }: { item: Pape
                   </li>
                 ))}
               </ol>
-              {t.source && <SourceLine sources={[t.source, ...item.moreSources]} />}
               <a href={t.source?.url} target="_blank" rel="noopener" className="inline-flex items-center gap-1 text-label text-primary underline-offset-3 hover:underline">
                 Open the official page <ExternalLink aria-hidden className="size-3.5" />
               </a>

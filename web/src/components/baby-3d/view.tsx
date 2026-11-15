@@ -8,7 +8,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PregnancyGrowth, PregnancyGrowthWeek } from "@/lib/api/types";
 import { SizeIllustration } from "@/components/illustrations";
 import { cn } from "@/lib/utils";
-import { SourceLine } from "@/components/joy/source-line";
 import { Rise } from "@/components/joy/rise";
 import { duration, ease } from "@/components/joy/motion";
 import { AREA_ICON, AREA_LABEL } from "./areas";
@@ -62,7 +61,6 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
   const size = data.size;
   const heel = size.lengthMeasure === "crown-heel";
   const comparison = size.comparison.replace(/^(a|an) /, "");
-  const sources = uniqueSources(data);
 
   return (
     <>
@@ -159,7 +157,6 @@ export function Baby3DView({ growth, initialWeek }: { growth: PregnancyGrowth; i
             })}
           </motion.ol>
         </AnimatePresence>
-        <SourceLine sources={sources} />
         <p className="text-caption text-muted-foreground">Every baby grows at their own pace. The model is a friendly picture, not a scan.</p>
       </Rise>
     </div>
@@ -286,10 +283,4 @@ function nearest(byWeek: Map<number, PregnancyGrowthWeek>, week: number): Pregna
     if (w) return w;
   }
   throw new Error("no growth weeks");
-}
-
-function uniqueSources(w: PregnancyGrowthWeek) {
-  const seen = new Map<string, { title: string; url: string; checkedAt: string }>();
-  for (const s of [...w.hotspots.flatMap((h) => h.sources), ...w.size.sources]) if (!seen.has(s.url)) seen.set(s.url, s);
-  return [...seen.values()];
 }

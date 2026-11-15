@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { BookOpen, CalendarPlus, Check, Pill, Utensils } from "lucide-react";
 import { api } from "@/lib/api/client";
 import type { SafetyEntry } from "@/lib/api/types";
-import { SourceLine } from "@/components/joy/source-line";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { statusLook } from "./status";
@@ -21,7 +20,6 @@ export const questionFor = (e: SafetyEntry, mode: Mode) =>
 export function ReferenceCard({ entry, mode, memberId, saved, onSaved }: { entry: SafetyEntry; mode: Mode; memberId: string; saved: boolean; onSaved: (text: string) => void }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
   const advice = mode === "pregnancy" ? entry.pregnancy : entry.breastfeeding;
   const look = statusLook[advice?.status ?? "ask"];
   const Icon = look.icon;
@@ -67,19 +65,6 @@ export function ReferenceCard({ entry, mode, memberId, saved, onSaved }: { entry
       {entry.ask && <p className="rounded-2xl bg-status-up-soft px-4 py-2.5 text-label font-medium text-status-up">{entry.ask}</p>}
 
       <div className="mt-auto flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          aria-expanded={open}
-          className="min-h-11 self-start rounded-lg text-label text-muted-foreground underline decoration-line-2 underline-offset-4 transition-colors duration-150 hover:text-foreground"
-        >
-          {open ? "Hide sources" : "Sources and dates"}
-        </button>
-        <div className={cn("grid transition-[grid-template-rows,opacity] duration-220 ease-(--ease-out)", open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")} inert={!open}>
-          <div className="min-h-0 overflow-hidden">
-            <SourceLine sources={entry.sources} />
-          </div>
-        </div>
         <div className="flex flex-wrap items-center gap-2">
           {canSave &&
             (saved ? (

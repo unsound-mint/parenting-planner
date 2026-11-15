@@ -4,7 +4,6 @@ import { useState } from "react";
 import { BookOpen, ChevronDown } from "lucide-react";
 import type { Guide } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-import { SourceLink } from "@/components/joy/source-line";
 
 // Stage guides for this person, already filtered by the API (listGuides). Each
 // opens in place with its steps and source. A footer (the loss support actions)
@@ -45,9 +44,6 @@ export function GuideList({ guides, title = "Worth a few minutes", footer }: { g
                       <li key={s}>{s}</li>
                     ))}
                   </ol>
-                  <p className="pb-2 pl-12 text-caption">
-                    <SourceLink source={g.source} />
-                  </p>
                 </div>
               </div>
             </li>

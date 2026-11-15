@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OwnerAvatar } from "./owner";
 import { useFamilyNow } from "@/components/shell/family-clock";
-import { SourceLink } from "@/components/joy/source-line";
 
 // Leave for both parents on one narrow timeline: today to a few months after
 // birth. Segments are drawn from the API; the acting parent moves their own leave
@@ -458,7 +457,6 @@ function ProgramRow({ p }: { p: LeaveProgram }) {
           </span>
         </p>
         <p className="text-label text-muted-foreground">{[p.pay, p.reason].filter(Boolean).join(" ")}</p>
-        <SourceLink source={p.source} className="w-fit text-caption" />
       </div>
     </li>
   );

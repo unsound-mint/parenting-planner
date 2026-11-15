@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, Stethoscope } from "lucide-react";
 import { loadTopic } from "@/app/family/[memberId]/learn/questions/actions";
 import { spring } from "@/components/joy/motion";
-import { SourceLine } from "@/components/joy/source-line";
 import { helpHref } from "@/components/shell/urgent-help-link";
 import type { LibraryTopic, LibraryTopicSummary } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
@@ -134,7 +133,6 @@ export function TopicCard({
                     <p className="text-caption text-muted-foreground">
                       <span className="font-medium text-ink-2">{tag.label}.</span> {full.evidenceNote}
                     </p>
-                    <SourceLine sources={full.sources} />
                   </div>
 
                   {asking ? (

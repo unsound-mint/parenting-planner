@@ -9,7 +9,6 @@ import { categories, categoryMeta, dollars, payerBg, toCents, toDollarsField } f
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/joy/partner-chip";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { PageGrid } from "@/components/shell/page";
 import { CountUp, GrowBar, Wipe } from "./motion";
 
@@ -160,7 +159,7 @@ export function BudgetBoard({
                   <button
                     type="button"
                     onClick={() => void save({ category: s.category, name: s.name, amountCents: s.amountCents, cadence: s.cadence, payer: s.payer }).then((ok) => ok && setOpen(s.category))}
-                    title={s.source ? `${s.source.title}` : "A starting amount from us, not advice"}
+                    title="A starting amount from us, not advice"
                     className="press inline-flex min-h-11 items-center gap-1.5 rounded-full border border-dashed border-line-2 px-3 text-label text-ink-2 transition-colors duration-(--duration-fast) hover:bg-muted md:min-h-9"
                   >
                     <Plus aria-hidden className="size-3.5" />
@@ -173,7 +172,6 @@ export function BudgetBoard({
                 </li>
               ))}
             </ul>
-            <SourceLine className="mt-2" sources={budget.suggestions.flatMap((s) => (s.source ? [s.source] : [])).filter((s, i, a) => a.findIndex((x) => x.url === s.url) === i)} />
           </div>
         )}
 

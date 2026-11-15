@@ -11,7 +11,6 @@ import type { LessonAction } from "@/lib/learn";
 import { lessonActionIcon } from "@/lib/visuals";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { SourceLink } from "@/components/joy/source-line";
 
 type Props = {
   memberId: string;
@@ -104,9 +103,6 @@ export function LessonCard({ memberId, guide, action, done: alreadyDone, audienc
               <li key={s}>{s}</li>
             ))}
           </ol>
-          <p className="pb-2 text-caption">
-            <SourceLink source={guide.source} />
-          </p>
         </div>
       </div>
 

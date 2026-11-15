@@ -8,7 +8,6 @@ import { ArrowRight, Briefcase, Check, MessageCircleHeart, PenLine, Plus, Stetho
 import { api } from "@/lib/api/client";
 import type { PlanCategory, PlanItemStatus, Source } from "@/lib/api/types";
 import { SoftCard } from "@/components/joy/soft-card";
-import { SourceLine } from "@/components/joy/source-line";
 import { duration, ease, spring } from "@/components/joy/motion";
 import { categoryIcon, statusTint } from "@/lib/visuals";
 import { cn } from "@/lib/utils";
@@ -174,7 +173,6 @@ function Row({ row, memberId, open, onToggle }: { row: CalmRow; memberId: string
                     <ArrowRight aria-hidden className="size-3.5" />
                   </Link>
                 )}
-                <SourceLine sources={[row.source]} className="mt-1.5" />
               </div>
             ) : (
               <VisitQuestions memberId={memberId} initial={row.questions} />
