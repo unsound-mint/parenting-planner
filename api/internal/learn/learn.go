@@ -19,7 +19,6 @@ import (
 
 var (
 	ErrUnknownLesson   = errors.New("unknown lesson")
-	ErrLocked          = errors.New("lesson locked")
 	ErrUnknownQuestion = errors.New("unknown question")
 	ErrUnknownChoice   = errors.New("unknown choice")
 	ErrAlreadyAnswered = errors.New("already answered")
@@ -190,9 +189,6 @@ func UpdateRead(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UU
 	if !ok {
 		return Read{}, ErrUnknownLesson
 	}
-	if l.StateOf(st).Locked {
-		return Read{}, ErrLocked
-	}
 	r, err := store.New(pool).StartLessonRead(ctx, store.StartLessonReadParams{
 		FamilyID: familyID, MemberID: actor, LessonID: l.ID, At: now, Finished: finished,
 	})
@@ -214,12 +210,9 @@ type Result struct {
 
 // AnswerQuestion stores the acting parent's one answer to a question.
 func AnswerQuestion(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, c Couple, st content.State, questionID, choiceID string, now time.Time) (Result, error) {
-	question, lesson, ok := content.QuestionFor(st, questionID)
+	question, _, ok := content.QuestionFor(st, questionID)
 	if !ok {
 		return Result{}, ErrUnknownQuestion
-	}
-	if lesson.StateOf(st).Locked {
-		return Result{}, ErrLocked
 	}
 	known := false
 	for _, ch := range question.Choices {

@@ -214,7 +214,31 @@ function segment(a: Vec3, b: Vec3, r: number): Part {
   return { pos: v.add(a, v.mul(d, 0.5)), radii: [r, half + r * 0.6, r], basis: alongY(d), tone: "skin" };
 }
 
-export function layout(p: Params): Layout {
+/**
+ * Short-lived motion on top of the week's pose, each 0 to 1 except nod (-1 to 1).
+ * The scene animates these; layout only bends parts with them, so motion never
+ * touches the body tube and costs no geometry rebuild.
+ */
+export type Motion = {
+  /** The near leg straightens. */
+  kick: number;
+  /** Arms and legs reach out. */
+  stretch: number;
+  /** Open eyes close for a moment. */
+  blink: number;
+  /** The mouth opens. */
+  yawn: number;
+  /** Fingers curl into a fist. */
+  grip: number;
+  /** The heart bulge throbs. */
+  beat: number;
+  /** The head turns a little toward the near (1) or far (-1) side. */
+  nod: number;
+};
+
+export const STILL: Motion = { kick: 0, stretch: 0, blink: 0, yawn: 0, grip: 0, beat: 0, nod: 0 };
+
+export function layout(p: Params, m: Motion = STILL): Layout {
   const parts: Part[] = [];
   const spine = (deg: number, r = p.spineR): Vec3 => [r * Math.cos(rad(deg)), r * Math.sin(rad(deg)), 0];
   // At angle deg: out = the back (away from the C's center), front = into the C, down = along the spine toward the bottom.
@@ -256,7 +280,8 @@ export function layout(p: Params): Layout {
 
   // Head: on the neck, leaning forward over the chest.
   const neck = torsoAt(0);
-  const headDir = v.norm(lin([0.75, neck.out], [-0.6, neck.down]));
+  // A nod turns the head toward or away from the camera around the neck.
+  const headDir = v.norm(lin([0.75, neck.out], [-0.6, neck.down], [0.3 * m.nod, Z]));
   const head = v.add(neck.c, v.mul(headDir, p.headR * 0.78 + neck.r * 0.25));
   const headUp = headDir;
   const hr = p.headR;
@@ -276,12 +301,14 @@ export function layout(p: Params): Layout {
   const blush = Math.max(p.fat, 0.45 * clamp01((p.skin - 0.35) / 0.3));
   for (const sgn of [-1, 1]) {
     const d = eyeDir(sgn);
-    const lid = hr * p.lids;
+    // A blink draws the lids back over open eyes.
+    const lid = hr * Math.max(p.lids, m.blink * p.eyeOpen);
     parts.push({ pos: onHead(d, 0.995), radii: [lid * 0.12, lid * 0.025, 0], basis: facing(d, headUp), tone: "ink", arc: "lid" });
     // One dark disc: the eye spot of the embryo, later the open eye.
     const pupil = hr * (0.11 * p.eyeSpot + 0.095 * p.eyeOpen);
-    parts.push({ pos: onHead(d, 0.975), radii: [pupil * 0.92, pupil, pupil * 0.45], basis: facing(d, headUp), tone: "ink" });
-    const shine = hr * 0.032 * p.eyeOpen;
+    const open = 1 - m.blink * p.eyeOpen;
+    parts.push({ pos: onHead(d, 0.975), radii: [pupil * 0.92 * open, pupil * open, pupil * 0.45 * open], basis: facing(d, headUp), tone: "ink" });
+    const shine = hr * 0.032 * p.eyeOpen * open;
     parts.push(sphere(onHead(lin([1, d], [0.045, headUp], [0.03 * sgn, side]), 1.01), shine, "shine"));
     const browDir = v.norm(lin([1, d], [0.3, headUp]));
     parts.push({ pos: onHead(browDir, 0.995), radii: [hr * 0.13 * brows, hr * 0.02 * brows, 0], basis: facing(browDir, down), tone: "hair", arc: "lid" });
@@ -292,7 +319,11 @@ export function layout(p: Params): Layout {
   }
   const mouthDir = v.norm(lin([1, faceDir], [-0.3, headUp]));
   const mouth = hr * p.face;
-  parts.push({ pos: onHead(mouthDir, 0.995), radii: [mouth * 0.07, mouth * 0.022, 0], basis: facing(mouthDir, headUp), tone: "ink", arc: "smile" });
+  const smile = mouth * (1 - m.yawn);
+  parts.push({ pos: onHead(mouthDir, 0.995), radii: [smile * 0.07, smile * 0.022, 0], basis: facing(mouthDir, headUp), tone: "ink", arc: "smile" });
+  // A yawn: a small round open mouth in place of the smile.
+  const gape = mouth * m.yawn;
+  parts.push({ pos: onHead(mouthDir, 0.96), radii: [gape * 0.065, gape * 0.08, gape * 0.05], basis: facing(mouthDir, headUp), tone: "ink" });
   const noseDir = v.norm(lin([1, faceDir], [-0.08, headUp]));
   parts.push({ pos: onHead(noseDir, 0.97), radii: [hr * 0.085 * p.face, hr * 0.065 * p.face, hr * 0.075 * p.face], basis: facing(noseDir, headUp), tone: "skin" });
 
@@ -315,7 +346,7 @@ export function layout(p: Params): Layout {
 
   // The embryo's heart bulge under the chest, and the yolk sac on its stalk.
   const chest = torsoAt(0.26);
-  parts.push(sphere(v.add(chest.c, v.mul(chest.front, chest.r * 0.62)), chest.r * 0.72 * p.heart));
+  parts.push(sphere(v.add(chest.c, v.mul(chest.front, chest.r * 0.62)), chest.r * 0.72 * p.heart * (1 + 0.14 * m.beat)));
   const belly = torsoAt(0.62);
   const yr = 0.075 * p.yolk;
   const stalkFrom = v.add(belly.c, v.mul(belly.front, belly.r * 0.8));
@@ -334,9 +365,12 @@ export function layout(p: Params): Layout {
   for (const sgn of [1, -1]) {
     const zs: Vec3 = [0, 0, sgn];
     const s0 = v.add(shoulder.c, lin([shoulder.r * 0.55, zs], [shoulder.r * 0.35, shoulder.front]));
-    const elbow = v.add(s0, v.mul(v.norm(lin([0.6, shoulder.down], [0.7, shoulder.front], [0.3, zs])), p.armLen * 0.5));
-    const rest = v.add(elbow, v.mul(v.norm(lin([-0.85, shoulder.down], [0.45, shoulder.front], [-0.15, zs])), p.armLen * 0.5));
-    const hand = sgn === 1 ? v.add(rest, v.mul(v.sub(mouthPt, rest), 0.7 * p.thumb)) : rest;
+    const elbowDir = v.norm(lin([0.6, shoulder.down], [0.7, shoulder.front], [0.3, zs]));
+    const elbow = v.add(s0, v.mul(elbowDir, p.armLen * 0.5));
+    // A stretch opens the elbow so the forearm carries on from the upper arm.
+    const foreDir = v.norm(lin([1 - m.stretch, lin([-0.85, shoulder.down], [0.45, shoulder.front], [-0.15, zs])], [m.stretch, elbowDir]));
+    const rest = v.add(elbow, v.mul(foreDir, p.armLen * 0.5));
+    const hand = sgn === 1 ? v.add(rest, v.mul(v.sub(mouthPt, rest), 0.7 * p.thumb * (1 - m.stretch))) : rest;
     const along = v.norm(v.sub(hand, elbow));
     const hb = alongY(along);
     const hs = limbR * 1.3;
@@ -348,22 +382,30 @@ export function layout(p: Params): Layout {
     );
     const fr = limbR * fingers;
     for (let j = 0; j < 4; j++) {
-      const f = lin([1, hand], [hs * 0.95, along], [(j - 1.5) * limbR * 0.48, hb[0]]);
+      const open = lin([1, hand], [hs * 0.95, along], [(j - 1.5) * limbR * 0.48, hb[0]]);
+      // A grip pulls the fingertips back into the palm.
+      const f = v.add(open, v.mul(v.sub(lin([1, hand], [hs * 0.45, along], [(j - 1.5) * limbR * 0.4, hb[0]], [hs * 0.5, hb[2]]), open), m.grip));
       parts.push({ pos: f, radii: [fr * 0.25, fr * 0.45, fr * 0.24], basis: hb, tone: "skin" });
     }
     parts.push({ pos: lin([1, hand], [hs * 0.3, along], [hs * 1.05, hb[0]]), radii: [fr * 0.34, fr * 0.48, fr * 0.32], basis: alongY(lin([0.6, along], [1, hb[0]])), tone: "skin" });
 
     const h0 = v.add(hip.c, lin([hip.r * 0.5, zs], [hip.r * 0.3, hip.front]));
-    const knee = v.add(h0, v.mul(v.norm(lin([1, hip.front], [-0.35, hip.down], [0.4, zs])), p.legLen * 0.5));
-    const foot = v.add(knee, v.mul(v.norm(lin([0.95, hip.down], [-0.1, hip.front], [0.05, zs])), p.legLen * 0.5));
+    // Legs part a little in z so the two feet do not pile up on one spot.
+    const thighDir = v.norm(lin([1, hip.front], [-0.35, hip.down], [0.55, zs]));
+    const knee = v.add(h0, v.mul(thighDir, p.legLen * 0.5));
+    // A kick (near leg) or a stretch (both) straightens the knee.
+    const straighten = Math.max(m.stretch, sgn === 1 ? m.kick : 0);
+    const shinDir = v.norm(lin([1 - straighten, lin([0.95, hip.down], [-0.1, hip.front], [0.18, zs])], [straighten, thighDir]));
+    const foot = v.add(knee, v.mul(shinDir, p.legLen * 0.5));
     const lr = limbR * 1.15;
-    const toe = v.norm(lin([1, hip.front], [0.2, hip.down]));
+    const toe = v.norm(lin([1 - 0.5 * straighten, lin([1, hip.front], [0.2, hip.down])], [0.5 * straighten, shinDir]));
     const fb = alongY(toe);
     parts.push(segment(h0, knee, lr), segment(knee, foot, lr * 0.85), { pos: foot, radii: [lr * 1.05, lr * 1.6, lr * 0.95], basis: fb, tone: "skin" });
-    const tr = lr * 0.2 * fingers;
+    // Small and set into the tip of the foot, so two feet read as feet, not a pile of beads.
+    const tr = lr * 0.16 * fingers;
     for (let j = 0; j < 5; j++) {
       // Big toe first, on the inner side; the rest step down in size.
-      parts.push(sphere(lin([1, foot], [lr * (1.45 - 0.06 * j), toe], [(j - 2) * lr * 0.3 * -sgn, fb[2]]), tr * (j === 0 ? 1.3 : 1 - 0.06 * j)));
+      parts.push(sphere(lin([1, foot], [lr * (1.38 - 0.07 * Math.abs(j - 1)), toe], [(j - 2) * lr * 0.26 * -sgn, fb[2]]), tr * (j === 0 ? 1.3 : 1 - 0.06 * j)));
     }
     limbs.push({ hand, elbow, knee, foot });
   }

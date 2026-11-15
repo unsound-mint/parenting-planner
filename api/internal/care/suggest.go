@@ -60,15 +60,17 @@ type ownEntry struct {
 // most one suggestion. Only the viewer's own entries count, whatever their
 // visibility: an entry the other parent shared is theirs, not a topic here.
 func suggestions(ctx context.Context, q *store.Queries, key crypt.Key, familyID, viewer uuid.UUID, now time.Time, current []Topic) ([]Suggestion, error) {
+	// The newest 100 cover a week of journaling; older rows are dropped below.
 	rows, err := q.ListDiaryEntriesVisibleToParent(ctx, store.ListDiaryEntriesVisibleToParentParams{
-		FamilyID: familyID, ViewerID: viewer, Since: now.Add(-suggestWindow),
+		FamilyID: familyID, ViewerID: viewer, Before: now.AddDate(100, 0, 0), PageSize: 100,
 	})
 	if err != nil {
 		return nil, err
 	}
+	since := now.Add(-suggestWindow)
 	var own []ownEntry
 	for _, r := range rows {
-		if r.OwnerMemberID != viewer {
+		if r.OwnerMemberID != viewer || r.WrittenAt.Before(since) {
 			continue
 		}
 		body, err := key.Open(r.BodySealed)

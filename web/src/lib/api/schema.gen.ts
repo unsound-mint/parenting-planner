@@ -2776,10 +2776,9 @@ export interface paths {
          * Learning paths with lessons, quizzes and both parents' progress
          * @description Both parents only; a grandparent or nanny gets 404. The paths come from the embedded content catalog
          *     (api/internal/content), filtered by the family's stage. Each lesson
-         *     has a best-read window in gestational weeks (weekFrom to weekTo) and
-         *     opens four weeks before it (unlocksAtWeek), so a couple can read a
-         *     month ahead. After birth and before pregnancy every lesson of the
-         *     stage's paths is open and timing is now.
+         *     has a best-read window in gestational weeks (weekFrom to weekTo). Every
+         *     lesson can be opened at any time, so a couple can read ahead; the window
+         *     is only a hint. After birth and before pregnancy timing is now.
          *
          *     Reading state and quiz answers of both parents are included: a parent
          *     sees the other parent's reading progress (both parents only, never
@@ -2843,7 +2842,7 @@ export interface paths {
          *     finishedAt (kept on later calls); finished false clears it again, so
          *     "mark as unread" works. Reopening a finished lesson to read it again
          *     needs no call: send finished false only to take the finish back. 404 unknown_lesson for a lesson that is not
-         *     in the family's paths, 409 lesson_locked before unlocksAtWeek.
+         *     in the family's paths. Any lesson can be read, also before its best-read window.
          */
         put: operations["updateLessonRead"];
         post?: never;
@@ -2865,8 +2864,8 @@ export interface paths {
         /**
          * Answer one quiz question of a lesson
          * @description Both parents only; a grandparent or nanny gets 404. One answer per parent per question, so a couple can
-         *     compare; 409 already_answered for a second one, 409 lesson_locked
-         *     before the lesson opens. 404 for a question not in the family's
+         *     compare; 409 already_answered for a second one. Any lesson can be answered,
+         *     also before its best-read window. 404 for a question not in the family's
          *     paths, 400 for a choice that is not in the question. No scores, streaks or badges: the result is only whether
          *     this answer was right, why, and what the other parent chose.
          */
@@ -4125,10 +4124,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Diary entries from the last 30 days that the acting parent may see
+         * A page of the diary entries the acting parent may see
          * @description Their own entries plus the other parent's entries shared with them.
-         *     Newest first. The other parent's agendaTopic is never returned: the
-         *     agenda belongs to its author. Caregivers get 404. Audited.
+         *     Newest first, one page at a time so a diary kept for years stays
+         *     quick: at most `limit` entries written before `before` (default
+         *     now). When older entries exist, `nextBefore` is the value to send
+         *     as `before` for the next page. The other parent's agendaTopic is
+         *     never returned: the agenda belongs to its author. Caregivers get
+         *     404. Audited.
          */
         get: operations["listDiaryEntries"];
         put?: never;
@@ -7941,8 +7944,7 @@ export interface components {
         };
         /**
          * @description now = the lesson's best-read window covers this week (always now
-         *     outside pregnancy); upcoming = before the window (locked until
-         *     unlocksAtWeek, open after); past = the window is behind you.
+         *     outside pregnancy); upcoming = before the window (still readable); past = the window is behind you.
          * @enum {string}
          */
         LessonTiming: "upcoming" | "now" | "past";
@@ -8038,13 +8040,6 @@ export interface components {
             weekTo?: number;
             /** @description Who it is written for. Both parents see every lesson; a partner-only lesson is labeled, not hidden. */
             audience: components["schemas"]["GuideAudience"][];
-            /** @description True before unlocksAtWeek. A locked lesson cannot be started. */
-            locked: boolean;
-            /**
-             * @description weekFrom minus four, at least 4. Absent outside pregnancy.
-             * @example 24
-             */
-            unlocksAtWeek?: number;
             timing: components["schemas"]["LessonTiming"];
             source: components["schemas"]["Source"];
             extraSources: components["schemas"]["Source"][];
@@ -9223,6 +9218,11 @@ export interface components {
         DiaryEntryList: {
             /** @description Newest first. */
             items: components["schemas"]["DiaryEntry"][];
+            /**
+             * Format: date-time
+             * @description Present when older entries exist; send it as `before` to read the next page.
+             */
+            nextBefore?: string;
         };
         /**
          * @description epds = Edinburgh Postnatal Depression Scale, for either parent around pregnancy and birth; phq9 = Patient Health Questionnaire-9.
@@ -16895,15 +16895,6 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Error */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Error"];
-                };
-            };
         };
     };
     createQuizAnswer: {
@@ -20375,7 +20366,14 @@ export interface operations {
     };
     listDiaryEntries: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Only entries written strictly before this time. Omit for the newest page. */
+                before?: string;
+                /** @description true reads only entries marked as a first, so a family can review its firsts over the years. */
+                first?: boolean;
+                /** @description Page size. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /**

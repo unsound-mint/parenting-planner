@@ -15,6 +15,7 @@ import { ThanksSection } from "@/components/thanks/thanks-section";
 import { Rise } from "@/components/joy/rise";
 import { PageFrame } from "@/components/shell/page";
 import { MissionsLink } from "@/components/missions/missions-link";
+import { cn } from "@/lib/utils";
 
 // "People": invite a grandparent or nanny with a link, choose what they see,
 // revoke, and read what they did. Parents only; the API refuses caregivers too.
@@ -68,25 +69,28 @@ async function People({ params }: { params: Promise<{ memberId: string }> }) {
           Family paperwork
         </Link>
       </header>
-      <Link
-        href={`/family/${memberId}/people/friends`}
-        className="press lift flex w-full max-w-2xl items-center gap-4 rounded-3xl bg-them-soft p-5 text-left"
-      >
-        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-card text-them">
-          <UsersRound className="size-5" aria-hidden />
-        </span>
-        <span className="min-w-0">
-          <span className="block text-title">Friend families</span>
-          <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
-        </span>
-      </Link>
+      {/* The two links share a row on a wide column instead of one capped card beside dead space. */}
+      <div className={cn("grid min-w-0 gap-6", missions.data && "@4xl:grid-cols-2")}>
+        <Link
+          href={`/family/${memberId}/people/friends`}
+          className="press lift flex w-full items-center gap-4 rounded-3xl bg-them-soft p-5 text-left"
+        >
+          <span className="grid size-11 shrink-0 place-items-center rounded-full bg-card text-them">
+            <UsersRound className="size-5" aria-hidden />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-title">Friend families</span>
+            <span className="text-label font-normal text-ink-2">Share a moment with families you know, and send a hug back. Never your journal or health.</span>
+          </span>
+        </Link>
+        {missions.data && <MissionsLink memberId={memberId} missions={missions.data.items} />}
+      </div>
       {/* Who carries what is the couple's own section and takes the full width once it has data. */}
       {couple && couple.areas.length > 0 && (
         <Rise i={1} className="min-w-0">
           <LoadMapCard memberId={memberId} initial={couple} people={people} />
         </Rise>
       )}
-      {missions.data && <MissionsLink memberId={memberId} missions={missions.data.items} />}
       {/* The rest are independent cards. CSS columns fill the width without holes whatever is
           present (no invitations yet, an empty log, no thanks endpoint); DOM order is the phone order. */}
       <div className="min-w-0 gap-6 [&>*]:mb-6 [&>*]:break-inside-avoid @4xl:columns-2 @7xl:columns-3">

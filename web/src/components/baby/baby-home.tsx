@@ -93,7 +93,10 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
   const names = Object.fromEntries(people.map((p) => [p.id, p.displayName]));
 
   return (
-    <PageFrame className="grid content-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,1.25fr)] @7xl:grid-cols-[minmax(0,3fr)_minmax(22rem,1fr)]">
+    // From @5xl the rail spans both rows and the milestones sit under the log in the main column, so a
+    // tall rail does not leave a blank strip beside a short day chart. The 1fr second row takes the
+    // rail's extra height; DOM order (main, rail, milestones) stays the phone order.
+    <PageFrame className="grid content-start items-start gap-8 @5xl:grid-cols-[minmax(0,3fr)_minmax(0,1.25fr)] @5xl:grid-rows-[auto_1fr] @7xl:grid-cols-[minmax(0,3fr)_minmax(22rem,1fr)]">
       <div className="flex min-w-0 flex-col gap-8">
         <header className="flex flex-col gap-3">
           <h1 className="text-headline text-balance">{headline}</h1>
@@ -154,7 +157,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
         )}
       </div>
 
-      <aside className="flex min-w-0 flex-col gap-6 @5xl:pt-1">
+      <aside className="flex min-w-0 flex-col gap-6 @5xl:col-start-2 @5xl:row-span-2 @5xl:row-start-1 @5xl:pt-1">
         {outgoing ? (
           <section aria-labelledby="handoff-title" className="flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card p-4">
             <div className="flex items-center gap-3">
@@ -197,7 +200,7 @@ export async function BabyHome({ memberId, family, slots }: { memberId: string; 
       </aside>
 
       {milestones?.data && (
-        <div className="min-w-0 @5xl:col-span-2">
+        <div className="min-w-0 @5xl:col-start-1">
           <MilestoneCard key={milestones.data.recorded.map((r) => r.id + r.observedOn).join()} memberId={memberId} childId={child.id} checklist={milestones.data} />
           <div className="mt-6">
             <MilestoneTimeline key={milestones.data.recorded.map((r) => r.id + r.observedOn).join()} memberId={memberId} child={child} recorded={milestones.data.recorded} daysAhead={family.demoDaysAhead ?? 0} />

@@ -55,7 +55,23 @@ export function MoodHistory({ memberId, now }: { memberId: string; now: string }
   }, [memberId, end]);
 
   if (items === null) return <div aria-busy className="h-72 animate-pulse rounded-3xl bg-muted" />;
-  if (items.length === 0) return null;
+  // No check-ins yet: say what will grow here instead of leaving a hole.
+  if (items.length === 0)
+    return (
+      <section aria-labelledby="mood-history-title" className="flex items-center gap-4 rounded-3xl border border-line bg-card p-4.5 md:px-6 md:py-5">
+        <div aria-hidden className="flex shrink-0 -space-x-1.5">
+          {([2, 3, 4, 5] as Mood[]).map((m) => (
+            <MoodFace key={m} mood={m} className="size-7" />
+          ))}
+        </div>
+        <div className="min-w-0">
+          <h2 id="mood-history-title" className="text-title font-semibold">
+            Your mood over time
+          </h2>
+          <p className="text-label text-ink-2">Pick a face with each entry or check in from Today. After a few weeks your months show here as a line, with sleep under it.</p>
+        </div>
+      </section>
+    );
 
   const days = RANGES.find((r) => r.id === range)!.days;
   const weekly = range !== "1m";

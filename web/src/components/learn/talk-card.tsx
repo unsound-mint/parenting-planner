@@ -18,7 +18,7 @@ import type { Talked } from "./lesson-list";
  */
 export function TalkCard({ lessons, couple, talked, onTalked }: { lessons: Lesson[]; couple: Couple; talked: Talked; onTalked: (promptId: string) => void }) {
   const now = useFamilyNow();
-  const prompts = lessons.filter((l) => l.talkPrompt && !l.locked);
+  const prompts = lessons.filter((l) => l.talkPrompt);
   // Order once per mount (the parent keys the card by path): not talked about
   // first, then the rest. Marking one keeps it in place instead of swapping the text away.
   // Within each group, lessons best read now come before the rest.

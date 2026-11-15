@@ -4,7 +4,8 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { ContactShadows, OrbitControls } from "@react-three/drei";
 import { useEffect, useMemo, useRef, type ComponentRef } from "react";
 import * as THREE from "three";
-import { bounds, displayScale, layout, mix, params, TUBE_RINGS, TUBE_SIDES, type Area, type Layout, type Params, type Part, type Ring, type Vec3 } from "./model";
+import { sample, scheduleIdle, TAP, type Act, type Beat } from "./motion";
+import { bounds, displayScale, layout, mix, params, TUBE_RINGS, TUBE_SIDES, type Area, type Layout, type Params, type Part, STILL, type Ring, type Vec3 } from "./model";
 
 // The 3D baby. Loaded only on the 3D page, through next/dynamic with ssr off
 // (see view.tsx), so three.js never ships with the rest of the app.
@@ -66,6 +67,10 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
   const meshes = useRef<(THREE.Mesh | null)[]>([]);
   const dots = useRef<(THREE.Group | null)[]>([]);
   const glows = useRef<(THREE.Group | null)[]>([]);
+  const heartGlow = useRef<THREE.Sprite>(null);
+  const dotSize = useRef<number[]>([]);
+  const beats = useRef<Beat[]>([]);
+  const nextIdle = useRef<Partial<Record<Act, number>>>({});
 
   // Morph state lives in refs: React renders only when the week or selection changes.
   const target = useMemo(() => ({ p: params(week), scale: displayScale(lengthCm, lengthMeasure) }), [week, lengthCm, lengthMeasure]);
@@ -141,6 +146,13 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       n.y = Math.max(n.y, -0.15);
       r.dir = n.normalize().lerp(camera.position.clone().normalize(), 0.25).normalize();
       r.target.set(...toWorld(a.pos, last.center, last.k)).multiplyScalar(0.55);
+      // The part shows what its card says it can do: the hand grips, the leg kicks.
+      // Starts a moment later, once the camera has turned toward it. From the dot or the list.
+      const act = TAP[areas[selected]];
+      if (act && !reducedMotion) {
+        beats.current = beats.current.filter((b) => b.act !== act);
+        beats.current.push({ act, at: clock.elapsedTime + 0.45 });
+      }
     } else {
       r.dir = null;
       // Aim a little low so the baby sits above the size label in the corner.
@@ -148,7 +160,7 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
     }
     r.active = true;
     invalidate();
-  }, [selected, areas, camera, invalidate]);
+  }, [selected, areas, camera, invalidate, clock, reducedMotion]);
 
   useEffect(() => {
     if (!paused) invalidate();
@@ -177,16 +189,28 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       // Settled: snap, so the body is rebuilt only while it actually changes.
       if (!moving) cur.p = target.p;
     }
-    const lay = layout(cur.p);
+    // Movement: idle by stage, plus whatever a tap started. None under reduced motion.
+    if (!reducedMotion && !paused) scheduleIdle(beats.current, nextIdle.current, cur.p, now);
+    const life = sample(beats.current, now, cur.p);
+    if (reducedMotion) Object.assign(life, { m: STILL, jolt: 0, breath: 0, glow: 0 });
+    const lay = layout(cur.p, life.m);
     const b = bounds(lay);
     const k = (WORLD * cur.scale) / b.size;
     lastLayout.current = { lay, center: b.center, k };
 
     // Gentle float, like the bob on the illustrations. Off under reduced motion.
-    const bob = reducedMotion ? 0 : Math.sin(now * ((2 * Math.PI) / 4.8)) * 0.025;
+    // Hiccups add a small hop on top.
+    const bob = reducedMotion ? 0 : Math.sin(now * ((2 * Math.PI) / 4.8)) * 0.025 + life.jolt * 0.035 * cur.scale;
     if (group.current) {
       group.current.position.set(-b.center[0] * k, -b.center[1] * k + bob, -b.center[2] * k);
-      group.current.scale.setScalar(k);
+      // Practice breathing: the body swells a touch across, not along.
+      group.current.scale.set(k * (1 + 0.025 * life.breath), k, k * (1 + 0.04 * life.breath));
+    }
+    if (heartGlow.current) {
+      const [x, y, z] = toWorld(lay.anchors.heart.pos, b.center, k);
+      heartGlow.current.position.set(x, y + bob, z);
+      heartGlow.current.scale.setScalar(0.5 * life.glow * (0.6 + 0.4 * cur.scale));
+      heartGlow.current.visible = life.glow > 0.01;
     }
     lay.parts.forEach((part, i) => setMatrix(meshes.current[i], part));
     if (tubeFor.current !== cur.p) {
@@ -206,8 +230,13 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       const [x, y, z] = toWorld(a.pos, b.center, k);
       d.position.set(x, y + bob, z);
       const pulse = pulsing ? 1 + 0.8 * Math.sin(Math.PI * Math.min(1, Math.max(0, (since - i * 0.08) / 0.9))) : 1;
-      // Smaller on a tiny embryo, so four dots do not swallow it.
-      glows.current[i]?.scale.setScalar(pulse * (selected === i ? 1.25 : 1) * (0.55 + 0.45 * cur.scale));
+      // Much smaller on a tiny embryo, so four dots do not swallow it.
+      // While the selected part moves, its dot shrinks out of the way.
+      const acting = selected === i && beats.current.some((bt) => bt.act === TAP[area] && now >= bt.at);
+      const want = selected === i ? (acting ? 0.35 : 1.25) : 1;
+      const was = dotSize.current[i] ?? want;
+      dotSize.current[i] = reducedMotion ? want : was + (want - was) * (1 - Math.exp(-dt * 12));
+      glows.current[i]?.scale.setScalar(pulse * dotSize.current[i] * (0.28 + 0.72 * cur.scale));
     });
 
     // Camera: ease the distance with the baby's size, and toward a selected hotspot.
@@ -311,6 +340,9 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
           />
         </group>
       ))}
+      <sprite ref={heartGlow} visible={false}>
+        <spriteMaterial map={halo} color="#F07A6A" transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+      </sprite>
       <group ref={shadow}>
         <ContactShadows opacity={0.32} scale={4} blur={2.6} far={1.6} resolution={256} color="#9A5A3C" />
       </group>
