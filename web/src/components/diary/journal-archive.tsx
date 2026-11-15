@@ -135,7 +135,7 @@ export function JournalArchive({
         </label>
       </div>
 
-      {firsts.length > 0 && !query && (
+      {firsts.length > 1 && !query && (
         <ol aria-label="Your firsts, oldest first" className="flex gap-2 overflow-x-auto pb-1">
           {firsts.map((e) => (
             <li key={e.id} className="shrink-0">
