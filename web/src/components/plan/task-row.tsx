@@ -82,7 +82,9 @@ export function OwnerTrail({ task, ctx }: { task: Task; ctx: TaskCtx }) {
   );
 }
 
-/** Offer to the other parent in one tap, or pick from a short list when a caregiver can also take it. */
+/** Offer to the other parent in one tap, or pick from a short list when a caregiver can also take it.
+ * In a row the label shows on hover or focus only, so a list is not a column of identical
+ * "Hand over" words; the icon and its tooltip stay. */
 export function HandOver({ task, ctx, compact = false }: { task: Task; ctx: TaskCtx; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const targets = ctx.offerTargets;
@@ -97,7 +99,7 @@ export function HandOver({ task, ctx, compact = false }: { task: Task; ctx: Task
     return (
       <button type="button" disabled={busy} onClick={() => ctx.onOffer(task, to.id)} aria-label={`Offer "${task.title}" to ${to.displayName}`} title={`Offer to ${to.displayName}`} className={cn(trigger, sized)}>
         <ArrowRightLeft aria-hidden className="size-4" />
-        {!compact && <span className="hidden md:inline">Hand over</span>}
+        {!compact && <span className="hidden md:group-hover/task:inline md:group-focus-within/task:inline">Hand over</span>}
       </button>
     );
   }
@@ -105,7 +107,7 @@ export function HandOver({ task, ctx, compact = false }: { task: Task; ctx: Task
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger aria-label={`Offer "${task.title}" to someone`} title="Hand over" className={cn(trigger, sized)}>
         <ArrowRightLeft aria-hidden className="size-4" />
-        {!compact && <span className="hidden md:inline">Hand over</span>}
+        {!compact && <span className="hidden md:group-hover/task:inline md:group-focus-within/task:inline">Hand over</span>}
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
@@ -193,7 +195,7 @@ export function TaskRow({ task, ctx, showDue = true, compact = false }: { task: 
   const [open, setOpen] = useState(false);
   const detailId = `detail-${task.id}`;
   return (
-    <li id={`task-${task.id}`} className="flex scroll-mt-24 items-start gap-3 py-3">
+    <li id={`task-${task.id}`} className="group/task flex scroll-mt-24 items-start gap-3 py-3">
       <DoneToggle task={task} ctx={ctx} />
       <div className="min-w-0 flex-1">
         <TaskTitle task={task} open={open} onToggle={() => setOpen((o) => !o)} id={detailId} />

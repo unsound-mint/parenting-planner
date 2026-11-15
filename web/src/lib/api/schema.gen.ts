@@ -6106,7 +6106,7 @@ export interface components {
          */
         Tier: "free" | "plus" | "concierge";
         /** @enum {string} */
-        PaidTier: "plus" | "concierge";
+        PaidTier: "plus";
         /**
          * @description daycare = a center; nanny = care at home; family = a relative or a home-based family daycare.
          * @enum {string}
@@ -8881,7 +8881,13 @@ export interface components {
         };
         CheckoutSessionInput: {
             tier: components["schemas"]["PaidTier"];
+            interval?: components["schemas"]["BillingInterval"];
         };
+        /**
+         * @description How often the subscription is billed. Defaults to month.
+         * @enum {string}
+         */
+        BillingInterval: "month" | "year";
         /**
          * @description As Stripe reports it.
          * @enum {string}

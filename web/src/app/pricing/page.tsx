@@ -26,7 +26,7 @@ export default function PricingPage() {
 
       <div className="mx-auto mt-8 max-w-2xl text-center md:mt-12">
         <h1 className="text-headline text-balance">Pick the help that fits your family</h1>
-        <p className="mt-3 text-body text-muted-foreground">Start free. Add a plan for both parents, or a person to call, when you want it.</p>
+        <p className="mt-3 text-body text-muted-foreground">Start free. Add a plan for both parents when you want it.</p>
       </div>
 
       <div className="mt-12 md:mt-16">
@@ -53,8 +53,8 @@ async function Plans() {
 
 function Cards() {
   return (
-    <div className="grid gap-4 md:grid-cols-3 md:gap-6" aria-busy>
-      {[0, 1, 2].map((i) => (
+    <div className="grid gap-4 mx-auto max-w-4xl md:grid-cols-2 md:gap-6" aria-busy>
+      {[0, 1].map((i) => (
         <div key={i} className="h-96 animate-pulse rounded-2xl bg-muted" />
       ))}
     </div>

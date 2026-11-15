@@ -132,14 +132,15 @@ export function EditorForm({
 
 /**
  * Who can see a record, changeable in place: the chip is a native select, so
- * it works with the keyboard and on phones without a custom menu.
+ * it works with the keyboard and on phones without a custom menu. Plain text
+ * until hovered: every row has one, and a column of filled pills outweighed the values.
  */
 export function VisibilityPicker({ value, onChange, disabled }: { value: Visibility; onChange: (v: Visibility) => void; disabled?: boolean }) {
   const Icon = visibilityIcon[value];
   return (
     <label
       title={`${visibilityLabel[value]}. Change who can see it.`}
-      className="relative inline-flex h-7 cursor-pointer items-center gap-1 rounded-full bg-muted pr-2.5 pl-2 font-sans text-caption text-muted-foreground transition-colors duration-150 focus-within:ring-3 focus-within:ring-ring/50 hover:bg-muted/70 hover:text-foreground"
+      className="relative inline-flex h-7 cursor-pointer items-center gap-1 rounded-full px-1.5 font-sans text-caption text-muted-foreground transition-colors duration-150 focus-within:ring-3 focus-within:ring-ring/50 hover:bg-muted hover:text-foreground"
     >
       <Icon className="size-3.5" aria-hidden />
       {visibilityShort[value]}

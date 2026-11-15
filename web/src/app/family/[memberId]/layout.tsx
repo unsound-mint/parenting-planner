@@ -127,10 +127,10 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
                 memberId={memberId}
                 daysAhead={family.demoDaysAhead ?? 0}
                 upgrade={family.tier === "free"}
-                planLabel={`${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+                planLabel="Plus plan"
               />
               <Link href="/pricing" className="order-4 text-label max-[1399px]:hidden text-muted-foreground transition-colors duration-150 hover:text-foreground">
-                {family.tier === "free" ? "Upgrade" : `${family.tier === "plus" ? "Plus" : "Concierge"} plan`}
+                {family.tier === "free" ? "Upgrade" : "Plus plan"}
               </Link>
               <ResetDemo className="max-md:hidden" />
             </>

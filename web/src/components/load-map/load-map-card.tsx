@@ -152,32 +152,17 @@ export function LoadMapCard({
         </ul>
       </header>
 
-      <dl className="grid gap-x-8 gap-y-2 rounded-2xl bg-muted/60 p-3 text-label @2xl:grid-cols-2">
-        <div className="flex items-start gap-3">
-          <span
-            aria-hidden
-            className="mt-1.5 block h-3 w-10 shrink-0 rounded-full bg-ink-2/70"
-          />
-          <div>
-            <dt className="font-semibold">Doing</dt>
-            <dd className="font-normal text-muted-foreground">
-              Who has the task now, or who logged the feed, change or night.
-            </dd>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <span
-            aria-hidden
-            className="mt-2 block h-1.5 w-10 shrink-0 rounded-full bg-ink-2/70"
-          />
-          <div>
-            <dt className="font-semibold">Noticed first</dt>
-            <dd className="font-normal text-muted-foreground">
-              Who put the task on the plan. Remembering is work too.
-            </dd>
-          </div>
-        </div>
-      </dl>
+      {/* The legend is one quiet line: a boxed two-column key competed with the bars it explains. */}
+      <p className="-mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-caption text-muted-foreground">
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="block h-2.5 w-6 rounded-full bg-ink-2/70" />
+          Doing: who has the task, or logged the feed, change or night
+        </span>
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="block h-1 w-6 rounded-full bg-ink-2/70" />
+          Noticed first: who put it on the plan. Remembering is work too.
+        </span>
+      </p>
 
       {/* Two fixed columns, first half left and second half right: reading order stays the
           same on a phone, and opening an area only pushes down its own column. CSS columns

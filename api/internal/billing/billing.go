@@ -77,14 +77,24 @@ func (c Config) client() *http.Client {
 	return &http.Client{Timeout: 15 * time.Second}
 }
 
-// Monthly prices in cents, sent inline as price_data so no Stripe price ids
-// are needed. Keep in step with web/src/lib/plans.ts.
+// Prices in cents per billing interval, sent inline as price_data so no
+// Stripe price ids are needed. A missing interval means the tier is not
+// offered that way. Keep in step with web/src/lib/plans.ts.
 var tiers = map[string]struct {
 	name  string
-	cents int
+	cents map[string]int
 }{
-	"plus":      {"Parenting Planner Plus", 2900},
-	"concierge": {"Parenting Planner Concierge", 9900},
+	"plus": {"Parenting Planner Plus", map[string]int{"month": 1499, "year": 11999}},
+}
+
+// Offered reports whether tier can be bought with the given interval
+// ("month" or "year"; "" means month).
+func Offered(tier, interval string) bool {
+	if interval == "" {
+		interval = "month"
+	}
+	_, ok := tiers[tier].cents[interval]
+	return ok
 }
 
 // Session is the part of a Stripe Checkout Session the server reads.
@@ -120,13 +130,21 @@ func (s Session) Paid() bool {
 // ErrNotFound is returned when Stripe has no such checkout session.
 var ErrNotFound = errors.New("stripe: no such checkout session")
 
-// CreateCheckout starts a hosted Checkout for a monthly subscription to tier.
+// CreateCheckout starts a hosted Checkout for a subscription to tier, billed
+// every month or every year ("" means month).
 // The family id travels in the session and subscription metadata, which is
 // how the webhook finds the family.
-func CreateCheckout(ctx context.Context, cfg Config, familyID, memberID uuid.UUID, tier string) (Session, error) {
+func CreateCheckout(ctx context.Context, cfg Config, familyID, memberID uuid.UUID, tier, interval string) (Session, error) {
 	t, ok := tiers[tier]
 	if !ok {
 		return Session{}, fmt.Errorf("unknown tier %q", tier)
+	}
+	if interval == "" {
+		interval = "month"
+	}
+	cents, ok := t.cents[interval]
+	if !ok {
+		return Session{}, fmt.Errorf("tier %q is not offered per %q", tier, interval)
 	}
 	form := url.Values{}
 	form.Set("mode", "subscription")
@@ -138,12 +156,14 @@ func CreateCheckout(ctx context.Context, cfg Config, familyID, memberID uuid.UUI
 	form.Set("metadata[family_id]", familyID.String())
 	form.Set("metadata[member_id]", memberID.String())
 	form.Set("metadata[tier]", tier)
+	form.Set("metadata[interval]", interval)
 	form.Set("subscription_data[metadata][family_id]", familyID.String())
 	form.Set("subscription_data[metadata][tier]", tier)
+	form.Set("subscription_data[metadata][interval]", interval)
 	form.Set("line_items[0][quantity]", "1")
 	form.Set("line_items[0][price_data][currency]", "usd")
-	form.Set("line_items[0][price_data][unit_amount]", strconv.Itoa(t.cents))
-	form.Set("line_items[0][price_data][recurring][interval]", "month")
+	form.Set("line_items[0][price_data][unit_amount]", strconv.Itoa(cents))
+	form.Set("line_items[0][price_data][recurring][interval]", interval)
 	form.Set("line_items[0][price_data][product_data][name]", t.name)
 	// Managed Payments (on by default for new Stripe accounts) rejects a
 	// product without a tax code: txcd_10103000 is software as a service for
