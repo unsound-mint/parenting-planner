@@ -8,6 +8,7 @@ import (
 	"errors"
 	"sort"
 	"time"
+	_ "time/tzdata" // the API image may have no zoneinfo
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -87,8 +88,20 @@ type Occurrence struct {
 	Start, End time.Time
 }
 
+// familyZone is the zone the web formats every time in (web/src/lib/format.ts).
+// A shift's "22:00" is 22:00 on the family's clock, not 22:00 UTC (5 PM on screen).
+var familyZone = func() *time.Location {
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		return time.FixedZone("EST", -5*60*60)
+	}
+	return loc
+}()
+
+// at is hhmm on date's calendar day, on the family's clock. Only date's Y/M/D is used.
 func at(date time.Time, hhmm string) time.Time {
-	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC).Add(time.Duration(minutes(hhmm)) * time.Minute)
+	m := minutes(hhmm)
+	return time.Date(date.Year(), date.Month(), date.Day(), m/60, m%60, 0, 0, familyZone)
 }
 
 // Occurrences lists the runs of an active shift that start in [from, to), not
