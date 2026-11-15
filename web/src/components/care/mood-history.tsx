@@ -99,7 +99,7 @@ export function MoodHistory({ memberId, now }: { memberId: string; now: string }
   const filled = buckets.filter((b) => b.mood !== undefined);
   const hardest = weekly
     ? [...filled]
-        .filter((b) => (b.mood ?? 5) < 3)
+        .filter((b) => (b.mood ?? 5) < 2.5)
         .sort((a, b) => (a.mood ?? 0) - (b.mood ?? 0))
         .slice(0, 3)
     : [];
