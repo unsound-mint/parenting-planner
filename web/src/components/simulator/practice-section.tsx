@@ -38,7 +38,8 @@ export function PracticeSection({ progress, memberId, lead }: { progress: Simula
           <li key={s.id} className="min-w-0">
             <SoftCard className="flex h-full flex-col gap-3">
               <div className="flex items-center gap-1.5 text-muted-foreground">
-                {s.skills.map((k) => {
+                {/* A scenario can list the same skill more than once (duplicate React keys, repeated icons); show each once. */}
+                {[...new Set(s.skills)].map((k) => {
                   const Icon = skillIcon[k];
                   return (
                     <span key={k} title={skillLabel[k]} className="flex size-9 items-center justify-center rounded-full bg-muted">
