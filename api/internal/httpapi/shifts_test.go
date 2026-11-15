@@ -72,7 +72,7 @@ func TestAgreedShiftsBecomeActiveWhenTheBabyIsHome(t *testing.T) {
 			if e.Kind == httpapi.CalendarEventKindShift {
 				found = true
 				if e.Id != sh.Id.String()+":2026-11-14" || e.ShiftId == nil || *e.ShiftId != sh.Id || e.OwnerId == nil || *e.OwnerId != jake.Id ||
-					!e.StartsAt.Equal(time.Date(2026, 11, 14, 22, 0, 0, 0, time.UTC)) || e.EndsAt == nil || !e.EndsAt.Equal(time.Date(2026, 11, 15, 2, 0, 0, 0, time.UTC)) {
+					!e.StartsAt.Equal(time.Date(2026, 11, 14, 22, 0, 0, 0, familyClock)) || e.EndsAt == nil || !e.EndsAt.Equal(time.Date(2026, 11, 15, 2, 0, 0, 0, familyClock)) {
 					t.Errorf("%s: occurrence = %+v", name, e)
 				}
 			}
@@ -124,16 +124,19 @@ func TestShiftPermissionsAndVisibility(t *testing.T) {
 	c.Post(shiftsPath(p.nanny.Id), shiftBody("x", "08:00", "09:00", "fri"), http.StatusForbidden, nil)
 }
 
+// familyClock is the zone shift times are read in (shifts.at).
+var familyClock, _ = time.LoadLocation("America/New_York")
+
 func TestOnDutyFollowsTheShiftUntilAHandoffIsAccepted(t *testing.T) {
 	c := testutil.New(t)
 	p := newbornFamily(c, t)
-	// Now is Saturday 15:00 UTC: the nanny's Saturday afternoon shift covers it.
-	c.Post(shiftsPath(p.nanny.Id), shiftBody("Saturday", "14:00", "18:00", "sat"), http.StatusCreated, nil)
+	// Now is Saturday 15:00 UTC, 10:00 on the family's clock: the nanny's Saturday morning shift covers it.
+	c.Post(shiftsPath(p.nanny.Id), shiftBody("Saturday", "09:00", "13:00", "sat"), http.StatusCreated, nil)
 	var log httpapi.CareLogList
 	c.Get(careLog(p.mom.Id), http.StatusOK, &log)
 	d := log.Latest.OnDuty
-	if d == nil || d.MemberId != p.nanny.Id || d.Via != httpapi.OnDutyViaShift || !d.Since.Equal(time.Date(2026, 11, 14, 14, 0, 0, 0, time.UTC)) {
-		t.Fatalf("on duty = %+v, want the nanny via her shift since 14:00", d)
+	if d == nil || d.MemberId != p.nanny.Id || d.Via != httpapi.OnDutyViaShift || !d.Since.Equal(time.Date(2026, 11, 14, 9, 0, 0, 0, familyClock)) {
+		t.Fatalf("on duty = %+v, want the nanny via her shift since 09:00", d)
 	}
 	// A handoff accepted after the shift began takes over.
 	var h httpapi.Handoff

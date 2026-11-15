@@ -62,8 +62,9 @@ async function Shell({ children, params }: { children: React.ReactNode; params: 
     // Newborn practice is baby prep: none of it while the family is in pregnancy loss support.
     // The practice rounds are first-night-home scenarios: nothing for a family that is planning or has a child past toddler age.
     simulator: inLossSupport(family) || isPlanning(family) || hasOlderChild(family) ? 404 : simulator.response.status,
-    // Stage lessons give way to the support card in loss support (the page does the same).
-    ...(inLossSupport(family) ? { learn: 404 } : {}),
+    // Stage lessons give way to the support card in loss support (the page does the same),
+    // and so does the baby budget: no money planning while a family grieves.
+    ...(inLossSupport(family) ? { learn: 404, money: 404 } : {}),
     ...(care || family.children.length === 0 ? { baby: care?.response.status ?? 404 } : {}),
     ...(invitations ? { people: invitations.response.status } : {}),
   });

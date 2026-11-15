@@ -38,8 +38,8 @@
   },
   "cdc-maternal-diet": {
    "title": "CDC: Maternal diet and breastfeeding",
-   "url": "https://www.cdc.gov/breastfeeding/breastfeeding-special-circumstances/diet-and-micronutrients/maternal-diet.html",
-   "checkedAt": "2026-11-14"
+   "url": "https://www.cdc.gov/breastfeeding-special-circumstances/hcp/diet-micronutrients/maternal-diet.html",
+   "checkedAt": "2026-11-15"
   },
   "cdc-alcohol": {
    "title": "CDC: Alcohol and breastfeeding",
@@ -85,6 +85,31 @@
    "title": "CDC: Alcohol use in pregnancy",
    "url": "https://www.cdc.gov/alcohol-pregnancy/about/index.html",
    "checkedAt": "2026-11-14"
+  },
+  "nhs-breastfeeding-diet": {
+   "title": "NHS: Breastfeeding and diet",
+   "url": "https://www.nhs.uk/baby/breastfeeding-and-bottle-feeding/breastfeeding-and-lifestyle/diet/",
+   "checkedAt": "2026-11-15"
+  },
+  "nhs-vitamin-a": {
+   "title": "NHS: Vitamin A",
+   "url": "https://www.nhs.uk/conditions/vitamins-and-minerals/vitamin-a/",
+   "checkedAt": "2026-11-15"
+  },
+  "nhs-gaviscon-breastfeeding": {
+   "title": "NHS: Pregnancy, breastfeeding and fertility while taking Gaviscon",
+   "url": "https://www.nhs.uk/medicines/gaviscon/pregnancy-breastfeeding-and-fertility-while-taking-gaviscon/",
+   "checkedAt": "2026-11-15"
+  },
+  "cdc-raw-milk": {
+   "title": "CDC: Raw milk",
+   "url": "https://www.cdc.gov/food-safety/foods/raw-milk.html",
+   "checkedAt": "2026-11-15"
+  },
+  "mtb-herbal": {
+   "title": "MotherToBaby: Herbal products",
+   "url": "https://mothertobaby.org/fact-sheets/herbal-products/",
+   "checkedAt": "2026-11-15"
   }
  },
  "entries": [
@@ -108,11 +133,17 @@
     "status": "limit",
     "why": "The CDC says to avoid soft cheese made from raw milk, such as queso fresco, and to choose pasteurized versions, heated until steaming hot. Pasteurized feta, mozzarella and cream cheese are generally considered OK; the NHS adds that mold-ripened and blue cheeses are best cooked."
    },
+   "breastfeeding": {
+    "status": "ok",
+    "why": "The NHS says you do not need a special diet while breastfeeding, and the CDC says women generally do not need to limit or avoid specific foods. The pregnancy warning about soft and mould-ripened cheese is about listeria in pregnancy. Pasteurized cheese is still the everyday choice."
+   },
    "sources": [
     "cdc-pregnancy-food",
     "cdc-listeria",
     "fda-dairy-eggs",
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-breastfeeding-diet",
+    "cdc-maternal-diet"
    ],
    "learn": {
     "pathId": "eating-in-pregnancy",
@@ -135,11 +166,16 @@
     "status": "avoid",
     "why": "The CDC and FDA say to avoid raw milk and products made from it, which can carry listeria that is especially harmful in pregnancy. Pasteurized versions are the usual choice."
    },
+   "breastfeeding": {
+    "status": "avoid",
+    "why": "The CDC says raw milk can carry germs that cause serious illness, and recommends pasteurized milk and dairy. That is general food safety, not something particular to breastfeeding."
+   },
    "sources": [
     "cdc-pregnancy-food",
     "fda-dairy-eggs",
     "cdc-listeria",
-    "nhs-foods"
+    "nhs-foods",
+    "cdc-raw-milk"
    ],
    "learn": {
     "pathId": "eating-in-pregnancy",
@@ -167,10 +203,16 @@
     "status": "limit",
     "why": "The CDC and FDA say to cook eggs until the yolks and whites are firm, and to use pasteurized eggs for dishes with raw egg like mousse, tiramisu or homemade mayonnaise. Store-bought mayonnaise and dressings use pasteurized eggs. The risk is salmonella food poisoning."
    },
+   "breastfeeding": {
+    "status": "limit",
+    "why": "The NHS says you do not need a special diet while breastfeeding, and the CDC says women generally do not need to limit or avoid specific foods. The NHS pregnancy page notes that raw or runny eggs can still give you food poisoning, so cooking them through is the easier path."
+   },
    "sources": [
     "fda-dairy-eggs",
     "cdc-pregnancy-food",
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-breastfeeding-diet",
+    "cdc-maternal-diet"
    ]
   },
   {
@@ -195,10 +237,16 @@
     "status": "limit",
     "why": "The CDC says to avoid deli meat and hot dogs unless they are heated to 165°F or steaming hot, because ready-to-eat meats can carry listeria. The NHS also asks for refrigerated pâté to be eaten before its use-by date."
    },
+   "breastfeeding": {
+    "status": "ok",
+    "why": "The NHS says you do not need a special diet while breastfeeding, and the CDC says women generally do not need to limit or avoid specific foods. The CDC advises reheating deli meat until steaming hot for higher-risk groups such as pregnant women and newborns; it does not name breastfeeding mothers."
+   },
    "sources": [
     "cdc-pregnancy-food",
     "cdc-listeria",
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-breastfeeding-diet",
+    "cdc-maternal-diet"
    ],
    "learn": {
     "pathId": "eating-in-pregnancy",
@@ -220,8 +268,13 @@
     "status": "avoid",
     "why": "The NHS says to avoid liver because it is very high in vitamin A, and too much vitamin A can harm the baby."
    },
+   "breastfeeding": {
+    "status": "limit",
+    "why": "Liver is very rich in vitamin A. The NHS says adults should not eat liver or liver products such as pate more than once a week; its page does not single out breastfeeding."
+   },
    "sources": [
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-vitamin-a"
    ]
   },
   {
@@ -338,9 +391,14 @@
     "status": "limit",
     "why": "The CDC says to avoid raw or undercooked fish and shellfish, including sushi, sashimi and ceviche. Rolls made with cooked fish or only vegetables are generally considered OK."
    },
+   "breastfeeding": {
+    "status": "limit",
+    "why": "The NHS suggests no more than 2 portions of oily fish a week and no more than 1 of shark, swordfish or marlin while breastfeeding. Raw fish can also cause ordinary food poisoning, so choose a trusted place."
+   },
    "sources": [
     "cdc-pregnancy-food",
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-breastfeeding-diet"
    ]
   },
   {
@@ -361,10 +419,16 @@
     "status": "avoid",
     "why": "The CDC says to avoid raw or undercooked shellfish, which can carry bacteria or toxins. Refrigerated smoked seafood is also to be avoided unless it is in a cooked dish; shelf-stable sealed packs are the usual choice."
    },
+   "breastfeeding": {
+    "status": "limit",
+    "why": "The NHS says raw shellfish can contain bacteria or toxins that cause food poisoning. Its breastfeeding page sets no shellfish rule, so this is ordinary food safety: cooked is the lower-risk way."
+   },
    "sources": [
     "cdc-pregnancy-food",
     "cdc-listeria",
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-breastfeeding-diet",
+    "cdc-maternal-diet"
    ]
   },
   {
@@ -383,9 +447,15 @@
     "status": "limit",
     "why": "The CDC says to avoid raw or undercooked sprouts such as alfalfa and bean sprouts; sprouts cooked until steaming hot are the usual choice. Keep cut melon refrigerated."
    },
+   "breastfeeding": {
+    "status": "limit",
+    "why": "The CDC lists sprouts among foods to cook until steaming hot for higher-risk groups, which include pregnant women and newborns. Breastfeeding mothers are not named, but cooking them is the lower-risk way."
+   },
    "sources": [
     "cdc-pregnancy-food",
-    "cdc-listeria"
+    "cdc-listeria",
+    "nhs-breastfeeding-diet",
+    "cdc-maternal-diet"
    ],
    "learn": {
     "pathId": "eating-in-pregnancy",
@@ -438,8 +508,14 @@
     "status": "limit",
     "why": "There is little research on herbal teas in pregnancy, so the NHS suggests no more than 4 cups a day and avoiding licorice root tea, which may harm the baby's development."
    },
+   "breastfeeding": {
+    "status": "ok",
+    "why": "The NHS suggests herbal teas as a swap for caffeinated drinks while breastfeeding. MotherToBaby says there is little information on herbal products and breastfeeding, so read the label and ask about any blend with added herbs."
+   },
    "sources": [
-    "nhs-foods"
+    "nhs-foods",
+    "nhs-breastfeeding-diet",
+    "mtb-herbal"
    ]
   },
   {
@@ -605,8 +681,13 @@
     "status": "ask",
     "why": "Antacids and alginates are commonly used for heartburn, but the NHS says some are not suitable in pregnancy, so tell the pharmacist you are pregnant. They can stop iron and folic acid being absorbed, so keep them apart."
    },
+   "breastfeeding": {
+    "status": "ok",
+    "why": "For Gaviscon, the NHS says it can be taken while breastfeeding and should not cause side effects in your baby. Other antacid brands have different ingredients, so check with your pharmacist."
+   },
    "sources": [
-    "nhs-indigestion"
+    "nhs-indigestion",
+    "nhs-gaviscon-breastfeeding"
    ]
   },
   {
@@ -654,9 +735,14 @@
     "status": "ask",
     "why": "The NHS warns that natural does not mean safe in pregnancy. Tell your OB, midwife or pharmacist about any herbal, homeopathic or aromatherapy product you use."
    },
+   "breastfeeding": {
+    "status": "ask",
+    "why": "MotherToBaby says there is little information on herbal products while breastfeeding, many have not been studied, and some have caused dangerous side effects. Products are not held to standards for ingredients or strength, so go through the label with your pharmacist or clinician."
+   },
    "sources": [
     "nhs-medicines",
-    "mtb-colds"
+    "mtb-colds",
+    "mtb-herbal"
    ]
   }
  ]

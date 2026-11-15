@@ -38,6 +38,11 @@ func d(y int, m time.Month, day, h, min int) time.Time {
 	return time.Date(y, m, day, h, min, 0, 0, time.UTC)
 }
 
+// ny is a wall-clock time on the family's clock, where shift times live.
+func ny(y int, m time.Month, day, h, min int) time.Time {
+	return time.Date(y, m, day, h, min, 0, 0, familyZone)
+}
+
 func TestOccurrencesAndCurrent(t *testing.T) {
 	start := d(2026, 11, 16, 0, 0) // a Monday
 	sh := store.Shift{Days: []string{"mon", "thu"}, StartTime: "22:00", EndTime: "02:00", StartsOn: &start}
@@ -46,20 +51,20 @@ func TestOccurrencesAndCurrent(t *testing.T) {
 	if len(got) != 3 { // Mon 16, Thu 19, Mon 23; nothing before it starts
 		t.Fatalf("occurrences = %+v", got)
 	}
-	if !got[0].Start.Equal(d(2026, 11, 16, 22, 0)) || !got[0].End.Equal(d(2026, 11, 17, 2, 0)) {
+	if !got[0].Start.Equal(ny(2026, 11, 16, 22, 0)) || !got[0].End.Equal(ny(2026, 11, 17, 2, 0)) {
 		t.Errorf("first = %+v, want Mon 22:00 to Tue 02:00", got[0])
 	}
 	if n := len(Occurrences(store.Shift{Days: []string{"mon"}, StartTime: "09:00", EndTime: "10:00"}, start, start.AddDate(0, 0, 7))); n != 0 {
 		t.Errorf("an agreed shift (no start day) has no occurrences, got %d", n)
 	}
 
-	if _, ok := Current(sh, d(2026, 11, 17, 1, 0)); !ok {
+	if _, ok := Current(sh, ny(2026, 11, 17, 1, 0)); !ok {
 		t.Error("Tuesday 01:00 is inside Monday night's shift")
 	}
-	if _, ok := Current(sh, d(2026, 11, 17, 2, 0)); ok {
+	if _, ok := Current(sh, ny(2026, 11, 17, 2, 0)); ok {
 		t.Error("the end is exclusive")
 	}
-	if _, ok := Current(sh, d(2026, 11, 18, 23, 0)); ok {
+	if _, ok := Current(sh, ny(2026, 11, 18, 23, 0)); ok {
 		t.Error("Wednesday is not a shift day")
 	}
 }

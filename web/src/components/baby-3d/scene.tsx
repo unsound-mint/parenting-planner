@@ -27,6 +27,10 @@ export type SceneProps = {
 };
 
 const SKIN = "#FBD5BE";
+/** The early embryo: rosier and glossier, as if lit through. Blends to SKIN by p.skin. */
+const EMBRYO = "#F3A493";
+const HAIR = "#8A5B40";
+const YOLK = "#F5D27E";
 const BLUSH = "#EE9B83";
 const INK = "#3A2C24";
 /** World units for a full-size (week 40) baby's largest extent. */
@@ -91,7 +95,10 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
   );
   const mat = useMemo(
     () => ({
-      skin: new THREE.MeshPhysicalMaterial({ color: SKIN, roughness: 0.72, sheen: 0.7, sheenColor: new THREE.Color("#FFE3CC"), sheenRoughness: 0.55 }),
+      skin: new THREE.MeshPhysicalMaterial({ color: SKIN, roughness: 0.72, sheen: 0.7, sheenColor: new THREE.Color("#FFE3CC"), sheenRoughness: 0.55, emissive: "#E2654E", emissiveIntensity: 0 }),
+      hair: new THREE.MeshStandardMaterial({ color: HAIR, roughness: 0.85 }),
+      yolk: new THREE.MeshPhysicalMaterial({ color: YOLK, roughness: 0.35, clearcoat: 0.6, clearcoatRoughness: 0.3, emissive: "#E9A94A", emissiveIntensity: 0.12 }),
+      shine: new THREE.MeshBasicMaterial({ color: "#FFFFFF" }),
       blush: new THREE.MeshStandardMaterial({ color: BLUSH, roughness: 0.9, transparent: true, opacity: 0.55, depthWrite: false }),
       ink: new THREE.MeshStandardMaterial({ color: INK, roughness: 0.6 }),
       dot: new THREE.MeshStandardMaterial({ color: "#FFFDF9", emissive: "#F4CD6A", emissiveIntensity: 0.9, roughness: 0.4 }),
@@ -165,7 +172,8 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
       const k = 1 - Math.exp(-dt * 7);
       cur.p = mix(cur.p, target.p, k);
       cur.scale += (target.scale - cur.scale) * k;
-      moving = Math.abs(cur.scale - target.scale) > 0.0005 || Math.abs(cur.p.headR - target.p.headR) > 0.0005 || Math.abs(cur.p.legLen - target.p.legLen) > 0.0005;
+      // Any param still off by more than a hair keeps the morph going.
+      moving = Math.abs(cur.scale - target.scale) > 0.0005 || (Object.keys(target.p) as (keyof Params)[]).some((key) => Math.abs(cur.p[key] - target.p[key]) > 0.0005);
       // Settled: snap, so the body is rebuilt only while it actually changes.
       if (!moving) cur.p = target.p;
     }
@@ -184,6 +192,7 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
     if (tubeFor.current !== cur.p) {
       updateTube(geo.tube, lay.tube);
       tubeFor.current = cur.p;
+      tintSkin(mat.skin, cur.p.skin);
     }
     if (shadow.current) shadow.current.position.y = -(WORLD * cur.scale) * 0.5 - 0.08;
 
@@ -263,8 +272,8 @@ function Baby({ week, lengthCm, lengthMeasure, areas, selected, onSelect, reduce
               meshes.current[i] = m;
             }}
             matrixAutoUpdate={false}
-            geometry={part.arc ? (part.radii[0] / Math.max(part.radii[1], 1e-6) > 4 ? geo.eye : geo.mouth) : geo.sphere}
-            material={part.tone === "skin" ? mat.skin : part.tone === "blush" ? mat.blush : mat.ink}
+            geometry={part.arc === "lid" ? geo.eye : part.arc === "smile" ? geo.mouth : geo.sphere}
+            material={mat[part.tone]}
             renderOrder={part.tone === "blush" ? 2 : 0}
           />
         ))}
@@ -334,7 +343,8 @@ function updateTube(g: THREE.BufferGeometry, rings: Ring[]) {
     for (let j = 0; j < TUBE_SIDES; j++) {
       const a = (j / TUBE_SIDES) * Math.PI * 2;
       // A touch wider than deep, so the body reads as a body and not a pipe.
-      const cx = Math.cos(a) * ring.r;
+      // Somite bumps sit on the back half only (cos a > 0 points to the back).
+      const cx = Math.cos(a) * (ring.r + ring.bump * ring.r * Math.max(0, Math.cos(a)) ** 2);
       const sz = Math.sin(a) * ring.r * 1.1;
       const o = (i * TUBE_SIDES + j) * 3;
       arr[o] = ring.c[0] + ring.out[0] * cx;
@@ -347,6 +357,15 @@ function updateTube(g: THREE.BufferGeometry, rings: Ring[]) {
   g.computeBoundingSphere();
 }
 
+const embryoColor = new THREE.Color(EMBRYO);
+const skinColor = new THREE.Color(SKIN);
+/** Skin by stage: rosy and a little glossy early, settling into opaque peach (t = 1). */
+function tintSkin(m: THREE.MeshPhysicalMaterial, t: number) {
+  m.color.lerpColors(embryoColor, skinColor, t);
+  m.roughness = 0.5 + 0.22 * t;
+  m.emissiveIntensity = 0.14 * (1 - t);
+}
+
 function toWorld(p: Vec3, center: Vec3, k: number): Vec3 {
   return [(p[0] - center[0]) * k, (p[1] - center[1]) * k, (p[2] - center[2]) * k];
 }
@@ -357,6 +376,7 @@ function setMatrix(mesh: THREE.Mesh | null | undefined, part: Part) {
   const [x, y, z] = part.basis;
   if (part.arc) {
     // A half torus is an arch; turned over it is the closed, sleepy eye and the small smile.
+    // Eyebrows pass a basis already turned upside down, so they arch the other way.
     const s = part.radii[0];
     m4.set(-x[0] * s, -y[0] * s, z[0] * s, part.pos[0], -x[1] * s, -y[1] * s, z[1] * s, part.pos[1], -x[2] * s, -y[2] * s, z[2] * s, part.pos[2], 0, 0, 0, 1);
   } else {

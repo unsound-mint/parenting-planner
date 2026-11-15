@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Baby, BookHeart, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, Route, Settings, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
+import { Baby, BookHeart, BookOpen, CalendarDays, Ellipsis, IdCard, NotebookPen, PiggyBank, Route, Settings, ShieldCheck, Sprout, Target, UsersRound, X, type LucideIcon } from "lucide-react";
 import { canOpen, isCaregiver, type Role } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,7 @@ const items: Item[] = [
   { href: "/baby", screen: "baby", label: "Baby", icon: Baby, group: "more" },
   { href: "/passport", screen: "passport", label: "Baby passport", short: "Passport", icon: IdCard, group: "more" },
   { href: "/people", screen: "people", label: "People", icon: UsersRound, group: "more" },
+  { href: "/money", screen: "money", label: "Money", icon: PiggyBank, group: "more" },
   { href: "/simulator", screen: "simulator", label: "Practice", icon: Target, group: "more", fallbackFor: "learn" },
   { href: "/privacy", screen: "privacy", label: "Privacy", icon: ShieldCheck, group: "account" },
   { href: "/settings", screen: "settings", label: "Settings", icon: Settings, group: "account" },

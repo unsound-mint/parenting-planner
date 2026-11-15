@@ -172,6 +172,20 @@ func (s *seeder) visit(owner, with uuid.UUID, title string, on time.Time) {
 	}
 }
 
+// event is an upcoming shared event on the family's clock, so this week's calendar is not empty.
+func (s *seeder) event(owner, with uuid.UUID, kind, title string, inDays, hour int, visibility string) {
+	if s.err != nil {
+		return
+	}
+	e, err := s.q.CreateCalendarEvent(s.ctx, store.CreateCalendarEventParams{
+		FamilyID: s.fam, OwnerMemberID: owner, Visibility: visibility, Kind: kind, Title: title,
+		StartsAt: atHour(s.today.AddDate(0, 0, inDays), hour),
+	})
+	if s.err = err; err == nil {
+		s.err = s.q.AddCalendarEventAttendee(s.ctx, store.AddCalendarEventAttendeeParams{EventID: e.ID, MemberID: with})
+	}
+}
+
 func (s *seeder) learning(t Template, mom, dad uuid.UUID) {
 	if s.err == nil {
 		s.err = seedLearning(s.ctx, s.q, t, s.fam, mom, dad, s.today)
@@ -218,6 +232,7 @@ func seedPlanning(ctx context.Context, q *store.Queries, today time.Time) (uuid.
 		s.mood(maya, "partner", 1+2*i, m.mood, m.energy, 7.5, "")
 	}
 	s.mood(daniel, "partner", 2, 4, 4, 7, "")
+	s.event(maya, daniel, "other", "Dinner with Maya's parents", 2, 18, "family")
 	s.fertility(maya, daniel)
 	s.learning(Planning, maya, daniel)
 	s.missions(Planning, maya, daniel)
@@ -254,6 +269,7 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 	s.vaccine(parent(marcus), "tdap", born.AddDate(0, 0, -40))
 	s.vaccine(childOf(leo), "hepb", born)
 	s.visit(aisha, marcus, "Leo's first checkup with Dr. Ortiz", born.AddDate(0, 0, 5))
+	s.event(aisha, marcus, "appointment", "Lactation visit with Grace Whitfield", 2, 11, "family")
 	// The 2-month visit, so the passport lists the same doses the plan item
 	// "infant-2-month-vaccines" asks the parents to book.
 	for _, v := range []string{"dtap", "ipv", "hib", "pcv", "rotavirus"} {
@@ -273,6 +289,9 @@ func seedNewborn(ctx context.Context, q *store.Queries, today time.Time) (uuid.U
 		return uuid.Nil, err
 	}
 	if err := tasks.SeedBabyTasks(ctx, q, fam, aisha, marcus, today); err != nil {
+		return uuid.Nil, err
+	}
+	if err := seedNightShifts(ctx, q, fam, aisha, marcus, today); err != nil {
 		return uuid.Nil, err
 	}
 	if err := seedCareHistory(ctx, q, fam, leo, aisha, marcus, today); err != nil {
@@ -518,6 +537,8 @@ func seedPreschool(ctx context.Context, q *store.Queries, today time.Time) (uuid
 		s.mood(rachel, "partner", m.daysAgo, m.mood, 3, 7, "")
 	}
 	s.mood(tom, "partner", 3, 4, 4, 7.5, "")
+	s.event(rachel, tom, "appointment", "Ava's flu shot at Foothills Children's Clinic", 3, 16, "family")
+	s.event(rachel, tom, "other", "Parent-teacher meeting at Ava's preschool", 5, 17, "family")
 	s.learning(Preschool, rachel, tom)
 	s.missions(Preschool, rachel, tom)
 	fam, err := s.done()
