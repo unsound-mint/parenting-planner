@@ -7,6 +7,7 @@ import { Rise } from "@/components/joy/rise";
 import type { LibraryStage } from "@/lib/api/types";
 import { byRelevance, counts, type LibraryItem, stageLabels, stageOrder } from "./catalogue";
 import { LibraryCard } from "./library-card";
+import { useSavable } from "./use-savable";
 import { tileGrid } from "./library-shelves";
 import { categoryOf } from "./visuals";
 
@@ -18,8 +19,9 @@ const GROUP = 12;
  * the rest. An item spanning stages sits in the family's stage if it covers
  * it, otherwise in its earliest one, so nothing is listed twice.
  */
-export function TopicGroups({ memberId, category, items, stage }: { memberId: string; category: string; items: LibraryItem[]; stage: LibraryStage }) {
+export function TopicGroups({ memberId, category, items: initial, stage }: { memberId: string; category: string; items: LibraryItem[]; stage: LibraryStage }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [items, save] = useSavable(memberId, initial);
   const { label, icon: Icon } = categoryOf(category);
   const c = counts(items);
   const groups = new Map<LibraryStage, LibraryItem[]>();
@@ -68,7 +70,7 @@ export function TopicGroups({ memberId, category, items, stage }: { memberId: st
             </h2>
             <ul className={tileGrid}>
               {(all ? list : list.slice(0, GROUP)).map((i) => (
-                <LibraryCard key={i.id} item={i} />
+                <LibraryCard key={i.id} item={i} onSave={save} />
               ))}
             </ul>
             {!all && (

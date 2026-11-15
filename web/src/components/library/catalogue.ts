@@ -7,7 +7,8 @@ import { categoryOrder, words } from "./visuals";
 // this file only merges, filters and orders it.
 
 export type Format = "article" | "lesson" | "quiz";
-export type Length = "short" | "medium" | "long";
+/** Quick filters that help a parent choose: their own stage, what they have not read, what they saved. */
+export type Show = "stage" | "unread" | "saved";
 
 export type LibraryItem = {
   id: string;
@@ -23,8 +24,12 @@ export type LibraryItem = {
   soon: boolean;
   /** The topic covers the family's moment right now. */
   now: boolean;
-  /** Read state the API knows (lessons only for now). */
+  /** Read state the API holds for the acting parent. */
   state?: "read" | "reading" | "new";
+  /** Saved for later (library topics). */
+  saved: boolean;
+  /** The library topic id, for saving; lessons and coming soon have none. */
+  topicId?: string;
   /** Searchable words. */
   words: string[];
 };
@@ -40,8 +45,17 @@ export const stageLabels: Record<LibraryStage, string> = {
 export const stageOrder = Object.keys(stageLabels) as LibraryStage[];
 
 export const formatLabels: Record<Format, string> = { article: "Articles", lesson: "Lessons", quiz: "Quizzes" };
-export const lengthLabels: Record<Length, string> = { short: "Up to 3 min", medium: "4 to 6 min", long: "7 min or more" };
-export const lengthOf = (minutes: number): Length => (minutes <= 3 ? "short" : minutes <= 6 ? "medium" : "long");
+export const showLabels: Record<Show, string> = { stage: "For your stage", unread: "Not read yet", saved: "Saved" };
+export function shows(i: LibraryItem, show: Show, stage: LibraryStage): boolean {
+  switch (show) {
+    case "stage":
+      return i.stages.includes(stage);
+    case "unread":
+      return !i.soon && i.state !== "read";
+    case "saved":
+      return i.saved;
+  }
+}
 
 /** The family's place on the library's stage line, from the content stage the API filters lessons by. */
 export function libraryStage(stage: Stage): LibraryStage {
@@ -102,6 +116,9 @@ export function buildCatalogue({
       href: `${base}/questions?topic=${encodeURIComponent(t.id)}`,
       soon: false,
       now: t.now,
+      state: t.readAt ? "read" : "new",
+      saved: !!t.savedAt,
+      topicId: t.id,
       words: words([t.title, ...t.questions].join(" ")),
     });
   }
@@ -121,6 +138,7 @@ export function buildCatalogue({
         soon: false,
         now: l.timing === "now",
         state,
+        saved: false,
         words: words(`${l.title} ${p.title}`),
       });
     }
@@ -136,6 +154,7 @@ export function buildCatalogue({
       format: u.format === "quiz" ? "quiz" : "article",
       soon: true,
       now: false,
+      saved: false,
       words: words(`${u.title} ${u.summary}`),
     });
   }

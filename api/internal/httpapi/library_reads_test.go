@@ -45,6 +45,7 @@ func TestLibraryReadAndSaveArePerParent(t *testing.T) {
 	if read, saved := state(partner.Id); read || saved {
 		t.Errorf("partner sees the mother's state: read=%v saved=%v", read, saved)
 	}
+	r = httpapi.LibraryRead{} // decoding keeps fields the answer leaves out
 	c.Put(memberPath(mom.Id)+"/library-reads/caffeine-in-pregnancy", httpapi.LibraryReadInput{Saved: &no}, http.StatusOK, &r)
 	if r.SavedAt != nil || r.ReadAt == nil {
 		t.Errorf("unsave: %+v", r)
