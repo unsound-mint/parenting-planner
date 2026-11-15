@@ -12689,8 +12689,17 @@ components:
 
     LibraryTopicSummary:
       type: object
-      required: [id, title, questions, category, evidence, ages, now, soon, urgent]
+      required: [id, title, questions, category, evidence, ages, now, soon, urgent, stages, minutes]
       properties:
+        stages:
+          type: array
+          description: The library stages the topic's age span touches, in life order.
+          items:
+            $ref: "#/components/schemas/LibraryStage"
+        minutes:
+          type: integer
+          description: Estimated reading time at 200 words a minute.
+          minimum: 1
         id:
           type: string
         title:
@@ -12719,10 +12728,49 @@ components:
           type: boolean
           description: The topic has urgent signs; the UI links the fixed Urgent help screen.
 
+    LibraryStage:
+      type: string
+      description: A stage filter of the Learn library. newborn is the first year, toddler 1 to 3, preschool 3 to 6, school 6 and up.
+      enum: [planning, pregnancy, newborn, toddler, preschool, school]
+
+    LibraryUpcoming:
+      type: object
+      description: |
+        An article or quiz we plan to write, shown as "Coming soon" so the
+        library shows its future size honestly. It has no body on purpose:
+        it is not guidance and never opens.
+      required: [id, title, summary, category, stages, minutes, format]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+          description: One line on what it will cover.
+        category:
+          type: string
+          description: A topic category as in LibraryTopicSummary, plus birth, money and work.
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/LibraryStage"
+        minutes:
+          type: integer
+        format:
+          type: string
+          description: article or quiz (a plain string, since an enum with "article" would rename GuideKind's generated constants).
+          pattern: "^(article|quiz)$"
+
     LibraryTopicList:
       type: object
-      required: [position, items]
+      required: [position, items, upcoming]
       properties:
+        upcoming:
+          type: array
+          description: Planned articles and quizzes, the same for every family. Titles only, never body text.
+          items:
+            $ref: "#/components/schemas/LibraryUpcoming"
         position:
           type: string
           description: Where the family is, for example "Week 25 of pregnancy" or "4 years old".

@@ -1,0 +1,1653 @@
+[
+ {
+  "id": "soon-your-first-prenatal-visit-step-by-step",
+  "title": "Your first prenatal visit, step by step",
+  "summary": "What usually happens at the first appointment and what to bring.",
+  "category": "health",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-reading-your-pregnancy-test-results",
+  "title": "Reading your pregnancy test results",
+  "summary": "How to read the lab sheet before you talk it over with your midwife.",
+  "category": "health",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-second-trimester-scans-explained",
+  "title": "Second trimester scans explained",
+  "summary": "What the anatomy scan looks at and how to prepare questions.",
+  "category": "health",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-third-trimester-check-ups",
+  "title": "Third trimester check-ups",
+  "summary": "A short quiz on what late pregnancy visits usually cover.",
+  "category": "health",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-twins-and-multiples-the-extra-visits",
+  "title": "Twins and multiples: the extra visits",
+  "summary": "How care plans often differ when there is more than one baby.",
+  "category": "health",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-the-newborn-check-in-the-first-days",
+  "title": "The newborn check in the first days",
+  "summary": "What the early checks are for and how to get ready for them.",
+  "category": "health",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-your-baby-s-first-vaccine-visit",
+  "title": "Your baby's first vaccine visit",
+  "summary": "How to plan the day, comfort your baby and note questions.",
+  "category": "health",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-toddler-check-ups-by-age",
+  "title": "Toddler check-ups by age",
+  "summary": "Which visits come in the second and third years and what to ask.",
+  "category": "health",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-getting-ready-for-the-preschool-health-form",
+  "title": "Getting ready for the preschool health form",
+  "summary": "What nurseries usually ask for and where to find it.",
+  "category": "health",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-school-health-checks",
+  "title": "School health checks",
+  "summary": "Vision, hearing and growth checks at school, and what parents receive.",
+  "category": "health",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-when-to-call-the-clinic",
+  "title": "When to call the clinic",
+  "summary": "Practice telling routine questions from ones worth a call.",
+  "category": "health",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-keeping-a-home-medicine-kit",
+  "title": "Keeping a home medicine kit",
+  "summary": "A calm checklist to put together with your pharmacist.",
+  "category": "health",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-a-pre-pregnancy-check-up",
+  "title": "A pre-pregnancy check-up",
+  "summary": "Questions to take to your doctor before you start trying.",
+  "category": "health",
+  "stages": [
+   "planning"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-talking-about-family-history",
+  "title": "Talking about family history",
+  "summary": "How to gather family health history before a first visit.",
+  "category": "health",
+  "stages": [
+   "planning"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-choosing-and-fitting-a-car-seat",
+  "title": "Choosing and fitting a car seat",
+  "summary": "How to compare seats and where to get a fitting checked.",
+  "category": "safety",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-safe-sleep-space-check",
+  "title": "Safe sleep space check",
+  "summary": "Test yourself on setting up a cot by the official checklist.",
+  "category": "safety",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-childproofing-room-by-room",
+  "title": "Childproofing room by room",
+  "summary": "A walk-through of the kitchen, bathroom, stairs and windows.",
+  "category": "safety",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-water-safety-at-home-and-outside",
+  "title": "Water safety at home and outside",
+  "summary": "Baths, paddling pools and holidays near water.",
+  "category": "safety",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-road-safety-for-small-walkers",
+  "title": "Road safety for small walkers",
+  "summary": "How to teach crossing and holding hands, a little at a time.",
+  "category": "safety",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-bikes-scooters-and-helmets",
+  "title": "Bikes, scooters and helmets",
+  "summary": "Picking a helmet and building habits that last.",
+  "category": "safety",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-walking-to-school-alone",
+  "title": "Walking to school alone",
+  "summary": "Signs a child may be ready and how to practise the route.",
+  "category": "safety",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-screens-and-online-safety-for-young-children",
+  "title": "Screens and online safety for young children",
+  "summary": "Settings, rules and talking about what they see.",
+  "category": "safety",
+  "stages": [
+   "school"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-hot-drinks-ovens-and-burns",
+  "title": "Hot drinks, ovens and burns",
+  "summary": "A quiz on common kitchen hazards for small children.",
+  "category": "safety",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-baby-carriers-and-slings",
+  "title": "Baby carriers and slings",
+  "summary": "How to check a carrier fits as its maker describes.",
+  "category": "safety",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-travelling-while-pregnant",
+  "title": "Travelling while pregnant",
+  "summary": "Planning trips, seat belts and what to ask before you fly.",
+  "category": "safety",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-planning-how-you-will-feed-your-baby",
+  "title": "Planning how you will feed your baby",
+  "summary": "Questions to think through with your partner before birth.",
+  "category": "feeding",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-the-first-week-of-breastfeeding",
+  "title": "The first week of breastfeeding",
+  "summary": "What the first days often look like and where to find help.",
+  "category": "feeding",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-bottle-feeding-basics",
+  "title": "Bottle feeding basics",
+  "summary": "Preparing bottles, cleaning and pacing feeds.",
+  "category": "feeding",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-feeding-cues",
+  "title": "Feeding cues",
+  "summary": "Practise reading early, mid and late hunger signs.",
+  "category": "feeding",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-combining-breast-and-bottle",
+  "title": "Combining breast and bottle",
+  "summary": "How families mix feeding and who to ask for a plan.",
+  "category": "feeding",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-starting-solid-food",
+  "title": "Starting solid food",
+  "summary": "Readiness signs and first foods, as guidance describes them.",
+  "category": "feeding",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-picky-eating-without-battles",
+  "title": "Picky eating without battles",
+  "summary": "Routines that keep mealtimes calm.",
+  "category": "feeding",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-moving-from-bottle-to-cup",
+  "title": "Moving from bottle to cup",
+  "summary": "A gentle plan for the switch.",
+  "category": "feeding",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-packed-lunches-that-come-back-empty",
+  "title": "Packed lunches that come back empty",
+  "summary": "Planning lunches children help to make.",
+  "category": "feeding",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-cooking-with-children",
+  "title": "Cooking with children",
+  "summary": "Age-matched kitchen jobs that build skills.",
+  "category": "feeding",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-snacks-after-school",
+  "title": "Snacks after school",
+  "summary": "Planning snacks around the school day.",
+  "category": "feeding",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-choking-hazards-by-food",
+  "title": "Choking hazards by food",
+  "summary": "A quiz on how to cut and serve common foods.",
+  "category": "feeding",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-sleeping-in-late-pregnancy",
+  "title": "Sleeping in late pregnancy",
+  "summary": "Positions, pillows and what to ask your midwife.",
+  "category": "sleep",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-newborn-sleep-week-by-week",
+  "title": "Newborn sleep, week by week",
+  "summary": "How newborn sleep changes over the first weeks.",
+  "category": "sleep",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-taking-turns-at-night",
+  "title": "Taking turns at night",
+  "summary": "How couples split night feeds and rest.",
+  "category": "sleep",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-building-a-bedtime-routine",
+  "title": "Building a bedtime routine",
+  "summary": "Simple steps that fit your evening.",
+  "category": "sleep",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-moving-from-cot-to-bed",
+  "title": "Moving from cot to bed",
+  "summary": "Signs of readiness and how to make the switch.",
+  "category": "sleep",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-dropping-the-nap",
+  "title": "Dropping the nap",
+  "summary": "What changes when naps get shorter.",
+  "category": "sleep",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-night-fears-and-monsters",
+  "title": "Night fears and monsters",
+  "summary": "How to talk about fears at bedtime.",
+  "category": "sleep",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-sleep-needs-by-age",
+  "title": "Sleep needs by age",
+  "summary": "A quiz on how much sleep children usually need.",
+  "category": "sleep",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-school-nights-and-screens",
+  "title": "School nights and screens",
+  "summary": "Setting an evening rhythm on school days.",
+  "category": "sleep",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-room-sharing-and-moving-out",
+  "title": "Room sharing and moving out",
+  "summary": "Planning when your baby moves to their own room.",
+  "category": "sleep",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-the-first-smiles",
+  "title": "The first smiles",
+  "summary": "What social development looks like in the first months.",
+  "category": "development",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-tummy-time-that-babies-enjoy",
+  "title": "Tummy time that babies enjoy",
+  "summary": "Ways to fit tummy time into the day.",
+  "category": "development",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-from-rolling-to-first-steps",
+  "title": "From rolling to first steps",
+  "summary": "The rough order of movement milestones.",
+  "category": "development",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-first-words-and-how-to-help",
+  "title": "First words and how to help",
+  "summary": "Everyday talk that supports language.",
+  "category": "development",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-milestones-at-18-months",
+  "title": "Milestones at 18 months",
+  "summary": "A quiz on what checklists list at this age.",
+  "category": "development",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-play-that-builds-hands",
+  "title": "Play that builds hands",
+  "summary": "Stacking, scribbling and pouring.",
+  "category": "development",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-questions-questions-the-why-years",
+  "title": "Questions, questions: the why years",
+  "summary": "How to answer endless questions.",
+  "category": "development",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-drawing-stages",
+  "title": "Drawing stages",
+  "summary": "How children's drawings change from 2 to 6.",
+  "category": "development",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-milestones-at-4-years",
+  "title": "Milestones at 4 years",
+  "summary": "A quiz on what checklists list at four.",
+  "category": "development",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-reading-together-at-6-and-7",
+  "title": "Reading together at 6 and 7",
+  "summary": "Moving from picture books to chapters.",
+  "category": "development",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-growing-independence",
+  "title": "Growing independence",
+  "summary": "Jobs and choices to hand over by age.",
+  "category": "development",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-how-your-baby-grows-month-by-month",
+  "title": "How your baby grows month by month",
+  "summary": "A month-by-month view of the pregnancy.",
+  "category": "development",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-tantrums-before-during-after",
+  "title": "Tantrums: before, during, after",
+  "summary": "What to do at each stage of a meltdown.",
+  "category": "behavior",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-biting-and-hitting",
+  "title": "Biting and hitting",
+  "summary": "Calm responses that teach other ways.",
+  "category": "behavior",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-saying-no-without-saying-no",
+  "title": "Saying no without saying no",
+  "summary": "Practise redirecting with everyday examples.",
+  "category": "behavior",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-rules-children-can-follow",
+  "title": "Rules children can follow",
+  "summary": "How to set a few clear house rules.",
+  "category": "behavior",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-sharing-and-taking-turns",
+  "title": "Sharing and taking turns",
+  "summary": "Games that make turn-taking easier.",
+  "category": "behavior",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-tall-tales-at-four",
+  "title": "Tall tales at four",
+  "summary": "Why young children make things up and how to respond.",
+  "category": "behavior",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-homework-without-fights",
+  "title": "Homework without fights",
+  "summary": "Routines for the first school years.",
+  "category": "behavior",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-pocket-money-and-chores",
+  "title": "Pocket money and chores",
+  "summary": "Linking jobs and money in a way that fits your family.",
+  "category": "behavior",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-praise-that-helps",
+  "title": "Praise that helps",
+  "summary": "A quiz on describing effort instead of labels.",
+  "category": "behavior",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-naming-feelings-with-toddlers",
+  "title": "Naming feelings with toddlers",
+  "summary": "Words and books for big feelings.",
+  "category": "emotions",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-calm-down-corners",
+  "title": "Calm-down corners",
+  "summary": "Setting up a quiet spot together.",
+  "category": "emotions",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-starting-nursery-the-first-weeks",
+  "title": "Starting nursery: the first weeks",
+  "summary": "Settling in and goodbyes at the door.",
+  "category": "emotions",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-friendship-trouble",
+  "title": "Friendship trouble",
+  "summary": "Listening when a friend says no.",
+  "category": "emotions",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-worries-before-school",
+  "title": "Worries before school",
+  "summary": "Spotting worry and making a plan together.",
+  "category": "emotions",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-bonding-takes-time",
+  "title": "Bonding takes time",
+  "summary": "Why closeness can grow slowly and what helps.",
+  "category": "emotions",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-feelings-words",
+  "title": "Feelings words",
+  "summary": "A quiz on matching faces and words.",
+  "category": "emotions",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-a-new-sibling-on-the-way",
+  "title": "A new sibling on the way",
+  "summary": "Preparing an older child for the baby.",
+  "category": "emotions",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-feelings-in-pregnancy",
+  "title": "Feelings in pregnancy",
+  "summary": "Common ups and downs and who to talk to.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-rest-when-you-can",
+  "title": "Rest when you can",
+  "summary": "Planning sleep and help in the first weeks.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-the-partner-s-first-weeks",
+  "title": "The partner's first weeks",
+  "summary": "How partners find their place at home.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-asking-for-help",
+  "title": "Asking for help",
+  "summary": "Making a list of who can do what.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-time-for-yourselves-as-a-couple",
+  "title": "Time for yourselves as a couple",
+  "summary": "Small rituals that keep you close.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-knowing-when-to-get-support",
+  "title": "Knowing when to get support",
+  "summary": "A quiz on signs worth raising with your doctor.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-when-the-house-gets-quieter",
+  "title": "When the house gets quieter",
+  "summary": "Using the school day for your own plans.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-are-we-ready",
+  "title": "Are we ready?",
+  "summary": "Questions couples ask before trying.",
+  "category": "parent-wellbeing",
+  "stages": [
+   "planning"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-first-tooth",
+  "title": "First tooth",
+  "summary": "Teething and the first brush.",
+  "category": "teeth",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-brushing-a-toddler-s-teeth",
+  "title": "Brushing a toddler's teeth",
+  "summary": "Positions and songs that help.",
+  "category": "teeth",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-sugar-and-teeth",
+  "title": "Sugar and teeth",
+  "summary": "A quiz on drinks and snacks between meals.",
+  "category": "teeth",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-the-first-dentist-visit",
+  "title": "The first dentist visit",
+  "summary": "How to prepare and what usually happens.",
+  "category": "teeth",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-wobbly-teeth-and-the-tooth-fairy",
+  "title": "Wobbly teeth and the tooth fairy",
+  "summary": "What changes when adult teeth come in.",
+  "category": "teeth",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-books-for-the-first-three-years",
+  "title": "Books for the first three years",
+  "summary": "Choosing books and reading aloud.",
+  "category": "learning",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-letters-and-numbers-through-play",
+  "title": "Letters and numbers through play",
+  "summary": "Everyday games, no worksheets.",
+  "category": "learning",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-getting-ready-for-school",
+  "title": "Getting ready for school",
+  "summary": "Skills teachers say help most.",
+  "category": "learning",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-school-readiness-check",
+  "title": "School readiness check",
+  "summary": "A quiz on the skills on most checklists.",
+  "category": "learning",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-your-first-parent-teacher-meeting",
+  "title": "Your first parent-teacher meeting",
+  "summary": "Questions to bring and how to follow up.",
+  "category": "learning",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-two-languages-at-home",
+  "title": "Two languages at home",
+  "summary": "How bilingual families plan language at home.",
+  "category": "learning",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-after-school-clubs",
+  "title": "After-school clubs",
+  "summary": "Choosing activities without overfilling the week.",
+  "category": "learning",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-talking-to-your-baby",
+  "title": "Talking to your baby",
+  "summary": "Everyday chatter from day one.",
+  "category": "learning",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-telling-family-and-friends",
+  "title": "Telling family and friends",
+  "summary": "When and how couples share the news.",
+  "category": "family",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-grandparents-and-the-new-baby",
+  "title": "Grandparents and the new baby",
+  "summary": "Agreeing on roles before birth.",
+  "category": "family",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-visitors-in-the-first-weeks",
+  "title": "Visitors in the first weeks",
+  "summary": "Setting visiting rules together.",
+  "category": "family",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-working-out-childcare",
+  "title": "Working out childcare",
+  "summary": "Comparing nursery, nanny and family care.",
+  "category": "family",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-family-traditions",
+  "title": "Family traditions",
+  "summary": "Small weekly rituals children remember.",
+  "category": "family",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-siblings-who-fight",
+  "title": "Siblings who fight",
+  "summary": "Staying out of it and stepping in.",
+  "category": "family",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-holidays-with-small-children",
+  "title": "Holidays with small children",
+  "summary": "Planning trips around naps and meals.",
+  "category": "family",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-splitting-the-mental-load",
+  "title": "Splitting the mental load",
+  "summary": "A quiz to compare who notices what at home.",
+  "category": "family",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-choosing-where-to-give-birth",
+  "title": "Choosing where to give birth",
+  "summary": "Questions to ask hospitals and birth centres.",
+  "category": "decisions",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-writing-a-birth-plan",
+  "title": "Writing a birth plan",
+  "summary": "What to include and how to stay flexible.",
+  "category": "decisions",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-birth-plan-options",
+  "title": "Birth plan options",
+  "summary": "A quiz on the choices most birth plans cover.",
+  "category": "decisions",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-choosing-a-doula-or-not",
+  "title": "Choosing a doula or not",
+  "summary": "What doulas do and how to interview one.",
+  "category": "decisions",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-choosing-a-paediatrician",
+  "title": "Choosing a paediatrician",
+  "summary": "Questions for a first meeting.",
+  "category": "decisions",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-nursery-or-not-yet",
+  "title": "Nursery or not yet",
+  "summary": "Weighing timing with your family's needs.",
+  "category": "decisions",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-picking-a-school",
+  "title": "Picking a school",
+  "summary": "Visits, questions and what to compare.",
+  "category": "decisions",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-planning-the-timing-of-a-baby",
+  "title": "Planning the timing of a baby",
+  "summary": "Work, money and health questions to discuss.",
+  "category": "decisions",
+  "stages": [
+   "planning"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-maternity-leave-dates-and-forms",
+  "title": "Maternity leave: dates and forms",
+  "summary": "Building a timeline with your employer.",
+  "category": "admin",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-paternity-and-partner-leave",
+  "title": "Paternity and partner leave",
+  "summary": "What to ask HR and when.",
+  "category": "admin",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-registering-the-birth",
+  "title": "Registering the birth",
+  "summary": "Documents and deadlines in the first weeks.",
+  "category": "admin",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-your-baby-s-first-documents",
+  "title": "Your baby's first documents",
+  "summary": "Passport, insurance and records.",
+  "category": "admin",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-nursery-applications",
+  "title": "Nursery applications",
+  "summary": "Timelines and waiting lists.",
+  "category": "admin",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-school-enrolment",
+  "title": "School enrolment",
+  "summary": "Dates and documents for the first school year.",
+  "category": "admin",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-paperwork-checklist",
+  "title": "Paperwork checklist",
+  "summary": "A quiz on which forms come when.",
+  "category": "admin",
+  "stages": [
+   "pregnancy",
+   "newborn"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-what-a-baby-costs-in-the-first-year",
+  "title": "What a baby costs in the first year",
+  "summary": "Building a first-year budget together.",
+  "category": "money",
+  "stages": [
+   "planning"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-buying-for-the-baby-without-overspending",
+  "title": "Buying for the baby without overspending",
+  "summary": "What families say they used and skipped.",
+  "category": "money",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-second-hand-baby-gear",
+  "title": "Second-hand baby gear",
+  "summary": "What to buy used and what to buy new.",
+  "category": "money",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-budgeting-on-parental-leave",
+  "title": "Budgeting on parental leave",
+  "summary": "Planning for lower income for a few months.",
+  "category": "money",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-childcare-costs",
+  "title": "Childcare costs",
+  "summary": "Comparing options and any support available.",
+  "category": "money",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-saving-for-later",
+  "title": "Saving for later",
+  "summary": "Simple ways families start saving.",
+  "category": "money",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-teaching-children-about-money",
+  "title": "Teaching children about money",
+  "summary": "Jars, allowances and first purchases.",
+  "category": "money",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-family-budget-basics",
+  "title": "Family budget basics",
+  "summary": "A quiz on planning household costs.",
+  "category": "money",
+  "stages": [
+   "newborn",
+   "toddler"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-telling-your-employer",
+  "title": "Telling your employer",
+  "summary": "Timing the conversation and what to prepare.",
+  "category": "work",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-going-back-to-work",
+  "title": "Going back to work",
+  "summary": "Planning the first weeks back.",
+  "category": "work",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-pumping-at-work",
+  "title": "Pumping at work",
+  "summary": "Planning breaks and storage with your employer.",
+  "category": "work",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-flexible-work-requests",
+  "title": "Flexible work requests",
+  "summary": "Preparing a request your manager can say yes to.",
+  "category": "work",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-when-your-child-is-sick-on-a-workday",
+  "title": "When your child is sick on a workday",
+  "summary": "A backup plan for both parents.",
+  "category": "work",
+  "stages": [
+   "toddler",
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-school-holidays-and-work",
+  "title": "School holidays and work",
+  "summary": "Planning cover for long breaks.",
+  "category": "work",
+  "stages": [
+   "preschool",
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-sharing-the-school-run",
+  "title": "Sharing the school run",
+  "summary": "A quiz on planning the week together.",
+  "category": "work",
+  "stages": [
+   "school"
+  ],
+  "minutes": 4,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-first-playdates",
+  "title": "First playdates",
+  "summary": "Short, easy meetings for small children.",
+  "category": "social",
+  "stages": [
+   "toddler"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-making-friends-at-nursery",
+  "title": "Making friends at nursery",
+  "summary": "How to support early friendships.",
+  "category": "social",
+  "stages": [
+   "preschool"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-birthday-parties",
+  "title": "Birthday parties",
+  "summary": "Invitations, budgets and keeping it simple.",
+  "category": "social",
+  "stages": [
+   "school"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-being-left-out",
+  "title": "Being left out",
+  "summary": "Listening and helping without fixing.",
+  "category": "social",
+  "stages": [
+   "school"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-parent-groups",
+  "title": "Parent groups",
+  "summary": "Finding other parents nearby.",
+  "category": "social",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 5,
+  "format": "article"
+ },
+ {
+  "id": "soon-signs-labour-may-be-starting",
+  "title": "Signs labour may be starting",
+  "summary": "What to note and when to call, as your hospital tells you.",
+  "category": "birth",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-packing-the-hospital-bag",
+  "title": "Packing the hospital bag",
+  "summary": "A checklist for parent and baby.",
+  "category": "birth",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-the-partner-s-role-in-labour",
+  "title": "The partner's role in labour",
+  "summary": "Practical ways to help on the day.",
+  "category": "birth",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-pain-relief-options-to-ask-about",
+  "title": "Pain relief options to ask about",
+  "summary": "Questions for your birth team before the day.",
+  "category": "birth",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 7,
+  "format": "article"
+ },
+ {
+  "id": "soon-stages-of-labour",
+  "title": "Stages of labour",
+  "summary": "A quiz on how labour is usually described.",
+  "category": "birth",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 5,
+  "format": "quiz"
+ },
+ {
+  "id": "soon-planned-caesarean-getting-ready",
+  "title": "Planned caesarean: getting ready",
+  "summary": "What families often ask before the day.",
+  "category": "birth",
+  "stages": [
+   "pregnancy"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-the-first-hours-after-birth",
+  "title": "The first hours after birth",
+  "summary": "Skin to skin, first feed and checks.",
+  "category": "birth",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ },
+ {
+  "id": "soon-going-home-from-hospital",
+  "title": "Going home from hospital",
+  "summary": "What to have ready for the first night.",
+  "category": "birth",
+  "stages": [
+   "newborn"
+  ],
+  "minutes": 6,
+  "format": "article"
+ }
+]
