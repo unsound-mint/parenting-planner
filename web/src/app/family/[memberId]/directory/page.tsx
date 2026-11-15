@@ -142,7 +142,7 @@ async function Directory({
         </>
       )}
       {/* Shown only when the endpoint answers; offers never touch the provider picks above. */}
-      {offers.data && <PartnerOffers memberId={memberId} offers={offers.data.items.slice(0, 3)} />}
+      {offers.data && <PartnerOffers offers={offers.data.items.slice(0, 3)} />}
     </PageFrame>
   );
 }
