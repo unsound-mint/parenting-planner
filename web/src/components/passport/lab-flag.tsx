@@ -45,7 +45,7 @@ export function LabFlag({ lab, memberId, canAsk, owner }: { lab: LabResult; memb
       {/* Why it is flagged, from the server: the value against the range on
           its own report. Ranges differ between labs, so the report's range is
           the basis, never a range of ours. */}
-      <p className="text-label font-normal">{flag.reason}</p>
+      <p className="text-caption font-normal text-ink-2">{flag.reason}</p>
       {canAsk &&
         (added ? (
           <p className="flex min-h-11 items-center gap-1.5 text-label font-semibold md:min-h-9">
