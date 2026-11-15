@@ -42,6 +42,7 @@ export function EntryRow({
   onVisibility,
   onBring,
   onEdit,
+  onFirst,
   onDelete,
 }: {
   entry: DiaryEntry;
@@ -58,6 +59,8 @@ export function EntryRow({
   /** Saves new text and mood; resolves true once saved. */
   onEdit?: (body: string, mood: Mood | undefined) => Promise<boolean>;
   /** Deletes after the inline confirm. */
+  /** Marks or unmarks the entry as a first; resolves true once saved. */
+  onFirst?: (first: boolean) => Promise<boolean>;
   onDelete?: () => void;
 }) {
   const [mode, setMode] = useState<"read" | "edit" | "delete">("read");
@@ -112,6 +115,11 @@ export function EntryRow({
           )}
           {mine && mode === "read" && (onEdit || onDelete) && (
             <span className="ml-auto inline-flex gap-0.5 font-sans transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-focus-within/entry:opacity-100 pointer-fine:group-hover/entry:opacity-100">
+              {onFirst && (
+                <IconButton label={entry.first ? "Not a first" : "Mark as a first"} onClick={() => void onFirst(!entry.first)}>
+                  <Star className={cn("size-3.5", entry.first && "fill-current")} aria-hidden />
+                </IconButton>
+              )}
               {onEdit && (
                 <IconButton label="Edit entry" onClick={() => setMode("edit")}>
                   <Pencil className="size-3.5" aria-hidden />

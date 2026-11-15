@@ -147,20 +147,33 @@ func (q *Queries) ListDiaryAgendaTopicsVisibleToParent(ctx context.Context, arg 
 
 const listDiaryEntriesVisibleToParent = `-- name: ListDiaryEntriesVisibleToParent :many
 SELECT id, family_id, owner_member_id, visibility, written_at, body_sealed, agenda_topic, created_at, mood, is_first FROM diary_entries
-WHERE family_id = $1 AND written_at >= $2
+WHERE family_id = $1 AND written_at < $2
   AND (owner_member_id = $3 OR visibility IN ('partner', 'family'))
+  AND (NOT $4::boolean OR is_first)
 ORDER BY written_at DESC, created_at DESC
+LIMIT $5
 `
 
 type ListDiaryEntriesVisibleToParentParams struct {
-	FamilyID uuid.UUID
-	Since    time.Time
-	ViewerID uuid.UUID
+	FamilyID   uuid.UUID
+	Before     time.Time
+	ViewerID   uuid.UUID
+	FirstsOnly bool
+	PageSize   int32
 }
 
 // Mirrors access.CanParentRead: own entries, plus entries shared with the partner or the family.
+// One page, newest first: entries written before @before (only firsts when @firsts_only),
+// at most @page_size rows; the caller asks for one more than it shows to learn whether an
+// older page exists.
 func (q *Queries) ListDiaryEntriesVisibleToParent(ctx context.Context, arg ListDiaryEntriesVisibleToParentParams) ([]DiaryEntry, error) {
-	rows, err := q.db.Query(ctx, listDiaryEntriesVisibleToParent, arg.FamilyID, arg.Since, arg.ViewerID)
+	rows, err := q.db.Query(ctx, listDiaryEntriesVisibleToParent,
+		arg.FamilyID,
+		arg.Before,
+		arg.ViewerID,
+		arg.FirstsOnly,
+		arg.PageSize,
+	)
 	if err != nil {
 		return nil, err
 	}

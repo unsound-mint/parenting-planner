@@ -2,16 +2,15 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { AgendaSuggestion, AgendaTopic, DiaryEntry, MoodCheckin, PsychologistAgenda, PsychologistSlots, SessionBrief, Visibility } from "@/lib/api/types";
 import { formatDayNumber, formatMonth } from "@/lib/format";
 import { Rise } from "@/components/joy/rise";
-import { spring } from "@/components/joy/motion";
 import { Composer } from "@/components/diary/composer";
 import { EntryRow } from "@/components/diary/entry-row";
+import { JournalArchive } from "@/components/diary/journal-archive";
 import type { Partner } from "@/components/diary/audience";
 import { topicKey, type Flights } from "./agenda-parts";
 import { BriefCard } from "./brief-card";
@@ -35,6 +34,7 @@ export function JournalAndCare({
   partner,
   starters,
   entries: serverEntries,
+  entriesNext: serverNext,
   agenda,
   slots,
   brief,
@@ -48,6 +48,8 @@ export function JournalAndCare({
   partner?: Partner;
   starters: string[];
   entries: DiaryEntry[];
+  /** Cursor for the next page of entries, from GET diary-entries. */
+  entriesNext?: string;
   agenda?: PsychologistAgenda;
   slots?: PsychologistSlots;
   brief?: SessionBrief;
@@ -63,9 +65,17 @@ export function JournalAndCare({
   const [entries, setEntries] = useState(serverEntries);
   const [topics, setTopics] = useState(agenda?.topics ?? []);
   const [suggestion, setSuggestion] = useState(agenda?.suggestions?.[0]);
+  // Older pages and firsts loaded in the browser: kept across a server render, which
+  // only brings the newest page back.
+  const [cursor, setCursor] = useState(serverNext);
+  const [firstsLoaded, setFirstsLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
   if (src.serverEntries !== serverEntries || src.agenda !== agenda) {
     setSrc({ serverEntries, agenda });
-    setEntries(serverEntries);
+    const fresh = new Set(serverEntries.map((e) => e.id));
+    const oldest = serverEntries.at(-1)?.writtenAt;
+    const keep = entries.filter((e) => !fresh.has(e.id) && oldest && Date.parse(e.writtenAt) < Date.parse(oldest));
+    setEntries([...serverEntries, ...keep]);
     setTopics(agenda?.topics ?? []);
     setSuggestion(agenda?.suggestions?.[0]);
   }
@@ -119,6 +129,49 @@ export function JournalAndCare({
     }
     setEntries((cur) => cur.map((e) => (e.id === entry.id ? data : e)));
     flashEntry(entry.id);
+    router.refresh();
+    return true;
+  }
+
+  /** Merges a page from the server: the next older page, or every first (paged too). */
+  async function more(q: { before?: string; first?: boolean }) {
+    setLoading(true);
+    let before = q.before;
+    const got: DiaryEntry[] = [];
+    for (;;) {
+      const { data, error } = await api.GET("/members/{memberId}/diary-entries", {
+        params: { path: { memberId }, query: { before, first: q.first, limit: 100 } },
+      });
+      if (error || !data) {
+        setLoading(false);
+        toast.error("Could not load older entries. Please try again.");
+        return;
+      }
+      got.push(...data.items);
+      before = data.nextBefore;
+      // "Show older" reads one page; firsts are few, so read them all.
+      if (!q.first || !before) break;
+    }
+    setEntries((cur) => {
+      const have = new Set(cur.map((e) => e.id));
+      return [...cur, ...got.filter((e) => !have.has(e.id))];
+    });
+    if (q.first) setFirstsLoaded(true);
+    else setCursor(before);
+    setLoading(false);
+  }
+
+  /** Marks or unmarks an old entry as a first, so the firsts can be corrected later. */
+  async function markFirst(entry: DiaryEntry, first: boolean): Promise<boolean> {
+    const { data, error } = await api.PATCH("/members/{memberId}/diary-entries/{entryId}", {
+      params: { path: { memberId, entryId: entry.id } },
+      body: { visibility: entry.visibility, first },
+    });
+    if (error || !data) {
+      toast.error("Could not change it. Nothing changed.");
+      return false;
+    }
+    setEntries((cur) => cur.map((e) => (e.id === entry.id ? { ...e, first: data.first } : e)));
     router.refresh();
     return true;
   }
@@ -236,40 +289,40 @@ export function JournalAndCare({
 
         <MoodChart memberId={memberId} now={now} entries={entries} checkins={checkins} onJump={jump} />
 
-        <h2 className="sr-only">Your entries</h2>
         {entries.length === 0 ? (
           <p className="mt-3 flex items-center gap-3 rounded-3xl border border-dashed border-line-2 px-5 py-4 text-label font-normal text-ink-2">
             <Lock className="size-4 shrink-0 text-muted-foreground" aria-hidden />
             Your entries gather here, newest first. Each one stays yours until you share it.
           </p>
         ) : (
-          <ul className="mt-3 flex flex-col gap-3">
-            <AnimatePresence initial={false}>
-              {entries.map((e) => (
-                <motion.li
-                  key={e.id}
-                  layout="position"
-                  initial={{ opacity: 0, y: -12, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={spring.ui}
-                >
-                  <EntryRow
-                    entry={e}
-                    mine={e.authorId === memberId}
-                    partner={partner}
-                    psychologist={short}
-                    flash={flash === e.id}
-                    offer={e.id === offerId}
-                    onVisibility={(v) => changeVisibility(e, v)}
-                    onBring={(title, from) => bring(e, title, from)}
-                    onEdit={e.authorId === memberId ? (text, mood) => edit(e, text, mood) : undefined}
-                    onDelete={e.authorId === memberId ? () => remove_(e) : undefined}
-                  />
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </ul>
+          <JournalArchive
+            memberId={memberId}
+            entries={entries}
+            nextBefore={cursor}
+            firstsLoaded={firstsLoaded}
+            loading={loading}
+            onOlder={() => void more({ before: cursor })}
+            onFirsts={() => void more({ first: true })}
+            onJump={(id) => {
+              document.getElementById(`entry-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+              flashEntry(id);
+            }}
+            row={(e) => (
+              <EntryRow
+                entry={e}
+                mine={e.authorId === memberId}
+                partner={partner}
+                psychologist={short}
+                flash={flash === e.id}
+                offer={e.id === offerId}
+                onVisibility={(v) => changeVisibility(e, v)}
+                onBring={(title, from) => bring(e, title, from)}
+                onEdit={e.authorId === memberId ? (text, mood) => edit(e, text, mood) : undefined}
+                onFirst={e.authorId === memberId ? (first) => markFirst(e, first) : undefined}
+                onDelete={e.authorId === memberId ? () => remove_(e) : undefined}
+              />
+            )}
+          />
         )}
       </Rise>
 

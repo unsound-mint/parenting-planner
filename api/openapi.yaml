@@ -7498,11 +7498,38 @@ paths:
     get:
       operationId: listDiaryEntries
       tags: [wellbeing]
-      summary: Diary entries from the last 30 days that the acting parent may see
+      summary: A page of the diary entries the acting parent may see
       description: |
         Their own entries plus the other parent's entries shared with them.
-        Newest first. The other parent's agendaTopic is never returned: the
-        agenda belongs to its author. Caregivers get 404. Audited.
+        Newest first, one page at a time so a diary kept for years stays
+        quick: at most `limit` entries written before `before` (default
+        now). When older entries exist, `nextBefore` is the value to send
+        as `before` for the next page. The other parent's agendaTopic is
+        never returned: the agenda belongs to its author. Caregivers get
+        404. Audited.
+      parameters:
+        - name: before
+          in: query
+          required: false
+          description: Only entries written strictly before this time. Omit for the newest page.
+          schema:
+            type: string
+            format: date-time
+        - name: first
+          in: query
+          required: false
+          description: true reads only entries marked as a first, so a family can review its firsts over the years.
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          required: false
+          description: Page size.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 60
       responses:
         "200":
           description: OK
@@ -16233,6 +16260,10 @@ components:
           description: Newest first.
           items:
             $ref: "#/components/schemas/DiaryEntry"
+        nextBefore:
+          type: string
+          format: date-time
+          description: Present when older entries exist; send it as `before` to read the next page.
 
     ScreeningInstrument:
       type: string

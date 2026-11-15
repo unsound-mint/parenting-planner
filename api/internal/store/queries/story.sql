@@ -14,11 +14,19 @@ ORDER BY e.starts_at, e.id;
 -- Mirrors access.CanParentRead, narrowed for the shared book: only entries
 -- their author shared with the partner or the family. A private entry never
 -- appears, not even to its author. Written before now only.
+-- A few lines per month (firsts before the rest), so a family that has written
+-- for years gets every month in its book instead of only its first 60 entries.
 -- name: ListStoryDiaryEntriesVisibleToParent :many
-SELECT * FROM diary_entries
-WHERE family_id = @family_id AND visibility IN ('partner', 'family') AND written_at <= @now
-ORDER BY written_at, id
-LIMIT 60;
+SELECT e.* FROM diary_entries e
+WHERE e.family_id = @family_id AND e.visibility IN ('partner', 'family') AND e.id IN (
+  SELECT picked.id FROM (
+    SELECT d.id, row_number() OVER (PARTITION BY date_trunc('month', d.written_at) ORDER BY d.is_first DESC, d.written_at, d.id) AS n
+    FROM diary_entries d
+    WHERE d.family_id = @family_id AND d.visibility IN ('partner', 'family') AND d.written_at <= @now
+  ) picked
+  WHERE picked.n <= 4
+)
+ORDER BY e.written_at, e.id;
 
 -- Care log totals per person who logged, with the first entry.
 -- name: StoryCareLogByAuthor :many
