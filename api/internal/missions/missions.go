@@ -48,8 +48,9 @@ type View struct {
 }
 
 // List returns the stage's missions that were not put back, plus any mission
-// the family took or finished in an earlier stage, in catalogue order.
-func List(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, stage Stage) ([]View, error) {
+// the family took or finished in an earlier stage, in catalogue order, except
+// that the open ones rotate by week (see RotateOpen).
+func List(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, stage Stage, week int) ([]View, error) {
 	q := store.New(pool)
 	picks, err := q.ListMissionPicks(ctx, familyID)
 	if err != nil {
@@ -95,7 +96,32 @@ func List(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, stage Sta
 		}
 		out = append(out, v)
 	}
-	return out, nil
+	return RotateOpen(out, week), nil
+}
+
+// RotateOpen keeps taken and done missions where they are and rotates the
+// open ones through the open slots by week, so the first open mission (the one
+// This week suggests) changes every week. week is any count that moves by one
+// each week (content.CalendarWeek on the family's clock).
+func RotateOpen(views []View, week int) []View {
+	var slots []int
+	var open []View
+	for i, v := range views {
+		if v.State == StateOpen {
+			slots = append(slots, i)
+			open = append(open, v)
+		}
+	}
+	n := len(open)
+	if n < 2 {
+		return views
+	}
+	out := append([]View(nil), views...)
+	k := (week%n + n) % n
+	for j, i := range slots {
+		out[i] = open[(j+k)%n]
+	}
+	return out
 }
 
 func publish(ctx context.Context, q *store.Queries, familyID, actor, taskID uuid.UUID, now time.Time) error {
@@ -226,7 +252,7 @@ func Swap(ctx context.Context, pool *pgxpool.Pool, familyID, actor uuid.UUID, ke
 }
 
 func one(ctx context.Context, pool *pgxpool.Pool, familyID uuid.UUID, stage Stage, key string) (View, error) {
-	all, err := List(ctx, pool, familyID, stage)
+	all, err := List(ctx, pool, familyID, stage, 0) // looked up by key, so the order does not matter
 	if err != nil {
 		return View{}, err
 	}

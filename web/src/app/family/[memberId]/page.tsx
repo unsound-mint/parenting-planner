@@ -25,7 +25,7 @@ import { CalmSlot } from "@/components/week/calm-slot";
 import { LossHero, PregnancyHero, StageHero } from "@/components/week/hero";
 import { QuickJournal } from "@/components/week/quick-journal";
 import { ReadTogether } from "@/components/week/read-together";
-import { bagByPerson, journalPrompt, journalStarters, pickMission, pickReads, rotationWeek } from "@/components/week/this-week";
+import { bagByPerson, journalPrompt, journalStarters, LOSS_JOURNAL_PROMPT, lossJournalStarters, pickMission, pickReads, rotationWeek } from "@/components/week/this-week";
 import { TogetherCard } from "@/components/week/together-card";
 import { TwoOfYou } from "@/components/week/two-of-you";
 import { WeekMission } from "@/components/week/week-mission";
@@ -127,8 +127,8 @@ async function Week({ params }: { params: Promise<{ memberId: string }> }) {
   const journal = (
     <QuickJournal
       memberId={memberId}
-      prompt={journalPrompt(family.stage, rotation, week)}
-      starters={journalStarters(family.stage, rotation, partner?.displayName, week)}
+      prompt={loss ? LOSS_JOURNAL_PROMPT : journalPrompt(family.stage, rotation, week)}
+      starters={loss ? lossJournalStarters(partner?.displayName) : journalStarters(family.stage, rotation, partner?.displayName, week)}
       todayMood={todayMood}
     />
   );

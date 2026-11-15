@@ -1,6 +1,7 @@
 package content
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -26,21 +27,25 @@ func TestTalkPromptsChangeEveryWeek(t *testing.T) {
 			prev = got[0].ID
 		}
 	}
-	prev := ""
+	// In pregnancy the windows shift, so also rule out A, B, A flip-flops.
+	var recent []string
 	for week := 4; week <= 40; week++ {
 		got := CoupleTalkPrompts(State{Stage: "pregnancy", Week: week, HasWeek: true}, start)
 		if len(got) == 0 {
 			t.Fatalf("pregnancy week %d: no prompts", week)
 		}
-		if got[0].ID == prev {
-			t.Errorf("pregnancy week %d: same prompt %s as week %d", week, prev, week-1)
+		if slices.Contains(recent, got[0].ID) {
+			t.Errorf("pregnancy week %d: prompt %s led again within two weeks", week, got[0].ID)
 		}
 		for _, p := range got {
 			if len(p.Stages) > 0 {
 				t.Errorf("pregnancy week %d: stage prompt %s", week, p.ID)
 			}
 		}
-		prev = got[0].ID
+		recent = append(recent, got[0].ID)
+		if len(recent) > 2 {
+			recent = recent[1:]
+		}
 	}
 }
 

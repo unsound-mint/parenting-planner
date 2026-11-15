@@ -200,6 +200,15 @@ const starters: Record<keyof typeof prompts, readonly string[]> = {
   child: ["A good moment with them today", "Feeling stretched thin", "So many questions today", "Proud of them", "A slow, nice evening"],
 };
 
+// Loss support: the server moves the family to planning, so the planning pool
+// ("hoping", "excited") would show. One fixed, gentle question instead; it
+// does not rotate on purpose.
+export const LOSS_JOURNAL_PROMPT = "How are you today?";
+
+export function lossJournalStarters(partnerName?: string): string[] {
+  return ["Taking it one hour at a time", "Needed quiet today", partnerName ? `Leaned on ${partnerName} today` : "Was gentle with myself today"];
+}
+
 /** Starter lines to tap instead of typing: two from the stage's pool, rotating weekly, then one about the other parent. UI copy. */
 export function journalStarters(stage: Stage, rotation: number, partnerName?: string, week?: number): string[] {
   const close = partnerName ? `Felt close to ${partnerName} today` : "Had a quiet good moment today";

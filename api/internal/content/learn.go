@@ -141,6 +141,7 @@ func init() {
 	for _, p := range coupleTalkPrompts {
 		coupleTalkPromptsByID[p.ID] = p
 	}
+	pregnancyLeads = pickPregnancyLeads()
 }
 
 const choiceIDs = "abcdefgh"
@@ -363,30 +364,55 @@ func CoupleTalkPrompts(s State, today time.Time) []TalkPrompt {
 	return []TalkPrompt{}
 }
 
-// pregnancyTalkPrompts rotates the week's window by the week. Windows open and
-// close, so the plain rotation can repeat last week's lead; then the next
-// prompt leads instead.
+// pregnancyTalkPrompts rotates the week's window by the week and puts the
+// week's lead (pregnancyLeads) first.
 func pregnancyTalkPrompts(week int) []TalkPrompt {
+	out := rotate(pregnancyWindow(week), week)
+	if i := slices.IndexFunc(out, func(p TalkPrompt) bool { return p.ID == pregnancyLeads[week] }); i > 0 {
+		lead := out[i]
+		out = append([]TalkPrompt{lead}, slices.Delete(out, i, i+1)...)
+	}
+	return out
+}
+
+func pregnancyWindow(week int) []TalkPrompt {
 	out := []TalkPrompt{}
 	for _, p := range coupleTalkPrompts {
 		if len(p.Stages) == 0 && p.WeekFrom <= week && week <= p.WeekTo {
 			out = append(out, p)
 		}
 	}
-	if len(out) == 0 {
-		return out
-	}
-	out = rotate(out, week)
-	if i := slices.IndexFunc(out, func(p TalkPrompt) bool { return p.WeekFrom == week }); i > 0 {
-		fresh := out[i]
-		out = append([]TalkPrompt{fresh}, slices.Delete(out, i, i+1)...)
-	}
-	if len(out) > 1 && week > firstPregnancyWeek {
-		if last := pregnancyTalkPrompts(week - 1); len(last) > 0 && last[0].ID == out[0].ID {
-			out = append(out[1:], out[0])
-		}
-	}
 	return out
+}
+
+// pregnancyLeads is the first prompt of each pregnancy week, picked once in
+// week order: the prompt in the week's window that led longest ago (or never),
+// in rotation order, so one that opens this week leads first. Windows open and
+// close, so the plain rotation alone would flip back and forth between the
+// same few prompts.
+var pregnancyLeads map[int]string
+
+func pickPregnancyLeads() map[int]string {
+	leads := map[int]string{}
+	ledIn := map[string]int{}
+	for week := firstPregnancyWeek; week <= lastPregnancyWeek; week++ {
+		rotated := rotate(pregnancyWindow(week), week)
+		if len(rotated) == 0 {
+			continue
+		}
+		lead, oldest := "", week
+		for _, p := range rotated {
+			at, ok := ledIn[p.ID]
+			if !ok {
+				at = -1
+			}
+			if at < oldest {
+				lead, oldest = p.ID, at
+			}
+		}
+		leads[week], ledIn[lead] = lead, week
+	}
+	return leads
 }
 
 // rotate sorts the prompts by id and starts the list at week mod its length.
