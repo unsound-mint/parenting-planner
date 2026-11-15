@@ -32,6 +32,8 @@ type Facts struct {
 	// Rubella immunity from the pregnant or planning parent's latest lab that
 	// reports it: "immune", "not immune", or "" when no lab says.
 	MotherRubella string
+	// MotherRubellaOn is the date of that lab; zero when MotherRubella is empty.
+	MotherRubellaOn time.Time
 	// The family's children, oldest first.
 	Children []ChildFacts
 	// The family's childcare options (family-wide, both parents see them).

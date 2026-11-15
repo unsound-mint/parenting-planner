@@ -120,6 +120,66 @@
    "title": "FDA and EPA: Advice about Eating Fish",
    "url": "https://www.fda.gov/food/consumers/advice-about-eating-fish",
    "checkedAt": "2026-11-14"
+  },
+  "aap-tantrums": {
+   "title": "HealthyChildren.org (AAP): Temper tantrums",
+   "url": "https://www.healthychildren.org/English/family-life/family-dynamics/communication-discipline/Pages/Temper-Tantrums.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-bedtime-toddler": {
+   "title": "HealthyChildren.org (AAP): Bedtime trouble",
+   "url": "https://www.healthychildren.org/English/healthy-living/sleep/Pages/bedtime-trouble.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-lang-2y": {
+   "title": "HealthyChildren.org (AAP): Language development: 2-year-olds",
+   "url": "https://www.healthychildren.org/English/ages-stages/toddler/Pages/Language-Development-2-Year-Olds.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-screen-5cs": {
+   "title": "HealthyChildren.org (AAP): Kids and screen time, 5 Cs for toddlers and preschoolers",
+   "url": "https://www.healthychildren.org/English/family-life/Media/Pages/kids-and-screen-time-5-cs-questions-for-toddlers-and-preschoolers.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-emotional-preschool": {
+   "title": "HealthyChildren.org (AAP): Emotional development in preschoolers",
+   "url": "https://www.healthychildren.org/English/ages-stages/preschool/Pages/Emotional-Development-in-Preschoolers.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-nightmares": {
+   "title": "HealthyChildren.org (AAP): Nightmares and night terrors",
+   "url": "https://www.healthychildren.org/English/ages-stages/preschool/Pages/Nightmares-and-Night-Terrors.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-independence": {
+   "title": "HealthyChildren.org (AAP): Growing independence tips",
+   "url": "https://www.healthychildren.org/English/ages-stages/preschool/Pages/Growing-Independence-Tips-for-Parents-of-Young-Children.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-kindergarten": {
+   "title": "HealthyChildren.org (AAP): Is your child ready for kindergarten?",
+   "url": "https://www.healthychildren.org/English/ages-stages/preschool/Pages/Is-Your-Child-Ready-for-School.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-school-tips": {
+   "title": "HealthyChildren.org (AAP): Ten tips for your child's success in school",
+   "url": "https://www.healthychildren.org/English/ages-stages/gradeschool/school/Pages/Ten-Tips-for-Your-Childs-Success-in-School.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-peers": {
+   "title": "HealthyChildren.org (AAP): Problems with peers",
+   "url": "https://www.healthychildren.org/English/ages-stages/gradeschool/school/Pages/Problems-With-Peers.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-self-esteem": {
+   "title": "HealthyChildren.org (AAP): Helping your child develop a healthy sense of self-esteem",
+   "url": "https://www.healthychildren.org/English/ages-stages/gradeschool/Pages/Helping-Your-Child-Develop-A-Healthy-Sense-of-Self-Esteem.aspx",
+   "checkedAt": "2026-11-15"
+  },
+  "aap-sleep-hours": {
+   "title": "HealthyChildren.org (AAP): Healthy sleep habits",
+   "url": "https://www.healthychildren.org/English/healthy-living/sleep/Pages/healthy-sleep-habits-how-many-hours-does-your-child-need.aspx",
+   "checkedAt": "2026-11-15"
   }
  },
  "paths": [
@@ -1497,6 +1557,444 @@
     "infant",
     "toddler",
     "preschool",
+    "school_age"
+   ]
+  },
+  {
+   "id": "toddler-days",
+   "title": "Toddler days",
+   "icon": "a small pair of shoes mid-step",
+   "why": "Tantrums, bedtime and first sentences are the big three at this age. Short, sourced reads you can use today.",
+   "lessons": [
+    {
+     "id": "tantrums-calm-down",
+     "title": "Tantrums: what helps, what to skip",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-tantrums",
+     "body": "Tantrums are a normal part of growing up, and they are most common between ages 1 and 3. Some children have them often and some hardly ever, and a child who has more of them is not necessarily getting too little attention. They tend to flare when a child is hungry or tired, so a snack in your bag and protected naps prevent more than any clever script. When one starts, offer a small choice between two things instead of a yes-or-no question, or change the scene: another room, a safer toy, a song. Pick your battles and stay consistent from day to day. If you feel yourself boiling, hand over to another adult for a few minutes. Hitting, kicking, biting and throwing are different: stop them right away and say clearly they are not allowed. If your child is about to run into the street, hold them firmly. Tantrums usually ease after age 3. If you are worried about how your child behaves, talk to your pediatrician.",
+     "quiz": [
+      {
+       "question": "When are tantrums most common?",
+       "options": [
+        "Between ages 1 and 3",
+        "Only after age 5",
+        "Only in babies"
+       ],
+       "answer": "Between ages 1 and 3",
+       "why": "AAP says tantrums most often happen between ages 1 and 3."
+      },
+      {
+       "question": "What can head off many tantrums?",
+       "options": [
+        "Skipping naps",
+        "A snack on hand and protected sleep",
+        "Giving in every time"
+       ],
+       "answer": "A snack on hand and protected sleep",
+       "why": "Hunger and tiredness are common triggers."
+      }
+     ],
+     "talkTonight": "What sets off our child's biggest tantrums, and which two choices could we offer next time?"
+    },
+    {
+     "id": "toddler-bedtime",
+     "title": "A bedtime routine that holds",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-bedtime-toddler",
+     "body": "A short, calm routine tells a toddler that sleep is coming. Reading, quiet music or a bath works; active play does not, because it leaves a child too wound up to settle. Go to bed at about the same time each night so your child knows what to expect. A safe comfort object, such as a small blanket or stuffed animal, can help at bedtime and during night waking, as long as it has no buttons, loose ribbons or loose stuffing. Sort out thirst, light and the door position before lights out so they cannot become reasons to stall. Once you know your child is safe and well, you do not need to answer every call: even a quick check can teach that calling brings you back. Falling asleep alone takes practice, so stay patient. Frustration can make sleep problems worse. If sleep worries you, ask your pediatrician.",
+     "quiz": [
+      {
+       "question": "What kind of activity suits the last part of the evening?",
+       "options": [
+        "Wrestling and chasing",
+        "Reading or quiet music",
+        "A new video game"
+       ],
+       "answer": "Reading or quiet music",
+       "why": "Calm activities signal sleep; active play can over-excite."
+      },
+      {
+       "question": "Why avoid going in every time your child calls out?",
+       "options": [
+        "It teaches that calling brings you back",
+        "It is unsafe",
+        "It wakes the neighbors"
+       ],
+       "answer": "It teaches that calling brings you back",
+       "why": "Even brief checks can keep the calling going, once you know your child is safe."
+      }
+     ],
+     "talkTonight": "What are the three steps of our bedtime routine, and can both of us do them the same way?"
+    },
+    {
+     "id": "toddler-language-play",
+     "title": "Talking, reading and rhyming at 2",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-lang-2y",
+     "body": "Most two-year-olds understand most of what adults say and use around 50 or more words. Early in the year they link two or three words together, and by the end many use four to six, like \"Where's the ball, Daddy?\" Language varies more than any other skill at this age. Boys often talk later than girls, and a quiet child may know as many words as a chatty one, so skip the comparisons. The simplest boost is a daily book. Keep it short, since toddlers wriggle, and pick books that invite pointing, touching, naming and repeating. Later in the year add rhymes, poems and silly sounds. About 1 in 10 to 15 children has trouble understanding or using speech. If you suspect a problem, ask your pediatrician about a hearing check and a speech and language referral. Early help matters.",
+     "quiz": [
+      {
+       "question": "Roughly how many words do most 2-year-olds use?",
+       "options": [
+        "About 5",
+        "About 50 or more",
+        "About 1,000"
+       ],
+       "answer": "About 50 or more",
+       "why": "AAP gives a vocabulary of about 50 or more words at 2."
+      },
+      {
+       "question": "What kind of book suits a toddler?",
+       "options": [
+        "Long chapter books",
+        "Short books that invite pointing and naming",
+        "Only books with no pictures"
+       ],
+       "answer": "Short books that invite pointing and naming",
+       "why": "Activity-style books hold a wriggly toddler's attention."
+      }
+     ],
+     "talkTonight": "Which book or rhyme could we make our daily one this week?"
+    },
+    {
+     "id": "toddler-screens",
+     "title": "Screens for toddlers: the five Cs",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-screen-5cs",
+     "body": "For ages 2 to 4, the AAP does not give a minutes-per-day number. It gives five questions instead. Child: how does yours react to screens, and what boundary fits? Content: choose quality programs, be wary of cartoons and influencer videos full of ads, and on YouTube use a playlist you vetted with autoplay off. Calm: help your child name and handle big feelings instead of handing over a device, and keep screens for set times such as a long trip. Crowding out: screens should not push aside play, movement, outdoors, books or conversation, and the AAP advises against open access to a tablet or phone. Communication: talk about what you watch together, including how characters behave. Your own habits count too, so a family media plan helps everyone.",
+     "quiz": [
+      {
+       "question": "What does the AAP advise about tablets and phones for toddlers?",
+       "options": [
+        "Open access all day",
+        "Avoid open access",
+        "Only at bedtime"
+       ],
+       "answer": "Avoid open access",
+       "why": "The page says to avoid letting a child have open access to a tablet or phone."
+      },
+      {
+       "question": "What should a screen do when your toddler has a meltdown?",
+       "options": [
+        "Be the first tool to calm them",
+        "Not replace helping them name the feeling"
+       ],
+       "answer": "Not replace helping them name the feeling",
+       "why": "The Calm C: teach emotion skills rather than soothe with a device."
+      }
+     ],
+     "talkTonight": "When do screens belong in our day, and what do we do instead during the hard moments?"
+    }
+   ],
+   "stages": [
+    "toddler"
+   ]
+  },
+  {
+   "id": "preschool-days",
+   "title": "Preschool days",
+   "icon": "a crayon drawing of a house with a sun",
+   "why": "Big feelings, big imagination and a first school year ahead. Short reads for the preschool years.",
+   "lessons": [
+    {
+     "id": "feelings-through-play",
+     "title": "Big feelings, pretend play and fears",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-emotional-preschool",
+     "body": "Preschoolers live in a vivid fantasy world where they try out love, anger and fear. They slip between make-believe and real life, so a scary story can feel true. War games or pretend guns are common and do not by themselves mean a child is aggressive. By about 4, many children are more confident, chatty and tuned in to others' feelings, and may want to comfort someone who is hurt. You can help in three ways. Comfort fears without mocking them, and never threaten things like locking them up. Join pretend play now and then, letting your child lead, to see what they are working through, such as a doll starting preschool. And offer two or three choices, like which shirt, so their opinions count while you keep the big decisions. If you have worries about your child's emotional development, ask your pediatrician.",
+     "quiz": [
+      {
+       "question": "Does pretend play with violent themes mean a preschooler is aggressive?",
+       "options": [
+        "Yes, always",
+        "No, it is common and not a sign by itself"
+       ],
+       "answer": "No, it is common and not a sign by itself",
+       "why": "AAP says such play is common."
+      },
+      {
+       "question": "How many choices work best for a preschooler?",
+       "options": [
+        "Two or three",
+        "Ten",
+        "None"
+       ],
+       "answer": "Two or three",
+       "why": "Too many options overwhelm young children."
+      }
+     ],
+     "talkTonight": "What does our child act out in pretend play lately, and what might it be telling us?"
+    },
+    {
+     "id": "nightmares-night-terrors",
+     "title": "Nightmares or night terrors?",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-nightmares",
+     "body": "They look alike at 2 a.m. but they are different. A nightmare comes in the second half of the night. Your child wakes upset, can tell you about the dream and may struggle to fall back asleep. Go to them quickly, say you are there, let them describe it and remind them dreams are not real. A night light is fine, and look for real sources of fear such as odd shadows. A night terror happens in the deepest sleep, usually early in the night. Your child stays asleep while crying, thrashing or screaming, does not recognize you and will not remember it. Stay calm, keep them from getting hurt, and expect them to settle on their own. Most episodes are short, though one can last up to 45 minutes. Tell babysitters what to expect. If night terrors keep happening, talk to your child's doctor.",
+     "quiz": [
+      {
+       "question": "Who remembers the episode?",
+       "options": [
+        "A child after a night terror",
+        "A child after a nightmare"
+       ],
+       "answer": "A child after a nightmare",
+       "why": "After a nightmare the child is awake and can describe it; after a night terror they do not remember."
+      },
+      {
+       "question": "What should you do during a night terror?",
+       "options": [
+        "Wake the child up and quiz them",
+        "Stay calm and keep them safe",
+        "Ignore any danger"
+       ],
+       "answer": "Stay calm and keep them safe",
+       "why": "The child is not aware, so the aim is to prevent injury and wait it out."
+      }
+     ],
+     "talkTonight": "If our child woke screaming tonight, who goes in and what do we say?"
+    },
+    {
+     "id": "preschool-helpers",
+     "title": "Small jobs and routines that build independence",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-independence",
+     "body": "Four to six-year-olds are ready for real jobs: setting the table, putting toys away, feeding a pet, dropping dirty clothes in a basket. Helping builds their self-esteem. Let them dress and wash themselves, even though it takes longer, and lay out clothes the night before. Keep the same morning and bedtime routines so they know what comes next. When a rule is broken, explain briefly and use a simple, connected consequence, like the bike staying put for a day after riding without a helmet. Teach short safety rules such as \"If you're not sure, ask me.\" Ask \"What was the best part of today? What was the hardest?\" and show that bad feelings are normal.",
+     "quiz": [
+      {
+       "question": "Which is a job a 4 to 6-year-old can do?",
+       "options": [
+        "Setting the table",
+        "Cooking on the stove alone"
+       ],
+       "answer": "Setting the table",
+       "why": "AAP lists setting the table, tidying toys and feeding pets."
+      },
+      {
+       "question": "What makes a good consequence?",
+       "options": [
+        "Simple and linked to the behavior",
+        "Harsh and unrelated"
+       ],
+       "answer": "Simple and linked to the behavior",
+       "why": "Example: no bike for a day after riding without a helmet."
+      }
+     ],
+     "talkTonight": "Which two jobs will our child own this week, and where will we put the reminder?"
+    },
+    {
+     "id": "ready-for-kindergarten",
+     "title": "Getting ready for kindergarten",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-kindergarten",
+     "body": "School readiness is wider than letters and numbers. The AAP looks at social and emotional skills, such as paying attention, taking turns, following directions, making friends and handling feelings. It also counts talking and listening, early numbers and sounds, and practical skills like being toilet trained and holding a crayon. What helps: watch your child's milestones, talk to your pediatrician, and ask the preschool teacher for honest feedback. Put the phone down and talk about the day. Do art or other activities together, and limit apps and shows, even educational ones. If a readiness screening shows gaps, plan support with the school. The AAP sees screening as a way to guide teaching, not a gate. Be wary of holding a child back a year: older children can face more behavior problems in adolescence, so talk it through with your pediatrician first.",
+     "quiz": [
+      {
+       "question": "What is school readiness about, per the AAP?",
+       "options": [
+        "Only knowing letters",
+        "Social, emotional, language and practical skills together"
+       ],
+       "answer": "Social, emotional, language and practical skills together",
+       "why": "The page lists several areas beyond academics."
+      },
+      {
+       "question": "How should a readiness screening be used?",
+       "options": [
+        "To keep a child out",
+        "To plan support"
+       ],
+       "answer": "To plan support",
+       "why": "The AAP says it guides instruction and is not a gatekeeping test."
+      }
+     ],
+     "talkTonight": "Which one skill from the list would we like to practice together before school starts?"
+    }
+   ],
+   "stages": [
+    "preschool"
+   ]
+  },
+  {
+   "id": "school-age-days",
+   "title": "School-age days",
+   "icon": "a backpack hanging on a hook",
+   "why": "Routines, friends, jobs and sleep. Short reads for the school years.",
+   "lessons": [
+    {
+     "id": "school-launch-pad",
+     "title": "A school routine that runs itself",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-school-tips",
+     "body": "The AAP's ten tips mostly come down to a steady home. Set a bedtime that gives enough sleep, serve breakfast, get some exercise in, and limit TV and games. Keep the same order each day: morning routine, homework after school. Make a launch pad, one spot for backpacks, shoes and lunchboxes, so mornings are calmer. Give homework a place with light and supplies, even a kitchen counter. Read together every day and let your child read aloud. Turn everyday things like a recipe into reading, math and science. Do your own work nearby so they see effort. Ask how they feel about school and classmates, and praise effort as well as results. Get to know the teachers and raise concerns early. Expect them to try their best, without demanding perfection.",
+     "quiz": [
+      {
+       "question": "What is a launch pad?",
+       "options": [
+        "A spot for backpacks, shoes and lunchboxes",
+        "A homework app"
+       ],
+       "answer": "A spot for backpacks, shoes and lunchboxes",
+       "why": "One place for school things makes mornings smoother."
+      },
+      {
+       "question": "When should you raise concerns with a teacher?",
+       "options": [
+        "Early",
+        "Only at the end of the year"
+       ],
+       "answer": "Early",
+       "why": "The AAP says to stay in regular contact and raise concerns early."
+      }
+     ],
+     "talkTonight": "Where will our launch pad go, and who sets up the homework spot?"
+    },
+    {
+     "id": "school-friendships",
+     "title": "When friendships get hard",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-peers",
+     "body": "Once school starts, fights with classmates are normal, and many children feel pushed out at some point. Start by showing you understand and you are on their side. Then look for a pattern: one bad day is different from repeated rejection. Sometimes a group reacts to a child seen as different, and sometimes behavior from one or both sides needs to change. If it is a pattern, meet the teacher, perhaps with the principal or counselor, and ask them to watch recess and lunch. When you have a clearer picture, talk to your pediatrician. Online, social media can carry bullying beyond school. To reduce the risk, delay giving a device, set limits, make a family media plan and know which apps your child uses.",
+     "quiz": [
+      {
+       "question": "What first step does the AAP suggest?",
+       "options": [
+        "Show your child you are on their side",
+        "Call the other parents at once"
+       ],
+       "answer": "Show your child you are on their side",
+       "why": "Understanding and working on solutions together comes first."
+      },
+      {
+       "question": "Who do you meet if rejection is a pattern?",
+       "options": [
+        "The teacher",
+        "Nobody, it passes"
+       ],
+       "answer": "The teacher",
+       "why": "Then, with more information, the pediatrician."
+      }
+     ],
+     "talkTonight": "Who does our child sit with at lunch, and how could we ask without it feeling like a quiz?"
+    },
+    {
+     "id": "school-chores-confidence",
+     "title": "Responsibility and honest praise",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-self-esteem",
+     "body": "Giving school-age kids real responsibility is one of the best ways to build confidence. Hand over tasks that show what they can do and trust them to do it without constant checking. Aim for expectations that are neither too easy nor impossible: overprotecting breeds dependence, and impossible goals leave a child feeling powerless. Let them make age-appropriate choices within your family's values. Praise effort, not only results, and be specific and quick: \"I like how you waited for your turn.\" Treat mistakes as part of learning, and share your own. Belonging, goals and kept promises matter too, and families do better when they point to strengths and keep time together.",
+     "quiz": [
+      {
+       "question": "What should praise focus on?",
+       "options": [
+        "Effort and small improvements",
+        "Only perfect results"
+       ],
+       "answer": "Effort and small improvements",
+       "why": "AAP suggests praising effort and noticing progress."
+      },
+      {
+       "question": "What does overprotecting a child tend to cause?",
+       "options": [
+        "Dependence",
+        "Faster independence"
+       ],
+       "answer": "Dependence",
+       "why": "Expectations should be neither too easy nor too hard."
+      }
+     ],
+     "talkTonight": "Which job can we hand over fully this week, without checking on it?"
+    },
+    {
+     "id": "school-sleep-screens",
+     "title": "Sleep and screens on school nights",
+     "weeks": [
+      1,
+      40
+     ],
+     "audience": "both",
+     "readingMinutes": 1,
+     "source": "aap-sleep-hours",
+     "body": "Sleep is a family habit, and parents set the example. Use the same wake-up time on weekdays and weekends and a short routine like \"brush, book, bed.\" Fill the day with movement and fresh air, and give bright light in the morning. Keep screens out of bedrooms and switch them off at least 60 minutes before bed. Dim the lights in the evening, keep the room comfortable and toys out of bed, and avoid overscheduling so there is time to wind down. Signs of a sleep problem include trouble falling asleep, waking at night, snoring and loud breathing. Ask teachers how alert your child is in class, and talk to your pediatrician if you worry.",
+     "quiz": [
+      {
+       "question": "When should screens go off before bed?",
+       "options": [
+        "At least 60 minutes before",
+        "At bedtime exactly"
+       ],
+       "answer": "At least 60 minutes before",
+       "why": "The AAP page gives at least 60 minutes."
+      },
+      {
+       "question": "Which is a possible sign of a sleep problem?",
+       "options": [
+        "Snoring and loud breathing",
+        "Liking a bedtime story"
+       ],
+       "answer": "Snoring and loud breathing",
+       "why": "Also trouble falling asleep or waking at night."
+      }
+     ],
+     "talkTonight": "Where do the screens sleep at night, and what could the last hour look like instead?"
+    }
+   ],
+   "stages": [
     "school_age"
    ]
   }

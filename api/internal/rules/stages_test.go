@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -49,7 +50,15 @@ func TestMMRBeforePregnancy(t *testing.T) {
 	f.MotherRubella = "immune"
 	checkStatus(t, "immune", "mmr-before-pregnancy", f, "")
 	f.MotherRubella = "not immune"
-	checkStatus(t, "not immune", "mmr-before-pregnancy", f, Due)
+	it := checkStatus(t, "not immune", "mmr-before-pregnancy", f, Due)
+	if it != nil && !strings.Contains(it.Reason, "your blood test shows") {
+		t.Errorf("reason without a lab date = %q", it.Reason)
+	}
+	f.MotherRubellaOn = today.AddDate(0, 0, -21)
+	it = checkStatus(t, "not immune, dated", "mmr-before-pregnancy", f, Due)
+	if want := "your lab result on " + f.MotherRubellaOn.Format("Jan 2") + " shows you are not immune to rubella"; it != nil && !strings.Contains(it.Reason, want) {
+		t.Errorf("reason = %q, want it to contain %q", it.Reason, want)
+	}
 	f.Viewer = Partner
 	checkStatus(t, "partner", "mmr-before-pregnancy", f, "")
 	f.Viewer = Mother

@@ -382,9 +382,11 @@ func seedPregnancyPassport(ctx context.Context, q *store.Queries, familyID, mom,
 			return err
 		}
 	}
+	// The Tdap window is weeks 27 to 36 (rules/pregnancy.go). The passport shows
+	// the end of it, the same "by" date the plan and journey show.
 	pregnancyStart := today.AddDate(0, 0, -week*7)
 	for _, d := range []store.CreateScheduledDoseParams{
-		{SubjectMemberID: member(mom), Vaccine: "tdap", Dose: "This pregnancy", DueOn: pregnancyStart.AddDate(0, 0, 27*7)},
+		{SubjectMemberID: member(mom), Vaccine: "tdap", Dose: "This pregnancy", DueOn: pregnancyStart.AddDate(0, 0, 37*7-1)},
 		{SubjectMemberID: member(partner), Vaccine: "tdap", Dose: "Before the baby arrives", DueOn: today.AddDate(0, 0, 21)},
 	} {
 		d.FamilyID = familyID

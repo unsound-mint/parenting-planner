@@ -6658,6 +6658,11 @@ export interface components {
             kind: components["schemas"]["ScreeningKind"];
             /** Format: date */
             takenOn: string;
+            /**
+             * @description The stored result values in words, when the record has any (a preconception panel). Absent for a screening logged without values.
+             * @example Rubella: not immune · Varicella: immune · Hemoglobin 13.1 g/dL
+             */
+            summary?: string;
             visibility: components["schemas"]["Visibility"];
         };
         LabResultInput: {
